@@ -1,16 +1,36 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+// GET all CMS content for public rendering (no auth required)
 export async function GET() {
-  try {
-    const settings = await db.cmsSetting.findMany();
-    const result: Record<string, string> = {};
-    for (const s of settings) {
-      result[s.key] = s.value;
-    }
-    return NextResponse.json({ settings: result });
-  } catch (error) {
-    console.error('CMS content error:', error);
-    return NextResponse.json({ settings: {} });
+  const [settings, sections] = await Promise.all([
+    db.cmsSetting.findMany({ orderBy: { key: 'asc' } }),
+    db.cmsSection.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+      include: {
+        cards: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+        },
+      },
+    }),
+  ]);
+
+  // Convert settings to key-value map
+  const settingsMap: Record<string, string> = {};
+  for (const s of settings) {
+    settingsMap[s.key] = s.value;
   }
+
+  // Convert sections to slug-keyed map
+  const sectionsMap: Record<string, typeof sections[0]> = {};
+  for (const s of sections) {
+    sectionsMap[s.slug] = s;
+  }
+
+  return NextResponse.json(
+    { settings: settingsMap, sections: sectionsMap },
+    { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30' } }
+  );
 }

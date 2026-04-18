@@ -1,29 +1,49 @@
 import { db } from '@/lib/db';
-import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/api-auth';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
-  try {
-    const seasonId = req.nextUrl.searchParams.get('seasonId') || undefined;
-    const weekNumber = req.nextUrl.searchParams.get('weekNumber') ? parseInt(req.nextUrl.searchParams.get('weekNumber')!) : undefined;
-    const division = req.nextUrl.searchParams.get('division') || undefined;
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const seasonId = searchParams.get('seasonId');
+  const week = searchParams.get('week');
 
-    const where: Record<string, unknown> = {};
-    if (seasonId) where.seasonId = seasonId;
-    if (weekNumber) where.weekNumber = weekNumber;
-    if (division) where.division = division;
+  const where: Record<string, unknown> = {};
+  if (seasonId) where.seasonId = seasonId;
+  if (week) where.week = parseInt(week);
 
-    const matches = await db.leagueMatch.findMany({
-      where,
-      orderBy: [{ weekNumber: 'asc' }, { scheduledAt: 'asc' }],
-      include: {
-        homeClub: { select: { id: true, name: true, logo: true } },
-        awayClub: { select: { id: true, name: true, logo: true } },
-      },
-    });
+  const matches = await db.leagueMatch.findMany({
+    where,
+    orderBy: [{ week: 'asc' }],
+    include: {
+      club1: true,
+      club2: true,
+    },
+  });
 
-    return NextResponse.json(matches);
-  } catch (error) {
-    console.error('League matches API error:', error);
-    return NextResponse.json({ error: 'Failed to fetch league matches' }, { status: 500 });
+  return NextResponse.json(matches);
+}
+
+export async function POST(request: Request) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
+  const body = await request.json();
+  const { seasonId, club1Id, club2Id, week, format } = body;
+
+  if (!seasonId || !club1Id || !club2Id || !week) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
+
+  const match = await db.leagueMatch.create({
+    data: {
+      seasonId,
+      club1Id,
+      club2Id,
+      week,
+      format: format || 'BO3',
+      status: 'upcoming',
+    },
+  });
+
+  return NextResponse.json(match, { status: 201 });
 }

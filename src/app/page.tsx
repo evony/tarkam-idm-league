@@ -17,12 +17,16 @@ export default function Home() {
   useEffect(() => {
     async function checkAndSeed() {
       try {
+        // Check if data exists
         const res = await fetch('/api/stats?division=male');
         const data = await res.json();
         if (!data.hasData) {
           await fetch('/api/seed', { method: 'POST' });
         }
+
+        // Initialize super admin if not exists
         await fetch('/api/init-admin', { method: 'POST' });
+
         setSeeded(true);
       } catch {
         setSeeded(true);
@@ -35,17 +39,17 @@ export default function Home() {
     setSplashDone(true);
   }, []);
 
+  // Show splash screen first, then app
   if (!splashDone) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
+  // Simple loading if data not ready after splash
   if (!seeded) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <div className="w-12 h-12 rounded-xl overflow-hidden mb-4">
-          <div className="w-full h-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center">
-            <span className="text-white font-black text-sm">IDM</span>
-          </div>
+          <img src="/logo.webp" alt="IDM" className="w-full h-full object-cover" />
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />

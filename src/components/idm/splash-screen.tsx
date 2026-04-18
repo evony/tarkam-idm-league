@@ -47,7 +47,8 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
           {/* Main Content */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* Logo */}
+
+            {/* Main Logo */}
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -55,6 +56,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
               className="mb-8"
             >
               <div className="relative">
+                {/* Outer glow ring */}
                 <motion.div
                   className="absolute -inset-4 rounded-3xl"
                   animate={{
@@ -66,8 +68,8 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                   }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                 />
-                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/30 backdrop-blur-sm flex items-center justify-center">
-                  <span className="text-5xl sm:text-6xl font-black text-gradient-fury">IDM</span>
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/30 backdrop-blur-sm">
+                  <img src="/logo.webp" alt="IDM League" className="w-full h-full object-cover" />
                 </div>
               </div>
             </motion.div>
@@ -126,16 +128,18 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             transition={{ delay: 2, duration: 0.6, ease: 'easeOut' }}
             className="absolute bottom-0 inset-x-0"
           >
+            {/* Gold top border line */}
             <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
             <div className="py-4 flex flex-col items-center gap-1.5">
               <span className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-semibold bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
                 BORNEO Pride
               </span>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-px bg-gradient-to-r from-transparent to-amber-500/40" />
-                <span className="text-[9px] text-white/30 tracking-widest">DANCE • COMPETE • DOMINATE</span>
-                <div className="w-4 h-px bg-gradient-to-l from-transparent to-amber-500/40" />
+                <div className="w-4 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
+                <div className="w-1.5 h-1.5 rotate-45 bg-amber-500/70" />
+                <div className="w-4 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
               </div>
+              <span className="text-[8px] text-amber-500/30 tracking-[0.2em] uppercase">Idol Meta · Fan Made Edition</span>
             </div>
           </motion.div>
         </motion.div>

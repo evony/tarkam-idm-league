@@ -1,45 +1,46 @@
 import { db } from '@/lib/db';
-import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/api-auth';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
-  try {
-    const division = req.nextUrl.searchParams.get('division') || undefined;
-    const where: Record<string, unknown> = {};
-    if (division) where.division = division;
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const division = searchParams.get('division');
 
-    const seasons = await db.season.findMany({
-      where,
-      orderBy: { number: 'desc' },
-      include: { _count: { select: { tournaments: true, clubs: true } } },
-    });
+  const where: Record<string, string | undefined> = {};
+  if (division) where.division = division;
 
-    return NextResponse.json(seasons);
-  } catch (error) {
-    console.error('Seasons API error:', error);
-    return NextResponse.json({ error: 'Failed to fetch seasons' }, { status: 500 });
-  }
+  const seasons = await db.season.findMany({
+    where,
+    orderBy: { number: 'desc' },
+    include: {
+      _count: { select: { tournaments: true, clubs: true } },
+    },
+  });
+
+  return NextResponse.json(seasons);
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { name, number, division, startDate, status } = body;
+export async function POST(request: Request) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
 
-    if (!name || !number || !division) {
-      return NextResponse.json({ error: 'name, number, division are required' }, { status: 400 });
-    }
+  const body = await request.json();
+  const { name, number, division, startDate, endDate } = body;
 
-    const season = await db.season.create({
-      data: {
-        name, number, division,
-        startDate: startDate ? new Date(startDate) : new Date(),
-        status: status || 'active',
-      },
-    });
-
-    return NextResponse.json(season, { status: 201 });
-  } catch (error) {
-    console.error('Create season error:', error);
-    return NextResponse.json({ error: 'Failed to create season' }, { status: 500 });
+  if (!name || !number || !division) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
+
+  const season = await db.season.create({
+    data: {
+      name,
+      number,
+      division,
+      status: 'active',
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate ? new Date(endDate) : null,
+    },
+  });
+
+  return NextResponse.json(season, { status: 201 });
 }

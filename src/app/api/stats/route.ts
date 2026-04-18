@@ -1,190 +1,230 @@
 import { db } from '@/lib/db';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
-  try {
-    const division = req.nextUrl.searchParams.get('division') || 'male';
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const division = searchParams.get('division') || 'male';
 
-    // Check if data exists
-    const playerCount = await db.player.count({ where: { division, isActive: true } });
-    if (playerCount === 0) {
-      return NextResponse.json({ hasData: false, division });
-    }
+  // IDM League is a unified league (not split by male/female)
+  // Seasons use division='liga' — find ANY active/completed season regardless of the provided division param
+  const season = await db.season.findFirst({
+    where: { status: { in: ['active', 'completed'] } },
+    orderBy: { number: 'desc' },
+  });
 
-    // Get current active season
-    const season = await db.season.findFirst({
-      where: { division, status: 'active' },
-      orderBy: { createdAt: 'desc' },
+  if (!season) {
+    return NextResponse.json({ hasData: false, division }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
+      },
     });
+  }
 
-    if (!season) {
-      return NextResponse.json({ hasData: false, division });
-    }
-
-    // Active tournament
-    const activeTournament = await db.tournament.findFirst({
-      where: { division, seasonId: season.id, status: { in: ['registration', 'approval', 'team_generation', 'bracket_generation', 'main_event'] } },
+  // Run ALL independent queries in parallel
+  const [
+    activeTournament,
+    totalPlayers,
+    seasonDonations,
+    topPlayers,
+    clubs,
+    recentMatches,
+    upcomingMatches,
+    playoffMatches,
+    tournaments,
+    leagueMatches,
+  ] = await Promise.all([
+    // Active/recent tournament (unified league — no division filter on tournaments)
+    db.tournament.findFirst({
+      where: { seasonId: season.id },
       orderBy: { weekNumber: 'desc' },
       include: {
-        teams: { include: { teamPlayers: { include: { player: { select: { id: true, name: true, gamertag: true, tier: true, points: true } } } } } },
-        matches: { include: { team1: { select: { id: true, name: true } }, team2: { select: { id: true, name: true } }, mvpPlayer: { select: { id: true, name: true, gamertag: true } } }, orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }] },
-        donations: { where: { status: 'approved' } },
+        teams: { include: { teamPlayers: { include: { player: true } } } },
+        matches: { include: { team1: true, team2: true, mvpPlayer: true } },
+        participations: { include: { player: true } },
+        donations: true,
       },
-    });
+    }),
 
-    // Total prize pool
-    const prizePoolResult = await db.tournament.aggregate({ _sum: { prizePool: true }, where: { division, seasonId: season.id } });
-    const totalPrizePool = prizePoolResult._sum.prizePool || 0;
+    // Total players
+    db.player.count({ where: { division, isActive: true } }),
 
-    // Season donation total
-    const donationResult = await db.donation.aggregate({ _sum: { amount: true }, where: { seasonId: season.id, status: 'approved' } });
-    const seasonDonationTotal = donationResult._sum.amount || 0;
+    // ALL approved donations for the season (unified league)
+    db.donation.findMany({
+      where: { seasonId: season.id, status: 'approved' },
+    }),
 
-    // Top players
-    const topPlayers = await db.player.findMany({
+    // Top players leaderboard — show all active players for landing page roster
+    db.player.findMany({
       where: { division, isActive: true },
-      orderBy: { points: 'desc' },
-      take: 10,
-      include: { clubMembers: { include: { club: { select: { name: true } } } } },
-    });
+      orderBy: [{ points: 'desc' }, { totalWins: 'desc' }],
+    }),
 
-    // Recent league matches
-    const recentMatches = await db.leagueMatch.findMany({
-      where: { division, seasonId: season.id, status: 'completed' },
-      orderBy: { completedAt: 'desc' },
-      take: 5,
-      include: { homeClub: { select: { name: true, logo: true } }, awayClub: { select: { name: true, logo: true } } },
-    });
+    // Clubs standings
+    db.club.findMany({
+      where: { seasonId: season.id },
+      orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
+      include: { _count: { select: { members: true } } },
+    }),
+
+    // Recent matches
+    db.leagueMatch.findMany({
+      where: { seasonId: season.id, status: 'completed' },
+      orderBy: { week: 'desc' },
+      take: 3,
+      include: { club1: true, club2: true },
+    }),
 
     // Upcoming matches
-    const upcomingMatches = await db.leagueMatch.findMany({
-      where: { division, seasonId: season.id, status: 'scheduled' },
-      orderBy: { weekNumber: 'asc' },
-      take: 5,
-      include: { homeClub: { select: { name: true, logo: true } }, awayClub: { select: { name: true, logo: true } } },
-    });
+    db.leagueMatch.findMany({
+      where: { seasonId: season.id, status: 'upcoming' },
+      orderBy: { week: 'asc' },
+      take: 3,
+      include: { club1: true, club2: true },
+    }),
 
-    // Season progress
-    const SEASON_TOTAL_WEEKS = 10;
-    const completedTournaments = await db.tournament.count({ where: { division, seasonId: season.id, status: 'completed' } });
+    // Playoff matches
+    db.playoffMatch.findMany({
+      where: { seasonId: season.id },
+      include: { club1: true, club2: true },
+      orderBy: { round: 'asc' },
+    }),
 
-    // Top donors
-    const allDonations = await db.donation.findMany({ where: { seasonId: season.id, status: 'approved' } });
-    const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number }>();
-    for (const d of allDonations) {
-      const existing = donorMap.get(d.donorName) || { donorName: d.donorName, totalAmount: 0, donationCount: 0 };
-      existing.totalAmount += d.amount;
-      existing.donationCount += 1;
-      donorMap.set(d.donorName, existing);
-    }
-    const topDonors = Array.from(donorMap.values()).sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 5);
-
-    // Clubs
-    const clubs = await db.club.findMany({
-      where: { division, seasonId: season.id },
-      orderBy: [{ points: 'desc' }, { wins: 'desc' }, { gameDiff: 'desc' }],
-      include: { _count: { select: { members: true } } },
-    });
-
-    // Weekly champions
-    const completedTourns = await db.tournament.findMany({
-      where: { division, seasonId: season.id, status: 'completed' },
+    // Tournaments list — enriched with winner teams & MVP participations
+    // Unified league — no division filter
+    db.tournament.findMany({
+      where: { seasonId: season.id },
       orderBy: { weekNumber: 'asc' },
       include: {
-        teams: { where: { isWinner: true }, include: { teamPlayers: { include: { player: { select: { id: true, gamertag: true, avatar: true, tier: true, points: true, totalWins: true, totalMvp: true, streak: true, matches: true } } } } } },
-        matches: { where: { mvpPlayerId: { not: null } }, include: { mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true, totalMvp: true, points: true } } }, take: 1 },
+        _count: { select: { teams: true, participations: true } },
+        teams: {
+          where: { isWinner: true },
+          include: { teamPlayers: { include: { player: true } } },
+        },
+        participations: {
+          where: { isMvp: true },
+          include: { player: true },
+        },
       },
-    });
+    }),
 
-    const weeklyChampions = completedTourns.map(t => ({
+    // All league matches grouped by week
+    db.leagueMatch.findMany({
+      where: { seasonId: season.id },
+      orderBy: [{ week: 'asc' }],
+      include: { club1: true, club2: true },
+    }),
+  ]);
+
+  // ── Compute derived values in-memory (no extra DB queries) ──
+
+  // Total prize pool — filter weekly donations
+  const totalPrizePool = seasonDonations
+    .filter(d => d.type === 'weekly')
+    .reduce((sum, d) => sum + d.amount, 0);
+
+  // Season donation total
+  const seasonDonationTotal = seasonDonations.reduce((sum, d) => sum + d.amount, 0);
+
+  // Top donors — computed in-memory from seasonDonations instead of groupBy query
+  const donorAccum = new Map<string, { totalAmount: number; donationCount: number }>();
+  for (const d of seasonDonations) {
+    const entry = donorAccum.get(d.donorName) ?? { totalAmount: 0, donationCount: 0 };
+    donorAccum.set(d.donorName, {
+      totalAmount: entry.totalAmount + d.amount,
+      donationCount: entry.donationCount + 1,
+    });
+  }
+  const topDonors = Array.from(donorAccum.entries())
+    .map(([donorName, data]) => ({
+      donorName,
+      _sum: { amount: data.totalAmount },
+      _count: { id: data.donationCount },
+    }))
+    .sort((a, b) => b._sum.amount - a._sum.amount)
+    .slice(0, 5);
+
+  // Completed tournaments — filtered in-memory from already-fetched list
+  const completedTournaments = tournaments.filter(t => t.status === 'completed');
+
+  // Weekly champions — derived from completedTournaments (no new query)
+  const weeklyChampions = completedTournaments.map(t => {
+    const winnerTeam = t.teams[0]; // Only 1 winning team
+    const mvpParticipation = t.participations.find(p => p.isMvp); // Admin-assigned MVP
+    const mvpPlayer = mvpParticipation?.player;
+    return {
       weekNumber: t.weekNumber,
       tournamentName: t.name,
       prizePool: t.prizePool,
-      completedAt: t.completedAt?.toISOString() || null,
-      winnerTeam: t.teams.length > 0 ? { name: t.teams[0].name, players: t.teams[0].teamPlayers.map(tp => tp.player) } : null,
-      mvp: t.matches.length > 0 && t.matches[0].mvpPlayer ? t.matches[0].mvpPlayer : null,
-    }));
-
-    // MVP Hall of Fame
-    const mvpMatches = await db.match.findMany({
-      where: { mvpPlayerId: { not: null }, tournament: { division, seasonId: season.id } },
-      include: { mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true, totalMvp: true, points: true, totalWins: true, streak: true } }, tournament: { select: { weekNumber: true, name: true } } },
-    });
-
-    const mvpHallOfFame = mvpMatches.map(m => ({
-      id: m.mvpPlayer!.id,
-      gamertag: m.mvpPlayer!.gamertag,
-      avatar: m.mvpPlayer!.avatar,
-      tier: m.mvpPlayer!.tier,
-      totalMvp: m.mvpPlayer!.totalMvp,
-      points: m.mvpPlayer!.points,
-      totalWins: m.mvpPlayer!.totalWins,
-      streak: m.mvpPlayer!.streak,
-      weekNumber: m.tournament.weekNumber,
-      tournamentName: m.tournament.name,
-      division,
-    }));
-
-    // All tournaments summary
-    const tournaments = await db.tournament.findMany({
-      where: { division, seasonId: season.id },
-      orderBy: { weekNumber: 'asc' },
-      select: { id: true, name: true, weekNumber: true, status: true, prizePool: true },
-    });
-
-    const data = {
-      hasData: true,
-      division,
-      season: { id: season.id, name: season.name, number: season.number, status: season.status },
-      activeTournament: activeTournament ? {
-        id: activeTournament.id,
-        name: activeTournament.name,
-        weekNumber: activeTournament.weekNumber,
-        status: activeTournament.status,
-        prizePool: activeTournament.prizePool,
-        bpm: activeTournament.bpm,
-        location: activeTournament.location,
-        scheduledAt: activeTournament.scheduledAt?.toISOString() || null,
-        defaultMatchFormat: activeTournament.defaultMatchFormat,
-        format: activeTournament.format,
-        teams: activeTournament.teams.map(t => ({
-          id: t.id, name: t.name, isWinner: t.isWinner, power: t.power,
-          teamPlayers: t.teamPlayers.map(tp => ({ player: tp.player })),
+      completedAt: t.completedAt,
+      winnerTeam: winnerTeam ? {
+        name: winnerTeam.name,
+        players: winnerTeam.teamPlayers.map(tp => ({
+          id: tp.player.id,
+          gamertag: tp.player.gamertag,
+          avatar: tp.player.avatar,
+          tier: tp.player.tier,
+          points: tp.player.points,
+          totalWins: tp.player.totalWins,
+          totalMvp: tp.player.totalMvp,
+          streak: tp.player.streak,
+          matches: tp.player.matches,
         })),
-        matches: activeTournament.matches.map(m => ({
-          id: m.id, score1: m.score1, score2: m.score2, status: m.status, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket,
-          team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
-          team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
-          mvpPlayer: m.mvpPlayer,
-        })),
-        donations: activeTournament.donations.map(d => ({ id: d.id, donorName: d.donorName, amount: d.amount, message: d.message })),
       } : null,
-      totalPlayers: playerCount,
-      totalPrizePool,
-      seasonDonationTotal,
-      topPlayers: topPlayers.map(p => ({
-        id: p.id, name: p.name, gamertag: p.gamertag, avatar: p.avatar, tier: p.tier, points: p.points,
-        totalWins: p.totalWins, streak: p.streak, maxStreak: p.maxStreak, totalMvp: p.totalMvp, matches: p.matches,
-        club: p.clubMembers.length > 0 ? p.clubMembers[0].club.name : undefined, division: p.division,
-      })),
-      recentMatches: recentMatches.map(m => ({
-        id: m.id, score1: m.homeScore || 0, score2: m.awayScore || 0,
-        club1: { name: m.homeClub.name, logo: m.homeClub.logo }, club2: { name: m.awayClub.name, logo: m.awayClub.logo }, week: m.weekNumber,
-      })),
-      upcomingMatches: upcomingMatches.map(m => ({
-        id: m.id, club1: { name: m.homeClub.name, logo: m.homeClub.logo }, club2: { name: m.awayClub.name, logo: m.awayClub.logo }, week: m.weekNumber,
-      })),
-      seasonProgress: { totalWeeks: SEASON_TOTAL_WEEKS, completedWeeks: completedTournaments, percentage: Math.round((completedTournaments / SEASON_TOTAL_WEEKS) * 100) },
-      topDonors,
-      clubs: clubs.map(c => ({ id: c.id, name: c.name, logo: c.logo, wins: c.wins, losses: c.losses, draws: c.draws, points: c.points, gameDiff: c.gameDiff, _count: c._count })),
-      weeklyChampions,
-      mvpHallOfFame,
-      tournaments,
+      mvp: mvpPlayer ? { id: mvpPlayer.id, gamertag: mvpPlayer.gamertag, avatar: mvpPlayer.avatar, tier: mvpPlayer.tier, totalMvp: mvpPlayer.totalMvp, points: mvpPlayer.points } : null,
     };
+  });
 
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Stats API error:', error);
-    return NextResponse.json({ hasData: false, error: 'Failed to fetch stats' }, { status: 500 });
-  }
+  // Season progress — 1 season = 10 weeks (fixed)
+  const SEASON_TOTAL_WEEKS = 10;
+  const completedWeeks = tournaments.filter(t => t.status === 'completed').length;
+
+  // MVP Hall of Fame — computed in-memory from tournament participations instead of a separate query
+  const mvpHallOfFame = completedTournaments
+    .flatMap(t =>
+      t.participations.map(p => ({
+        _sortKey: p.createdAt as Date,
+        id: p.player.id,
+        gamertag: p.player.gamertag,
+        avatar: p.player.avatar,
+        tier: p.player.tier,
+        totalMvp: p.player.totalMvp,
+        points: p.player.points,
+        totalWins: p.player.totalWins,
+        streak: p.player.streak,
+        weekNumber: t.weekNumber,
+        tournamentName: t.name,
+        prizePool: t.prizePool,
+      }))
+    )
+    .sort((a, b) => +b._sortKey - +a._sortKey)
+    .map(({ _sortKey, ...rest }) => rest);
+
+  return NextResponse.json({
+    hasData: true,
+    division,
+    season,
+    activeTournament,
+    totalPlayers,
+    totalPrizePool,
+    seasonDonationTotal,
+    topPlayers,
+    clubs,
+    recentMatches,
+    upcomingMatches,
+    playoffMatches,
+    tournaments,
+    weeklyChampions,
+    leagueMatches,
+    topDonors,
+    mvpHallOfFame,
+    seasonProgress: {
+      totalWeeks: SEASON_TOTAL_WEEKS,
+      completedWeeks,
+      percentage: SEASON_TOTAL_WEEKS > 0 ? Math.round((completedWeeks / SEASON_TOTAL_WEEKS) * 100) : 0,
+    },
+  }, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
+    },
+  });
 }

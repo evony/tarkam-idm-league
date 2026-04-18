@@ -1,335 +1,289 @@
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
-import bcryptjs from 'bcryptjs';
 
-const maleNames = [
-  'Rizky Pratama', 'Ahmad Fauzi', 'Budi Santoso', 'Dimas Arya', 'Eko Prasetyo',
-  'Fajar Nugroho', 'Gilang Ramadhan', 'Hendra Wijaya', 'Irfan Hakim', 'Joko Susilo',
-  'Kemal Farhan', 'Lukman Hakim', 'Maulana Rizki', 'Naufal Aziz', 'Omar Hadi',
-  'Putra Mahardika', 'Qori Ananda', 'Rafi Alamsyah', 'Surya Pratama', 'Taufik Hidayat',
-  'Umar Fadhil', 'Vino Ardiansyah', 'Wisnu Wardana', 'Yoga Pratama', 'Zainul Arifin',
-  'Arif Rahman', 'Bagus Setiawan', 'Cahya Wibowo', 'Denny Saputra', 'Erik Kurniawan',
-];
+export async function POST(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const force = searchParams.get('force') === 'true';
 
-const femaleNames = [
-  'Aisyah Putri', 'Bella Safitri', 'Citra Dewi', 'Dina Lestari', 'Elsa Rahmawati',
-  'Fitri Handayani', 'Gita Permata', 'Hana Kusuma', 'Indah Sari', 'Jasmine Aulia',
-  'Kartika Sari', 'Laras Wulandari', 'Maya Anggraini', 'Nadia Fitriani', 'Oktavia Putri',
-  'Putri Amelia', 'Queen Azzahra', 'Rani Maulida', 'Sinta Dewi', 'Tika Permata',
-  'Umi Kalsum', 'Vera Nirmala', 'Winda Sari', 'Xena Putri', 'Yuni Astuti',
-  'Zahra Aulia', 'Amira Putri', 'Bunga Lestari', 'Dewi Safitri', 'Eka Rahayu',
-];
+  if (force) {
+    const authResult = await requireAdmin(request);
+    if (authResult instanceof NextResponse) return authResult;
+  } else {
+    const playerCount = await db.player.count();
+    if (playerCount > 0) {
+      return NextResponse.json({ success: true, message: 'Database already has data — seeding skipped' });
+    }
+  }
 
-const clubNames = {
-  male: ['Kenshi Squad', 'Shadow Dancers', 'Neon Breakers', 'Flame Crew'],
-  female: ['Crystal Steps', 'Luna Dancers', 'Velvet Queens', 'Stardust Crew'],
-};
-
-const tierPool = ['S', 'A', 'A', 'B', 'B', 'B', 'B', 'B'];
-
-function generateGamertag(name: string) {
-  const parts = name.split(' ');
-  const prefixes = ['xX', 'Dark', 'Neo', 'Shadow', 'Star', 'DJ', 'MC', 'Ice', 'Fire', 'Storm'];
-  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  return `${prefix}${parts[0]}${Math.floor(Math.random() * 99)}`;
-}
-
-export async function POST() {
   try {
-    // Check if already seeded
-    const existingPlayers = await db.player.count();
-    if (existingPlayers > 0) {
-      return NextResponse.json({ message: 'Database already seeded', count: existingPlayers });
-    }
+    // Clear existing data
+    await db.teamPlayer.deleteMany();
+    await db.match.deleteMany();
+    await db.team.deleteMany();
+    await db.participation.deleteMany();
+    await db.donation.deleteMany();
+    await db.clubMember.deleteMany();
+    await db.leagueMatch.deleteMany();
+    await db.playoffMatch.deleteMany();
+    await db.club.deleteMany();
+    await db.tournament.deleteMany();
+    await db.season.deleteMany();
+    await db.player.deleteMany();
 
-    // Create admin user
-    const hashedPassword = await bcryptjs.hash('admin123', 10);
-    await db.adminUser.create({
-      data: { username: 'admin', password: hashedPassword, role: 'superadmin' },
-    });
-
-    // Create seasons
-    const maleSeason1 = await db.season.create({
-      data: { name: 'Season 1', number: 1, division: 'male', status: 'completed', startDate: new Date('2024-01-01'), endDate: new Date('2024-03-31') },
-    });
-    const maleSeason2 = await db.season.create({
-      data: { name: 'Season 2', number: 2, division: 'male', status: 'active', startDate: new Date('2024-04-01') },
-    });
-    const femaleSeason1 = await db.season.create({
-      data: { name: 'Season 1', number: 1, division: 'female', status: 'completed', startDate: new Date('2024-01-01'), endDate: new Date('2024-03-31') },
-    });
-    const femaleSeason2 = await db.season.create({
-      data: { name: 'Season 2', number: 2, division: 'female', status: 'active', startDate: new Date('2024-04-01') },
-    });
-
-    // Create players
-    const malePlayers = [];
-    for (let i = 0; i < maleNames.length; i++) {
-      const tier = tierPool[i % tierPool.length];
-      const points = tier === 'S' ? 40 + Math.floor(Math.random() * 20) : tier === 'A' ? 15 + Math.floor(Math.random() * 20) : Math.floor(Math.random() * 15);
-      const totalWins = tier === 'S' ? 5 + Math.floor(Math.random() * 5) : tier === 'A' ? 2 + Math.floor(Math.random() * 4) : Math.floor(Math.random() * 3);
-      const player = await db.player.create({
-        data: {
-          name: maleNames[i],
-          gamertag: generateGamertag(maleNames[i]),
-          division: 'male',
-          tier,
-          points,
-          totalWins,
-          totalMvp: Math.floor(Math.random() * (tier === 'S' ? 5 : 3)),
-          streak: Math.floor(Math.random() * 5),
-          maxStreak: 2 + Math.floor(Math.random() * 5),
-          matches: 5 + Math.floor(Math.random() * 10),
-          city: ['Pontianak', 'Jakarta', 'Surabaya', 'Bandung', 'Semarang'][Math.floor(Math.random() * 5)],
-          registrationStatus: 'approved',
-        },
-      });
-      malePlayers.push(player);
-    }
-
-    const femalePlayers = [];
-    for (let i = 0; i < femaleNames.length; i++) {
-      const tier = tierPool[i % tierPool.length];
-      const points = tier === 'S' ? 40 + Math.floor(Math.random() * 20) : tier === 'A' ? 15 + Math.floor(Math.random() * 20) : Math.floor(Math.random() * 15);
-      const totalWins = tier === 'S' ? 5 + Math.floor(Math.random() * 5) : tier === 'A' ? 2 + Math.floor(Math.random() * 4) : Math.floor(Math.random() * 3);
-      const player = await db.player.create({
-        data: {
-          name: femaleNames[i],
-          gamertag: generateGamertag(femaleNames[i]),
-          division: 'female',
-          tier,
-          points,
-          totalWins,
-          totalMvp: Math.floor(Math.random() * (tier === 'S' ? 5 : 3)),
-          streak: Math.floor(Math.random() * 5),
-          maxStreak: 2 + Math.floor(Math.random() * 5),
-          matches: 5 + Math.floor(Math.random() * 10),
-          city: ['Pontianak', 'Jakarta', 'Surabaya', 'Bandung', 'Semarang'][Math.floor(Math.random() * 5)],
-          registrationStatus: 'approved',
-        },
-      });
-      femalePlayers.push(player);
-    }
-
-    // Create clubs and assign members
-    const clubsData: { id: string; name: string; division: string }[] = [];
-    for (const division of ['male', 'female'] as const) {
-      const season = division === 'male' ? maleSeason2 : femaleSeason2;
-      const players = division === 'male' ? malePlayers : femalePlayers;
-      const cNames = clubNames[division];
-
-      for (let c = 0; c < cNames.length; c++) {
-        const wins = Math.floor(Math.random() * 6);
-        const losses = Math.floor(Math.random() * 4);
-        const points = wins * 3 + Math.floor(Math.random() * 2);
-        const club = await db.club.create({
-          data: {
-            name: cNames[c], division, seasonId: season.id,
-            wins, losses, points, gameDiff: wins - losses,
-          },
-        });
-        clubsData.push({ id: club.id, name: club.name, division });
-
-        // Assign ~7 players per club
-        const clubPlayers = players.slice(c * 7, (c + 1) * 7);
-        for (let p = 0; p < clubPlayers.length; p++) {
-          await db.clubMember.create({
-            data: { clubId: club.id, playerId: clubPlayers[p].id, role: p === 0 ? 'captain' : 'member' },
-          });
-        }
-      }
-    }
-
-    // Create league matches for current season
-    for (const division of ['male', 'female'] as const) {
-      const season = division === 'male' ? maleSeason2 : femaleSeason2;
-      const divClubs = clubsData.filter(c => c.division === division);
-
-      for (let week = 1; week <= 10; week++) {
-        for (let i = 0; i < divClubs.length; i++) {
-          for (let j = i + 1; j < divClubs.length; j++) {
-            const isCompleted = week <= 4;
-            const homeScore = isCompleted ? Math.floor(Math.random() * 5) : null;
-            const awayScore = isCompleted ? Math.floor(Math.random() * 5) : null;
-            await db.leagueMatch.create({
-              data: {
-                seasonId: season.id, weekNumber: week, division,
-                homeClubId: divClubs[i].id, awayClubId: divClubs[j].id,
-                homeScore, awayScore,
-                status: isCompleted ? 'completed' : 'scheduled',
-                completedAt: isCompleted ? new Date(2024, 3 + Math.floor(week / 5), week * 7) : null,
-                scheduledAt: new Date(2024, 3 + Math.floor(week / 5), week * 7),
-              },
-            });
-          }
-        }
-      }
-    }
-
-    // Create tournaments with teams and matches
-    for (const division of ['male', 'female'] as const) {
-      const season = division === 'male' ? maleSeason2 : femaleSeason2;
-      const players = division === 'male' ? malePlayers : femalePlayers;
-
-      for (let week = 1; week <= 5; week++) {
-        const isCompleted = week <= 3;
-        const tournament = await db.tournament.create({
-          data: {
-            name: `Week ${week} Tournament`,
-            weekNumber: week, division, seasonId: season.id,
-            status: isCompleted ? 'completed' : (week === 4 ? 'main_event' : 'registration'),
-            prizePool: 50000 + Math.floor(Math.random() * 50000),
-            bpm: 120 + Math.floor(Math.random() * 40),
-            location: 'Pontianak',
-            defaultMatchFormat: week <= 2 ? 'BO1' : 'BO3',
-            format: 'single_elimination',
-            completedAt: isCompleted ? new Date(2024, 3, week * 7) : null,
-          },
-        });
-
-        // Create 8 teams for the tournament
-        const shuffled = [...players].sort(() => Math.random() - 0.5);
-        const teamsPerTournament = 8;
-        const playersPerTeam = 3;
-        const teams = [];
-
-        for (let t = 0; t < teamsPerTournament; t++) {
-          const teamPlayers = shuffled.slice(t * playersPerTeam, (t + 1) * playersPerTeam);
-          const team = await db.team.create({
-            data: {
-              name: `Team ${String.fromCharCode(65 + t)}`,
-              tournamentId: tournament.id,
-              power: teamPlayers.reduce((sum, p) => sum + p.points, 0),
-              isWinner: isCompleted && t === 0,
-              rank: isCompleted ? t + 1 : null,
-            },
-          });
-          teams.push(team);
-
-          for (const p of teamPlayers) {
-            await db.teamPlayer.create({ data: { teamId: team.id, playerId: p.id } });
-          }
-        }
-
-        // Create bracket matches
-        const rounds = Math.log2(teamsPerTournament); // 3 rounds
-        for (let round = 1; round <= rounds; round++) {
-          const matchesInRound = teamsPerTournament / Math.pow(2, round);
-          for (let m = 0; m < matchesInRound; m++) {
-            const isMatchCompleted = isCompleted && round <= 2;
-            const team1Idx = round === 1 ? m * 2 : m;
-            const team2Idx = round === 1 ? m * 2 + 1 : m + matchesInRound;
-
-            await db.match.create({
-              data: {
-                tournamentId: tournament.id,
-                round,
-                matchNumber: m + 1,
-                bracket: 'upper',
-                format: tournament.defaultMatchFormat,
-                team1Id: teams[team1Idx]?.id || null,
-                team2Id: teams[team2Idx]?.id || null,
-                score1: isMatchCompleted ? Math.floor(Math.random() * 3) : null,
-                score2: isMatchCompleted ? Math.floor(Math.random() * 3) : null,
-                status: isMatchCompleted ? 'completed' : (round === 1 && isCompleted ? 'ready' : 'pending'),
-                winnerId: isMatchCompleted ? teams[team1Idx]?.id : null,
-                mvpPlayerId: isMatchCompleted && round === 2 ? shuffled[Math.floor(Math.random() * shuffled.length)].id : null,
-                completedAt: isMatchCompleted ? new Date(2024, 3, week * 7) : null,
-              },
-            });
-          }
-        }
-
-        // Add participations
-        for (const p of shuffled.slice(0, 24)) {
-          await db.participation.create({
-            data: {
-              playerId: p.id,
-              tournamentId: tournament.id,
-              status: 'approved',
-              isWinner: isCompleted && p.id === shuffled[0].id,
-              isMvp: isCompleted && Math.random() > 0.8,
-              pointsEarned: isCompleted ? Math.floor(Math.random() * 5) : 0,
-            },
-          });
-        }
-
-        // Add some donations
-        const donorNames = ['Sawer Bot', 'IDM Fan', 'Dance Lover', 'Borneo Pride', 'Supporter'];
-        for (let d = 0; d < 3; d++) {
-          await db.donation.create({
-            data: {
-              donorName: donorNames[Math.floor(Math.random() * donorNames.length)],
-              amount: 10000 + Math.floor(Math.random() * 50000),
-              message: 'Good luck!',
-              type: 'weekly',
-              status: 'approved',
-              tournamentId: tournament.id,
-              seasonId: season.id,
-            },
-          });
-        }
-      }
-    }
-
-    // Create some achievements
-    const achievementDefs = [
-      { name: 'first_win', displayName: 'First Victory', description: 'Win your first tournament', icon: '🏆', tier: 'bronze', criteria: JSON.stringify({ type: 'wins', count: 1 }), rewardPoints: 2 },
-      { name: 'hat_trick', displayName: 'Hat Trick', description: 'Win 3 tournaments in a row', icon: '🎩', tier: 'gold', criteria: JSON.stringify({ type: 'wins', count: 3, consecutive: true }), rewardPoints: 10 },
-      { name: 'mvp_king', displayName: 'MVP King', description: 'Earn 5 MVP awards', icon: '👑', tier: 'platinum', criteria: JSON.stringify({ type: 'mvp', count: 5 }), rewardPoints: 15 },
-      { name: 'iron_will', displayName: 'Iron Will', description: 'Participate in 10 tournaments', icon: '⚔️', tier: 'silver', criteria: JSON.stringify({ type: 'participations', count: 10 }), rewardPoints: 5 },
-      { name: 'streak_master', displayName: 'Streak Master', description: 'Achieve a 5 win streak', icon: '🔥', tier: 'gold', criteria: JSON.stringify({ type: 'streak', threshold: 5 }), rewardPoints: 8 },
-    ];
-
-    for (const a of achievementDefs) {
-      await db.achievement.create({ data: a });
-    }
-
-    // Create some sponsors
-    const sponsorDefs = [
-      { name: 'IDM Official', website: 'https://idm-league.com' },
-      { name: 'Borneo Gaming', website: 'https://borneo-gaming.com' },
-      { name: 'Dance Energy Drink', website: 'https://dance-energy.com' },
-    ];
-    for (const s of sponsorDefs) {
-      await db.sponsor.create({ data: s });
-    }
-
-    // Set season 1 champion
-    const firstMaleClub = clubsData.find(c => c.division === 'male');
-    if (firstMaleClub) {
-      await db.season.update({ where: { id: maleSeason1.id }, data: { championClubId: firstMaleClub.id, status: 'completed' } });
-    }
-    const firstFemaleClub = clubsData.find(c => c.division === 'female');
-    if (firstFemaleClub) {
-      await db.season.update({ where: { id: femaleSeason1.id }, data: { championClubId: firstFemaleClub.id, status: 'completed' } });
-    }
-
-    // CMS defaults
-    const cmsDefaults = [
-      { key: 'site_title', value: 'IDM League' },
-      { key: 'hero_title', value: 'Idol Meta' },
-      { key: 'hero_subtitle', value: 'Fan Made Edition' },
-      { key: 'hero_tagline', value: 'Tempat dancer terbaik berkompetisi. Tournament mingguan, liga profesional, dan podium yang menunggu.' },
-      { key: 'footer_text', value: '© 2025 IDM League — Idol Meta Fan Made Edition. All rights reserved.' },
-      { key: 'footer_tagline', value: 'Dance. Compete. Dominate.' },
-    ];
-    for (const c of cmsDefaults) {
-      await db.cmsSetting.create({ data: c });
-    }
-
-    return NextResponse.json({
-      message: 'Database seeded successfully',
-      stats: {
-        players: malePlayers.length + femalePlayers.length,
-        clubs: clubsData.length,
-        seasons: 4,
-        tournaments: 10,
-        achievements: achievementDefs.length,
+    // ======== SEASONS ========
+    const maleSeason = await db.season.create({
+      data: {
+        name: 'IDM League Season 1 - Male',
+        number: 1,
+        division: 'male',
+        status: 'active',
+        startDate: new Date('2025-01-06'),
       },
     });
-  } catch (error) {
+
+    const femaleSeason = await db.season.create({
+      data: {
+        name: 'IDM League Season 1 - Female',
+        number: 1,
+        division: 'female',
+        status: 'active',
+        startDate: new Date('2025-01-06'),
+      },
+    });
+
+    // ======== PLAYERS — All points zeroed ========
+    const maleData = [
+      { gamertag: 'cepz', club: 'SALVADOR' },
+      { gamertag: 'Afroki', club: 'SOUTHERN' },
+      { gamertag: 'Airuen', club: 'AVENUE' },
+      { gamertag: 'Life', club: 'SALVADOR' },
+      { gamertag: 'Armors', club: 'SOUTHERN' },
+      { gamertag: 'Bambang', club: 'MAXIMOUS' },
+      { gamertag: 'ziafu', club: 'MYSTERY' },
+      { gamertag: 'afi', club: 'MAXIMOUS' },
+      { gamertag: 'Kageno', club: 'AVENUE' },
+      { gamertag: 'janskie', club: 'SOUTHERN' },
+      { gamertag: 'zico', club: 'EUPHORIC' },
+      { gamertag: 'Vriskey_', club: 'EUPHORIC' },
+      { gamertag: 'astro', club: 'MAXIMOUS' },
+      { gamertag: 'ipinnn', club: 'GYMSHARK' },
+      { gamertag: 'sheraid', club: 'MAXIMOUS' },
+      { gamertag: 'yay', club: 'MAXIMOUS' },
+      { gamertag: 'Oura', club: 'SALVADOR' },
+      { gamertag: 'Jave', club: 'RESTART' },
+      { gamertag: 'zmz', club: 'ALQA' },
+      { gamertag: 'Georgie', club: 'ALQA' },
+      { gamertag: 'Chrollo', club: 'EUPHORIC' },
+      { gamertag: 'Vankless', club: 'SOUTHERN' },
+      { gamertag: 'Dylee', club: 'SENSEI' },
+      { gamertag: 'Earth', club: 'MAXIMOUS' },
+      { gamertag: 'chikoo', club: 'SENSEI' },
+      { gamertag: 'fyy', club: 'GYMSHARK' },
+      { gamertag: 'montiel', club: 'PARANOID' },
+      { gamertag: 'marimo', club: 'SECRETS' },
+      { gamertag: 'tonsky', club: 'MAXIMOUS' },
+      { gamertag: 'Ren', club: 'MAXIMOUS' },
+      { gamertag: 'RIVALDO', club: 'EUPHORIC' },
+      { gamertag: 'jugger', club: 'GYMSHARK' },
+      { gamertag: 'WHYSON', club: 'RESTART' },
+      { gamertag: 'DUUL', club: 'PARANOID' },
+      { gamertag: 'ZORO', club: 'PARANOID' },
+      { gamertag: 'VICKY', club: 'MAXIMOUS' },
+      { gamertag: 'CARAOSEL', club: 'ORPIC' },
+      { gamertag: 'KIERAN', club: 'MAXIMOUS' },
+      { gamertag: 'RONALD', club: 'MAXIMOUS' },
+      { gamertag: 'KIRA', club: 'SOUTHERN' },
+      { gamertag: 'XIAOPEI', club: 'CROWN' },
+      { gamertag: 'ZABYER', club: 'JASMINE' },
+      { gamertag: 'VBBOY', club: 'AVENUE' },
+      { gamertag: 'justice', club: 'EUPHORIC' },
+      { gamertag: 'tazos', club: 'GYMSHARK' },
+    ];
+
+    const femaleData = [
+      { gamertag: 'Indy', club: 'MAXIMOUS' },
+      { gamertag: 'skylin', club: 'EUPHORIC' },
+      { gamertag: 'cheeyaqq', club: 'SECRETS' },
+      { gamertag: 'Vion', club: 'QUEEN' },
+      { gamertag: 'Veronicc', club: 'PARANOID' },
+      { gamertag: 'Liz', club: 'SOUTHERN' },
+      { gamertag: 'Afrona', club: 'SOUTHERN' },
+      { gamertag: 'Elvareca', club: 'EUPHORIC' },
+      { gamertag: 'weywey', club: 'RNB' },
+      { gamertag: 'cami', club: 'MAXIMOUS' },
+      { gamertag: 'mishelle', club: 'PARANOID' },
+      { gamertag: 'kacee', club: 'MAXIMOUS' },
+      { gamertag: 'irazz', club: 'PARANOID' },
+      { gamertag: 'ciki_w', club: 'TOGETHER' },
+      { gamertag: 'reptil', club: 'SOUTHERN' },
+      { gamertag: 'meatry', club: 'YAKUZA' },
+      { gamertag: 'AiTan', club: 'PARANOID' },
+      { gamertag: 'arcalya', club: 'SOUTHERN' },
+      { gamertag: 's_melin', club: 'Plat R' },
+      { gamertag: 'yoonabi', club: 'PARANOID' },
+      { gamertag: 'Eive', club: 'PSALM' },
+      { gamertag: 'damncil', club: 'EUPHORIC' },
+      { gamertag: 'dysa', club: 'RESTART' },
+      { gamertag: 'yaaay', club: 'YAKUZA' },
+      { gamertag: 'moy', club: 'YAKUZA' },
+      { gamertag: 'EVONY', club: 'GYMSHARK' },
+    ];
+
+    // Create male players (all stats zeroed)
+    const malePlayers: Record<string, string> = {};
+    for (const p of maleData) {
+      const player = await db.player.create({
+        data: {
+          name: p.gamertag,
+          gamertag: p.gamertag,
+          division: 'male',
+          tier: 'B',
+          points: 0,
+          totalWins: 0,
+          totalMvp: 0,
+          streak: 0,
+          maxStreak: 0,
+          matches: 0,
+          isActive: true,
+          city: '',
+          registrationStatus: 'approved',
+        },
+      });
+      malePlayers[p.gamertag] = player.id;
+    }
+
+    // Create female players (all stats zeroed)
+    const femalePlayers: Record<string, string> = {};
+    for (const p of femaleData) {
+      const player = await db.player.create({
+        data: {
+          name: p.gamertag,
+          gamertag: p.gamertag,
+          division: 'female',
+          tier: 'B',
+          points: 0,
+          totalWins: 0,
+          totalMvp: 0,
+          streak: 0,
+          maxStreak: 0,
+          matches: 0,
+          isActive: true,
+          city: '',
+          registrationStatus: 'approved',
+        },
+      });
+      femalePlayers[p.gamertag] = player.id;
+    }
+
+    // ======== CLUBS — All stats zeroed ========
+    // Unique clubs per division
+    const maleClubNames = [...new Set(maleData.map(p => p.club))];
+    const femaleClubNames = [...new Set(femaleData.map(p => p.club))];
+
+    const maleClubs: Record<string, string> = {};
+    for (const clubName of maleClubNames) {
+      const club = await db.club.create({
+        data: {
+          name: clubName,
+          division: 'male',
+          seasonId: maleSeason.id,
+          wins: 0,
+          losses: 0,
+          points: 0,
+          gameDiff: 0,
+        },
+      });
+      maleClubs[clubName] = club.id;
+    }
+
+    const femaleClubs: Record<string, string> = {};
+    for (const clubName of femaleClubNames) {
+      const club = await db.club.create({
+        data: {
+          name: clubName,
+          division: 'female',
+          seasonId: femaleSeason.id,
+          wins: 0,
+          losses: 0,
+          points: 0,
+          gameDiff: 0,
+        },
+      });
+      femaleClubs[clubName] = club.id;
+    }
+
+    // ======== CLUB MEMBERSHIPS ========
+    // First male player in each club becomes captain
+    const maleClubFirstPlayer: Record<string, boolean> = {};
+    for (const p of maleData) {
+      const isFirst = !maleClubFirstPlayer[p.club];
+      maleClubFirstPlayer[p.club] = true;
+      await db.clubMember.create({
+        data: {
+          clubId: maleClubs[p.club],
+          playerId: malePlayers[p.gamertag],
+          role: isFirst ? 'captain' : 'member',
+        },
+      });
+    }
+
+    const femaleClubFirstPlayer: Record<string, boolean> = {};
+    for (const p of femaleData) {
+      const isFirst = !femaleClubFirstPlayer[p.club];
+      femaleClubFirstPlayer[p.club] = true;
+      await db.clubMember.create({
+        data: {
+          clubId: femaleClubs[p.club],
+          playerId: femalePlayers[p.gamertag],
+          role: isFirst ? 'captain' : 'member',
+        },
+      });
+    }
+
+    // ======== TOURNAMENTS — 1 active per division ========
+    await db.tournament.create({
+      data: {
+        name: 'Week 1 Tournament',
+        weekNumber: 1,
+        division: 'male',
+        seasonId: maleSeason.id,
+        status: 'registration',
+        prizePool: 50000,
+        location: 'Online - IDM Stage',
+      },
+    });
+
+    await db.tournament.create({
+      data: {
+        name: 'Week 1 Tournament',
+        weekNumber: 1,
+        division: 'female',
+        seasonId: femaleSeason.id,
+        status: 'registration',
+        prizePool: 50000,
+        location: 'Online - IDM Stage',
+      },
+    });
+
+    const malePlayerCount = maleData.length;
+    const femalePlayerCount = femaleData.length;
+    const maleClubCount = maleClubNames.length;
+    const femaleClubCount = femaleClubNames.length;
+
+    return NextResponse.json({
+      success: true,
+      message: 'Database seeded with IDM League data (all points zeroed)',
+      stats: {
+        malePlayers: malePlayerCount,
+        femalePlayers: femalePlayerCount,
+        maleClubs: maleClubCount,
+        femaleClubs: femaleClubCount,
+      },
+    });
+  } catch (e: unknown) {
+    const error = e as Error;
     console.error('Seed error:', error);
-    return NextResponse.json({ error: 'Failed to seed database', details: String(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

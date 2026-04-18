@@ -1,5 +1,6 @@
 /**
  * Shared data interfaces for IDM League stats API response.
+ * All components should import from here instead of defining locally.
  */
 
 export interface SeasonData {
@@ -33,10 +34,8 @@ export interface TournamentMatch {
   score2: number | null;
   status: string;
   round?: number;
-  matchNumber?: number;
-  bracket?: string;
-  team1: { id: string; name: string } | null;
-  team2: { id: string; name: string } | null;
+  team1: { id: string; name: string };
+  team2: { id: string; name: string };
   mvpPlayer: { id: string; name: string; gamertag: string } | null;
 }
 
@@ -53,14 +52,12 @@ export interface ActiveTournament {
   weekNumber: number;
   status: string;
   prizePool: number;
-  bpm: number | null;
-  location: string | null;
-  scheduledAt: string | null;
+  bpm: number;
+  location: string;
+  scheduledAt: string;
   teams: TournamentTeam[];
   matches: TournamentMatch[];
   donations: TournamentDonation[];
-  defaultMatchFormat: string;
-  format: string;
 }
 
 export interface TopPlayer {
@@ -85,7 +82,6 @@ export interface ClubData {
   logo?: string | null;
   wins: number;
   losses: number;
-  draws: number;
   points: number;
   gameDiff: number;
   _count?: { members: number };
@@ -95,15 +91,15 @@ export interface MatchResult {
   id: string;
   score1: number;
   score2: number;
-  club1: { name: string; logo?: string | null };
-  club2: { name: string; logo?: string | null };
+  club1: { name: string };
+  club2: { name: string };
   week: number;
 }
 
 export interface UpcomingMatch {
   id: string;
-  club1: { name: string; logo?: string | null };
-  club2: { name: string; logo?: string | null };
+  club1: { name: string };
+  club2: { name: string };
   week: number;
 }
 
@@ -169,6 +165,10 @@ export interface TournamentSummary {
   prizePool: number;
 }
 
+/**
+ * Main StatsData interface — matches /api/stats response.
+ * All optional enrichment fields are marked as optional.
+ */
 export interface StatsData {
   hasData: boolean;
   division: string;
@@ -185,6 +185,8 @@ export interface StatsData {
   clubs: ClubData[];
   weeklyChampions: WeeklyChampion[];
   mvpHallOfFame: MvpHallOfFameEntry[];
+  /** Optional: included in landing page enriched response */
   tournaments?: TournamentSummary[];
+  /** Optional: enriched topDonors with tier info (landing page) */
   topDonorsEnriched?: TopDonorEnriched[];
 }
