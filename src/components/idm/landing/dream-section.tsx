@@ -16,11 +16,17 @@ interface DreamSectionProps {
   nextSeason: number;
   completedSeason: number;
   cmsSections: Record<string, any>;
+  cmsSettings: Record<string, string>;
   onEnterApp: (division: 'male' | 'female') => void;
   openDonationModal: (type: 'weekly' | 'season', amount?: number) => void;
+  onVideoPlay?: (url: string, title: string) => void;
 }
 
-export function DreamSection({ maleData, femaleData, leagueData, nextSeason, completedSeason, cmsSections, onEnterApp, openDonationModal }: DreamSectionProps) {
+export function DreamSection({ maleData, femaleData, leagueData, nextSeason, completedSeason, cmsSections, cmsSettings, onEnterApp, openDonationModal, onVideoPlay }: DreamSectionProps) {
+  // Manual CMS values with fallback to auto-calculated data
+  const clubsCompeting = cmsSettings?.dream_clubs_competing ? parseInt(cmsSettings.dream_clubs_competing) : (leagueData?.stats?.totalClubs || 0);
+  const matchesPlayed = cmsSettings?.dream_matches_played ? parseInt(cmsSettings.dream_matches_played) : (leagueData?.stats?.completedMatches || 0);
+  const totalParticipants = cmsSettings?.dream_total_participants ? parseInt(cmsSettings.dream_total_participants) : ((maleData?.totalPlayers || 0) + (femaleData?.totalPlayers || 0));
   return (<>
       {/* ========== LIGA IDM — THE DREAM ========== */}
       <section id="dream" className="relative py-28 px-4 overflow-hidden">
@@ -59,8 +65,8 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           </motion.h2>
           <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed">
             {leagueData?.ligaChampion
-              ? `Season ${completedSeason} telah berlangsung dengan meriah — ${leagueData.ligaChampion.name} tampil sebagai champion. ${leagueData?.stats?.totalClubs || 0} club bertanding, tim mix male & female berkompetisi. Season ${nextSeason} menunggu dukunganmu untuk terwujud.`
-              : `${leagueData?.stats?.totalClubs || 0} club bertanding, tim mix male & female berkompetisi di Liga IDM. Dukunganmu menunggu season berikutnya terwujud.`
+              ? `Season ${completedSeason} telah berlangsung dengan meriah — ${leagueData.ligaChampion.name} tampil sebagai champion. ${clubsCompeting} club bertanding, tim mix male & female berkompetisi. Season ${nextSeason} menunggu dukunganmu untuk terwujud.`
+              : `${clubsCompeting} club bertanding, tim mix male & female berkompetisi di Liga IDM. Dukunganmu menunggu season berikutnya terwujud.`
             }
           </motion.p>
 
@@ -85,9 +91,9 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           {/* Season Highlights */}
           <motion.div variants={fadeUp} className="mt-10 grid grid-cols-3 gap-3 sm:gap-4">
             {[
-              { icon: Shield, value: `${leagueData?.stats?.totalClubs || 0}`, label: 'Club Bertanding', accent: 'border-[#d4a853]/15' },
-              { icon: Swords, value: `${leagueData?.stats?.completedMatches || 0}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]' },
-              { icon: Users, value: `${(maleData?.totalPlayers || 0) + (femaleData?.totalPlayers || 0)}`, label: 'Peserta Total', accent: 'border-[#d4a853]/15' },
+              { icon: Shield, value: `${clubsCompeting}`, label: 'Club Bertanding', accent: 'border-[#d4a853]/15' },
+              { icon: Swords, value: `${matchesPlayed}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]' },
+              { icon: Users, value: `${totalParticipants}`, label: 'Peserta Total', accent: 'border-[#d4a853]/15' },
             ].map((s, i) => (
               <div key={s.label} className={`rounded-2xl bg-white/[0.03] backdrop-blur-sm border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06] hover:scale-[1.02]`}>
                 <s.icon className="w-4 h-4 text-[#d4a853] mx-auto mb-2" />

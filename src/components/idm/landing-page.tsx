@@ -27,6 +27,7 @@ import { PlayerProfile } from './player-profile';
 import { ClubProfile } from './club-profile';
 import { DonationModal } from './donation-modal';
 import { RegistrationModal } from './registration-modal';
+import { VideoModal } from './landing/video-modal';
 import { BackToTop } from './ui/back-to-top';
 import { ScrollProgress } from './ui/scroll-progress';
 
@@ -44,6 +45,17 @@ export function LandingPage() {
 
   /* Registration Modal State */
   const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
+
+  /* Video Modal State */
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videoModalUrl, setVideoModalUrl] = useState('');
+  const [videoModalTitle, setVideoModalTitle] = useState('');
+
+  const openVideoModal = useCallback((url: string, title: string) => {
+    setVideoModalUrl(url);
+    setVideoModalTitle(title);
+    setVideoModalOpen(true);
+  }, []);
 
   const openDonationModal = useCallback((type: 'weekly' | 'season', amount?: number) => {
     setDonationModalType(type);
@@ -278,6 +290,8 @@ export function LandingPage() {
         maleData={maleData}
         particles={particles}
         onRegister={() => setRegistrationModalOpen(true)}
+        cmsHeroBgVideo={cms.hero_bg_video as string | undefined}
+        onVideoPlay={openVideoModal}
       />
 
       {/* About / Cerita Kami */}
@@ -293,6 +307,9 @@ export function LandingPage() {
         maleData={maleData}
         femaleData={femaleData}
         onEnterApp={enterApp}
+        cmsSettings={cms}
+        cmsSections={cmsSections}
+        onVideoPlay={openVideoModal}
       />
 
       <div className="section-divider max-w-4xl mx-auto" />
@@ -305,6 +322,8 @@ export function LandingPage() {
         isDataLoading={isDataLoading}
         cmsSections={cmsSections}
         setSelectedPlayer={setSelectedPlayer}
+        championVideoUrl={cms.champion_video_url}
+        onVideoPlay={openVideoModal}
       />
 
       <div className="section-divider max-w-4xl mx-auto" />
@@ -346,8 +365,10 @@ export function LandingPage() {
         nextSeason={nextSeason}
         completedSeason={completedSeason}
         cmsSections={cmsSections}
+        cmsSettings={cms}
         onEnterApp={enterApp}
         openDonationModal={openDonationModal}
+        onVideoPlay={openVideoModal}
       />
 
       <LandingFooter
@@ -375,6 +396,14 @@ export function LandingPage() {
       <RegistrationModal
         open={registrationModalOpen}
         onClose={() => setRegistrationModalOpen(false)}
+      />
+
+      {/* ========== VIDEO MODAL ========== */}
+      <VideoModal
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+        videoUrl={videoModalUrl}
+        title={videoModalTitle}
       />
 
       {/* ========== SCROLL PROGRESS BAR ========== */}

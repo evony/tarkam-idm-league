@@ -85,6 +85,7 @@ export interface ClubData {
   points: number;
   gameDiff: number;
   _count?: { members: number };
+  championSeasons?: { id: string; name: string; number: number }[];
 }
 
 export interface MatchResult {

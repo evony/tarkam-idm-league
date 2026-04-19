@@ -3,12 +3,23 @@
 import { motion } from 'framer-motion';
 import { type MotionValue } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Shield, Wallet, Swords } from 'lucide-react';
+import { Crown, Users, Shield, Wallet, Swords, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard, stagger, scaleIn, fadeUp } from './shared';
 import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
+
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
 
 interface HeroSectionProps {
   heroRef: React.RefObject<HTMLElement>;
@@ -29,14 +40,16 @@ interface HeroSectionProps {
   nextSeason: number;
   maleData: StatsData | undefined;
   particles: Array<{id: number; left: string; size: number; delay: number; duration: number; opacity: number; alt: boolean}>;
+  cmsHeroBgVideo?: string;
+  onVideoPlay?: (url: string, title: string) => void;
   onRegister: () => void;
 }
 
 export function HeroSection({
   heroRef, heroY, heroScale, heroOpacity, contentY, heroMidY,
   cmsSiteTitle, cmsHeroTitle, cmsHeroSubtitle, cmsHeroTagline,
-  cmsHeroBgDesktop, cmsHeroBgMobile, cmsSections, leagueData,
-  nextSeason, maleData, particles, onRegister
+  cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
+  nextSeason, maleData, particles, onVideoPlay, onRegister
 }: HeroSectionProps) {
   return (
     <>
@@ -44,12 +57,52 @@ export function HeroSection({
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Multi-layer Parallax Background — 3 depth layers */}
         {/* Layer 1: Deep background (slowest) */}
-        <motion.div className="absolute inset-0 hidden sm:block" style={{ y: heroY, scale: heroScale }}>
-          <Image src={cmsHeroBgDesktop} alt="" fill priority sizes="100vw" className="object-cover" aria-hidden="true" />
-        </motion.div>
-        <motion.div className="absolute inset-0 sm:hidden" style={{ y: heroY, scale: heroScale }}>
-          <Image src={cmsHeroBgMobile} alt="" fill priority sizes="100vw" className="object-cover object-top" aria-hidden="true" />
-        </motion.div>
+        {cmsHeroBgVideo ? (() => {
+          const ytId = getYouTubeId(cmsHeroBgVideo);
+          return ytId ? (
+            /* YouTube thumbnail as background with play overlay */
+            <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+              <img
+                src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                aria-hidden="true"
+              />
+              {onVideoPlay && (
+                <button
+                  onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
+                  className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 backdrop-blur-sm hover:bg-idm-gold-warm/30 transition-colors cursor-pointer"
+                  aria-label="Play highlight video"
+                >
+                  <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
+                  <span className="text-xs font-bold text-idm-gold-warm">Watch Video</span>
+                </button>
+              )}
+            </motion.div>
+          ) : (
+            /* Direct MP4/video URL */
+            <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+              <video
+                src={cmsHeroBgVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+                aria-hidden="true"
+              />
+            </motion.div>
+          );
+        })() : (
+          <>
+            <motion.div className="absolute inset-0 hidden sm:block" style={{ y: heroY, scale: heroScale }}>
+              <Image src={cmsHeroBgDesktop} alt="" fill priority sizes="100vw" className="object-cover" aria-hidden="true" />
+            </motion.div>
+            <motion.div className="absolute inset-0 sm:hidden" style={{ y: heroY, scale: heroScale }}>
+              <Image src={cmsHeroBgMobile} alt="" fill priority sizes="100vw" className="object-cover object-top" aria-hidden="true" />
+            </motion.div>
+          </>
+        )}
 
         {/* Layer 2: Mid-depth gold haze */}
         <motion.div

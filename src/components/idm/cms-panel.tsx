@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Image as ImageIcon, Type, Layout, Save, Plus, Trash2, ChevronDown,
   ChevronUp, Eye, EyeOff, Edit3, X, Loader2, Palette,
-  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Heart, Link2
+  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Heart, Link2, Swords
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -515,6 +515,20 @@ export function CmsPanel() {
     onError: (e: Error) => { toast.error(e.message); },
   });
 
+  const saveSettingsBatch = useMutation({
+    mutationFn: async (items: { key: string; value: string; type: string }[]) => {
+      const res = await fetch('/api/cms/settings', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      return res.json();
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-settings'] }); toast.success('Berhasil disimpan'); },
+    onError: () => { toast.error('Gagal menyimpan'); },
+  });
+
   const seedCms = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/cms/seed', {
@@ -626,12 +640,14 @@ export function CmsPanel() {
                         size="sm"
                         className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                         onClick={() => {
-                          saveSetting.mutate({ key: 'site_title', value: settingsForm.site_title || '', type: 'text' });
-                          saveSetting.mutate({ key: 'logo_url', value: settingsForm.logo_url || '', type: 'image' });
+                          saveSettingsBatch.mutate([
+                            { key: 'site_title', value: settingsForm.site_title || '', type: 'text' },
+                            { key: 'logo_url', value: settingsForm.logo_url || '', type: 'image' },
+                          ]);
                         }}
-                        disabled={saveSetting.isPending}
+                        disabled={saveSettingsBatch.isPending}
                       >
-                        {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Identitas
+                        {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Identitas
                       </Button>
                     </div>
                   </CardContent>
@@ -691,21 +707,35 @@ export function CmsPanel() {
                           folder="cms/backgrounds"
                         />
                       </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Video Background (Opsional)</label>
+                        <Input
+                          value={settingsForm.hero_bg_video || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, hero_bg_video: e.target.value }))}
+                          className="text-sm"
+                          placeholder="URL video YouTube/MP4 — jika diisi, menggantikan gambar"
+                        />
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video loop menggantikan background image di Hero. Mendukung YouTube (otomatis embed) dan URL MP4 langsung.</p>
+                      </div>
                     </div>
 
                     <Button
                       size="sm"
                       className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                       onClick={() => {
-                        saveSetting.mutate({ key: 'hero_title', value: settingsForm.hero_title || '', type: 'text' });
-                        saveSetting.mutate({ key: 'hero_subtitle', value: settingsForm.hero_subtitle || '', type: 'text' });
-                        saveSetting.mutate({ key: 'hero_tagline', value: settingsForm.hero_tagline || '', type: 'text' });
-                        saveSetting.mutate({ key: 'hero_bg_desktop', value: settingsForm.hero_bg_desktop || '', type: 'image' });
-                        saveSetting.mutate({ key: 'hero_bg_mobile', value: settingsForm.hero_bg_mobile || '', type: 'image' });
+                        saveSettingsBatch.mutate([
+                          { key: 'hero_title', value: settingsForm.hero_title || '', type: 'text' },
+                          { key: 'hero_subtitle', value: settingsForm.hero_subtitle || '', type: 'text' },
+                          { key: 'hero_tagline', value: settingsForm.hero_tagline || '', type: 'text' },
+                          { key: 'hero_bg_desktop', value: settingsForm.hero_bg_desktop || '', type: 'image' },
+                          { key: 'hero_bg_mobile', value: settingsForm.hero_bg_mobile || '', type: 'image' },
+                          { key: 'hero_bg_video', value: settingsForm.hero_bg_video || '', type: 'text' },
+                        ]);
                       }}
-                      disabled={saveSetting.isPending}
+                      disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Hero
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Hero
                     </Button>
                   </CardContent>
                 </Card>
@@ -751,24 +781,146 @@ export function CmsPanel() {
                       size="sm"
                       className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                       onClick={() => {
-                        saveSetting.mutate({ key: 'about_origin_story', value: settingsForm.about_origin_story || '', type: 'text' });
-                        saveSetting.mutate({ key: 'about_season1_text', value: settingsForm.about_season1_text || '', type: 'text' });
-                        saveSetting.mutate({ key: 'about_tagline', value: settingsForm.about_tagline || '', type: 'text' });
+                        saveSettingsBatch.mutate([
+                          { key: 'about_origin_story', value: settingsForm.about_origin_story || '', type: 'text' },
+                          { key: 'about_season1_text', value: settingsForm.about_season1_text || '', type: 'text' },
+                          { key: 'about_tagline', value: settingsForm.about_tagline || '', type: 'text' },
+                        ]);
                       }}
-                      disabled={saveSetting.isPending}
+                      disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan About
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan About
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* CTA / Dream — Landing Section #7 */}
+                {/* Kompetisi — Landing Section #3 (Video URLs) */}
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Type className="w-4 h-4 text-[#d4a853]" /> CTA / Dream
-                      <Badge className="text-[8px] border-0 bg-purple-500/10 text-purple-400">Section 7</Badge>
+                      <Swords className="w-4 h-4 text-idm-gold-warm" /> Kompetisi
+                      <Badge className="text-[8px] border-0 bg-cyan-500/10 text-cyan-400">Section 3</Badge>
                     </h3>
+                    <p className="text-[10px] text-muted-foreground">Tambahkan video highlight untuk masing-masing divisi di section Kompetisi. Tombol play akan muncul di card divisi.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Male (Opsional)</label>
+                        <Input value={settingsForm.kompetisi_male_video_url || ''} onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_male_video_url: e.target.value }))} className="text-sm" placeholder="URL YouTube/MP4 — tombol play di card Male" />
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight turnamen Male Division</p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Female (Opsional)</label>
+                        <Input value={settingsForm.kompetisi_female_video_url || ''} onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_female_video_url: e.target.value }))} className="text-sm" placeholder="URL YouTube/MP4 — tombol play di card Female" />
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight turnamen Female Division</p>
+                      </div>
+                    </div>
+                    <Button size="sm" className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black" onClick={() => { saveSettingsBatch.mutate([ { key: 'kompetisi_male_video_url', value: settingsForm.kompetisi_male_video_url || '', type: 'text' }, { key: 'kompetisi_female_video_url', value: settingsForm.kompetisi_female_video_url || '', type: 'text' }, ]); }} disabled={saveSettingsBatch.isPending}>
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Kompetisi
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Liga IDM / The Dream — Landing Section #5 */}
+                <Card className="border border-border/50">
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#d4a853]" /> Liga IDM / The Dream
+                      <Badge className="text-[8px] border-0 bg-purple-500/10 text-purple-400">Section 5</Badge>
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground">Pengaturan section Liga IDM: deskripsi, stats manual, video champion, countdown timer, dan tombol CTA.</p>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dream Description (Completed)</label>
+                      <Textarea
+                        rows={3}
+                        placeholder="Teks untuk season yang sudah selesai..."
+                        value={settingsForm.dream_description_completed || ''}
+                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_completed: e.target.value }))}
+                        className="text-xs resize-y"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dream Description (Active)</label>
+                      <Textarea
+                        rows={3}
+                        placeholder="Teks untuk season yang sedang berlangsung..."
+                        value={settingsForm.dream_description_active || ''}
+                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_active: e.target.value }))}
+                        className="text-xs resize-y"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Season Next Text</label>
+                      <Input
+                        placeholder="Contoh: Season 2 Coming Soon"
+                        value={settingsForm.dream_season_next_text || ''}
+                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_season_next_text: e.target.value }))}
+                        className="text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Clubs Competing</label>
+                        <Input
+                          placeholder="Contoh: 32"
+                          value={settingsForm.dream_clubs_competing || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_clubs_competing: e.target.value }))}
+                          className="text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Matches Played</label>
+                        <Input
+                          placeholder="Contoh: 128"
+                          value={settingsForm.dream_matches_played || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_matches_played: e.target.value }))}
+                          className="text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Total Participants</label>
+                        <Input
+                          placeholder="Contoh: 500+"
+                          value={settingsForm.dream_total_participants || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_total_participants: e.target.value }))}
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Champion (Opsional)</label>
+                      <Input
+                        placeholder="URL YouTube/MP4 — video highlight champion"
+                        value={settingsForm.champion_video_url || ''}
+                        onChange={(e) => setSettingsForm(p => ({ ...p, champion_video_url: e.target.value }))}
+                        className="text-xs"
+                      />
+                      <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight juara/pemenang liga</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Countdown Label</label>
+                        <Input
+                          placeholder="Contoh: Menuju Season 2"
+                          value={settingsForm.countdown_label || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_label: e.target.value }))}
+                          className="text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Countdown Target Date</label>
+                        <Input
+                          type="datetime-local"
+                          value={settingsForm.countdown_target_date || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_target_date: e.target.value }))}
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Teks Tombol Male</label>
@@ -787,16 +939,28 @@ export function CmsPanel() {
                         />
                       </div>
                     </div>
+
                     <Button
                       size="sm"
                       className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                       onClick={() => {
-                        saveSetting.mutate({ key: 'nav_cta_male_text', value: settingsForm.nav_cta_male_text || '', type: 'text' });
-                        saveSetting.mutate({ key: 'nav_cta_female_text', value: settingsForm.nav_cta_female_text || '', type: 'text' });
+                        saveSettingsBatch.mutate([
+                          { key: 'dream_description_completed', value: settingsForm.dream_description_completed || '', type: 'text' },
+                          { key: 'dream_description_active', value: settingsForm.dream_description_active || '', type: 'text' },
+                          { key: 'dream_season_next_text', value: settingsForm.dream_season_next_text || '', type: 'text' },
+                          { key: 'dream_clubs_competing', value: settingsForm.dream_clubs_competing || '', type: 'text' },
+                          { key: 'dream_matches_played', value: settingsForm.dream_matches_played || '', type: 'text' },
+                          { key: 'dream_total_participants', value: settingsForm.dream_total_participants || '', type: 'text' },
+                          { key: 'champion_video_url', value: settingsForm.champion_video_url || '', type: 'text' },
+                          { key: 'countdown_label', value: settingsForm.countdown_label || '', type: 'text' },
+                          { key: 'countdown_target_date', value: settingsForm.countdown_target_date || '', type: 'text' },
+                          { key: 'nav_cta_male_text', value: settingsForm.nav_cta_male_text || '', type: 'text' },
+                          { key: 'nav_cta_female_text', value: settingsForm.nav_cta_female_text || '', type: 'text' },
+                        ]);
                       }}
-                      disabled={saveSetting.isPending}
+                      disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan CTA
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Liga IDM
                     </Button>
                   </CardContent>
                 </Card>
@@ -863,14 +1027,16 @@ export function CmsPanel() {
                       size="sm"
                       className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                       onClick={() => {
-                        saveSetting.mutate({ key: 'social_discord_url', value: settingsForm.social_discord_url || '#', type: 'text' });
-                        saveSetting.mutate({ key: 'social_instagram_url', value: settingsForm.social_instagram_url || '#', type: 'text' });
-                        saveSetting.mutate({ key: 'social_youtube_url', value: settingsForm.social_youtube_url || '#', type: 'text' });
-                        saveSetting.mutate({ key: 'social_whatsapp_url', value: settingsForm.social_whatsapp_url || '#', type: 'text' });
+                        saveSettingsBatch.mutate([
+                          { key: 'social_discord_url', value: settingsForm.social_discord_url || '#', type: 'text' },
+                          { key: 'social_instagram_url', value: settingsForm.social_instagram_url || '#', type: 'text' },
+                          { key: 'social_youtube_url', value: settingsForm.social_youtube_url || '#', type: 'text' },
+                          { key: 'social_whatsapp_url', value: settingsForm.social_whatsapp_url || '#', type: 'text' },
+                        ]);
                       }}
-                      disabled={saveSetting.isPending}
+                      disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Social Links
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Social Links
                     </Button>
                   </CardContent>
                 </Card>
@@ -902,12 +1068,14 @@ export function CmsPanel() {
                       size="sm"
                       className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
                       onClick={() => {
-                        saveSetting.mutate({ key: 'footer_text', value: settingsForm.footer_text || '', type: 'text' });
-                        saveSetting.mutate({ key: 'footer_tagline', value: settingsForm.footer_tagline || '', type: 'text' });
+                        saveSettingsBatch.mutate([
+                          { key: 'footer_text', value: settingsForm.footer_text || '', type: 'text' },
+                          { key: 'footer_tagline', value: settingsForm.footer_tagline || '', type: 'text' },
+                        ]);
                       }}
-                      disabled={saveSetting.isPending}
+                      disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Footer
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Footer
                     </Button>
                   </CardContent>
                 </Card>

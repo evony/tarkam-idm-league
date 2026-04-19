@@ -25,6 +25,7 @@ interface LeagueClub {
   id: string; name: string; logo: string | null; wins: number; losses: number;
   points: number; gameDiff: number; memberCount: number;
   members: ClubMember[];
+  championSeasons?: { id: string; name: string; number: number }[];
 }
 
 interface LeagueMatchData {

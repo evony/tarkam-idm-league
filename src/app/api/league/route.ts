@@ -135,6 +135,23 @@ export async function GET() {
   // Detect pre-season state: clubs exist but no matches played yet
   const isPreSeason = allClubs.length > 0 && leagueMatches.length === 0;
 
+  // Query champion seasons for all clubs in this season
+  const clubIds = allClubs.map(c => c.id);
+  const championSeasonRows = await db.season.findMany({
+    where: { championClubId: { in: clubIds } },
+    select: { id: true, name: true, number: true, championClubId: true },
+    orderBy: { number: 'desc' },
+  });
+  // Build a map: clubId -> championSeasons[]
+  const championSeasonsMap = new Map<string, { id: string; name: string; number: number }[]>();
+  for (const cs of championSeasonRows) {
+    if (cs.championClubId) {
+      const arr = championSeasonsMap.get(cs.championClubId) || [];
+      arr.push({ id: cs.id, name: cs.name, number: cs.number });
+      championSeasonsMap.set(cs.championClubId, arr);
+    }
+  }
+
   return NextResponse.json({
     hasData: true,
     preSeason: isPreSeason,
@@ -158,6 +175,7 @@ export async function GET() {
         role: m.role,
         avatar: m.player.avatar,
       })),
+      championSeasons: championSeasonsMap.get(c.id) || [],
     })),
     leagueMatches: leagueMatches.map(m => ({
       id: m.id, week: m.week, score1: m.score1, score2: m.score2,

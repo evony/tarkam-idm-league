@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
-  Trophy, Music, Users, Shield, Crown, Wallet, Flame,
+  Trophy, Music, Users, Shield, Crown, Wallet, Flame, Play,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,8 @@ interface ChampionsSectionProps {
   isDataLoading: boolean;
   cmsSections: Record<string, any>;
   setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
+  championVideoUrl?: string;
+  onVideoPlay?: (url: string, title: string) => void;
 }
 
 export function ChampionsSection({
@@ -30,6 +32,8 @@ export function ChampionsSection({
   isDataLoading,
   cmsSections,
   setSelectedPlayer,
+  championVideoUrl,
+  onVideoPlay,
 }: ChampionsSectionProps) {
   return (
     <>
@@ -185,6 +189,19 @@ export function ChampionsSection({
                       </div>
                     </div>
                   </div>
+
+                  {/* Champion Video Play */}
+                  {championVideoUrl && onVideoPlay && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => onVideoPlay(championVideoUrl, 'Liga IDM Champion')}
+                        className="w-full py-2.5 rounded-xl bg-[#d4a853]/5 border border-[#d4a853]/15 text-[#d4a853]/80 text-xs font-semibold hover:bg-[#d4a853]/10 hover:text-[#d4a853] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        Tonton Video Champion
+                      </button>
+                    </div>
+                  )}
 
                   {/* Bottom decorative line */}
                   <div className="mt-6 flex items-center gap-3">

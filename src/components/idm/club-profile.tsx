@@ -27,6 +27,7 @@ interface ClubProfileProps {
     gameDiff: number;
     members?: { id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number }[];
     rank?: number;
+    championSeasons?: { id: string; name: string; number: number }[];
   };
   onClose: () => void;
   rank?: number;
@@ -517,6 +518,11 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   </Badge>
                 )}
               </div>
+              {club.championSeasons && club.championSeasons.length > 0 && (
+                <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20 border-0 mt-1">
+                  <Crown className="w-3 h-3 mr-1" /> Pemenang Liga IDM
+                </Badge>
+              )}
               <p className="text-[10px] text-muted-foreground mt-2 max-w-xs mx-auto">
                 {rank === 1
                   ? 'Juara League — Club terbaik dengan performa luar biasa'
@@ -619,6 +625,16 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <Award className={`w-4 h-4 ${dt.text}`} />
                 <h3 className="text-sm font-semibold">Prestasi</h3>
               </div>
+              {club.championSeasons && club.championSeasons.length > 0 && (
+                <div className="space-y-1.5 mb-2">
+                  {club.championSeasons.map((season) => (
+                    <div key={season.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-idm-amber/10 border border-idm-amber/20">
+                      <Crown className="w-4 h-4 text-idm-amber" />
+                      <span className="text-xs font-bold text-idm-amber">Pemenang Liga Season {season.number}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {club.wins >= 1 && (
                   <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">

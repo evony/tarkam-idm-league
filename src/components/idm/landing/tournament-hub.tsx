@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Music, Shield, Trophy } from 'lucide-react';
+import { ArrowRight, Music, Shield, Trophy, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedSection, SectionHeader } from './shared';
 import { formatCurrency } from '@/lib/utils';
@@ -11,9 +11,14 @@ interface TournamentHubProps {
   maleData: StatsData | undefined;
   femaleData: StatsData | undefined;
   onEnterApp: (division: 'male' | 'female') => void;
+  cmsSettings?: Record<string, string>;
+  cmsSections?: Record<string, any>;
+  onVideoPlay?: (url: string, title: string) => void;
 }
 
-export function TournamentHub({ maleData, femaleData, onEnterApp }: TournamentHubProps) {
+export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, cmsSections, onVideoPlay }: TournamentHubProps) {
+  const maleVideoUrl = cmsSettings?.kompetisi_male_video_url || cmsSections?.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'male' && c.videoUrl)?.videoUrl;
+  const femaleVideoUrl = cmsSettings?.kompetisi_female_video_url || cmsSections?.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'female' && c.videoUrl)?.videoUrl;
   return (
     <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Arena battle with bilateral division glow */}
@@ -84,8 +89,19 @@ export function TournamentHub({ maleData, femaleData, onEnterApp }: TournamentHu
                   <div className="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-semibold">Champion</div>
                 </div>
 
+                {/* Video Play */}
+                {maleVideoUrl && onVideoPlay && (
+                  <button
+                    onClick={() => onVideoPlay(maleVideoUrl, 'Weekly Male')}
+                    className="mt-4 w-full py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/15 text-cyan-400/80 text-xs font-semibold hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    Tonton Video Weekly Male
+                  </button>
+                )}
+
                 {/* CTA */}
-                <button onClick={() => onEnterApp('male')} className="mt-5 w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('male')} className="mt-3 w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
                   Masuk Male Division →
                 </button>
               </div>
@@ -147,8 +163,19 @@ export function TournamentHub({ maleData, femaleData, onEnterApp }: TournamentHu
                   <div className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 font-semibold">Champion</div>
                 </div>
 
+                {/* Video Play */}
+                {femaleVideoUrl && onVideoPlay && (
+                  <button
+                    onClick={() => onVideoPlay(femaleVideoUrl, 'Weekly Female')}
+                    className="mt-4 w-full py-2.5 rounded-xl bg-purple-500/5 border border-purple-500/15 text-purple-400/80 text-xs font-semibold hover:bg-purple-500/10 hover:text-purple-400 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    Tonton Video Weekly Female
+                  </button>
+                )}
+
                 {/* CTA */}
-                <button onClick={() => onEnterApp('female')} className="mt-5 w-full py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('female')} className="mt-3 w-full py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
                   Masuk Female Division →
                 </button>
               </div>

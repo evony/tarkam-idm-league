@@ -27,6 +27,7 @@ export async function GET(request: Request) {
     seasonDonations,
     topPlayers,
     clubs,
+    championSeasonRows,
     recentMatches,
     upcomingMatches,
     playoffMatches,
@@ -64,6 +65,13 @@ export async function GET(request: Request) {
       where: { seasonId: season.id },
       orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
       include: { _count: { select: { members: true } } },
+    }),
+
+    // Champion seasons for all clubs
+    db.season.findMany({
+      where: { championClubId: { not: null }, status: { in: ['active', 'completed'] } },
+      select: { id: true, name: true, number: true, championClubId: true },
+      orderBy: { number: 'desc' },
     }),
 
     // Recent matches
@@ -208,7 +216,13 @@ export async function GET(request: Request) {
     totalPrizePool,
     seasonDonationTotal,
     topPlayers,
-    clubs,
+    clubs: clubs.map(c => {
+      // Build championSeasons for this club from the pre-fetched rows
+      const csForClub = championSeasonRows
+        .filter(cs => cs.championClubId === c.id)
+        .map(cs => ({ id: cs.id, name: cs.name, number: cs.number }));
+      return { ...c, championSeasons: csForClub };
+    }),
     recentMatches,
     upcomingMatches,
     playoffMatches,
