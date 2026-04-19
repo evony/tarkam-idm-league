@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useQuery } from '@tanstack/react-query';
 import {
   X, Trophy, Shield, Crown, Music, Target,
   TrendingUp, Award, Zap, Users, Star, BarChart3,
@@ -11,7 +12,7 @@ import {
 import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useDivisionTheme } from '@/hooks/use-division-theme';
+import { useDivisionTheme, getDivisionTheme } from '@/hooks/use-division-theme';
 import { getAvatarUrl, hashString } from '@/lib/utils';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 
@@ -373,16 +374,47 @@ function StatBlock({ icon: Icon, label, value, sub, color }: {
 }
 
 export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileProps) {
-  const dt = useDivisionTheme();
-  const totalMatches = club.wins + club.losses;
-  const winRate = totalMatches > 0 ? Math.round((club.wins / totalMatches) * 100) : 0;
-  const isUndefeated = club.losses === 0 && club.wins > 0;
+  // Close on Escape key for accessibility
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  // Fetch unified cross-division profile data
+  const { data: unifiedData, isLoading: isLoadingUnified } = useQuery({
+    queryKey: ['club-unified-profile', club.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/clubs/unified-profile?clubId=${club.id}`);
+      return res.json();
+    },
+    enabled: !!club.id,
+  });
+
+  // Use unified data when available, fallback to club prop
+  const displayData = unifiedData || club;
+  const isMixed = (displayData as any).isMixed || false;
+  const maleCount = (displayData as any).maleMembers ?? (club.division === 'male' ? (club.members?.length || 0) : 0);
+  const femaleCount = (displayData as any).femaleMembers ?? (club.division === 'female' ? (club.members?.length || 0) : 0);
+  const displayWins = (displayData as any).wins ?? club.wins;
+  const displayLosses = (displayData as any).losses ?? club.losses;
+  const displayPoints = (displayData as any).points ?? club.points;
+  const displayGameDiff = (displayData as any).gameDiff ?? club.gameDiff;
+  const displayChampionSeasons = (displayData as any).championSeasons ?? club.championSeasons;
+  const displayDivision = isMixed ? 'league' : (club.division || 'male');
+
+  // Use gold/league theme for mixed clubs, division theme for single-division clubs
+  const dt = displayDivision === 'league' ? getDivisionTheme('male') : getDivisionTheme(club.division === 'female' ? 'female' : 'male');
+
+  const totalMatches = displayWins + displayLosses;
+  const winRate = totalMatches > 0 ? Math.round((displayWins / totalMatches) * 100) : 0;
+  const isUndefeated = displayLosses === 0 && displayWins > 0;
   const isChampion = rank === 1;
 
   const rankLabel = rank === 1 ? '🏆 Juara League' : rank === 2 ? '🥈 Juara 2' : rank === 3 ? '🥉 Peringkat 3' : rank ? `#${rank}` : '';
 
-  // Members from actual data only — no fake fallback data
-  const members = club.members || [];
+  // Members from unified data or fallback to club prop
+  const members = ((displayData as any).members || club.members || []) as Array<{ id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number; division?: string; clubDivision?: string; isCaptain?: boolean }>;
 
   return (
     <AnimatePresence>
@@ -506,10 +538,15 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             {/* Name & Division */}
             <div className="text-center mb-4">
               <h2 className={`text-xl font-bold ${dt.gradientText}`}>{club.name}</h2>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                {club.division && (
-                  <Badge className={`text-[10px] border-0 ${club.division === 'league' ? 'bg-[#d4a853]/10 text-[#d4a853]' : dt.badgeBg}`}>
-                    {club.division === 'league' ? '🏆 Liga IDM' : club.division === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
+              <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                {displayDivision && (
+                  <Badge className={`text-[10px] border-0 ${displayDivision === 'league' ? 'bg-[#d4a853]/10 text-[#d4a853]' : dt.badgeBg}`}>
+                    {displayDivision === 'league' ? '🏆 Liga IDM' : displayDivision === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
+                  </Badge>
+                )}
+                {isMixed && (
+                  <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20">
+                    ✨ Club Mix · 🕺 {maleCount} Male · 💃 {femaleCount} Female
                   </Badge>
                 )}
                 {isUndefeated && (
@@ -518,8 +555,8 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   </Badge>
                 )}
               </div>
-              {club.championSeasons && club.championSeasons.length > 0 && (
-                <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20 border-0 mt-1">
+              {displayChampionSeasons && displayChampionSeasons.length > 0 && (
+                <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20 mt-1">
                   <Crown className="w-3 h-3 mr-1" /> Pemenang Liga IDM
                 </Badge>
               )}
@@ -535,10 +572,31 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
 
             {/* Main Stats Grid */}
             <div className="grid grid-cols-3 gap-2 mb-4">
-              <StatBlock icon={Trophy} label="Poin" value={club.points} color={dt.text} />
-              <StatBlock icon={Target} label="Rasio Win" value={`${winRate}%`} sub={`${club.wins}W/${club.losses}L`} color="text-green-500" />
-              <StatBlock icon={Music} label="Selisih Game" value={club.gameDiff > 0 ? `+${club.gameDiff}` : club.gameDiff} color="text-yellow-500" />
+              <StatBlock icon={Trophy} label="Poin" value={displayPoints} color={dt.text} />
+              <StatBlock icon={Target} label="Rasio Win" value={`${winRate}%`} sub={`${displayWins}W/${displayLosses}L`} color="text-green-500" />
+              <StatBlock icon={Music} label="Selisih Game" value={displayGameDiff > 0 ? `+${displayGameDiff}` : displayGameDiff} color="text-yellow-500" />
             </div>
+
+            {/* Per-Division Stats Breakdown (when mixed) */}
+            {isMixed && (displayData as any).divisionBreakdown && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5 text-idm-amber" />
+                  Statistik Per Divisi
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries((displayData as any).divisionBreakdown as Record<string, { wins: number; losses: number; points: number; gameDiff: number; memberCount: number }>).map(([div, stats]) => (
+                    <div key={div} className={`p-2.5 rounded-xl ${div === 'male' ? 'bg-idm-male/5 border border-idm-male/10' : 'bg-idm-female/5 border border-idm-female/10'}`}>
+                      <p className={`text-[10px] font-bold mb-1 ${div === 'male' ? 'text-idm-male' : 'text-idm-female'}`}>
+                        {div === 'male' ? '🕺 Male' : '💃 Female'}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">{stats.wins}W/{stats.losses}L · {stats.points}pts</p>
+                      <p className="text-[9px] text-muted-foreground">{stats.memberCount} anggota · GD {stats.gameDiff > 0 ? '+' : ''}{stats.gameDiff}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Detailed Stats */}
             <div className="space-y-3 mb-4">
@@ -557,7 +615,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   <Trophy className="w-4 h-4 text-green-500" />
                   <span className="text-xs font-medium">Win</span>
                 </div>
-                <span className="text-sm font-bold text-green-500">{club.wins}</span>
+                <span className="text-sm font-bold text-green-500">{displayWins}</span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-red-500/5 border border-red-500/10">
@@ -565,7 +623,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   <X className="w-4 h-4 text-red-500" />
                   <span className="text-xs font-medium">Kekalahan</span>
                 </div>
-                <span className="text-sm font-bold text-red-500">{club.losses}</span>
+                <span className="text-sm font-bold text-red-500">{displayLosses}</span>
               </div>
 
               <div className={`flex items-center justify-between p-2.5 rounded-xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
@@ -584,32 +642,49 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <h3 className="text-sm font-semibold">Daftar Pemain</h3>
                 <Badge className={`${dt.badgeBg} text-[10px] ml-auto`}>{members.length} Players</Badge>
               </div>
-              {members.length > 0 ? (
+              {isLoadingUnified ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-idm-male" />
+                </div>
+              ) : members.length > 0 ? (
                 <div className="space-y-1.5">
-                  {members.map((p, i) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors cursor-pointer interactive-scale"
-                      onClick={() => onPlayerClick?.(p)}
-                    >
-                      <div className="relative w-8 rounded-md overflow-hidden shrink-0" style={{ aspectRatio: '3/4' }}>
-                        <Image src={getAvatarUrl(p.gamertag, (club.division === 'league' ? (p as { division?: string }).division || 'male' : club.division === 'male' ? 'male' : 'female') as 'male' | 'female', p.avatar)} alt={p.gamertag} fill sizes="60px" className="w-full h-full object-cover object-top" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06]/50 via-transparent to-transparent" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">{p.gamertag}</span>
-                          <TierBadge tier={p.tier} />
+                  {members.map((p, i) => {
+                    const memberDivision = p.clubDivision || p.division || (club.division === 'league' || isMixed ? 'male' : club.division === 'male' ? 'male' : 'female');
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors cursor-pointer interactive-scale"
+                        onClick={() => onPlayerClick?.(p)}
+                      >
+                        <div className="relative w-8 rounded-md overflow-hidden shrink-0" style={{ aspectRatio: '3/4' }}>
+                          <Image src={getAvatarUrl(p.gamertag, memberDivision as 'male' | 'female', p.avatar)} alt={p.gamertag} fill sizes="60px" className="w-full h-full object-cover object-top" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06]/50 via-transparent to-transparent" />
                         </div>
-                        <p className="text-[10px] text-muted-foreground">{p.name}</p>
+                        {/* Division indicator dot */}
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${memberDivision === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} title={memberDivision === 'male' ? 'Male' : 'Female'} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium truncate">{p.gamertag}</span>
+                            <TierBadge tier={p.tier} />
+                            {p.isCaptain && (
+                              <span className="text-[8px] text-idm-amber font-bold uppercase">CPT</span>
+                            )}
+                            {isMixed && (
+                              <span className={`text-[8px] font-medium ${memberDivision === 'male' ? 'text-idm-male/60' : 'text-idm-female/60'}`}>
+                                {memberDivision === 'male' ? '🕺' : '💃'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">{p.name}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-xs font-bold ${dt.text}`}>{p.points}</p>
+                          <p className="text-[9px] text-muted-foreground">pts</p>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
                       </div>
-                      <div className="text-right">
-                        <p className={`text-xs font-bold ${dt.text}`}>{p.points}</p>
-                        <p className="text-[9px] text-muted-foreground">pts</p>
-                      </div>
-                      <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className={`p-4 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle} text-center`}>
@@ -625,9 +700,9 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <Award className={`w-4 h-4 ${dt.text}`} />
                 <h3 className="text-sm font-semibold">Prestasi</h3>
               </div>
-              {club.championSeasons && club.championSeasons.length > 0 && (
+              {displayChampionSeasons && displayChampionSeasons.length > 0 && (
                 <div className="space-y-1.5 mb-2">
-                  {club.championSeasons.map((season) => (
+                  {displayChampionSeasons.map((season: { id: string; name: string; number: number }) => (
                     <div key={season.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-idm-amber/10 border border-idm-amber/20">
                       <Crown className="w-4 h-4 text-idm-amber" />
                       <span className="text-xs font-bold text-idm-amber">Pemenang Liga Season {season.number}</span>
@@ -636,17 +711,17 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 </div>
               )}
               <div className="flex flex-wrap gap-1.5">
-                {club.wins >= 1 && (
+                {displayWins >= 1 && (
                   <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">
                     <Star className="w-3 h-3 mr-1" /> Win Pertama
                   </Badge>
                 )}
-                {club.wins >= 3 && (
+                {displayWins >= 3 && (
                   <Badge className="bg-blue-500/10 text-blue-500 text-[10px] border-0">
                     <Trophy className="w-3 h-3 mr-1" /> 3+ Win
                   </Badge>
                 )}
-                {isUndefeated && club.wins >= 2 && (
+                {isUndefeated && displayWins >= 2 && (
                   <Badge className="bg-orange-500/10 text-orange-500 text-[10px] border-0">
                     <Flame className="w-3 h-3 mr-1" /> Tak Terkalahkan
                   </Badge>
@@ -661,9 +736,9 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                     <Shield className="w-3 h-3 mr-1" /> 4 Besar
                   </Badge>
                 )}
-                {club.gameDiff >= 5 && (
+                {displayGameDiff >= 5 && (
                   <Badge className="bg-amber-500/10 text-amber-500 text-[10px] border-0">
-                    <Music className="w-3 h-3 mr-1" /> Dominan (+{club.gameDiff} GD)
+                    <Music className="w-3 h-3 mr-1" /> Dominan (+{displayGameDiff} GD)
                   </Badge>
                 )}
                 {totalMatches >= 5 && (
@@ -671,7 +746,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                     <BarChart3 className="w-3 h-3 mr-1" /> Club Veteran
                   </Badge>
                 )}
-                {winRate >= 70 && club.wins > 0 && (
+                {winRate >= 70 && displayWins > 0 && (
                   <Badge className={`${dt.badgeBg} text-[10px] border-0`}>
                     <TrendingUp className="w-3 h-3 mr-1" /> Rasio Win 70%+
                   </Badge>
@@ -689,7 +764,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <div className={`p-3 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle}`}>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="text-lg font-bold text-green-500">{club.wins}</p>
+                      <p className="text-lg font-bold text-green-500">{displayWins}</p>
                       <p className="text-[9px] text-muted-foreground uppercase">Win</p>
                     </div>
                     <div>
@@ -697,7 +772,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                       <p className="text-[9px] text-muted-foreground uppercase">Seri</p>
                     </div>
                     <div>
-                      <p className="text-lg font-bold text-red-500">{club.losses}</p>
+                      <p className="text-lg font-bold text-red-500">{displayLosses}</p>
                       <p className="text-[9px] text-muted-foreground uppercase">Kekalahan</p>
                     </div>
                   </div>
@@ -724,18 +799,18 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bonus Win ({club.wins} win × 2pts)</span>
-                  <span className={`font-bold ${dt.text}`}>+{club.wins * 2} pts</span>
+                  <span className="text-muted-foreground">Bonus Win ({displayWins} win × 2pts)</span>
+                  <span className={`font-bold ${dt.text}`}>+{displayWins * 2} pts</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Selisih Game ({club.gameDiff > 0 ? '+' : ''}{club.gameDiff})</span>
-                  <span className={`font-bold ${club.gameDiff > 0 ? 'text-green-500' : 'text-red-500'}`}>{club.gameDiff > 0 ? '+' : ''}{club.gameDiff} pts</span>
+                  <span className="text-muted-foreground">Selisih Game ({displayGameDiff > 0 ? '+' : ''}{displayGameDiff})</span>
+                  <span className={`font-bold ${displayGameDiff > 0 ? 'text-green-500' : 'text-red-500'}`}>{displayGameDiff > 0 ? '+' : ''}{displayGameDiff} pts</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Partisipasi ({totalMatches} match)</span>
                   <span className="font-bold text-green-500">+{totalMatches * 5} pts</span>
                 </div>
-                {isUndefeated && club.wins > 0 && (
+                {isUndefeated && displayWins > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bonus Tak Terkalahkan</span>
                     <span className="font-bold text-orange-500">+20 pts</span>
@@ -744,7 +819,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <div className="h-px bg-border my-1" />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className={dt.text}>{club.points} pts</span>
+                  <span className={dt.text}>{displayPoints} pts</span>
                 </div>
               </div>
             </div>

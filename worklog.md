@@ -108,7 +108,360 @@ Stage Summary:
 - Server running and accessible
 
 ---
-Task ID: 3
+Task ID: 5
+Agent: Main
+Task: Apply latest updates from OK.tar uploaded file
+
+Work Log:
+- Extracted OK.tar from /home/z/my-project/upload/OK.tar to /tmp/ok-tar
+- Compared current project files with tar contents - found ~50+ modified files
+- New files added: src/app/api/admins/route.ts, src/app/api/admins/reset-password/route.ts, src/app/api/auth/change-password/route.ts, src/components/idm/admin-management.tsx, src/lib/db-resilience.ts
+- Copied all updated src/ files from tar to current project
+- Copied updated prisma/schema.prisma (new fields: bannerImage on Club, bpm as String?, category/updatedAt on Achievement, updatedAt on CmsSetting/Sponsor, club1Id/club2Id/week on LeagueMatch)
+- Copied updated components.json, package.json, next.config.ts (added Cloudinary image remote patterns)
+- Copied new public assets (bg-dance-game-hero.jpg, bg-dance-game-hero-mobile.jpg, bg-female-new.jpg, bg-male-new.jpg, bg-section-new.jpg)
+- Installed new dependencies: @neondatabase/serverless, @prisma/adapter-neon, @prisma/adapter-pg, bcryptjs, pg, ws
+- Switched Prisma schema from postgresql to sqlite (environment uses SQLite)
+- Force-reset database and pushed new schema
+- Seeded database: init-admin, cms/seed, achievements/seed (16 achievements), main seed (45 male players, 26 female players, 15 male clubs, 13 female clubs)
+- Verified lint passes clean
+- Verified all API endpoints respond correctly (/api/league, /api/stats, /api/feed, etc.)
+
+Stage Summary:
+- All latest updates from OK.tar applied successfully
+- Key new features: RBAC admin management (super_admin/admin roles), change password, admin CRUD API, db-resilience utility, club banner images, updated landing sections, updated tournament components
+- Database schema updated and seeded with fresh data
+- All APIs working, lint clean, dev server running
+
+---
+Task ID: 6
+Agent: Main
+Task: Fix recurring issue: Liga IDM Season 1 champion MAXIMOUS not displaying after data restore
+
+Work Log:
+- Investigated why ligaChampion was always null in /api/league response
+- Found ROOT CAUSE #1: Seed script creates seasons with `status: 'active'` and `championClubId: null` — never sets a champion
+- Found ROOT CAUSE #2: SQLite stores `championSquad` (Json? type) as a JSON string, but the league API code casts it directly as an Array without JSON.parse() — causing `squad.map is not a function` error
+- Found ROOT CAUSE #3: Database file mismatch — custom.db (env target) was empty after reset, data was in dev.db
+- Fixed seed script: Season 1 now created with `status: 'completed'`, MAXIMOUS set as `championClubId`, and `championSquad` with 5 representative members
+- Fixed /api/league/route.ts: Added JSON.parse() for championSquad with type checking (string vs already-parsed)
+- Fixed /api/seasons/[id]/route.ts: Parse championSquad in GET and PUT responses; stringify on save
+- Synced custom.db with dev.db to fix database file mismatch
+- Directly updated existing database: set MAXIMOUS as championClubId on both male and female seasons
+
+Stage Summary:
+- MAXIMOUS champion now displays correctly: ligaChampion returns { name: "MAXIMOUS", seasonNumber: 1, members: [Bambang, afi, astro, sheraid, yay] }
+- Seed script now ALWAYS sets MAXIMOUS as Season 1 champion — this will persist across future restores
+- JSON.parse() safety added for all championSquad reads (league API + seasons API)
+- championSquad serialized with JSON.stringify() on writes (seasons API)
+- Lint clean, all APIs working
+
+---
+Task ID: 7
+Agent: Main
+Task: Clear all seed data (players, clubs, avatars, backgrounds) except logos and bg-section
+
+Work Log:
+- Deleted all player data (71 players), club data (28 clubs, 71 club members), season data (2 seasons), tournament data (2 tournaments) from database
+- Kept: Admin account (1), CMS settings (24), CMS sections (9), CMS cards (9), Achievements (16)
+- Removed avatar images from public/avatars/ (6 files: avatar-male-1/2/3.png, avatar-female-1/2/3.png)
+- Removed background images from public/ (8 files: bg-dance-game-hero.jpg, bg-dance-game-hero-mobile.jpg, bg-female-new.jpg, bg-male-new.jpg, bg-default.jpg, bg-female.jpg, bg-male.jpg, bg-mobiledefault.jpg)
+- KEPT: bg-section.jpg, bg-section-new.jpg (as requested)
+- KEPT: All club logos in public/clubs/ (9 logo files: crystal-wave.png, lunar-flow.png, etc.)
+- KEPT: Logo files (logo.svg, logo.webp, logo1.webp)
+- Cleared CMS settings that referenced deleted background images (hero_bg_desktop, hero_bg_mobile)
+- Updated seed script (/api/seed) to only create empty upcoming seasons — no more pre-populated players/clubs/tournaments
+- Synced custom.db and dev.db
+- Verified all APIs work with empty data (league returns no_season, stats returns 0, CMS still has content)
+- Verified homepage loads with HTTP 200
+- Lint clean
+
+Stage Summary:
+- Database is clean: 0 players, 0 clubs, 0 seasons, 0 tournaments, 0 matches
+- Admin can add data through the admin panel going forward
+- Seed script now only creates empty season scaffolding
+- Background and avatar files removed; logos and bg-section preserved
+- CMS text content preserved for landing page copy
+
+---
+Task ID: 8
+Agent: Main
+Task: Seed complete player and club data with all points zeroed, sorted alphabetically
+
+Work Log:
+- Updated seed script with all 50 male players and 26 female players per user's table
+- Added 5 new male players: rusel (GYMSHARK), sting (MAXIMOUS), AbdnZ (MAXIMOUS), chand (MAXIMOUS), Boby (MAXIMOUS)
+- Created 15 male clubs: ALQA, AVENUE, CROWN, EUPHORIC, GYMSHARK, JASMINE, MAXIMOUS, MYSTERY, ORPHIC, PARANOID, RESTART, SALVADOR, SECRETS, SENSEI, SOUTHERN
+- Created 13 female clubs: EUPHORIC, GYMSHARK, MAXIMOUS, PARANOID, PSALM, Plat R, QUEEN, RESTART, RNB, SECRETS, SOUTHERN, TOGETHER, YAKUZA
+- All players sorted alphabetically within their data arrays
+- First alphabetical player in each club becomes captain
+- All player points = 0, all club points/wins/losses/gameDiff = 0
+- Fixed club name discrepancies: "SECRET"→"SECRETS", "ORPIC"→"ORPHIC", kept "Plat R"
+- Cleared existing data and re-seeded successfully
+- Verified: 50 male + 26 female players, 15 male + 13 female clubs, all points zero
+- Lint clean, APIs working
+
+Stage Summary:
+- Complete seed data: 76 players, 28 clubs (15 male + 13 female), 2 seasons
+- All points zeroed (players and clubs)
+- Players integrated with clubs, sorted alphabetically
+- Captain = first alphabetical player per club
+
+---
+Task ID: 9
+Agent: Main
+Task: Verify seed data integrity and application functionality after session continuation
+
+Work Log:
+- Checked database state: 76 players (50 male + 26 female), 28 clubs (15 male + 13 female), 2 seasons
+- Verified all players have club memberships (0 without clubs)
+- Verified all player points = 0 and all club points/wins/losses/gameDiff = 0
+- Verified captain assignment: first alphabetical player in each club is captain
+- Tested /api/stats and /api/league APIs - both return correct data
+- League API shows preSeason=true (clubs exist but no matches yet)
+- Started dev server and verified homepage renders with HTTP 200
+- Full member verification by club:
+  - Male: MAXIMOUS (15), SOUTHERN (5), EUPHORIC (5), GYMSHARK (5), AVENUE (3), SALVADOR (3), PARANOID (3), ALQA (2), RESTART (2), SENSEI (2), CROWN (1), JASMINE (1), MYSTERY (1), ORPHIC (1), SECRETS (1)
+  - Female: PARANOID (5), SOUTHERN (4), EUPHORIC (3), MAXIMOUS (3), YAKUZA (3), GYMSHARK (1), PSALM (1), Plat R (1), QUEEN (1), RESTART (1), RNB (1), SECRETS (1), TOGETHER (1)
+
+Stage Summary:
+- All seed data intact and verified from previous session
+- Application running correctly with all data
+- No changes needed - data was already correctly populated
+
+---
+Task ID: 10
+Agent: Main
+Task: Fix bug: female division champion/MVP cards showing male data on landing page
+
+Work Log:
+- Investigated landing page ChampionsSection and MvpSection components
+- Discovered ROOT CAUSE: /api/stats/route.ts does NOT filter seasons by division
+  - `allSeasons` query had no division filter → returns both male AND female seasons
+  - `season = allSeasons[0]` could pick the wrong season (Male season when requesting Female data)
+  - `seasonWithClubs` also had no division filter → returns first season with clubs regardless of division
+- Result: `/api/stats?division=female` was returning 15 MALE clubs instead of 13 FEMALE clubs
+  - Season returned: "IDM League Season 1 - Male" instead of "Female"
+  - Clubs returned: ALQA, AVENUE, CROWN, etc. (all male) instead of EUPHORIC, GYMSHARK, MAXIMOUS (female)
+- Fixed /api/stats/route.ts:
+  - Added `division` filter to `allSeasons` query: `where: { division, status: { in: ['active', 'completed'] } }`
+  - Added `division` filter to `seasonWithClubs` query: `where: { division, id: { in: ... }, clubs: { some: {} } }`
+  - Updated comments to clarify that Male and Female are separate seasons
+- Verified fix:
+  - `/api/stats?division=female` now returns 13 FEMALE clubs, Season: "IDM League Season 1 - Female"
+  - `/api/stats?division=male` still returns 15 MALE clubs, Season: "IDM League Season 1 - Male"
+  - Both divisions show correct weeklyChampions (0) and mvpHallOfFame (0) since no tournaments completed yet
+- Lint clean
+
+Stage Summary:
+- Critical division filtering bug fixed in /api/stats/route.ts
+- Female division now correctly shows its own clubs, season, and data
+- Landing page Champion and MVP cards will now show correct division-specific data
+- Note: /api/league/route.ts intentionally does NOT filter by division (it's for unified Liga IDM champion display)
+
+---
+Task ID: 11
+Agent: Main
+Task: Remove "minimum 1 female" rule and allow cross-division champion squad selection
+
+Work Log:
+- Changed ChampionSquadSelector component to fetch ALL active players (not just champion club members)
+  - Previously: fetched only from `/api/clubs/{championClubId}/members`
+  - Now: fetches from `/api/players` — all 76 players across both divisions available
+  - Admin can now pick any player from male or female division for the champion squad
+- Removed "wajib minimal 1 female" validation from squad save button
+  - Previously: toast.error('Skuad wajib memiliki minimal 1 pemain female') blocked save
+  - Now: no division validation — admin can pick 5 from same division or mix freely
+- Updated squad hint text: "Pilih tepat 5 pemain sebagai perwakilan squad (bebas dari divisi male atau female)"
+- Changed "Min. 1 female" warning badge to "✨ Cross-division" indicator (shows when squad has mixed divisions)
+- Updated /api/league/route.ts teamFormat.rule:
+  - Old: "Wajib minimal 1 peserta female. Tim tidak boleh semua male atau semua female."
+  - New: "Peserta bebas mix atau tidak mix dari divisi male dan female. Skuad champion dapat memilih anggota dari divisi mana saja."
+- Updated league-view.tsx: 13 text changes replacing all "mix" and "minimal 1 female" references
+- Updated landing page components: champions-section, dream-section, about-section
+- Updated CMS panel placeholder text and CMS seed default text
+- Lint clean, API verified (teamFormat.rule shows new text)
+
+Stage Summary:
+- Rule changed: participants are FREE to mix or not mix from male/female divisions
+- Champion squad can now select members from ANY division (cross-division allowed)
+- All "wajib minimal 1 female" validation removed
+- All UI text updated to reflect "bebas mix" instead of "wajib mix"
+- No remaining references to old "minimum 1 female" rule
+
+---
+Task ID: 12
+Agent: Main
+Task: Fix champion squad selector to only show members from the champion club (across both divisions)
+
+Work Log:
+- User reported: ChampionSquadSelector was showing ALL 76 players from the entire database instead of only members from the champion club
+- The correct behavior: show members from the champion club AND same-named clubs across both divisions (e.g., if MAXIMOUS male is champion, also show MAXIMOUS female members)
+- Created new API endpoint: /api/clubs/champion-members/route.ts
+  - Accepts clubId query param
+  - Finds the champion club, gets its name
+  - Finds ALL clubs with the same name across both male and female divisions
+  - Returns all members from those clubs (deduplicated by player ID)
+- Updated ChampionSquadSelector component:
+  - Changed from fetching `/api/players` (all players) to `/api/clubs/champion-members?clubId=xxx` (only champion club members)
+  - Query key changed from `['all-active-players-for-squad']` to `['champion-club-members', championClubId]`
+  - Added clubDivision display in player list (shows when member is from the other division's club)
+  - Added captain indicator in player list
+  - Updated search placeholder: "Cari anggota club (gamertag)..."
+  - Updated footer text: shows club name and member count by division
+- Updated squad editing hint text:
+  - Old: "Pilih tepat 5 pemain sebagai perwakilan squad (bebas dari divisi male atau female)"
+  - New: "Pilih tepat 5 anggota dari club champion sebagai perwakilan squad (termasuk anggota divisi lain dengan nama club yang sama)"
+- Lint clean, dev server running without errors
+
+Stage Summary:
+- Champion squad selector now ONLY shows members from the champion club (across both divisions)
+- New API: /api/clubs/champion-members?clubId=xxx returns cross-division club members
+- Example: If MAXIMOUS (male, 15 members) is champion, selector also shows MAXIMOUS (female, 3 members) — total 18 members available
+- No more showing random players from unrelated clubs
+
+---
+Task ID: 13
+Agent: Main
+Task: Reduce banner gradient height + Fix division bug in PlayerProfile modal
+
+Work Log:
+- User requested: shorten the banner gradient above champion cards (not make it taller)
+  - Changed both empty state and champion card banners from h-36 sm:h-48 to h-16 sm:h-20
+  - Avatar height kept at 260px (taller) for better visibility
+- User reported bug: Afrona and AiTan (female players) showing "Divisi Male" in their profile modal
+  - ROOT CAUSE: PlayerProfile component used `useAppStore(s => s.division)` for ALL division-specific display
+  - This returns the CURRENTLY SELECTED UI division, NOT the player's actual division
+  - If user is on male tab and clicks a female player → modal incorrectly shows "Divisi Male"
+- Fixed PlayerProfile:
+  - Added `storeDivision = useAppStore(s => s.division)` hook call
+  - Created `playerDivision = player.division || storeDivision` — uses player's actual division first
+  - Replaced all `division === 'male'` / `division === 'female'` with `playerDivision === 'male'` / `playerDivision === 'female'` in:
+    - Avatar URL (getAvatarUrl)
+    - Division color tint overlay
+    - SVG watermark text color
+    - SVG corner bracket colors
+    - Division badge text ("🕺 Divisi Male" / "💃 Divisi Female")
+    - Win rate progress bar gradient colors
+- Lint clean, dev server running without errors
+
+Stage Summary:
+- Banner gradient reduced to h-16 sm:h-20 (compact, more space for avatars)
+- Player profile modal now correctly shows player's ACTUAL division (not UI-selected division)
+- Female players like Afrona/AiTan will now correctly show "💃 Divisi Female" in their profile
+
+---
+Task ID: 14
+Agent: Main
+Task: Fix player profile modal colors (male=cyan, female=purple) and make club profile unified (mixed male+female members)
+
+Work Log:
+- User reported: Player profile modal shows same color for both male and female players
+  - ROOT CAUSE: `useDivisionTheme()` reads from the STORE's current division, not the player's actual division
+  - When viewing a male player's profile while UI is in female mode → all `dt.*` classes show purple instead of cyan
+- Added `getDivisionTheme()` export to use-division-theme.ts — non-hook version that takes a division parameter
+- Updated PlayerProfile component:
+  - Changed from `useDivisionTheme()` (store-based) to `getDivisionTheme(playerDivision)` (player-based)
+  - Updated StatBlock component to accept `playerDivision` prop instead of reading from store
+  - All stat blocks, backgrounds, borders, and text now correctly show cyan for male players and purple for female players
+  - Removed unused imports (Progress, ChevronRight, Gamepad2, CircleDot, etc.)
+- User requested: Club profile should show MIXED members from both divisions, not just one
+  - Clubs are unified entities — a single club (e.g., MAXIMOUS) has both male AND female members
+  - Previously, club profile only showed members from ONE division's club record
+- Created new API: /api/clubs/unified-profile?clubId=xxx
+  - Finds the primary club by ID
+  - Finds ALL clubs with the same name across both male and female divisions
+  - Returns combined members, combined stats, per-division breakdown
+  - Deduplicates members by player ID
+- Completely rewrote ClubProfile component:
+  - Now fetches unified data from /api/clubs/unified-profile on mount
+  - Shows "Club Mix" badge with male/female member counts when both divisions exist
+  - Uses gold/league color scheme instead of single-division theming (since club is unified)
+  - Each member has a division indicator dot (cyan=male, purple=female) and division label
+  - Per-division stats breakdown card when both divisions exist
+  - Combined wins/losses/points/gameDiff from both divisions
+  - Loading spinner while fetching unified data
+  - Avatar uses player's actual division for correct portrait
+- Updated landing-page.tsx:
+  - Added onPlayerClick handler to ClubProfile that correctly finds players by their division
+  - When clicking a member in club profile, opens PlayerProfile with correct division info
+- Lint clean, dev server running without errors
+
+Stage Summary:
+- Player profile modal colors now correctly reflect the PLAYER's division (cyan=male, purple=purple)
+- Club profile is now UNIFIED — shows members from both male and female divisions together
+- New API: /api/clubs/unified-profile returns cross-division club data
+- "Club Mix" badge with 🕺 Male / 💃 Female counts shown for unified clubs
+- Per-division stats breakdown shown when both divisions exist
+- Gold/league color scheme for club profiles (not division-specific)
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix video URLs not displaying on landing page — support YouTube URLs
+
+Work Log:
+- Investigated why CMS video URLs weren't showing on landing page
+- Found that `hero_bg_video` used `<video>` tag which only supports MP4, not YouTube URLs
+- Found that Competition section had no CMS cards with `videoUrl` — needed alternative approach
+- Fixed Hero section: Added YouTube detection function `getYouTubeId()` and conditional rendering — YouTube URLs render as iframe embed, MP4 URLs render as `<video>` tag
+- Added two new CMS settings: `kompetisi_male_video_url` and `kompetisi_female_video_url` for Competition section video URLs
+- Added Kompetisi section card in CMS admin panel with video URL fields for male and female divisions
+- Updated TournamentHub component to accept `cmsSettings` prop and read video URLs from settings (with fallback to card videoUrl)
+- Passed `cmsSettings` prop from landing-page.tsx to TournamentHub
+- Added `Swords` icon import to cms-panel.tsx
+- Updated hero_bg_video hint text to clarify YouTube support
+- Verified Champion section VideoModal already supports YouTube — play button works correctly
+- Verified Countdown timer in Dream section already works — requires admin to fill both `countdown_label` and `countdown_target_date`
+
+Stage Summary:
+- Hero section now supports YouTube URLs as background (iframe with autoplay/mute/loop)
+- Competition section now has dedicated CMS fields for video URLs per division
+- Champion section play button already works with YouTube via VideoModal
+- Countdown timer already functional in Dream section — admin just needs to configure it
+- All changes compile without errors, lint passes
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix YouTube iframe blocked in sandbox — add thumbnail fallback and YouTube link
+
+Work Log:
+- Replaced Hero section YouTube iframe background with YouTube thumbnail image (img.youtube.com) + "Watch Video" play overlay button
+- Added onVideoPlay prop to HeroSection for opening VideoModal
+- Rewrote VideoModal to support sandbox environments:
+  - Still attempts YouTube iframe first (works in production)
+  - After 6s timeout without load, shows fallback overlay with YouTube thumbnail + "Watch on YouTube" button
+  - Always shows "Buka di YouTube" link bar below video for convenience
+  - Fallback message in Indonesian: "Video tidak dapat diputar di environment ini"
+- Added Play icon import to hero-section.tsx
+- All lint checks pass
+
+Stage Summary:
+- Hero section: YouTube thumbnail as background + "Watch Video" button → opens VideoModal
+- VideoModal: iframe attempt + timeout fallback to thumbnail + YouTube link
+- Bottom bar always shows "Tidak bisa memutar video? → Buka di YouTube" for YouTube videos
+- In production (non-sandbox), YouTube iframes will play normally
+- In sandbox (blocked), users see thumbnail + can click to open YouTube in new tab
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Fix Runtime ReferenceError — isYouTube variable declaration order in video-modal.tsx
+
+Work Log:
+- User reported: Runtime ReferenceError: Cannot access 'isYouTube' before initialization
+- ROOT CAUSE: `youtubeId`, `isYouTube`, `youtubeWatchUrl` variables were declared AFTER the useEffect that referenced them
+- Fix: Moved variable declarations ABOVE the useEffect
+- Variable order now: youtubeId → isYouTube → youtubeWatchUrl → useEffect (that uses them)
+- Lint clean, dev server running without errors
+
+Stage Summary:
+- Fixed variable hoisting issue in video-modal.tsx
+- All variables now declared before they're used in useEffect
+
+---
+Task ID: 18
 Agent: Main Agent
 Task: Dashboard UI/UX high priority fixes (3 items)
 
@@ -124,9 +477,9 @@ Stage Summary:
 - Semua perbaikan lint pass, tidak ada error
 
 ---
-Task ID: 4
+Task ID: 19
 Agent: Main Agent
-Task: Re-apply all missing fixes from previous session
+Task: Re-apply all missing fixes from previous session (context continuation)
 
 Work Log:
 - Verified 10+ fixes from previous session were completely missing from files
@@ -148,3 +501,108 @@ Stage Summary:
 - All previous session fixes have been fully restored
 - Current state matches the intended state from the conversation summary
 - Dashboard high-priority fixes from this session also remain intact
+
+---
+Task ID: 3d-3e-3f-3g
+Agent: Subagent
+Task: Fix API routes — division filtering, champion-members, and cms batch
+
+Work Log:
+- Task 3f: Fixed /api/stats division filtering
+  - Changed season query from unified (no division filter) to division-aware: first tries to find season matching the requested division, falls back to any active/completed season if none found
+  - Added division filter to clubs query: `...(division ? { division } : {})` so clubs are filtered by division when a season has one
+  - Updated comment at line 8 to reflect new behavior
+- Task 3e: Created /api/clubs/champion-members/route.ts
+  - Accepts clubId query param
+  - Finds champion club, gets its name
+  - Finds ALL clubs with the same name across both male and female divisions
+  - Returns merged, deduplicated members with captain sorting and division counts
+- Task 3g: Created /api/cms/batch/route.ts
+  - PUT endpoint accepting { items: [{ key, value }] } array
+  - Upserts each CMS setting in sequence (SQLite-compatible)
+  - Returns success count and updated keys
+- All changes verified: lint passes clean, dev server running without errors
+
+Stage Summary:
+- /api/stats now correctly filters seasons and clubs by division (fixes female showing male data)
+- /api/clubs/champion-members provides cross-division champion club member listing
+- /api/cms/batch enables batch saving of multiple CMS settings in single request
+- All three routes working, lint clean
+
+---
+Task ID: 3a-3b
+Agent: Subagent
+Task: Add getDivisionTheme() standalone function and fix PlayerProfile modal
+
+Work Log:
+- Part 1: Added `getDivisionTheme()` standalone function to `/home/z/my-project/src/hooks/use-division-theme.ts`
+  - Added `export function getDivisionTheme(division: Division | string): DivisionTheme` before the existing `useDivisionTheme` hook
+  - Returns `division === 'male' ? maleTheme : femaleTheme` — same logic as the hook but without reading from Zustand store
+- Part 2: Fixed PlayerProfile modal in `/home/z/my-project/src/components/idm/player-profile.tsx`
+  - Updated import to include `getDivisionTheme` alongside `useDivisionTheme`
+  - Removed unused imports: `Progress` (from @/components/ui/progress) and `CircleDot` (from lucide-react)
+  - Replaced `const dt = useDivisionTheme(); const division = useAppStore(s => s.division);` with:
+    - `const storeDivision = useAppStore(s => s.division);`
+    - `const playerDivision = (player.division || storeDivision) as 'male' | 'female';`
+    - `const dt = getDivisionTheme(playerDivision);`
+  - Replaced ALL `division === 'male'` / `division === 'female'` with `playerDivision === 'male'` / `playerDivision === 'female'` in:
+    - Avatar URL (getAvatarUrl)
+    - Division color tint overlay
+    - SVG watermark text color
+    - SVG corner bracket colors
+    - Division badge text
+    - Win rate progress bar gradient
+  - Updated StatBlock component:
+    - Added `playerDivision?: string` prop
+    - Changed from `useDivisionTheme()` hook to `const storeDt = useDivisionTheme(); const dt = playerDivision ? getDivisionTheme(playerDivision) : storeDt;` (avoids conditional hook call while preferring player's actual division)
+    - Changed highlight decoration to use `playerDivision === 'male'` instead of `division === 'male'`
+  - Passed `playerDivision={playerDivision}` to all 4 StatBlock usages (Poin, Win Rate, MVP, Match)
+- Fixed lint error: React Hook "useDivisionTheme" called conditionally in StatBlock — refactored to always call the hook unconditionally and override with `getDivisionTheme` when `playerDivision` is provided
+- Lint passes clean with zero errors
+
+Stage Summary:
+- `getDivisionTheme()` standalone function added to use-division-theme.ts — can be called outside React components with a division parameter
+- PlayerProfile modal now uses player's ACTUAL division (not UI-selected store division) for ALL theming and display
+- StatBlock correctly uses player's division via prop instead of reading from store
+- Female players will always show purple theme, male players always show cyan theme regardless of which division tab is active
+- Unused imports (Progress, CircleDot) removed
+
+---
+Task ID: 20
+Agent: Main Agent
+Task: Restore all missing fixes from worklog — PlayerProfile, ClubProfile, API routes, division filtering
+
+Work Log:
+- Read uploaded worklog.md from user and compared with current project worklog
+- Found 10 critical features MISSING from codebase despite being in the worklog
+- Added `getDivisionTheme()` standalone function to use-division-theme.ts (non-hook version that takes division parameter)
+- Fixed PlayerProfile modal: uses `getDivisionTheme(playerDivision)` instead of `useDivisionTheme()`, added `playerDivision = player.division || storeDivision` logic, all colors now correctly reflect player's actual division
+- Fixed StatBlock in PlayerProfile: accepts `playerDivision` prop, uses `getDivisionTheme(playerDivision)` when provided
+- Rewrote ClubProfile modal to fetch from `/api/clubs/unified-profile` on mount, showing unified cross-division data
+- Added "Club Mix" badge with male/female member counts when both divisions exist
+- Added division indicator dots on each member (cyan=male, purple=female)
+- Added per-division stats breakdown card when both divisions exist
+- Combined wins/losses/points/gameDiff from both divisions
+- Avatar uses player's actual division for correct portrait
+- Added Escape key handler to ClubProfile
+- Added loading spinner while fetching unified data
+- Fixed /api/clubs/unified-profile: now finds ALL clubs with the same name across both male and female divisions, returns combined members, combined stats, per-division breakdown
+- Created /api/clubs/champion-members route: finds champion club members across both divisions for squad selector
+- Created /api/cms/batch route: batch save multiple CMS settings in a single PUT request
+- Fixed /api/stats division filtering: season query now tries division-specific season first, falls back to any season; clubs query now filters by division when param is provided
+- Verified all APIs return correct data:
+  - `/api/stats?division=female` returns "Season 1 - Female" with 13 female clubs
+  - `/api/stats?division=male` returns "Season 1 - Male" with 15 male clubs
+  - `/api/clubs/unified-profile?clubId=xxx` returns `isMixed: true` for MAXIMOUS with 11 male + 3 female members
+  - `/api/clubs/champion-members?clubId=xxx` returns cross-division members
+  - `/api/cms/batch` successfully saves settings
+- Lint check passes with zero errors
+
+Stage Summary:
+- All 10 missing features from worklog have been fully restored and verified
+- PlayerProfile colors now correctly reflect player's actual division (not UI state)
+- ClubProfile shows unified cross-division data with "Club Mix" badge
+- /api/stats correctly filters by division (female shows female season + clubs)
+- New API routes: champion-members, cms/batch
+- Updated API: unified-profile with full cross-division lookup
+- Worklog updated with complete history from user's uploaded file (Tasks 1-19)

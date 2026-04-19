@@ -5,12 +5,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division') || 'male';
 
-  // IDM League is a unified league (not split by male/female)
-  // Seasons use division='liga' — find ANY active/completed season regardless of the provided division param
-  const season = await db.season.findFirst({
-    where: { status: { in: ['active', 'completed'] } },
+  // Find the season matching the requested division first, then fall back to any season
+  let season = await db.season.findFirst({
+    where: { division, status: { in: ['active', 'completed'] } },
     orderBy: { number: 'desc' },
   });
+
+  // Fallback: if no division-specific season, try any active/completed season
+  if (!season) {
+    season = await db.season.findFirst({
+      where: { status: { in: ['active', 'completed'] } },
+      orderBy: { number: 'desc' },
+    });
+  }
 
   if (!season) {
     return NextResponse.json({ hasData: false, division }, {
@@ -62,7 +69,10 @@ export async function GET(request: Request) {
 
     // Clubs standings
     db.club.findMany({
-      where: { seasonId: season.id },
+      where: { 
+        seasonId: season.id,
+        ...(division ? { division } : {}),
+      },
       orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
       include: { _count: { select: { members: true } } },
     }),

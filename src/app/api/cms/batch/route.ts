@@ -1,0 +1,34 @@
+import { db } from '@/lib/db';
+import { NextResponse } from 'next/server';
+
+// PUT /api/cms/batch — Batch save multiple CMS settings
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { items } = body as { items: { key: string; value: string }[] };
+
+    if (!items || !Array.isArray(items)) {
+      return NextResponse.json({ error: 'items array is required' }, { status: 400 });
+    }
+
+    // Update each setting in sequence (SQLite doesn't support true batch upsert well)
+    const results = [];
+    for (const item of items) {
+      const result = await db.cmsSetting.upsert({
+        where: { key: item.key },
+        update: { value: item.value, updatedAt: new Date() },
+        create: { key: item.key, value: item.value },
+      });
+      results.push(result);
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      count: results.length,
+      updated: results.map(r => r.key),
+    });
+  } catch (error) {
+    console.error('CMS batch save error:', error);
+    return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
+  }
+}

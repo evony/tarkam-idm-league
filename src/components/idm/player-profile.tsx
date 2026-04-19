@@ -7,13 +7,12 @@ import { useEffect } from 'react';
 import {
   X, Trophy, Flame, Crown, Shield, Target,
   TrendingUp, Award, Calendar, Star, BarChart3,
-  ChevronRight, Activity, Gamepad2, MapPin, Users, CircleDot
+  ChevronRight, Activity, Gamepad2, MapPin, Users
 } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
-import { useDivisionTheme } from '@/hooks/use-division-theme';
+import { useDivisionTheme, getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { Progress } from '@/components/ui/progress';
 import { getAvatarUrl, hashString } from '@/lib/utils';
 import { AchievementList } from './achievement-badge';
 
@@ -101,7 +100,7 @@ function PlayerBanner({ gamertag, division, tier, rank }: {
 }
 
 /* ─── Stat Block — Dance Tournament HUD style ─── */
-function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'normal' }: {
+function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'normal', playerDivision }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string | number;
@@ -109,9 +108,10 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
   color: string;
   highlight?: boolean;
   size?: 'normal' | 'large';
+  playerDivision?: string;
 }) {
-  const dt = useDivisionTheme();
-  const division = useAppStore(s => s.division);
+  const storeDt = useDivisionTheme();
+  const dt = playerDivision ? getDivisionTheme(playerDivision) : storeDt;
   return (
     <div className={`relative rounded-xl p-3 text-center transition-all overflow-hidden ${
       highlight ? `${dt.bgSubtle} border ${dt.border}` : `bg-muted/10 border border-border/10`
@@ -119,7 +119,7 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
       {/* Background decoration for highlighted stat */}
       {highlight && (
         <div className={`absolute inset-0 opacity-5`}>
-          <div className={`absolute -right-3 -top-3 w-16 h-16 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+          <div className={`absolute -right-3 -top-3 w-16 h-16 rounded-full ${playerDivision === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
         </div>
       )}
       <div className="relative z-10">
@@ -133,8 +133,9 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
 }
 
 export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
-  const dt = useDivisionTheme();
-  const division = useAppStore(s => s.division);
+  const storeDivision = useAppStore(s => s.division);
+  const playerDivision = (player.division || storeDivision) as 'male' | 'female';
+  const dt = getDivisionTheme(playerDivision);
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
   const mvpRate = player.matches > 0 ? Math.round((player.totalMvp / player.matches) * 100) : 0;
   const losses = player.matches - player.totalWins;
@@ -172,7 +173,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
   // The game is not integrated with this server, so we cannot show
   // in-game performance metrics or per-match score trends.
   const hasMatchHistory = player.matches > 0;
-  const avatarSrc = getAvatarUrl(player.gamertag, division, player.avatar);
+  const avatarSrc = getAvatarUrl(player.gamertag, playerDivision, player.avatar);
 
   return (
     <AnimatePresence>
@@ -205,7 +206,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
 
             {/* Division color tint overlay */}
             <div className="absolute inset-0" style={{
-              background: division === 'male'
+              background: playerDivision === 'male'
                 ? 'radial-gradient(ellipse at 50% 30%, rgba(34,211,238,0.1) 0%, transparent 60%)'
                 : 'radial-gradient(ellipse at 50% 30%, rgba(192,132,252,0.1) 0%, transparent 60%)'
             }} />
@@ -213,15 +214,15 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
             {/* SVG procedural overlay for depth */}
             <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
               <text x="90%" y="50%" textAnchor="end" dominantBaseline="middle"
-                fill={division === 'male' ? '#22d3ee' : '#c084fc'} fontSize="70" fontWeight="900" opacity="0.04"
+                fill={playerDivision === 'male' ? '#22d3ee' : '#c084fc'} fontSize="70" fontWeight="900" opacity="0.04"
                 fontFamily="system-ui" letterSpacing="-2">
                 {player.gamertag.toUpperCase()}
               </text>
               {/* Corner brackets */}
-              <line x1="0" y1="0" x2="25%" y2="0" stroke={division === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
-              <line x1="0" y1="0" x2="0" y2="25%" stroke={division === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
-              <line x1="100%" y1="100%" x2="75%" y2="100%" stroke={division === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
-              <line x1="100%" y1="100%" x2="100%" y2="75%" stroke={division === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
+              <line x1="0" y1="0" x2="25%" y2="0" stroke={playerDivision === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
+              <line x1="0" y1="0" x2="0" y2="25%" stroke={playerDivision === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
+              <line x1="100%" y1="100%" x2="75%" y2="100%" stroke={playerDivision === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
+              <line x1="100%" y1="100%" x2="100%" y2="75%" stroke={playerDivision === 'male' ? '#22d3ee' : '#c084fc'} strokeWidth="2" opacity="0.2" />
             </svg>
 
             {/* Tier-colored top accent line */}
@@ -256,7 +257,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
             {/* Division badge */}
             <div className="absolute top-3 left-3 z-10" style={{ marginTop: isTop3 ? '28px' : 0 }}>
               <Badge className={`${dt.casinoBadge} text-[9px] backdrop-blur-sm`}>
-                {division === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
+                {playerDivision === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
               </Badge>
             </div>
 
@@ -305,10 +306,10 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
 
             {/* ═══ Main Stats Grid — Dance Tournament HUD Style ═══ */}
             <div className="grid grid-cols-4 gap-2 mb-4">
-              <StatBlock icon={Trophy} label="Poin" value={player.points} color={dt.text} highlight size="large" />
-              <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${player.totalWins}W/${losses}L`} color="text-green-500" />
-              <StatBlock icon={Crown} label="MVP" value={player.totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" />
-              <StatBlock icon={Activity} label="Match" value={player.matches} color="text-blue-400" />
+              <StatBlock icon={Trophy} label="Poin" value={player.points} color={dt.text} highlight size="large" playerDivision={playerDivision} />
+              <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${player.totalWins}W/${losses}L`} color="text-green-500" playerDivision={playerDivision} />
+              <StatBlock icon={Crown} label="MVP" value={player.totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" playerDivision={playerDivision} />
+              <StatBlock icon={Activity} label="Match" value={player.matches} color="text-blue-400" playerDivision={playerDivision} />
             </div>
 
             {/* ═══ Performance Overview — based on actual record only ═══ */}
@@ -354,7 +355,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   className={`h-full rounded-full ${
                     winRate >= 60
-                      ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`
+                      ? `bg-gradient-to-r ${playerDivision === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`
                       : winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
                 />
