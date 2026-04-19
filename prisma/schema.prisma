@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ============================================
@@ -56,48 +57,48 @@ model Season {
   startDate      DateTime
   endDate        DateTime?
   championClubId String?  // Club that won the Liga IDM for this season
-  championSquad  String?  // JSON string: [{id, gamertag, division, role}] — 5 representatives for champion card (SQLite stores as string)
+  championSquad  String?  // JSON string: [{id, gamertag, division, role}] — 5 representatives for champion card
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  tournaments   Tournament[]
-  donations     Donation[]
-  clubs         Club[]
-  leagueMatches LeagueMatch[]
+  tournaments    Tournament[]
+  donations      Donation[]
+  clubs          Club[]
+  leagueMatches  LeagueMatch[]
   playoffMatches PlayoffMatch[]
-  championClub  Club?    @relation("SeasonChampion", fields: [championClubId], references: [id], onDelete: SetNull)
+  championClub   Club?    @relation("SeasonChampion", fields: [championClubId], references: [id], onDelete: SetNull)
 
   @@index([division, status])
 }
 
 model Tournament {
-  id          String   @id @default(cuid())
-  name        String
-  weekNumber  Int
-  division    String   // "male" | "female"
-  status      String   @default("setup") // "setup" | "registration" | "approval" | "team_generation" | "bracket_generation" | "main_event" | "finalization" | "completed"
-  format      String   @default("single_elimination") // "single_elimination" | "double_elimination" | "group_stage"
-  defaultMatchFormat String @default("BO1") // "BO1" | "BO3" | "BO5" — default, can be overridden per match
-  seasonId    String
-  prizePool   Int      @default(0) // total prize pool in IDR
-  bpm         String?
-  location    String?
-  scheduledAt DateTime?
-  finalizedAt DateTime? // when admin finalized prizes/MVP
-  completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String
+  weekNumber         Int
+  division           String   // "male" | "female"
+  status             String   @default("setup") // "setup" | "registration" | "approval" | "team_generation" | "bracket_generation" | "main_event" | "finalization" | "completed"
+  format             String   @default("single_elimination") // "single_elimination" | "double_elimination" | "group_stage"
+  defaultMatchFormat String   @default("BO1") // "BO1" | "BO3" | "BO5" — default, can be overridden per match
+  seasonId           String
+  prizePool          Int      @default(0) // total prize pool in IDR
+  bpm                String?
+  location           String?
+  scheduledAt        DateTime?
+  finalizedAt        DateTime? // when admin finalized prizes/MVP
+  completedAt        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  season        Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  teams         Team[]
-  matches       Match[]
-  participations Participation[]
-  prizes        TournamentPrize[]
-  donations     Donation[]
-  pointRecords  PlayerPoint[]
-  playerAchievements PlayerAchievement[]
-  sponsors      TournamentSponsor[]
-  sponsoredPrizes SponsoredPrize[]
+  season              Season              @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  teams               Team[]
+  matches             Match[]
+  participations      Participation[]
+  prizes              TournamentPrize[]
+  donations           Donation[]
+  pointRecords        PlayerPoint[]
+  playerAchievements  PlayerAchievement[]
+  sponsors            TournamentSponsor[]
+  sponsoredPrizes     SponsoredPrize[]
 
   @@unique([weekNumber, division, seasonId])
   @@index([division, seasonId])
@@ -111,12 +112,12 @@ model Team {
   isWinner     Boolean @default(false)
   rank         Int?
 
-  tournament  Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  teamPlayers TeamPlayer[]
-  matchAsTeam1 Match[]    @relation("Team1")
-  matchAsTeam2 Match[]    @relation("Team2")
-  matchesWon  Match[]    @relation("MatchWinner")
-  matchesLost Match[]    @relation("MatchLoser")
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamPlayers  TeamPlayer[]
+  matchAsTeam1 Match[]     @relation("Team1")
+  matchAsTeam2 Match[]     @relation("Team2")
+  matchesWon   Match[]     @relation("MatchWinner")
+  matchesLost  Match[]     @relation("MatchLoser")
 }
 
 model TeamPlayer {
@@ -131,20 +132,20 @@ model TeamPlayer {
 }
 
 model Match {
-  id           String   @id @default(cuid())
+  id          String   @id @default(cuid())
   tournamentId String
-  round        Int      @default(1)    // Round number (1=first round, 2=second, etc.)
-  matchNumber  Int      @default(1)    // Position within round for display order
-  bracket      String   @default("upper") // "upper" | "lower" | "grand_final" | "group"
+  round        Int     @default(1)    // Round number (1=first round, 2=second, etc.)
+  matchNumber  Int     @default(1)    // Position within round for display order
+  bracket      String  @default("upper") // "upper" | "lower" | "grand_final" | "group"
   groupLabel   String?                 // "A" | "B" | "C" | "D" (only for group stage)
-  format       String   @default("BO1") // "BO1" | "BO3" | "BO5" — per match override
+  format       String  @default("BO1") // "BO1" | "BO3" | "BO5" — per match override
 
   // Team references — nullable because bracket slots may be TBD until previous match completes
   team1Id      String?
   team2Id      String?
   score1       Int?
   score2       Int?
-  status       String   @default("pending") // "pending" | "ready" | "live" | "completed"
+  status       String  @default("pending") // "pending" | "ready" | "live" | "completed"
   winnerId     String?  // Team ID of winner (set when match completed)
   loserId      String?  // Team ID of loser (for DE lower bracket feed)
   mvpPlayerId  String?
@@ -152,12 +153,12 @@ model Match {
   completedAt  DateTime?
   createdAt    DateTime @default(now())
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  team1      Team?      @relation("Team1", fields: [team1Id], references: [id], onDelete: SetNull)
-  team2      Team?      @relation("Team2", fields: [team2Id], references: [id], onDelete: SetNull)
-  winner     Team?      @relation("MatchWinner", fields: [winnerId], references: [id], onDelete: SetNull)
-  loser      Team?      @relation("MatchLoser", fields: [loserId], references: [id], onDelete: SetNull)
-  mvpPlayer  Player?    @relation("MvpPlayer", fields: [mvpPlayerId], references: [id], onDelete: SetNull)
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team1       Team?      @relation("Team1", fields: [team1Id], references: [id], onDelete: SetNull)
+  team2       Team?      @relation("Team2", fields: [team2Id], references: [id], onDelete: SetNull)
+  winner      Team?      @relation("MatchWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  loser       Team?      @relation("MatchLoser", fields: [loserId], references: [id], onDelete: SetNull)
+  mvpPlayer   Player?    @relation("MvpPlayer", fields: [mvpPlayerId], references: [id], onDelete: SetNull)
   pointRecords PlayerPoint[]
 
   @@index([tournamentId])
@@ -209,14 +210,14 @@ model Donation {
 // ============================================
 
 model TournamentPrize {
-  id           String   @id @default(cuid())
-  tournamentId String
-  label        String   // "Juara 1" | "Juara 2" | "Juara 3" | "MVP" | custom label
-  position     Int      @default(0) // Sort order (1=first)
-  prizeAmount  Int      @default(0) // in IDR
-  pointsPerPlayer Int   @default(0) // Auto-calculated: prizeAmount / recipientCount
-  recipientCount  Int   @default(1) // 1 for MVP, 3 for team (members per team)
-  createdAt    DateTime @default(now())
+  id              String   @id @default(cuid())
+  tournamentId    String
+  label           String   // "Juara 1" | "Juara 2" | "Juara 3" | "MVP" | custom label
+  position        Int      @default(0) // Sort order (1=first)
+  prizeAmount     Int      @default(0) // in IDR
+  pointsPerPlayer Int      @default(0) // Auto-calculated: prizeAmount / recipientCount
+  recipientCount  Int      @default(1) // 1 for MVP, 3 for team (members per team)
+  createdAt       DateTime @default(now())
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
@@ -252,13 +253,13 @@ model Club {
   points      Int     @default(0)
   gameDiff    Int     @default(0)
 
-  season          Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  season          Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   members         ClubMember[]
-  homeMatches     LeagueMatch[] @relation("HomeClub")
-  awayMatches     LeagueMatch[] @relation("AwayClub")
+  homeMatches     LeagueMatch[]  @relation("HomeClub")
+  awayMatches     LeagueMatch[]  @relation("AwayClub")
   playoffHome     PlayoffMatch[] @relation("PlayoffHome")
   playoffAway     PlayoffMatch[] @relation("PlayoffAway")
-  championSeasons Season[]      @relation("SeasonChampion")
+  championSeasons Season[]       @relation("SeasonChampion")
 
   @@unique([name, seasonId])
   @@index([seasonId])
@@ -358,10 +359,10 @@ model CmsCard {
 }
 
 model CmsSetting {
-  id    String @id @default(cuid())
-  key   String @unique // "logo_url" | "site_title" | "hero_tagline" etc.
-  value String @default("")
-  type  String @default("text") // "text" | "image" | "json"
+  id        String   @id @default(cuid())
+  key       String   @unique // "logo_url" | "site_title" | "hero_tagline" etc.
+  value     String   @default("")
+  type      String   @default("text") // "text" | "image" | "json"
   updatedAt DateTime @updatedAt
 }
 
@@ -394,27 +395,21 @@ model PlayerPoint {
 // ============================================
 
 model Achievement {
-  id          String   @id @default(cuid())
-  name        String   @unique  // "weekly_champion" | "back_to_back" | "hat_trick_hero" etc.
-  displayName String   // "Weekly Champion" | "Back-to-Back Winner" etc.
-  description String   // Human-readable description
-  category    String   // "tournament" | "mvp" | "points" | "club"
-  icon        String   // Emoji or icon name: "🏆" | "🔥" | "⭐" etc.
-  tier        String   @default("bronze") // "bronze" | "silver" | "gold" | "platinum" | "diamond"
+  id          String  @id @default(cuid())
+  name        String  @unique  // "weekly_champion" | "back_to_back" | "hat_trick_hero" etc.
+  displayName String  // "Weekly Champion" | "Back-to-Back Winner" etc.
+  description String  // Human-readable description
+  category    String  // "tournament" | "mvp" | "points" | "club"
+  icon        String  // Emoji or icon name: "🏆" | "🔥" | "⭐" etc.
+  tier        String  @default("bronze") // "bronze" | "silver" | "gold" | "platinum" | "diamond"
   
   // Criteria configuration (JSON) - dynamic, no hardcoded
-  // Example: {"type": "wins", "count": 1, "consecutive": false}
-  // Example: {"type": "wins", "count": 2, "consecutive": true}
-  // Example: {"type": "mvp_count", "count": 3}
-  // Example: {"type": "points", "threshold": 1000}
-  // Example: {"type": "top3_count", "count": 5}
-  // Example: {"type": "participations", "count": 10}
-  criteria    String   // JSON string
+  criteria    String  // JSON string
   
   // Reward configuration (optional)
-  rewardPoints Int     @default(0)
+  rewardPoints Int    @default(0)
   
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -425,15 +420,14 @@ model Achievement {
 }
 
 model PlayerAchievement {
-  id           String   @id @default(cuid())
-  playerId     String
+  id            String   @id @default(cuid())
+  playerId      String
   achievementId String
-  tournamentId String?  // Tournament where achievement was earned (if applicable)
-  earnedAt     DateTime @default(now())
+  tournamentId  String?  // Tournament where achievement was earned (if applicable)
+  earnedAt      DateTime @default(now())
   
   // Context data (JSON) - additional info about how they earned it
-  // Example: {"tournamentName": "Week 1 Tournament", "streak": 3}
-  context      String?
+  context       String?
 
   player      Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
@@ -505,23 +499,21 @@ model SponsoredPrize {
 }
 
 model SponsorBanner {
-  id          String   @id @default(cuid())
-  sponsorId   String
-  placement   String   // "bracket_top" | "bracket_side" | "stream_overlay" | "landing_page" | "dashboard"
-  imageUrl    String
-  linkUrl     String?
-  width       Int?
-  height      Int?
-  isActive    Boolean  @default(true)
-  displayOrder Int     @default(0)
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime @default(now())
+  id           String    @id @default(cuid())
+  sponsorId    String
+  placement    String    // "bracket_top" | "bracket_side" | "stream_overlay" | "landing_page" | "dashboard"
+  imageUrl     String
+  linkUrl      String?
+  width        Int?
+  height       Int?
+  isActive     Boolean   @default(true)
+  displayOrder Int       @default(0)
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime  @default(now())
 
   sponsor Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
 
   @@index([placement])
   @@index([sponsorId])
 }
-
-
