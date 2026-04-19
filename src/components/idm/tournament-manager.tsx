@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { TierBadge } from './tier-badge';
 import { StatusBadge } from './status-badge';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { container, item } from '@/lib/animations';
@@ -341,34 +341,39 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     return team?.name || 'TBD';
   };
 
-  // Reset approval step when selectedId changes (adjust state during render)
+  // Reset approval step when selectedId changes
   const [prevSelectedId, setPrevSelectedId] = useState<string | null>(selectedId);
-  if (prevSelectedId !== selectedId) {
-    setPrevSelectedId(selectedId);
-    setApprovalStep('approve');
-    setShowPrizeConfig(false);
-    setWantsManualPrize(false);
-    setManualPrizePool('');
-  }
+  useEffect(() => {
+    if (prevSelectedId !== selectedId) {
+      setPrevSelectedId(selectedId);
+      setApprovalStep('approve');
+      setShowPrizeConfig(false);
+      setWantsManualPrize(false);
+      setManualPrizePool('');
+    }
+  }, [selectedId, prevSelectedId]);
 
   // Initialize prizes and prize pool from selected tournament (once per tournament)
-  if (selected?.id && selected.id !== prizesInitializedFor) {
-    setPrizesInitializedFor(selected.id);
-    if (selected.prizePool && selected.prizePool > 0) {
-      setManualPrizePool(String(selected.prizePool));
+  const [prizesInitializedFor, setPrizesInitializedFor] = useState<string | null>(null);
+  useEffect(() => {
+    if (selected?.id && selected.id !== prizesInitializedFor) {
+      setPrizesInitializedFor(selected.id);
+      if (selected.prizePool && selected.prizePool > 0) {
+        setManualPrizePool(String(selected.prizePool));
+      }
+      if (selected.prizes && selected.prizes.length > 0) {
+        setPrizes(selected.prizes.map((p: { label: string; position: number; prizeAmount: number; recipientCount: number; isMvp?: boolean }) => ({
+          label: p.label,
+          position: p.position,
+          prizeAmount: p.prizeAmount,
+          recipientCount: p.recipientCount,
+          isMvp: p.isMvp,
+        })));
+        setWantsManualPrize(true);
+        setShowPrizeConfig(true);
+      }
     }
-    if (selected.prizes && selected.prizes.length > 0) {
-      setPrizes(selected.prizes.map((p: { label: string; position: number; prizeAmount: number; recipientCount: number; isMvp?: boolean }) => ({
-        label: p.label,
-        position: p.position,
-        prizeAmount: p.prizeAmount,
-        recipientCount: p.recipientCount,
-        isMvp: p.isMvp,
-      })));
-      setWantsManualPrize(true);
-      setShowPrizeConfig(true);
-    }
-  }
+  }, [selected, prizesInitializedFor]);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">

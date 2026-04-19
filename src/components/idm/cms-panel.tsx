@@ -555,14 +555,8 @@ export function CmsPanel() {
   });
 
   /* ========== Settings Form State ========== */
-  const [settingsForm, setSettingsForm] = useState<Record<string, string>>({});
-  const [settingsInitialized, setSettingsInitialized] = useState(false);
-
-  // Initialize settings form when data loads
-  if (settingsData?.map && !settingsInitialized) {
-    setSettingsForm(settingsData.map);
-    setSettingsInitialized(true);
-  }
+  const [settingsFormState, setSettingsForm] = useState<Record<string, string> | null>(null);
+  const settingsForm = settingsFormState ?? (settingsData?.map || {});
 
   /* ========== New Section State ========== */
   const [newSection, setNewSection] = useState({ slug: '', title: '' });

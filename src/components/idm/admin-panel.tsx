@@ -84,7 +84,7 @@ export function AdminPanel() {
 
   const { data: cmsSettings } = useQuery({
     queryKey: ['admin-cms-settings'],
-    queryFn: async () => { const res = await fetch('/api/cms/settings', { credentials: 'include' }); const d = await res.json(); return d.map as Record<string, string>; },
+    queryFn: async () => { const res = await fetch('/api/cms/settings', { credentials: 'include' }); const d = await res.json(); return (d?.map || {}) as Record<string, string>; },
   });
 
   // Get clubs for dropdown — use seasonForClubs (the season with actual club data)
@@ -339,7 +339,8 @@ export function AdminPanel() {
 
   // State
   const [newDonation, setNewDonation] = useState({ donorName: '', amount: '', message: '', type: 'season' });
-  const [paymentForm, setPaymentForm] = useState<Record<string, string>>({});
+  const [paymentFormState, setPaymentForm] = useState<Record<string, string> | null>(null);
+  const paymentForm = paymentFormState ?? (cmsSettings || {});
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileCategory, setMobileCategory] = useState('dashboard');
 
@@ -435,10 +436,7 @@ export function AdminPanel() {
     p.name.toLowerCase().includes(searchPlayer.toLowerCase())
   ) || [];
 
-  // Initialize payment form from cmsSettings
-  if (cmsSettings && Object.keys(paymentForm).length === 0) {
-    setPaymentForm(cmsSettings);
-  }
+  // paymentForm is derived from cmsSettings (no useEffect needed)
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 max-w-5xl mx-auto">

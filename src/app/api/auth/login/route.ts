@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Set httpOnly cookie
     response.cookies.set('idm-admin-session', token, {
       httpOnly: true,
-      secure: false, // Allow HTTP in dev/preview environments
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',

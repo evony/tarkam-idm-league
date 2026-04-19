@@ -263,18 +263,22 @@ function SectionCard({ title, icon: Icon, badge, children, className = '' }: {
 export function MatchDayCenter() {
   const { division } = useAppStore();
   const dt = useDivisionTheme();
-  const [predictions, setPredictions] = useState<Map<string, PredictionState>>(() => {
-    // Restore predictions from localStorage on mount
-    if (typeof window === 'undefined') return new Map();
-    try {
-      const saved = localStorage.getItem('idm-predictions');
-      if (saved) {
-        const parsed = JSON.parse(saved) as [string, PredictionState][];
-        return new Map(parsed);
-      }
-    } catch {}
-    return new Map();
-  });
+  const [predictions, setPredictions] = useState<Map<string, PredictionState>>(new Map());
+  const [predictionsLoaded, setPredictionsLoaded] = useState(false);
+
+  // Load predictions from localStorage after mount (avoids hydration mismatch)
+  useEffect(() => {
+    if (!predictionsLoaded) {
+      try {
+        const saved = localStorage.getItem('idm-predictions');
+        if (saved) {
+          const parsed = JSON.parse(saved) as [string, PredictionState][];
+          setPredictions(new Map(parsed));
+        }
+      } catch {}
+      setPredictionsLoaded(true);
+    }
+  }, [predictionsLoaded]);
   const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
 
   const { data, isLoading } = useQuery<StatsData>({
