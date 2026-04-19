@@ -7,7 +7,7 @@ import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
   Crown, Settings, UserPlus, X, Loader2, Clock, MapPin, Phone, Globe, BarChart3, Camera, Pencil, Trash2, Search,
-  LayoutDashboard, Building2, Award, Sliders, Flame, Calendar, CheckCircle2, XCircle, Wallet, Save
+  LayoutDashboard, Building2, Award, Sliders, Flame, Calendar, CheckCircle2, XCircle, Wallet, Save, UserCog
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ import { AdminOverview } from './admin-overview';
 import { AdminSponsorPanel } from './admin-sponsor-panel';
 import { AdminAchievementPanel } from './admin-achievement-panel';
 import { AdminSettingsPanel } from './admin-settings-panel';
+import { AdminManagement } from './admin-management';
 import { AdminSeasonPanel } from './admin-season-panel';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -86,16 +87,16 @@ export function AdminPanel() {
     queryFn: async () => { const res = await fetch('/api/cms/settings', { credentials: 'include' }); const d = await res.json(); return d.map as Record<string, string>; },
   });
 
-  // Get clubs for dropdown
+  // Get clubs for dropdown — use seasonForClubs (the season with actual club data)
+  const clubsSeasonId = stats?.seasonForClubs?.id || stats?.season?.id;
   const { data: clubs } = useQuery({
-    queryKey: ['admin-clubs', stats?.season?.id],
+    queryKey: ['admin-clubs', clubsSeasonId],
     queryFn: async () => {
-      const seasonId = stats?.season?.id;
-      if (!seasonId) return [];
-      const res = await fetch(`/api/clubs?seasonId=${seasonId}`);
+      if (!clubsSeasonId) return [];
+      const res = await fetch(`/api/clubs?seasonId=${clubsSeasonId}`);
       return res.json();
     },
-    enabled: !!stats?.season?.id,
+    enabled: !!clubsSeasonId,
   });
 
   // Helper for authenticated fetch
@@ -339,6 +340,16 @@ export function AdminPanel() {
   // State
   const [newDonation, setNewDonation] = useState({ donorName: '', amount: '', message: '', type: 'season' });
   const [paymentForm, setPaymentForm] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState('overview');
+  const [mobileCategory, setMobileCategory] = useState('dashboard');
+
+  const categoryTabMap: Record<string, string[]> = {
+    dashboard: ['overview'],
+    tournament: ['players', 'tournaments', 'matches', 'rankings'],
+    league: ['seasons', 'clubs', 'sponsors', 'achievements'],
+    system: ['admins', 'donations', 'cms', 'settings'],
+  };
+
   const [searchPlayer, setSearchPlayer] = useState('');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -437,22 +448,135 @@ export function AdminPanel() {
         <Badge className="bg-red-500/10 text-red-500 text-[10px] border-0">ADMIN</Badge>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full" aria-label="Admin panel navigation">
-        <div className="w-full overflow-x-auto pb-2 -mb-2 scrollbar-none">
-          <TabsList className="inline-flex items-center gap-1 bg-muted/50 h-auto p-1 rounded-lg" role="tablist" aria-label="Admin sections">
-            <TabsTrigger value="overview" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><LayoutDashboard className="w-3 h-3 mr-1.5" />Overview</TabsTrigger>
-            <TabsTrigger value="players" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Users className="w-3 h-3 mr-1.5" />Players</TabsTrigger>
-            <TabsTrigger value="tournaments" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Music className="w-3 h-3 mr-1.5" />Tourney</TabsTrigger>
-            <TabsTrigger value="matches" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Trophy className="w-3 h-3 mr-1.5" />Match</TabsTrigger>
-            <TabsTrigger value="rankings" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><BarChart3 className="w-3 h-3 mr-1.5" />Rank</TabsTrigger>
-            <TabsTrigger value="seasons" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Calendar className="w-3 h-3 mr-1.5" />Season</TabsTrigger>
-            <TabsTrigger value="clubs" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Crown className="w-3 h-3 mr-1.5" />Club</TabsTrigger>
-            <TabsTrigger value="sponsors" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Building2 className="w-3 h-3 mr-1.5" />Sponsor</TabsTrigger>
-            <TabsTrigger value="achievements" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Award className="w-3 h-3 mr-1.5" />Achieve</TabsTrigger>
-            <TabsTrigger value="donations" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Gift className="w-3 h-3 mr-1.5" />Donasi</TabsTrigger>
-            <TabsTrigger value="cms" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Globe className="w-3 h-3 mr-1.5" />CMS</TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs py-2 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap"><Sliders className="w-3 h-3 mr-1.5" />Settings</TabsTrigger>
-          </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" aria-label="Admin panel navigation">
+        {/* Mobile: Apple Settings grouped navigation */}
+        <div className="sm:hidden space-y-2">
+          <div className="grid grid-cols-4 gap-1">
+            {([
+              { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+              { key: 'tournament', icon: Music, label: 'Turnamen' },
+              { key: 'league', icon: Crown, label: 'Liga' },
+              { key: 'system', icon: Sliders, label: 'Sistem' },
+            ] as const).map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => {
+                  setMobileCategory(cat.key);
+                  const firstTab = categoryTabMap[cat.key]?.[0];
+                  if (firstTab) setActiveTab(firstTab);
+                }}
+                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-[10px] font-medium transition-all min-h-[44px] justify-center ${
+                  mobileCategory === cat.key
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
+                    : 'bg-muted/30 text-muted-foreground border border-transparent'
+                }`}
+              >
+                <cat.icon className="w-4 h-4" />
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {(categoryTabMap[mobileCategory] || []).map(tabValue => {
+              const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
+                overview: { icon: LayoutDashboard, label: 'Overview' },
+                players: { icon: Users, label: 'Players' },
+                tournaments: { icon: Music, label: 'Tourney' },
+                matches: { icon: Trophy, label: 'Match' },
+                rankings: { icon: BarChart3, label: 'Rank' },
+                seasons: { icon: Calendar, label: 'Season' },
+                clubs: { icon: Crown, label: 'Club' },
+                sponsors: { icon: Building2, label: 'Sponsor' },
+                achievements: { icon: Award, label: 'Achieve' },
+                admins: { icon: UserCog, label: 'Admin' },
+                donations: { icon: Gift, label: 'Donasi' },
+                cms: { icon: Globe, label: 'CMS' },
+                settings: { icon: Sliders, label: 'Settings' },
+              };
+              const cfg = tabConfig[tabValue];
+              if (!cfg) return null;
+              const CfgIcon = cfg.icon;
+              return (
+                <button
+                  key={tabValue}
+                  onClick={() => setActiveTab(tabValue)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all min-h-[44px] ${
+                    activeTab === tabValue
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <CfgIcon className="w-3 h-3" />
+                  {cfg.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop: Compact 4-category navigation (same as mobile) */}
+        <div className="hidden sm:block space-y-2">
+          <div className="grid grid-cols-4 gap-1.5">
+            {([
+              { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+              { key: 'tournament', icon: Music, label: 'Turnamen' },
+              { key: 'league', icon: Crown, label: 'Liga' },
+              { key: 'system', icon: Sliders, label: 'Sistem' },
+            ] as const).map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => {
+                  setMobileCategory(cat.key);
+                  const firstTab = categoryTabMap[cat.key]?.[0];
+                  if (firstTab) setActiveTab(firstTab);
+                }}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
+                  mobileCategory === cat.key
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
+                    : 'bg-muted/30 text-muted-foreground border border-transparent hover:bg-muted/50 hover:text-foreground'
+                }`}
+              >
+                <cat.icon className="w-4 h-4" />
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            {(categoryTabMap[mobileCategory] || []).map(tabValue => {
+              const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
+                overview: { icon: LayoutDashboard, label: 'Overview' },
+                players: { icon: Users, label: 'Players' },
+                tournaments: { icon: Music, label: 'Tourney' },
+                matches: { icon: Trophy, label: 'Match' },
+                rankings: { icon: BarChart3, label: 'Rank' },
+                seasons: { icon: Calendar, label: 'Season' },
+                clubs: { icon: Crown, label: 'Club' },
+                sponsors: { icon: Building2, label: 'Sponsor' },
+                achievements: { icon: Award, label: 'Achieve' },
+                admins: { icon: UserCog, label: 'Admin' },
+                donations: { icon: Gift, label: 'Donasi' },
+                cms: { icon: Globe, label: 'CMS' },
+                settings: { icon: Sliders, label: 'Settings' },
+              };
+              const cfg = tabConfig[tabValue];
+              if (!cfg) return null;
+              const CfgIcon = cfg.icon;
+              return (
+                <button
+                  key={tabValue}
+                  onClick={() => setActiveTab(tabValue)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                    activeTab === tabValue
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <CfgIcon className="w-3 h-3" />
+                  {cfg.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ====== OVERVIEW TAB ====== */}
@@ -471,9 +595,9 @@ export function AdminPanel() {
                     <Clock className="w-4 h-4" /> Pendaftaran Menunggu Persetujuan ({pendingRegistrations.length})
                   </h3>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
-                    {pendingRegistrations.map((p: { id: string; name: string; gamertag: string; division: string; city: string; phone: string | null; joki: string | null; createdAt: string }) => (
-                      <motion.div key={p.id} variants={item}
-                        className="p-3 rounded-xl bg-card border border-yellow-500/10"
+                    {pendingRegistrations.map((p: { id: string; name: string; gamertag: string; division: string; city: string; phone: string | null; joki: string | null; createdAt: string }, index) => (
+                      <div key={p.id} className="stagger-item p-3 rounded-xl bg-card border border-yellow-500/10"
+                        style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -504,7 +628,7 @@ export function AdminPanel() {
                                 <SelectItem value="B">Sebagai B</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10"
                               onClick={() => setConfirmDialog({
                                 open: true,
                                 title: 'Tolak Pendaftaran?',
@@ -515,7 +639,7 @@ export function AdminPanel() {
                             </Button>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
@@ -557,11 +681,11 @@ export function AdminPanel() {
                 phone: string | null;
                 joki: string | null;
                 clubMembers?: Array<{ club: { id: string; name: string } }>;
-              }) => {
+              }, index) => {
                 const avatarSrc = getAvatarUrl(p.gamertag, p.division, p.avatar);
                 return (
-                <motion.div key={p.id} variants={item}
-                  className={`flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow}`}
+                <div key={p.id} className={`stagger-item flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow}`}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="relative group shrink-0">
@@ -612,7 +736,7 @@ export function AdminPanel() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
+                      className="h-7 w-7 p-0 touch-icon text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
                       onClick={() => openEditPlayerForm(p)}
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -620,7 +744,7 @@ export function AdminPanel() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                      className="h-7 w-7 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10"
                       onClick={() => setConfirmDialog({
                         open: true,
                         title: 'Hapus Player?',
@@ -631,7 +755,7 @@ export function AdminPanel() {
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-                </motion.div>
+                </div>
                 );
               })}
             </div>
@@ -766,7 +890,7 @@ export function AdminPanel() {
 
         {/* ====== CLUBS TAB ====== */}
         <TabsContent value="clubs">
-          <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.season?.id} setConfirmDialog={setConfirmDialog} />
+          <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.seasonForClubs?.id || stats?.season?.id} setConfirmDialog={setConfirmDialog} />
         </TabsContent>
 
         {/* ====== DONATIONS TAB ====== */}
@@ -780,8 +904,8 @@ export function AdminPanel() {
                     <Clock className="w-4 h-4" /> Menunggu Persetujuan ({donations.donations.filter((d: { status: string }) => d.status === 'pending').length})
                   </h3>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
-                    {donations.donations.filter((d: { status: string }) => d.status === 'pending').map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; createdAt: string }) => (
-                      <motion.div key={d.id} variants={item} className="p-3 rounded-xl bg-card border border-yellow-500/10">
+                    {donations.donations.filter((d: { status: string }) => d.status === 'pending').map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; createdAt: string }, index) => (
+                      <div key={d.id} className="stagger-item p-3 rounded-xl bg-card border border-yellow-500/10" style={{ animationDelay: `${index * 50}ms` }}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Gift className="w-4 h-4 text-yellow-500 shrink-0" />
@@ -807,7 +931,7 @@ export function AdminPanel() {
                             </Button>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
@@ -844,21 +968,21 @@ export function AdminPanel() {
             <Card className="border border-border/50">
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-[#d4a853]" /> Semua Donasi
+                  <Gift className="w-4 h-4 text-idm-gold-warm" /> Semua Donasi
                 </h3>
                 <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar">
-                  {donations?.donations?.length > 0 ? donations.donations.map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; status: string; createdAt: string }) => (
-                    <motion.div key={d.id} variants={item} className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                  {donations?.donations?.length > 0 ? donations.donations.map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; status: string; createdAt: string }, index) => (
+                    <div key={d.id} className={`stagger-item flex items-center justify-between p-2.5 rounded-lg border ${
                       d.status === 'approved' ? 'bg-card border-green-500/10' :
                       d.status === 'rejected' ? 'bg-card border-red-500/10 opacity-50' :
                       'bg-card border-yellow-500/10'
-                    }`}>
+                    }`} style={{ animationDelay: `${index * 50}ms` }}>
                       <div className="flex items-center gap-2 min-w-0">
                         <Gift className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <p className="text-xs font-medium truncate">{d.donorName}</p>
-                            <Badge className={`text-[8px] border-0 ${d.type === 'season' ? 'bg-[#22d3ee]/10 text-[#22d3ee]' : 'bg-[#d4a853]/10 text-[#d4a853]'}`}>{d.type === 'season' ? 'Donasi' : 'Sawer'}</Badge>
+                            <Badge className={`text-[8px] border-0 ${d.type === 'season' ? 'bg-[#22d3ee]/10 text-[#22d3ee]' : 'bg-idm-gold-warm/10 text-idm-gold-warm'}`}>{d.type === 'season' ? 'Donasi' : 'Sawer'}</Badge>
                             {d.status === 'approved' && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">✓</Badge>}
                             {d.status === 'rejected' && <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">✗</Badge>}
                           </div>
@@ -868,17 +992,17 @@ export function AdminPanel() {
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-xs font-bold">{formatCurrency(d.amount)}</span>
                         {d.status === 'pending' && (
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-green-500 hover:bg-green-500/10"
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 touch-icon text-green-500 hover:bg-green-500/10"
                             onClick={() => approveDonation.mutate({ id: d.id, status: 'approved' })}>
                             <CheckCircle2 className="w-3 h-3" />
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10"
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 touch-icon text-red-500 hover:bg-red-500/10"
                           onClick={() => setConfirmDialog({ open: true, title: 'Hapus Donasi?', description: `Hapus donasi dari "${d.donorName}" sebesar ${formatCurrency(d.amount)}?`, onConfirm: () => deleteDonation.mutate(d.id) })}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
-                    </motion.div>
+                    </div>
                   )) : (
                     <p className="text-xs text-muted-foreground text-center py-4">Belum ada donasi</p>
                   )}
@@ -890,7 +1014,7 @@ export function AdminPanel() {
             <Card className="border border-border/50">
               <CardContent className="p-4 space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-[#d4a853]" /> Pembayaran Donasi
+                  <Wallet className="w-4 h-4 text-idm-gold-warm" /> Pembayaran Donasi
                   <Badge className="text-[8px] border-0 bg-cyan-500/10 text-cyan-400">Payment</Badge>
                 </h3>
                 <p className="text-[10px] text-muted-foreground">QRIS menggunakan QR code image, e-wallet menggunakan nomor handphone untuk transfer.</p>
@@ -898,7 +1022,7 @@ export function AdminPanel() {
                   {/* QRIS — QR code image */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#d4a853]" /> QRIS (Universal)
+                      <span className="w-2 h-2 rounded-full bg-idm-gold-warm" /> QRIS (Universal)
                     </label>
                     <div className="flex items-center gap-2">
                       <Input value={paymentForm.donation_qris_image || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_qris_image: e.target.value }))} className="text-xs flex-1" placeholder="URL gambar QR code" />
@@ -949,7 +1073,7 @@ export function AdminPanel() {
                     <Textarea value={paymentForm.donation_payment_notes || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_payment_notes: e.target.value }))} className="text-sm" placeholder="Contoh: Konfirmasi ke admin via WhatsApp" rows={2} />
                   </div>
                 </div>
-                <Button size="sm" className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                <Button size="sm" className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                   onClick={() => {
                     savePaymentSetting.mutate({ key: 'donation_qris_image', value: paymentForm.donation_qris_image || '', type: 'image' });
                     savePaymentSetting.mutate({ key: 'donation_dana_number', value: paymentForm.donation_dana_number || '', type: 'text' });
@@ -974,6 +1098,11 @@ export function AdminPanel() {
         {/* ====== ACHIEVEMENTS TAB ====== */}
         <TabsContent value="achievements">
           <AdminAchievementPanel />
+        </TabsContent>
+
+        {/* ====== ADMINS TAB ====== */}
+        <TabsContent value="admins">
+          <AdminManagement />
         </TabsContent>
 
         {/* ====== SETTINGS TAB ====== */}

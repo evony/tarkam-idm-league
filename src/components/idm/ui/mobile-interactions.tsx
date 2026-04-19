@@ -172,7 +172,7 @@ export function PullToRefresh({ onRefresh, children, className = '' }: PullToRef
         <motion.div
           animate={isRefreshing ? { rotate: 360 } : { rotate: progress * 360 }}
           transition={isRefreshing ? { duration: 1, repeat: Infinity, ease: 'linear' } : { duration: 0 }}
-          className="w-6 h-6 border-2 border-[#d4a853] border-t-transparent rounded-full"
+          className="w-6 h-6 border-2 border-idm-gold-warm border-t-transparent rounded-full"
         />
       </div>
       {children}

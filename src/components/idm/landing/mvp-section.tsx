@@ -46,7 +46,7 @@ export function MvpSection({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative max-w-5xl mx-auto">
               {/* Vertical Gold Divider */}
-              <div className="hidden md:block absolute top-12 bottom-12 left-1/2 w-px bg-gradient-to-b from-transparent via-[#d4a853]/30 to-transparent z-10" />
+              <div className="hidden md:block absolute top-12 bottom-12 left-1/2 w-px bg-gradient-to-b from-transparent via-idm-gold-warm/30 to-transparent z-10" />
 
               {isDataLoading ? (
                 <>
@@ -71,9 +71,9 @@ export function MvpSection({
                       </div>
                       {/* Decorative gold lines flanking text */}
                       <div className="relative z-10 flex items-center gap-3 mb-2">
-                        <div className="w-12 h-px bg-gradient-to-r from-transparent to-[#d4a853]/40" />
+                        <div className="w-12 h-px bg-gradient-to-r from-transparent to-idm-gold-warm/40" />
                         <p className="text-sm font-bold text-white/80 uppercase tracking-widest">MVP Belum Dipilih</p>
-                        <div className="w-12 h-px bg-gradient-to-l from-transparent to-[#d4a853]/40" />
+                        <div className="w-12 h-px bg-gradient-to-l from-transparent to-idm-gold-warm/40" />
                       </div>
                       <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">Tunjukkan skillmu — jadilah MVP pertama di divisi ini!</p>
                     </div>
@@ -105,9 +105,9 @@ export function MvpSection({
                           <Music className="w-4 h-4 text-[#22d3ee]" />
                           <span className="text-[11px] font-bold text-[#22d3ee] uppercase tracking-wider">Male</span>
                         </div>
-                        <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-[#d4a853]/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
-                          <Crown className="w-6 h-6 text-[#d4a853]" />
-                          <span className="text-sm font-black text-[#d4a853] uppercase tracking-wider">MVP</span>
+                        <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-idm-gold-warm/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
+                          <Crown className="w-6 h-6 text-idm-gold-warm" />
+                          <span className="text-sm font-black text-idm-gold-warm uppercase tracking-wider">MVP</span>
                         </div>
                       </div>
 
@@ -169,9 +169,9 @@ export function MvpSection({
                       </div>
                       {/* Decorative gold lines flanking text */}
                       <div className="relative z-10 flex items-center gap-3 mb-2">
-                        <div className="w-12 h-px bg-gradient-to-r from-transparent to-[#d4a853]/40" />
+                        <div className="w-12 h-px bg-gradient-to-r from-transparent to-idm-gold-warm/40" />
                         <p className="text-sm font-bold text-white/80 uppercase tracking-widest">MVP Belum Dipilih</p>
-                        <div className="w-12 h-px bg-gradient-to-l from-transparent to-[#d4a853]/40" />
+                        <div className="w-12 h-px bg-gradient-to-l from-transparent to-idm-gold-warm/40" />
                       </div>
                       <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">Tunjukkan skillmu — jadilah MVP pertama di divisi ini!</p>
                     </div>
@@ -203,9 +203,9 @@ export function MvpSection({
                           <Shield className="w-4 h-4 text-[#c084fc]" />
                           <span className="text-[11px] font-bold text-[#c084fc] uppercase tracking-wider">Female</span>
                         </div>
-                        <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-[#d4a853]/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
-                          <Crown className="w-6 h-6 text-[#d4a853]" />
-                          <span className="text-sm font-black text-[#d4a853] uppercase tracking-wider">MVP</span>
+                        <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-idm-gold-warm/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
+                          <Crown className="w-6 h-6 text-idm-gold-warm" />
+                          <span className="text-sm font-black text-idm-gold-warm uppercase tracking-wider">MVP</span>
                         </div>
                       </div>
 

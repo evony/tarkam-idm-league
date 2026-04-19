@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { hexToRgba } from '@/lib/utils';
 
 interface WeekItem {
   weekNumber: number;
@@ -116,7 +117,7 @@ export function WeekNavigator({
                     ? 'text-white shadow-sm'
                     : 'text-muted-foreground hover:text-foreground bg-transparent'
                 }`}
-                style={isActive ? { backgroundColor: `${accent}25`, color: accentLight } : undefined}
+                style={isActive ? { backgroundColor: hexToRgba(accent, 0x25), color: accentLight } : undefined}
               >
                 <span className="mr-1">{phase.emoji}</span>
                 {phase.label}
@@ -128,7 +129,7 @@ export function WeekNavigator({
 
       {/* Week Dots */}
       <div className="flex items-center gap-1.5">
-        <span className={`text-[9px] font-semibold mr-0.5 ${isSm ? 'text-[8px]' : ''}`} style={{ color: `${accentLight}50` }}>
+        <span className={`text-[9px] font-semibold mr-0.5 ${isSm ? 'text-[8px]' : ''}`} style={{ color: hexToRgba(accentLight, 0x50) }}>
           W
         </span>
         {phaseWeeks.map(w => {
@@ -154,10 +155,10 @@ export function WeekNavigator({
               }`}
               style={
                 isSelected
-                  ? { backgroundColor: accent, boxShadow: `0 0 12px ${accent}80` }
+                  ? { backgroundColor: accent, boxShadow: `0 0 12px ${hexToRgba(accent, 0x80)}` }
                   : isLive
                     ? { backgroundColor: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.5)' }
-                    : { backgroundColor: `${accent}10`, color: `${accentLight}60` }
+                    : { backgroundColor: hexToRgba(accent, 0x10), color: hexToRgba(accentLight, 0x60) }
               }
             >
               {w.weekNumber}

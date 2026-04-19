@@ -46,7 +46,7 @@ export function MVPSpotlight({
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 rounded-full bg-[#d4a853]"
+            className="absolute w-1.5 h-1.5 rounded-full bg-idm-gold-warm"
             style={{
               left: `${20 + Math.random() * 60}%`,
               top: `${20 + Math.random() * 60}%`,
@@ -74,8 +74,8 @@ export function MVPSpotlight({
           animate={{ boxShadow: ['0 0 0 rgba(212,168,83,0)', '0 0 24px rgba(212,168,83,0.3)', '0 0 0 rgba(212,168,83,0)'] }}
           transition={{ duration: 2.5, repeat: Infinity }}
         >
-          <Star className="w-4 h-4 text-[#d4a853] fill-[#d4a853]" />
-          <span className="text-xs font-black text-[#d4a853] uppercase tracking-[0.15em]">
+          <Star className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
+          <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">
             MVP
           </span>
         </motion.div>
@@ -108,7 +108,7 @@ export function MVPSpotlight({
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Crown className="w-8 h-8 text-[#d4a853] drop-shadow-[0_0_10px_rgba(212,168,83,0.5)]" />
+            <Crown className="w-8 h-8 text-idm-gold-warm drop-shadow-[0_0_10px_rgba(212,168,83,0.5)]" />
           </motion.div>
         </div>
 
@@ -144,7 +144,7 @@ export function MVPSpotlight({
             )}
             {stats.mvps !== undefined && (
               <div className="text-center">
-                <div className="text-lg font-bold text-[#d4a853]">{stats.mvps}</div>
+                <div className="text-lg font-bold text-idm-gold-warm">{stats.mvps}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">MVPs</div>
               </div>
             )}
@@ -163,8 +163,8 @@ export function MVPBadge({ className = '' }: { className?: string }) {
       animate={{ boxShadow: ['0 0 0 rgba(212,168,83,0)', '0 0 12px rgba(212,168,83,0.3)', '0 0 0 rgba(212,168,83,0)'] }}
       transition={{ duration: 2, repeat: Infinity }}
     >
-      <Star className="w-3.5 h-3.5 text-[#d4a853] fill-[#d4a853]" />
-      <span className="text-[10px] font-bold text-[#d4a853]">MVP</span>
+      <Star className="w-3.5 h-3.5 text-idm-gold-warm fill-idm-gold-warm" />
+      <span className="text-[10px] font-bold text-idm-gold-warm">MVP</span>
     </motion.div>
   );
 }

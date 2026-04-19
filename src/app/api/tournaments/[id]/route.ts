@@ -2,6 +2,41 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
 
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
+  const { id } = await params;
+
+  const tournament = await db.tournament.findUnique({ where: { id } });
+  if (!tournament) {
+    return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
+  }
+
+  // Allow deletion of tournaments in setup or registration status only
+  if (tournament.status !== 'setup' && tournament.status !== 'registration') {
+    return NextResponse.json({ error: 'Hanya tournament dengan status setup atau registration yang bisa dihapus' }, { status: 400 });
+  }
+
+  // Delete in order: matches → teamPlayers → teams → prizes → donations → participations → tournament
+  await db.match.deleteMany({ where: { tournamentId: id } });
+  const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+  for (const t of teams) {
+    await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
+  }
+  await db.team.deleteMany({ where: { tournamentId: id } });
+  await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
+  await db.donation.deleteMany({ where: { tournamentId: id } });
+  await db.participation.deleteMany({ where: { tournamentId: id } });
+  await db.playerPoint.deleteMany({ where: { tournamentId: id } });
+  await db.tournament.delete({ where: { id } });
+
+  return NextResponse.json({ success: true });
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -95,12 +130,13 @@ export async function PUT(
     data: {
       ...(body.status && { status: body.status }),
       ...(body.name && { name: body.name }),
+      ...(body.weekNumber !== undefined && { weekNumber: body.weekNumber }),
       ...(body.format && { format: body.format }),
       ...(body.defaultMatchFormat && { defaultMatchFormat: body.defaultMatchFormat }),
       ...(body.prizePool !== undefined && { prizePool: body.prizePool }),
-      ...(body.location && { location: body.location }),
+      ...(body.location !== undefined && { location: body.location }),
       ...(body.bpm !== undefined && { bpm: body.bpm }),
-      ...(body.scheduledAt && { scheduledAt: new Date(body.scheduledAt) }),
+      ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
       ...(body.status === 'completed' && { completedAt: new Date() }),
     },
   });

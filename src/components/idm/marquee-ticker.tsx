@@ -4,6 +4,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useReducedMotion } from 'framer-motion';
 import Pusher from 'pusher-js';
+import { hexToRgba } from '@/lib/utils';
 
 /* ========== Feed Item Types ========== */
 interface FeedItem {
@@ -66,14 +67,14 @@ function FeedCard({ item }: { item: FeedItem }) {
     <div
       className="flex items-center gap-2.5 px-4 py-2 rounded-lg shrink-0 border transition-all duration-300 hover:scale-[1.02] cursor-default select-none"
       style={{
-        background: `linear-gradient(135deg, ${accent}08 0%, ${accent}03 100%)`,
-        borderColor: `${accent}20`,
+        background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x03)} 100%)`,
+        borderColor: hexToRgba(accent, 0x20),
       }}
     >
       {/* Icon with glow */}
       <span
         className="text-base shrink-0 drop-shadow-sm"
-        style={{ filter: `drop-shadow(0 0 4px ${accent}40)` }}
+        style={{ filter: `drop-shadow(0 0 4px ${hexToRgba(accent, 0x40)})` }}
       >
         {item.icon}
       </span>
@@ -96,7 +97,7 @@ function FeedCard({ item }: { item: FeedItem }) {
       {/* Time badge */}
       <span
         className="text-[9px] font-medium shrink-0 tabular-nums px-1.5 py-0.5 rounded"
-        style={{ color: `${accent}aa`, background: `${accent}10` }}
+        style={{ color: hexToRgba(accent, 0xaa), background: hexToRgba(accent, 0x10) }}
       >
         {formatTimeAgo(item.timestamp)}
       </span>
@@ -107,8 +108,8 @@ function FeedCard({ item }: { item: FeedItem }) {
           className="w-2 h-2 rounded-full shrink-0 ring-1 ring-offset-1 ring-offset-background"
           style={{
             backgroundColor: item.division === 'male' ? '#06b6d4' : '#a855f7',
-            boxShadow: `0 0 6px ${item.division === 'male' ? '#06b6d440' : '#a855f740'}`,
-            '--tw-ring-color': item.division === 'male' ? '#06b6d460' : '#a855f760',
+            boxShadow: `0 0 6px ${item.division === 'male' ? hexToRgba('#06b6d4', 0x40) : hexToRgba('#a855f7', 0x40)}`,
+            '--tw-ring-color': item.division === 'male' ? hexToRgba('#06b6d4', 0x60) : hexToRgba('#a855f7', 0x60),
           } as React.CSSProperties}
         />
       )}
@@ -119,7 +120,7 @@ function FeedCard({ item }: { item: FeedItem }) {
 /* ========== Separator Diamond ========== */
 function Separator() {
   return (
-    <span className="text-[8px] text-[#d4a853]/30 shrink-0 mx-1 select-none">◆</span>
+    <span className="text-[8px] text-idm-gold-warm/30 shrink-0 mx-1 select-none">◆</span>
   );
 }
 

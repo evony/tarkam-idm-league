@@ -5,10 +5,9 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Gamepad2, Trophy, Users, Shield,
-  Menu, X, Home, Flame, Radio, UserPlus, LogOut, Target
+  Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
@@ -45,7 +44,7 @@ const LeagueView = dynamic(() => import('./league-view').then(m => ({ default: m
   loading: () => viewLoading,
 });
 const AdminPanel = dynamic(() => import('./admin-panel').then(m => ({ default: m.AdminPanel })), {
-  loading: () => <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-[#d4a853] border-t-transparent rounded-full animate-spin" /></div>,
+  loading: () => <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-idm-gold-warm border-t-transparent rounded-full animate-spin" /></div>,
 });
 const MatchDayCenter = dynamic(() => import('./match-day-center').then(m => ({ default: m.MatchDayCenter })), {
   loading: () => viewLoading,
@@ -59,25 +58,23 @@ const MyTournamentCard = dynamic(() => import('./my-tournament-card').then(m => 
 
 const navItems: { id: AppView; label: string; icon: typeof Gamepad2 }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: Gamepad2 },
-  { id: 'mytournament', label: 'Turnamen Saya', icon: Target },
+  { id: 'mytournament', label: 'Tour Saya', icon: Target },
   { id: 'matchday', label: 'Match Day', icon: Radio },
   { id: 'league', label: 'League', icon: Trophy },
 ];
-
-/* Admin nav item — only shown when authenticated */
-const adminNavItem = { id: 'admin' as AppView, label: 'Admin', icon: Shield };
 
 const actionItems: { id: AppView; label: string; icon: typeof UserPlus }[] = [
   { id: 'register', label: 'Daftar', icon: UserPlus },
 ];
 
-function DivisionToggle() {
+function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
   const { division, setDivision } = useAppStore();
+  const baseClass = compact ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1.5 text-xs';
   return (
-    <div className="flex items-center bg-muted rounded-full p-1 gap-1">
+    <div className="flex items-center bg-muted rounded-full p-0.5 gap-0.5">
       <button
         onClick={() => setDivision('male')}
-        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+        className={`${baseClass} rounded-full font-semibold transition-all duration-300 ${
           division === 'male'
             ? 'bg-idm-male text-white shadow-md'
             : 'text-muted-foreground hover:text-foreground'
@@ -87,7 +84,7 @@ function DivisionToggle() {
       </button>
       <button
         onClick={() => setDivision('female')}
-        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+        className={`${baseClass} rounded-full font-semibold transition-all duration-300 ${
           division === 'female'
             ? 'bg-idm-female text-white shadow-md'
             : 'text-muted-foreground hover:text-foreground'
@@ -180,7 +177,7 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
         </button>
 
         <div className="px-3 py-1.5 lg:py-2">
-          <p className="text-[9px] lg:text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">Navigasi</p>
+          <p className="text-[9px] lg:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Navigasi</p>
         </div>
 
         {actionItems.map((navItem) => {
@@ -222,19 +219,18 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
             </button>
           );
         })}
-        {/* Admin — only when authenticated */}
-        {adminAuth.isAuthenticated && (() => {
-          const Icon = adminNavItem.icon;
-          const isActive = currentView === adminNavItem.id;
+        {/* Admin — always visible, shows login if not authenticated */}
+        {(() => {
+          const isActive = currentView === 'admin';
           return (
             <button
-              onClick={() => { setCurrentView(adminNavItem.id); onNav?.(); }}
+              onClick={() => { setCurrentView('admin'); onNav?.(); }}
               className={navItemClass(isActive)}
             >
               <div className={`flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 rounded-lg ${isActive ? dt.iconBg : ''} shrink-0`}>
-                <Icon className={`w-4 h-4 ${isActive ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
+                <Shield className={`w-4 h-4 ${isActive ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
               </div>
-              <span className="px-3 py-2.5 lg:py-3">{adminNavItem.label}</span>
+              <span className="px-3 py-2.5 lg:py-3">Admin</span>
               {isActive && (
                 <div className={`ml-auto w-1.5 h-1.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
               )}
@@ -254,15 +250,26 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-foreground font-medium">{adminAuth.admin?.username}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-              onClick={handleLogout}
-              title="Logout"
-            >
-              <LogOut className="w-3 h-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-idm-gold hover:bg-idm-gold/10"
+                onClick={() => setCurrentView('admin')}
+                title="Ganti Password (di halaman login)"
+              >
+                <KeyRound className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -291,7 +298,6 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
 export function AppShell() {
   const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView } = useAppStore();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const dt = useDivisionTheme();
   const prefersReducedMotion = useReducedMotion();
 
@@ -340,7 +346,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Mobile Header — compact, smooth */}
+      {/* Mobile Header — compact with Admin shield in header */}
       <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg overflow-hidden glow-pulse">
@@ -348,18 +354,17 @@ export function AppShell() {
           </div>
           <span className="text-gradient-fury text-sm font-bold">IDM League</span>
         </div>
-        <div className="flex items-center gap-2">
-          <DivisionToggle />
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Menu className="w-4 h-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <SidebarContent onNav={() => setMobileOpen(false)} />
-            </SheetContent>
-          </Sheet>
+        <div className="flex items-center gap-1.5">
+          <DivisionToggle compact />
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
+            onClick={() => setCurrentView('admin')}
+            title="Admin Panel"
+          >
+            <Shield className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
@@ -378,7 +383,7 @@ export function AppShell() {
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={{ duration: prefersReducedMotion ? 0.15 : 0.25 }}
-              className="p-3 sm:p-4 lg:p-8 pb-24 lg:pb-8 max-w-[1600px] mx-auto"
+              className="pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 max-w-[1600px] mx-auto"
             >
               {renderView()}
             </motion.div>
@@ -386,7 +391,7 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Nav — compact, CSS-only active indicator (no layoutId animation for mid-range phones) */}
+      {/* Mobile Bottom Nav — 5 items: Home, Dashboard, Tour Saya, Match Day, League */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border safe-area-bottom`}>
         <div className="flex justify-around py-1 px-0.5">
           <button
@@ -409,9 +414,7 @@ export function AppShell() {
                 key={navItem.id}
                 onClick={() => useAppStore.getState().setCurrentView(navItem.id)}
                 className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors duration-200 relative ${
-                  isActive
-                    ? dt.text
-                    : 'text-muted-foreground'
+                  isActive ? dt.text : 'text-muted-foreground'
                 }`}
               >
                 <Icon className={`w-[18px] h-[18px] ${isActive ? 'drop-shadow-[0_0_6px_var(--idm-glow)]' : ''}`} />
@@ -422,25 +425,6 @@ export function AppShell() {
               </button>
             );
           })}
-          {/* Admin — only on mobile when authenticated */}
-          {adminAuth.isAuthenticated && (() => {
-            const Icon = adminNavItem.icon;
-            const isActive = currentView === adminNavItem.id;
-            return (
-              <button
-                onClick={() => useAppStore.getState().setCurrentView(adminNavItem.id)}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors duration-200 relative ${
-                  isActive ? dt.text : 'text-muted-foreground'
-                }`}
-              >
-                <Icon className={`w-[18px] h-[18px] ${isActive ? 'drop-shadow-[0_0_6px_var(--idm-glow)]' : ''}`} />
-                <span className="text-[9px] font-medium leading-tight">{adminNavItem.label}</span>
-                {isActive && (
-                  <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
-                )}
-              </button>
-            );
-          })()}
         </div>
       </nav>
 

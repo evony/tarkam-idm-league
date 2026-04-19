@@ -5,19 +5,15 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division') || 'male';
 
-  // Find the season matching the requested division first, then fall back to any season
-  let season = await db.season.findFirst({
+  // Find seasons for the SPECIFIC division requested
+  // Male and Female are separate seasons with separate clubs, matches, tournaments
+  const allSeasons = await db.season.findMany({
     where: { division, status: { in: ['active', 'completed'] } },
     orderBy: { number: 'desc' },
   });
 
-  // Fallback: if no division-specific season, try any active/completed season
-  if (!season) {
-    season = await db.season.findFirst({
-      where: { status: { in: ['active', 'completed'] } },
-      orderBy: { number: 'desc' },
-    });
-  }
+  // Use the latest season for this division as the primary reference
+  const season = allSeasons[0];
 
   if (!season) {
     return NextResponse.json({ hasData: false, division }, {
@@ -27,6 +23,21 @@ export async function GET(request: Request) {
     });
   }
 
+  // Find the latest season for this division that actually has clubs
+  // This handles the case where a new Season is active but has no clubs yet,
+  // while a previous season (completed) has clubs that should still be visible
+  const seasonWithClubs = await db.season.findFirst({
+    where: {
+      division,
+      id: { in: allSeasons.map(s => s.id) },
+      clubs: { some: {} },
+    },
+    orderBy: { number: 'desc' },
+  });
+  // Use the season that has clubs for all club/league-related queries, fall back to latest season
+  const activeSeasonId = seasonWithClubs?.id || season.id;
+  const seasonForClubs = seasonWithClubs || season;
+
   // Run ALL independent queries in parallel
   const [
     activeTournament,
@@ -34,16 +45,15 @@ export async function GET(request: Request) {
     seasonDonations,
     topPlayers,
     clubs,
-    championSeasonRows,
     recentMatches,
     upcomingMatches,
     playoffMatches,
     tournaments,
     leagueMatches,
   ] = await Promise.all([
-    // Active/recent tournament (unified league — no division filter on tournaments)
+    // Active/recent tournament — use activeSeasonId for consistency with clubs
     db.tournament.findFirst({
-      where: { seasonId: season.id },
+      where: { seasonId: activeSeasonId },
       orderBy: { weekNumber: 'desc' },
       include: {
         teams: { include: { teamPlayers: { include: { player: true } } } },
@@ -56,9 +66,9 @@ export async function GET(request: Request) {
     // Total players
     db.player.count({ where: { division, isActive: true } }),
 
-    // ALL approved donations for the season (unified league)
+    // ALL approved donations for the season — use activeSeasonId for consistency
     db.donation.findMany({
-      where: { seasonId: season.id, status: 'approved' },
+      where: { seasonId: activeSeasonId, status: 'approved' },
     }),
 
     // Top players leaderboard — show all active players for landing page roster
@@ -67,26 +77,16 @@ export async function GET(request: Request) {
       orderBy: [{ points: 'desc' }, { totalWins: 'desc' }],
     }),
 
-    // Clubs standings
+    // Clubs standings — use the season that actually has clubs
     db.club.findMany({
-      where: { 
-        seasonId: season.id,
-        ...(division ? { division } : {}),
-      },
+      where: { seasonId: activeSeasonId },
       orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
-      include: { _count: { select: { members: true } } },
+      include: { _count: { select: { members: true } }, season: { select: { name: true, division: true } } },
     }),
 
-    // Champion seasons for all clubs
-    db.season.findMany({
-      where: { championClubId: { not: null }, status: { in: ['active', 'completed'] } },
-      select: { id: true, name: true, number: true, championClubId: true },
-      orderBy: { number: 'desc' },
-    }),
-
-    // Recent matches
+    // Recent matches — use activeSeasonId for consistency with clubs
     db.leagueMatch.findMany({
-      where: { seasonId: season.id, status: 'completed' },
+      where: { seasonId: activeSeasonId, status: 'completed' },
       orderBy: { week: 'desc' },
       take: 3,
       include: { club1: true, club2: true },
@@ -94,7 +94,7 @@ export async function GET(request: Request) {
 
     // Upcoming matches
     db.leagueMatch.findMany({
-      where: { seasonId: season.id, status: 'upcoming' },
+      where: { seasonId: activeSeasonId, status: 'upcoming' },
       orderBy: { week: 'asc' },
       take: 3,
       include: { club1: true, club2: true },
@@ -102,15 +102,14 @@ export async function GET(request: Request) {
 
     // Playoff matches
     db.playoffMatch.findMany({
-      where: { seasonId: season.id },
+      where: { seasonId: activeSeasonId },
       include: { club1: true, club2: true },
       orderBy: { round: 'asc' },
     }),
 
-    // Tournaments list — enriched with winner teams & MVP participations
-    // Unified league — no division filter
+    // Tournaments list — use activeSeasonId for consistency with clubs/league data
     db.tournament.findMany({
-      where: { seasonId: season.id },
+      where: { seasonId: activeSeasonId },
       orderBy: { weekNumber: 'asc' },
       include: {
         _count: { select: { teams: true, participations: true } },
@@ -125,9 +124,9 @@ export async function GET(request: Request) {
       },
     }),
 
-    // All league matches grouped by week
+    // All league matches grouped by week — use activeSeasonId for consistency
     db.leagueMatch.findMany({
-      where: { seasonId: season.id },
+      where: { seasonId: activeSeasonId },
       orderBy: [{ week: 'asc' }],
       include: { club1: true, club2: true },
     }),
@@ -221,18 +220,13 @@ export async function GET(request: Request) {
     hasData: true,
     division,
     season,
+    seasonForClubs, // Season that has clubs — used by admin club management
     activeTournament,
     totalPlayers,
     totalPrizePool,
     seasonDonationTotal,
     topPlayers,
-    clubs: clubs.map(c => {
-      // Build championSeasons for this club from the pre-fetched rows
-      const csForClub = championSeasonRows
-        .filter(cs => cs.championClubId === c.id)
-        .map(cs => ({ id: cs.id, name: cs.name, number: cs.number }));
-      return { ...c, championSeasons: csForClub };
-    }),
+    clubs,
     recentMatches,
     upcomingMatches,
     playoffMatches,

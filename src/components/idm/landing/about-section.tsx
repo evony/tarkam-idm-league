@@ -27,7 +27,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
   // CMS settings for longer text blocks
   const originStory = cmsSettings.about_origin_story || 'Idol Meta dari Lyto Game — sebuah rhythm game yang menghidupkan panggung virtual. Kami para pemainnya, bermain setiap hari, menari, dan berkompetisi. Tapi lama-kelamaan, rutinitas tanpa tujuan terasa hampa. Tidak ada motivasi, tidak ada sesuatu yang kita kejar bersama.\n\nGame yang kami cintai mulai sepi. Player datang dan pergi tanpa alasan untuk bertahan. Lalu muncul sebuah pertanyaan sederhana: "Kenapa tidak kita buat sendiri alasan untuk terus bermain?"\n\nDari situlah IDM League lahir — bukan dari perusahaan, bukan dari sponsor besar, tapi dari komunitas pemain yang tidak ingin gamenya mati.';
-  const season1Text = cmsSettings.about_season1_text || 'Tahun 2025, Liga IDM Season 1 telah digelar dan berjalan sangat baik. Club-club bertarung, tim mix male & female berkompetisi, dan champion pun dinobatkan. Sambil menunggu dana terkumpul untuk season berikutnya, kami menyelenggarakan Weekly Tournament sebagai ajang berlatih dan bersaing secara individu.';
+  const season1Text = cmsSettings.about_season1_text || 'Tahun 2025, Liga IDM Season 1 telah digelar dan berjalan sangat baik. Club-club bertarung, peserta bebas mix dari divisi male dan female, dan champion pun dinobatkan. Sambil menunggu dana terkumpul untuk season berikutnya, kami menyelenggarakan Weekly Tournament sebagai ajang berlatih dan bersaing secara individu.';
   const bottomTagline = cmsSettings.about_tagline || 'By Players, For Players';
 
   // CMS cards for milestones (fallback to defaults)
@@ -44,12 +44,12 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
   // Accent colors for milestone cards
   const accentColors = ['#06b6d4', '#d4a853', '#a855f7'];
-  const accentBgs = ['bg-cyan-500/10', 'bg-[#d4a853]/10', 'bg-purple-500/10'];
-  const accentBorders = ['border-cyan-500/10', 'border-[#d4a853]/15', 'border-purple-500/10'];
-  const accentHoverBorders = ['hover:border-cyan-500/20', 'hover:border-[#d4a853]/25', 'hover:border-purple-500/20'];
-  const accentHoverBgs = ['hover:bg-cyan-500/[0.05]', 'hover:bg-[#d4a853]/[0.06]', 'hover:bg-purple-500/[0.05]'];
-  const accentTexts = ['text-cyan-400', 'text-[#d4a853]', 'text-purple-400'];
-  const accentLineColors = ['via-cyan-500/50', 'via-[#d4a853]', 'via-purple-500/50'];
+  const accentBgs = ['bg-cyan-500/10', 'bg-idm-gold-warm/10', 'bg-purple-500/10'];
+  const accentBorders = ['border-cyan-500/10', 'border-idm-gold-warm/15', 'border-purple-500/10'];
+  const accentHoverBorders = ['hover:border-cyan-500/20', 'hover:border-idm-gold-warm/25', 'hover:border-purple-500/20'];
+  const accentHoverBgs = ['hover:bg-cyan-500/[0.05]', 'hover:bg-idm-gold-warm/[0.06]', 'hover:bg-purple-500/[0.05]'];
+  const accentTexts = ['text-cyan-400', 'text-idm-gold-warm', 'text-purple-400'];
+  const accentLineColors = ['via-cyan-500/50', 'via-idm-gold-warm', 'via-purple-500/50'];
 
   return (
     <section id="about" role="region" aria-label="Cerita Kami" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -70,16 +70,16 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
         {/* Origin Story */}
         <AnimatedSection variant="fadeUp">
-          <div className="relative rounded-2xl border border-[#d4a853]/15 bg-[#d4a853]/[0.03] backdrop-blur-sm p-6 sm:p-8 mb-8">
+          <div className="relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-6 sm:p-8 mb-8">
             {/* Gold accent line */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#d4a853] to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
             {/* Subtle gold glow */}
             <div className="absolute inset-0 rounded-2xl" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.06) 0%, transparent 50%)' }} />
 
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-[#d4a853]/10 border border-[#d4a853]/20 flex items-center justify-center">
-                  <Flame className="w-5 h-5 text-[#d4a853]" />
+                <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
+                  <Flame className="w-5 h-5 text-idm-gold-warm" />
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-white">Awal Mula</h3>
@@ -99,7 +99,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
                   // Step 2: Convert placeholders to HTML spans
                   const highlighted = withPlaceholders
-                    .replace(/⟨GOLD⟩(.*?)⟨\/GOLD⟩/g, '<span class="text-[#d4a853] font-semibold">$1</span>')
+                    .replace(/⟨GOLD⟩(.*?)⟨\/GOLD⟩/g, '<span class="text-idm-gold-warm font-semibold">$1</span>')
                     .replace(/⟨QUOTE⟩(.*?)⟨\/QUOTE⟩/g, '<span class="text-white font-semibold">$1</span>')
                     .replace(/⟨WHITE⟩(.*?)⟨\/WHITE⟩/g, '<span class="text-white font-semibold">$1</span>');
 
@@ -153,13 +153,13 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
         {/* Bottom decorative line */}
         <div className="mt-10 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-[#d4a853]/15 to-transparent" />
-          <div className="flex items-center gap-1.5 text-[#d4a853]/30">
+          <div className="h-px flex-1 bg-gradient-to-r from-idm-gold-warm/15 to-transparent" />
+          <div className="flex items-center gap-1.5 text-idm-gold-warm/30">
             <Heart className="w-3 h-3" />
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">{bottomTagline}</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest">{bottomTagline}</span>
             <Heart className="w-3 h-3" />
           </div>
-          <div className="h-px flex-1 bg-gradient-to-l from-[#d4a853]/15 to-transparent" />
+          <div className="h-px flex-1 bg-gradient-to-l from-idm-gold-warm/15 to-transparent" />
         </div>
       </div>
     </section>

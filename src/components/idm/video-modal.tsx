@@ -11,6 +11,13 @@ interface VideoModalProps {
   title?: string;
 }
 
+/**
+ * Extracts a YouTube video ID from various URL formats:
+ *  - https://www.youtube.com/watch?v=XXX
+ *  - https://youtu.be/XXX
+ *  - https://www.youtube.com/embed/XXX
+ *  - https://youtube.com/watch?v=XXX&list=...
+ */
 function getYouTubeId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -22,6 +29,7 @@ function getYouTubeId(url: string): string | null {
   return null;
 }
 
+/* ─── Animation variants ─── */
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
@@ -45,12 +53,15 @@ const contentVariants = {
 };
 
 export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
-  const [iframeError, setIframeError] = useState(false);
-
+  /* ─── Resolve video source ─── */
   const youtubeId = getYouTubeId(videoUrl);
   const isYouTube = youtubeId !== null;
   const youtubeWatchUrl = youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : null;
 
+  /* ─── Track iframe load state for fallback ─── */
+  const [iframeError, setIframeError] = useState(false);
+
+  /* ─── Timeout fallback: if iframe doesn't load within 6s, assume blocked ─── */
   useEffect(() => {
     if (!isOpen || !isYouTube) return;
     const timer = setTimeout(() => {
@@ -62,6 +73,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
     };
   }, [isOpen, isYouTube, videoUrl]);
 
+  /* ─── Escape key handler ─── */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -90,11 +102,14 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
           animate="visible"
           exit="exit"
         >
+          {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
+
+          {/* Content */}
           <motion.div
             className="relative z-10 w-full max-w-4xl"
             variants={contentVariants}
@@ -105,6 +120,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
             aria-modal="true"
             aria-label={title ?? 'Video player'}
           >
+            {/* Close button */}
             <button
               type="button"
               onClick={onClose}
@@ -113,15 +129,20 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
             >
               <X className="w-5 h-5" />
             </button>
+
+            {/* Title bar */}
             {title && (
               <div className="mb-2 px-1">
                 <h3 className="text-sm font-semibold text-white/90 truncate">{title}</h3>
               </div>
             )}
+
+            {/* Video container — 16:9 aspect ratio */}
             <div className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-black shadow-2xl shadow-black/40">
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 {isYouTube ? (
                   <>
+                    {/* YouTube iframe — may be blocked in sandbox */}
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
                       title={title ?? 'YouTube video'}
@@ -130,6 +151,8 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                       className="absolute inset-0 h-full w-full"
                       onError={() => setIframeError(true)}
                     />
+
+                    {/* Fallback overlay when iframe is blocked in sandbox — shows thumbnail + YouTube link */}
                     {iframeError && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90">
                         <img
@@ -156,6 +179,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                         </div>
                       </div>
                     )}
+
                   </>
                 ) : (
                   <video
@@ -169,6 +193,8 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                   </video>
                 )}
               </div>
+
+              {/* YouTube direct link — always visible below video for convenience */}
               {isYouTube && youtubeWatchUrl && (
                 <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-t border-white/10">
                   <span className="text-xs text-white/50">Tidak bisa memutar video?</span>

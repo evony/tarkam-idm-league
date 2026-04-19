@@ -7,11 +7,11 @@ import { useEffect } from 'react';
 import {
   X, Trophy, Flame, Crown, Shield, Target,
   TrendingUp, Award, Calendar, Star, BarChart3,
-  ChevronRight, Activity, Gamepad2, MapPin, Users
+  Activity, MapPin, Users
 } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
-import { useDivisionTheme, getDivisionTheme } from '@/hooks/use-division-theme';
+import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { getAvatarUrl, hashString } from '@/lib/utils';
 import { AchievementList } from './achievement-badge';
@@ -31,6 +31,7 @@ interface PlayerProfileProps {
     matches: number;
     club?: string;
     division?: string;
+    city?: string;
   };
   onClose: () => void;
   rank?: number;
@@ -108,10 +109,9 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
   color: string;
   highlight?: boolean;
   size?: 'normal' | 'large';
-  playerDivision?: string;
+  playerDivision: 'male' | 'female';
 }) {
-  const storeDt = useDivisionTheme();
-  const dt = playerDivision ? getDivisionTheme(playerDivision) : storeDt;
+  const dt = getDivisionTheme(playerDivision);
   return (
     <div className={`relative rounded-xl p-3 text-center transition-all overflow-hidden ${
       highlight ? `${dt.bgSubtle} border ${dt.border}` : `bg-muted/10 border border-border/10`
@@ -134,13 +134,22 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
 
 export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
   const storeDivision = useAppStore(s => s.division);
-  const playerDivision = (player.division || storeDivision) as 'male' | 'female';
-  const dt = getDivisionTheme(playerDivision);
+  // Use the PLAYER's actual division, NOT the currently selected UI division
+  // This prevents showing "Divisi Male" when viewing a female player's profile
+  const playerDivision = player.division || storeDivision;
+  // CRITICAL: Use the player's division for theming, not the store's current division
+  // This ensures male players always show cyan and female players always show purple
+  const dt = getDivisionTheme(playerDivision as 'male' | 'female');
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
   const mvpRate = player.matches > 0 ? Math.round((player.totalMvp / player.matches) * 100) : 0;
   const losses = player.matches - player.totalWins;
-  const isChampion = rank === 1;
-  const isTop3 = rank !== undefined && rank <= 3;
+  // Only show rank badges when the player has actual competitive results (points or wins)
+  // Without this check, ALL players show "Juara" badges when no matches have been played
+  // because the topPlayers array order is arbitrary when all points = 0
+  const hasCompetitiveResults = player.points > 0 || player.totalWins > 0;
+  const effectiveRank = hasCompetitiveResults ? rank : undefined;
+  const isChampion = effectiveRank === 1;
+  const isTop3 = effectiveRank !== undefined && effectiveRank <= 3;
   const isSTier = player.tier === 'S';
 
   // Close on Escape key for accessibility
@@ -167,13 +176,13 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
   };
   const tier = tierConfig[player.tier] || tierConfig.B;
 
-  const rankLabel = rank === 1 ? 'JUARA' : rank === 2 ? 'JUARA 2' : rank === 3 ? 'PERINGKAT 3' : rank ? `#${rank}` : '';
+  const rankLabel = effectiveRank === 1 ? 'JUARA' : effectiveRank === 2 ? 'JUARA 2' : effectiveRank === 3 ? 'PERINGKAT 3' : effectiveRank ? `#${effectiveRank}` : '';
 
   // No demo data — all data comes from actual organizer-input results only.
   // The game is not integrated with this server, so we cannot show
   // in-game performance metrics or per-match score trends.
   const hasMatchHistory = player.matches > 0;
-  const avatarSrc = getAvatarUrl(player.gamertag, playerDivision, player.avatar);
+  const avatarSrc = getAvatarUrl(player.gamertag, playerDivision as 'male' | 'female', player.avatar);
 
   return (
     <AnimatePresence>
@@ -196,7 +205,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* ═══ HERO BANNER — Full Avatar Card Style ═══ */}
-          <div className="relative h-96 overflow-hidden">
+          <div className="relative h-[28rem] overflow-hidden">
             {/* Full AI-generated avatar as background */}
             <Image src={avatarSrc} alt={player.gamertag} fill sizes="150px" className="absolute inset-0 object-cover object-[center_25%]" />
 
@@ -241,15 +250,15 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Rank badge — top-left */}
+            {/* Rank badge — top-left — only shown when player has competitive results */}
             {isTop3 && (
               <div className="absolute top-3 left-3 z-10">
                 <Badge className={`text-[10px] font-black border-0 backdrop-blur-sm px-2.5 py-1 ${
-                  rank === 1 ? 'bg-yellow-500/25 text-yellow-400 shadow-lg shadow-yellow-500/10' :
-                  rank === 2 ? 'bg-gray-400/20 text-gray-300' :
+                  effectiveRank === 1 ? 'bg-yellow-500/25 text-yellow-400 shadow-lg shadow-yellow-500/10' :
+                  effectiveRank === 2 ? 'bg-gray-400/20 text-gray-300' :
                   'bg-amber-600/20 text-amber-500'
                 }`}>
-                  {rank === 1 ? '👑' : ''} {rankLabel}
+                  {effectiveRank === 1 ? '👑' : ''} {rankLabel}
                 </Badge>
               </div>
             )}
@@ -279,7 +288,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
 
               <div className="relative z-10">
                 <h2 className="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">{player.gamertag}</h2>
-                <p className="text-xs text-white/60 mt-0.5">{player.name}</p>
+                <p className="text-xs text-white/60 mt-0.5">{player.city ? <><MapPin className="w-3 h-3 inline -mt-0.5 mr-0.5" />{player.city}</> : player.name}</p>
                 <div className="flex items-center gap-2 mt-1.5">
                   <TierBadge tier={player.tier} />
                   <span className={`text-xs font-semibold drop-shadow-sm ${tier.color}`}>{tier.label}</span>
@@ -306,10 +315,10 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
 
             {/* ═══ Main Stats Grid — Dance Tournament HUD Style ═══ */}
             <div className="grid grid-cols-4 gap-2 mb-4">
-              <StatBlock icon={Trophy} label="Poin" value={player.points} color={dt.text} highlight size="large" playerDivision={playerDivision} />
-              <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${player.totalWins}W/${losses}L`} color="text-green-500" playerDivision={playerDivision} />
-              <StatBlock icon={Crown} label="MVP" value={player.totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" playerDivision={playerDivision} />
-              <StatBlock icon={Activity} label="Match" value={player.matches} color="text-blue-400" playerDivision={playerDivision} />
+              <StatBlock icon={Trophy} label="Poin" value={player.points} color={dt.text} highlight size="large" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${player.totalWins}W/${losses}L`} color="text-green-500" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Crown} label="MVP" value={player.totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Activity} label="Match" value={player.matches} color="text-blue-400" playerDivision={playerDivision as 'male' | 'female'} />
             </div>
 
             {/* ═══ Performance Overview — based on actual record only ═══ */}
@@ -416,7 +425,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                       <Star className="w-3 h-3 mr-1" /> Elit
                     </Badge>
                   )}
-                  {rank === 1 && (
+                  {isChampion && (
                     <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0">
                       <Crown className="w-3 h-3 mr-1" /> Juara
                     </Badge>

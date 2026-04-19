@@ -19,7 +19,7 @@ import { container, item } from '@/lib/animations';
 
 interface Tournament {
   id: string; name: string; weekNumber: number; division: string; status: string;
-  prizePool: number; bpm: number; location: string; scheduledAt: string | null;
+  prizePool: number; bpm: string | null; location: string; scheduledAt: string | null;
   teams: { id: string; name: string; isWinner: boolean; power: number;
     teamPlayers: { player: { id: string; name: string; gamertag: string; tier: string; points: number } }[]
   }[];
@@ -130,13 +130,13 @@ export function TournamentView() {
           </motion.div>
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {tournaments.map(t => {
+          {tournaments.map((t, index) => {
             const teamCount = t._count?.teams || 0;
             const matchCount = t._count?.matches || 0;
             const winnerTeam = t.teams?.find(tm => tm.isWinner);
             const isCompleted = t.status === 'completed';
             return (
-              <motion.div key={t.id} variants={item}>
+              <div key={t.id} className="stagger-item" style={{ animationDelay: `${index * 50}ms` }}>
                 <Card
                   className={`${dt.casinoCard} ${dt.casinoGlow} casino-shimmer card-lift cursor-pointer ${t.status === 'main_event' ? dt.neonPulse : ''}`}
                   onClick={() => setSelectedId(t.id)}
@@ -177,10 +177,16 @@ export function TournamentView() {
                           <span>{matchCount} Match</span>
                         </span>
                       )}
-                      {t.bpm > 0 && (
+                      {t.bpm && (
                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Heart className="w-3 h-3 shrink-0 text-red-400" />
                           <span>{t.bpm} BPM</span>
+                        </span>
+                      )}
+                      {t.location && (
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span>{t.location}</span>
                         </span>
                       )}
                       {t.scheduledAt && (
@@ -196,7 +202,7 @@ export function TournamentView() {
                       <div className={`mt-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle}`}>
                         <Crown className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
                         <span className="text-[11px] font-semibold truncate">{winnerTeam.name}</span>
-                        <Trophy className="w-3 h-3 text-[#d4a853] shrink-0 ml-auto" />
+                        <Trophy className="w-3 h-3 text-idm-gold-warm shrink-0 ml-auto" />
                       </div>
                     )}
 
@@ -204,7 +210,7 @@ export function TournamentView() {
                     <div className="flex items-center justify-between mt-2.5">
                       <button
                         onClick={(e) => { e.stopPropagation(); setDonationTournamentId(t.id); setDonationOpen(true); }}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-[#d4a853] to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer"
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer"
                       >
                         <Gift className="w-3 h-3" />
                         Sawer Prize Pool
@@ -213,7 +219,7 @@ export function TournamentView() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -245,14 +251,14 @@ export function TournamentView() {
                         {selected.location && (
                           <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {selected.location}</span>
                         )}
-                        {selected.bpm > 0 && (
+                        {selected.bpm && (
                           <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400" /> {selected.bpm} BPM</span>
                         )}
                         {selected.scheduledAt && (
                           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(selected.scheduledAt).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                         )}
                         {selected.prizePool > 0 && (
-                          <span className="flex items-center gap-1"><Trophy className="w-3 h-3 text-[#d4a853]" /> {formatCurrency(selected.prizePool)}</span>
+                          <span className="flex items-center gap-1"><Trophy className="w-3 h-3 text-idm-gold-warm" /> {formatCurrency(selected.prizePool)}</span>
                         )}
                       </div>
                     </div>
@@ -291,7 +297,7 @@ export function TournamentView() {
                         <div className="flex items-center gap-1.5">
                           <TierBadge tier={p.player.tier} />
                           {p.isMvp && <Crown className="w-3 h-3 text-yellow-500" />}
-                          {p.isWinner && <Trophy className="w-3 h-3 text-[#d4a853]" />}
+                          {p.isWinner && <Trophy className="w-3 h-3 text-idm-gold-warm" />}
                         </div>
                       </div>
                     )) : (

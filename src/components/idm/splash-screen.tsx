@@ -24,8 +24,8 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           transition={{ duration: phase === 'exit' ? 0.7 : 0.6, ease: 'easeInOut' }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
         >
-          {/* Gradient Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0d1117] via-[#0a1628] to-[#0d1117]" />
+          {/* Gradient Background — warm obsidian matching app background #0c0a06 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0c0a06] via-[#120e08] to-[#0c0a06]" />
 
           {/* Vignette */}
           <div className="absolute inset-0" style={{
@@ -37,9 +37,9 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             className="absolute inset-0 pointer-events-none"
             animate={{
               background: [
-                'radial-gradient(ellipse at 30% 50%, rgba(184,134,11,0.08) 0%, transparent 60%)',
-                'radial-gradient(ellipse at 70% 50%, rgba(245,158,11,0.08) 0%, transparent 60%)',
-                'radial-gradient(ellipse at 30% 50%, rgba(184,134,11,0.08) 0%, transparent 60%)',
+                'radial-gradient(ellipse at 30% 50%, rgba(229,190,74,0.08) 0%, transparent 60%)',
+                'radial-gradient(ellipse at 70% 50%, rgba(212,168,83,0.08) 0%, transparent 60%)',
+                'radial-gradient(ellipse at 30% 50%, rgba(229,190,74,0.08) 0%, transparent 60%)',
               ],
             }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -81,7 +81,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
               transition={{ duration: 0.6, delay: 0.9 }}
               className="text-center"
             >
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight">
                 <span className="text-gradient-fury">IDM</span>{' '}
                 <span className="text-white">League</span>
               </h1>
@@ -89,7 +89,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.6 }}
                 transition={{ duration: 0.5, delay: 1.2 }}
-                className="text-xs sm:text-sm text-white/50 mt-2 tracking-[0.25em] uppercase font-light"
+                className="text-xs sm:text-sm text-white/50 mt-2 tracking-widest uppercase font-light"
               >
                 Idol Meta · Fan Made Edition
               </motion.p>
@@ -131,7 +131,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             {/* Gold top border line */}
             <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
             <div className="py-4 flex flex-col items-center gap-1.5">
-              <span className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-semibold bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+              <span className="text-[10px] sm:text-xs tracking-widest uppercase font-semibold bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
                 BORNEO Pride
               </span>
               <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 <div className="w-1.5 h-1.5 rotate-45 bg-amber-500/70" />
                 <div className="w-4 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
               </div>
-              <span className="text-[8px] text-amber-500/30 tracking-[0.2em] uppercase">Idol Meta · Fan Made Edition</span>
+              <span className="text-[8px] text-amber-500/30 tracking-widest uppercase">Idol Meta · Fan Made Edition</span>
             </div>
           </motion.div>
         </motion.div>

@@ -17,25 +17,28 @@ export async function GET() {
   });
 }
 
-// POST upsert a setting
+// POST upsert a setting or batch upsert multiple settings
 export async function POST(request: Request) {
   const admin = await requireAdmin(request);
   if (!(admin instanceof Object)) return admin;
 
   const body = await request.json();
 
-  // Batch mode — save multiple settings at once
+  // Batch mode: accept { items: [{ key, value, type }, ...] }
   if (body.items && Array.isArray(body.items)) {
-    for (const item of body.items) {
-      await db.cmsSetting.upsert({
-        where: { key: item.key },
-        update: { value: item.value, type: item.type || 'text' },
-        create: { key: item.key, value: item.value, type: item.type || 'text' },
-      });
-    }
-    return NextResponse.json({ success: true, count: body.items.length });
+    const results = await Promise.all(
+      body.items.map((item: { key: string; value: string; type?: string }) =>
+        db.cmsSetting.upsert({
+          where: { key: item.key },
+          update: { value: item.value ?? '', type: item.type ?? 'text' },
+          create: { key: item.key, value: item.value ?? '', type: item.type ?? 'text' },
+        })
+      )
+    );
+    return NextResponse.json({ success: true, count: results.length });
   }
 
+  // Single mode: accept { key, value, type }
   const { key, value, type } = body;
 
   if (!key) {

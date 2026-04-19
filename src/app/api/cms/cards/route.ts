@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!(admin instanceof Object)) return admin;
 
   const body = await request.json();
-  const { id, sectionId, title, subtitle, description, imageUrl, linkUrl, tag, tagColor, isActive, order } = body;
+  const { id, sectionId, title, subtitle, description, imageUrl, videoUrl, linkUrl, tag, tagColor, isActive, order } = body;
 
   if (!sectionId) {
     return NextResponse.json({ error: 'sectionId is required' }, { status: 400 });
@@ -33,10 +33,10 @@ export async function POST(request: Request) {
   const card = id
     ? await db.cmsCard.update({
         where: { id },
-        data: { sectionId, title, subtitle, description, imageUrl, linkUrl, tag, tagColor, isActive, order },
+        data: { sectionId, title, subtitle, description, imageUrl, videoUrl, linkUrl, tag, tagColor, isActive, order },
       })
     : await db.cmsCard.create({
-        data: { sectionId, title, subtitle, description, imageUrl, linkUrl, tag, tagColor, isActive, order },
+        data: { sectionId, title, subtitle, description, imageUrl, videoUrl, linkUrl, tag, tagColor, isActive, order },
       });
 
   return NextResponse.json(card);

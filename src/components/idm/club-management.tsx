@@ -67,6 +67,8 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
   const [newClubName, setNewClubName] = useState('');
   const [logoPickerOpen, setLogoPickerOpen] = useState(false);
   const [logoClubId, setLogoClubId] = useState<string | null>(null);
+  const [bannerPickerOpen, setBannerPickerOpen] = useState(false);
+  const [bannerClubId, setBannerClubId] = useState<string | null>(null);
 
   // Fetch clubs with members
   const { data: clubs, isLoading } = useQuery<ClubData[]>({
@@ -233,6 +235,36 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     setLogoPickerOpen(true);
   };
 
+  // Update club banner image
+  const updateBanner = useMutation({
+    mutationFn: async ({ clubId, bannerImage }: { clubId: string; bannerImage: string }) => {
+      const res = await authFetch(`/api/clubs/${clubId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ bannerImage }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
+      toast.success('Banner club diperbarui!');
+      setBannerClubId(null);
+    },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
+
+  const handleBannerSelect = (url: string) => {
+    if (bannerClubId) {
+      updateBanner.mutate({ clubId: bannerClubId, bannerImage: url });
+    }
+  };
+
+  const openBannerPicker = (clubId: string) => {
+    setBannerClubId(clubId);
+    setBannerPickerOpen(true);
+  };
+
   // Find players not already in this club
   const clubMemberIds = new Set(clubDetail?.members?.map(m => m.player.id) || []);
   const availablePlayers = allPlayers?.filter((p: { id: string; gamertag: string; name: string; registrationStatus: string; isActive: boolean }) =>
@@ -340,11 +372,11 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                   if (e.key === 'Escape') setEditingClub(null);
                                 }}
                               />
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-green-500"
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-green-500"
                                 onClick={() => editClub.mutate({ clubId: club.id, name: editName.trim() })}>
                                 <Check className="w-3.5 h-3.5" />
                               </Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground"
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-muted-foreground"
                                 onClick={() => setEditingClub(null)}>
                                 <X className="w-3.5 h-3.5" />
                               </Button>
@@ -374,14 +406,14 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
 
                         {/* Quick action buttons */}
                         <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10"
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10"
                             onClick={() => {
                               setEditingClub(club.id);
                               setEditName(club.name);
                             }}>
                             <Edit3 className="w-3 h-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                             onClick={() => setConfirmDialog({
                               open: true,
                               title: 'Hapus Club?',
@@ -414,18 +446,24 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                               </div>
                             ) : (
                               <>
-                                {/* Members Header */}
+                                {/* Banner & Members Header */}
                                 <div className="flex items-center justify-between">
                                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                     <Users className="w-3.5 h-3.5" /> Anggota ({clubDetail?.members?.length || 0})
                                   </p>
-                                  <Button size="sm" className="text-[10px] h-7"
-                                    onClick={() => {
-                                      setShowAddMember(showAddMember === club.id ? null : club.id);
-                                      setSearchPlayer('');
-                                    }}>
-                                    <UserPlus className="w-3 h-3 mr-1" /> Tambah
-                                  </Button>
+                                  <div className="flex items-center gap-1.5">
+                                    <Button size="sm" variant="outline" className="text-[9px] h-7 gap-1"
+                                      onClick={() => openBannerPicker(club.id)}>
+                                      <Camera className="w-3 h-3" /> Banner
+                                    </Button>
+                                    <Button size="sm" className="text-[10px] h-7"
+                                      onClick={() => {
+                                        setShowAddMember(showAddMember === club.id ? null : club.id);
+                                        setSearchPlayer('');
+                                      }}>
+                                      <UserPlus className="w-3 h-3 mr-1" /> Tambah
+                                    </Button>
+                                  </div>
                                 </div>
 
                                 {/* Add Member Panel */}
@@ -518,7 +556,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                       <div className="flex items-center gap-0.5 shrink-0">
                                         {member.role !== 'captain' && (
                                           <Button size="sm" variant="ghost"
-                                            className="h-6 w-6 p-0 text-yellow-500/70 hover:text-yellow-400 hover:bg-yellow-500/10"
+                                            className="h-6 w-6 p-0 touch-icon text-yellow-500/70 hover:text-yellow-400 hover:bg-yellow-500/10"
                                             title="Jadikan Captain"
                                             onClick={() => setConfirmDialog({
                                               open: true,
@@ -530,7 +568,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                           </Button>
                                         )}
                                         <Button size="sm" variant="ghost"
-                                          className="h-6 w-6 p-0 text-red-500/50 hover:text-red-400 hover:bg-red-500/10"
+                                          className="h-6 w-6 p-0 touch-icon text-red-500/50 hover:text-red-400 hover:bg-red-500/10"
                                           title="Hapus dari Club"
                                           onClick={() => setConfirmDialog({
                                             open: true,
@@ -568,6 +606,14 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
         onClose={() => { setLogoPickerOpen(false); setLogoClubId(null); }}
         onSelect={handleLogoSelect}
         uploadFolder="clubs"
+      />
+
+      {/* Cloudinary Banner Picker */}
+      <CloudinaryPicker
+        open={bannerPickerOpen}
+        onClose={() => { setBannerPickerOpen(false); setBannerClubId(null); }}
+        onSelect={handleBannerSelect}
+        uploadFolder="club-banners"
       />
     </motion.div>
   );

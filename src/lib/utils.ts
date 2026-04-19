@@ -83,6 +83,23 @@ export function isClubLogoPlaceholder(url: string): boolean {
 }
 
 /**
+ * Convert hex color + alpha to rgba() string.
+ * Avoids 8-digit hex (#rrggbbaa) which is invalid in some browsers.
+ *
+ * @param hex  6-digit hex color, e.g. "#d4a853"
+ * @param alpha  0–100 opacity percentage (20 = 12.5%, 40 = 25%, etc.)
+ * @returns  rgba() string, e.g. "rgba(212,168,83,0.125)"
+ */
+export function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const a = Math.round((alpha / 255) * 1000) / 1000; // normalize 0-255 → 0-1
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/**
  * Format number as IDR currency
  */
 export function formatCurrency(amount: number): string {

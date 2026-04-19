@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./../db/dev.db"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -56,7 +56,7 @@ model Season {
   startDate      DateTime
   endDate        DateTime?
   championClubId String?  // Club that won the Liga IDM for this season
-  championSquad  String?  // Manual CMS: JSON string [{id, gamertag, division, role}] — 5 representatives for champion card
+  championSquad  String?  // JSON string: [{id, gamertag, division, role}] — 5 representatives for champion card (SQLite stores as string)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -80,7 +80,7 @@ model Tournament {
   defaultMatchFormat String @default("BO1") // "BO1" | "BO3" | "BO5" — default, can be overridden per match
   seasonId    String
   prizePool   Int      @default(0) // total prize pool in IDR
-  bpm         Int?
+  bpm         String?
   location    String?
   scheduledAt DateTime?
   finalizedAt DateTime? // when admin finalized prizes/MVP
@@ -241,15 +241,16 @@ model Admin {
 // ============================================
 
 model Club {
-  id       String  @id @default(cuid())
-  name     String
-  division String  // "male" | "female"
-  logo     String?
-  seasonId String
-  wins     Int     @default(0)
-  losses   Int     @default(0)
-  points   Int     @default(0)
-  gameDiff Int     @default(0)
+  id          String  @id @default(cuid())
+  name        String
+  division    String  // "male" | "female"
+  logo        String?
+  bannerImage String? // Custom banner image for club profile modal
+  seasonId    String
+  wins        Int     @default(0)
+  losses      Int     @default(0)
+  points      Int     @default(0)
+  gameDiff    Int     @default(0)
 
   season          Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   members         ClubMember[]
@@ -342,6 +343,7 @@ model CmsCard {
   subtitle    String   @default("")
   description String   @default("")
   imageUrl    String?  // Card image
+  videoUrl    String?  // Card video URL (YouTube/Cloudinary)
   linkUrl     String?  // Optional link
   tag         String?  // Badge tag text
   tagColor    String?  // Badge tag color
@@ -400,7 +402,13 @@ model Achievement {
   icon        String   // Emoji or icon name: "🏆" | "🔥" | "⭐" etc.
   tier        String   @default("bronze") // "bronze" | "silver" | "gold" | "platinum" | "diamond"
   
-  // Criteria configuration (JSON string) - dynamic, no hardcoded
+  // Criteria configuration (JSON) - dynamic, no hardcoded
+  // Example: {"type": "wins", "count": 1, "consecutive": false}
+  // Example: {"type": "wins", "count": 2, "consecutive": true}
+  // Example: {"type": "mvp_count", "count": 3}
+  // Example: {"type": "points", "threshold": 1000}
+  // Example: {"type": "top3_count", "count": 5}
+  // Example: {"type": "participations", "count": 10}
   criteria    String   // JSON string
   
   // Reward configuration (optional)
@@ -423,7 +431,8 @@ model PlayerAchievement {
   tournamentId String?  // Tournament where achievement was earned (if applicable)
   earnedAt     DateTime @default(now())
   
-  // Context data (JSON string) - additional info about how they earned it
+  // Context data (JSON) - additional info about how they earned it
+  // Example: {"tournamentName": "Week 1 Tournament", "streak": 3}
   context      String?
 
   player      Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
@@ -514,3 +523,5 @@ model SponsorBanner {
   @@index([placement])
   @@index([sponsorId])
 }
+
+

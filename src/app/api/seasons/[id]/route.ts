@@ -22,7 +22,17 @@ export async function GET(
     return NextResponse.json({ error: 'Season not found' }, { status: 404 });
   }
 
-  return NextResponse.json(season);
+  // Parse championSquad JSON string for SQLite compatibility
+  const response = { ...season } as Record<string, unknown>;
+  if (response.championSquad && typeof response.championSquad === 'string') {
+    try {
+      response.championSquad = JSON.parse(response.championSquad as string);
+    } catch {
+      response.championSquad = null;
+    }
+  }
+
+  return NextResponse.json(response);
 }
 
 // PUT /api/seasons/[id] — Update season (status, championClubId, endDate, name)
@@ -91,7 +101,17 @@ export async function PUT(
     },
   });
 
-  return NextResponse.json(updated);
+  // Parse championSquad JSON string for SQLite compatibility
+  const updatedResponse = { ...updated } as Record<string, unknown>;
+  if (updatedResponse.championSquad && typeof updatedResponse.championSquad === 'string') {
+    try {
+      updatedResponse.championSquad = JSON.parse(updatedResponse.championSquad as string);
+    } catch {
+      updatedResponse.championSquad = null;
+    }
+  }
+
+  return NextResponse.json(updatedResponse);
 }
 
 // DELETE /api/seasons/[id] — Delete season (cascade handled by Prisma schema)

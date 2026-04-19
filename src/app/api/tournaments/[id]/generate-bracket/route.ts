@@ -292,16 +292,44 @@ export async function POST(
       }
     }
 
-    // Create playoff placeholder matches (semifinal + final) — teams TBD
-    // 2 semis + 1 final + 1 3rd place
+    // Create playoff placeholder matches — teams TBD until group stage completes
+    // Round 2: Semi Final 1 (A1 vs B2) + Semi Final 2 (B1 vs A2)
+    // Round 3: Final (winners of semis) + 3rd Place (losers of semis)
     matchNumber++;
-    await db.match.create({ data: { tournamentId: id, round: 2, matchNumber, bracket: 'upper', format: 'BO3', team1Id: null, team2Id: null, status: 'pending' } });
+    const semi1 = await db.match.create({
+      data: {
+        tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF1', format: 'BO3',
+        team1Id: null, team2Id: null, status: 'pending',
+      },
+    });
+    matches.push(semi1);
+
     matchNumber++;
-    await db.match.create({ data: { tournamentId: id, round: 2, matchNumber, bracket: 'upper', format: 'BO3', team1Id: null, team2Id: null, status: 'pending' } });
+    const semi2 = await db.match.create({
+      data: {
+        tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF2', format: 'BO3',
+        team1Id: null, team2Id: null, status: 'pending',
+      },
+    });
+    matches.push(semi2);
+
     matchNumber++;
-    await db.match.create({ data: { tournamentId: id, round: 3, matchNumber, bracket: 'upper', format: 'BO3', team1Id: null, team2Id: null, status: 'pending' } });
+    const final_ = await db.match.create({
+      data: {
+        tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'Final', format: 'BO3',
+        team1Id: null, team2Id: null, status: 'pending',
+      },
+    });
+    matches.push(final_);
+
     matchNumber++;
-    await db.match.create({ data: { tournamentId: id, round: 3, matchNumber, bracket: 'lower', format: 'BO3', team1Id: null, team2Id: null, status: 'pending' } });
+    const thirdPlace = await db.match.create({
+      data: {
+        tournamentId: id, round: 3, matchNumber, bracket: 'lower', groupLabel: '3rd', format: 'BO3',
+        team1Id: null, team2Id: null, status: 'pending',
+      },
+    });
+    matches.push(thirdPlace);
   }
 
   await db.tournament.update({ where: { id }, data: { status: 'bracket_generation' } });

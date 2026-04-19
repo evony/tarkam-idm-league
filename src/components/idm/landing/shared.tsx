@@ -48,12 +48,12 @@ export function SectionHeader({ icon: Icon, label, title, subtitle }: {
   return (
     <motion.div variants={fadeUp} className="text-center mb-14">
       <div className="flex items-center justify-center gap-3 mb-4">
-        <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-[#d4a853]" />
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/20 bg-[#d4a853]/5">
-          <Icon className="w-4 h-4 text-[#d4a853]" />
-          <span className="text-[11px] font-bold text-[#d4a853] uppercase tracking-[0.25em]">{label}</span>
+        <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-idm-gold-warm" />
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5">
+          <Icon className="w-4 h-4 text-idm-gold-warm" />
+          <span className="text-[11px] font-bold text-idm-gold-warm uppercase tracking-widest">{label}</span>
         </div>
-        <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-[#d4a853]" />
+        <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-idm-gold-warm" />
       </div>
       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gradient-champion">{title}</h2>
       {subtitle && <p className="text-sm text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed">{subtitle}</p>}
@@ -77,8 +77,8 @@ export function StatCard({ icon: Icon, value, label, delay }: {
       className="group relative"
     >
       <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl glass border-0 card-shine card-border-glow text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]">
-        <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-[#d4a853]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-          <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4a853]" />
+        <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-idm-gold-warm" />
         </div>
         <p className="text-sm sm:text-2xl font-black text-gradient-fury">{value}</p>
         <p className="text-[9px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 uppercase tracking-wider">{label}</p>

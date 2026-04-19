@@ -152,7 +152,7 @@ export function Dashboard() {
   const stats = [
     { icon: Users, value: `${data.totalPlayers}`, label: 'Players', color: 'from-idm-male to-idm-male-light' },
     { icon: Shield, value: `${data.clubs?.length || 0}`, label: 'Clubs', color: 'from-idm-female to-idm-female-light' },
-    { icon: Wallet, value: formatCurrency(data.totalPrizePool).replace('Rp', '').trim(), label: 'Prize Pool', color: 'from-[#d4a853] to-[#b8860b]' },
+    { icon: Wallet, value: formatCurrency(data.totalPrizePool).replace('Rp', '').trim(), label: 'Prize Pool', color: 'from-idm-gold-warm to-[#b8860b]' },
     { icon: Target, value: `${data.seasonProgress?.percentage || 0}%`, label: 'Progress', color: 'from-green-500 to-green-600' },
   ];
 
@@ -161,7 +161,7 @@ export function Dashboard() {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-3 sm:space-y-4 lg:space-y-8 max-w-7xl mx-auto">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
-      <motion.div variants={item} className={`relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} ${!shouldReduceMotion ? dt.neonPulse : ''} min-h-[160px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
+      <motion.div variants={item} className={`relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} ${!shouldReduceMotion ? dt.neonPulse : ''} min-h-[120px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
         <div className={dt.casinoBar} />
         <div className="absolute inset-0">
           <Image src={division === 'male' ? '/bg-male.jpg' : '/bg-female.jpg'} alt="" fill sizes="100vw" className={`object-cover ${division === 'male' ? 'object-[center_25%]' : ''}`} aria-hidden="true" />
@@ -187,18 +187,17 @@ export function Dashboard() {
               {division === 'male' ? '🕺 Male' : '💃 Female'}
             </Badge>
           </div>
-          <h2 className={`text-base sm:text-2xl lg:text-3xl font-black ${dt.neonGradient} line-clamp-1`}>{t?.name || 'IDM League Babak'}</h2>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{data.season?.name}</p>
-          {/* Info row 1 — visible on all screens */}
-          <div className="flex items-center gap-3 sm:gap-4 mt-1.5 sm:mt-2 text-[10px] text-muted-foreground">
+          <h2 className={`text-base sm:text-2xl lg:text-3xl font-black ${dt.neonGradient}`}>{t?.name || 'IDM League Babak'}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{data.season?.name}</p>
+          <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1"><Clock className={`w-3 h-3 ${dt.neonText}`} />{t?.scheduledAt ? new Date(t.scheduledAt).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Segera Hadir'}</span>
+            <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 ${dt.neonText}`} />{t?.location || 'Online'}</span>
             <span className="flex items-center gap-1"><Flame className={`w-3 h-3 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
           </div>
-          {/* Info row 2 — hidden on small mobile, visible sm+ */}
-          <div className="hidden sm:flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-            <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 ${dt.neonText}`} />Format: Single Elimination</span>
-            {t?.bpm && <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400 live-dot" />{t.bpm} BPM</span>}
+          {/* Desktop-only extra info row */}
+          <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 ${dt.neonText}`} />Format: {t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+            {t?.bpm ? <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
             <span className="flex items-center gap-1"><Music className={`w-3 h-3 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
           </div>
         </div>
@@ -206,30 +205,9 @@ export function Dashboard() {
 
       {/* ========== COUNTDOWN + PRIZE POOL ========== */}
       <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
-        {t?.scheduledAt && t.status !== 'completed' ? (
+        {t?.scheduledAt && t.status !== 'completed' && (
           <div className={`flex items-center justify-center rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
             <CountdownTimer targetDate={t.scheduledAt} />
-          </div>
-        ) : (
-          /* Fallback: Tournament info card when no countdown */
-          <div className={`flex flex-col items-center justify-center rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md text-center`}>
-            <Trophy className={`w-8 h-8 mb-2 ${dt.text}`} />
-            <p className={`text-sm font-bold ${dt.text}`}>
-              {t?.status === 'completed' ? 'Turnamen Selesai' : 'Season Aktif'}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {t?.status === 'completed'
-                ? `Week ${t.weekNumber} telah selesai — lihat hasil di tab Match`
-                : `${data.totalPlayers} pemain siap bertanding`}
-            </p>
-            {t?.status === 'completed' && (
-              <button
-                onClick={() => setActiveTab('matches')}
-                className={`mt-3 px-3 py-1.5 rounded-lg text-[10px] font-bold ${dt.text} ${dt.bgSubtle} ${dt.border} border hover:${dt.bg} transition-colors cursor-pointer`}
-              >
-                Lihat Hasil →
-              </button>
-            )}
           </div>
         )}
         <div className={`p-3 lg:p-6 rounded-xl ${dt.bgSubtle} ${dt.border} shadow-sm lg:shadow-md`}>
@@ -242,7 +220,7 @@ export function Dashboard() {
             <p className="text-[10px] text-muted-foreground">Terkumpul: {formatCurrency(data.totalPrizePool)}</p>
             <button
               onClick={() => setDonationOpen(true)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-[#d4a853] to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer`}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer`}
             >
               <Gift className="w-3 h-3" />
               Sawer
@@ -312,13 +290,9 @@ export function Dashboard() {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className={`relative px-3 sm:px-4 py-2 sm:py-2.5 text-xs font-medium rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none transition-colors whitespace-nowrap ${
-                    activeTab === tab.value
-                      ? `${dt.text} border-current font-bold`
-                      : 'text-muted-foreground hover:text-foreground font-medium'
-                  }`}
+                  className={`relative px-3 sm:px-4 py-2 sm:py-2.5 text-xs font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none ${dt.text} data-[state=active]:${dt.text} text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap`}
                 >
-                  <tab.icon className={`w-3.5 h-3.5 mr-1.5 hidden sm:inline`} />
+                  <tab.icon className="w-3.5 h-3.5 mr-1.5 hidden sm:inline" />
                   {tab.label}
                 </TabsTrigger>
               ))}
@@ -367,6 +341,8 @@ export function Dashboard() {
             </motion.div>
           </motion.div>
         </TabsContent>
+
+
       </Tabs>
 
       {/* Player & Club Profiles */}

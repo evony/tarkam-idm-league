@@ -91,7 +91,7 @@ export function MatchResultCard({
         {/* Team 1 */}
         <div className="flex-1 text-center">
           <motion.div
-            className={`text-lg font-bold truncate ${team1.isWinner ? 'text-[#d4a853]' : 'text-foreground'}`}
+            className={`text-lg font-bold truncate ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
             animate={team1.isWinner && showScore ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
@@ -104,8 +104,8 @@ export function MatchResultCard({
               transition={{ delay: 0.8 }}
               className="flex items-center justify-center gap-1 mt-1"
             >
-              <Trophy className="w-3 h-3 text-[#d4a853]" />
-              <span className="text-[10px] text-[#d4a853]">WINNER</span>
+              <Trophy className="w-3 h-3 text-idm-gold-warm" />
+              <span className="text-[10px] text-idm-gold-warm">WINNER</span>
             </motion.div>
           )}
         </div>
@@ -113,7 +113,7 @@ export function MatchResultCard({
         {/* Score */}
         <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-background">
           <motion.span
-            className={`text-2xl font-black ${team1.isWinner ? 'text-[#d4a853]' : 'text-foreground'}`}
+            className={`text-2xl font-black ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
             initial={showAnimation ? { scale: 0 } : false}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', delay: 0.3 }}
@@ -122,7 +122,7 @@ export function MatchResultCard({
           </motion.span>
           <span className="text-muted-foreground">-</span>
           <motion.span
-            className={`text-2xl font-black ${team2.isWinner ? 'text-[#d4a853]' : 'text-foreground'}`}
+            className={`text-2xl font-black ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
             initial={showAnimation ? { scale: 0 } : false}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', delay: 0.4 }}
@@ -134,7 +134,7 @@ export function MatchResultCard({
         {/* Team 2 */}
         <div className="flex-1 text-center">
           <motion.div
-            className={`text-lg font-bold truncate ${team2.isWinner ? 'text-[#d4a853]' : 'text-foreground'}`}
+            className={`text-lg font-bold truncate ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
             animate={team2.isWinner && showScore ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
@@ -147,8 +147,8 @@ export function MatchResultCard({
               transition={{ delay: 0.8 }}
               className="flex items-center justify-center gap-1 mt-1"
             >
-              <Trophy className="w-3 h-3 text-[#d4a853]" />
-              <span className="text-[10px] text-[#d4a853]">WINNER</span>
+              <Trophy className="w-3 h-3 text-idm-gold-warm" />
+              <span className="text-[10px] text-idm-gold-warm">WINNER</span>
             </motion.div>
           )}
         </div>
@@ -169,10 +169,10 @@ export function MatchResultCard({
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
               >
-                <Star className="w-4 h-4 text-[#d4a853] fill-[#d4a853]" />
+                <Star className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
               </motion.div>
               <span className="text-xs text-muted-foreground">MVP:</span>
-              <span className="text-sm font-bold text-[#d4a853]">{mvp.gamertag}</span>
+              <span className="text-sm font-bold text-idm-gold-warm">{mvp.gamertag}</span>
             </div>
           </motion.div>
         )}

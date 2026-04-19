@@ -7,12 +7,11 @@ import { useQuery } from '@tanstack/react-query';
 import {
   X, Trophy, Shield, Crown, Music, Target,
   TrendingUp, Award, Zap, Users, Star, BarChart3,
-  Flame, ChevronRight
+  Flame, ChevronRight, MapPin
 } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useDivisionTheme, getDivisionTheme } from '@/hooks/use-division-theme';
 import { getAvatarUrl, hashString } from '@/lib/utils';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 
@@ -21,6 +20,7 @@ interface ClubProfileProps {
     id: string;
     name: string;
     logo?: string | null;
+    bannerImage?: string | null;
     division?: 'male' | 'female' | 'league' | string;
     wins: number;
     losses: number;
@@ -28,32 +28,30 @@ interface ClubProfileProps {
     gameDiff: number;
     members?: { id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number }[];
     rank?: number;
-    championSeasons?: { id: string; name: string; number: number }[];
   };
   onClose: () => void;
   rank?: number;
-  onPlayerClick?: (player: { id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number }) => void;
+  onPlayerClick?: (player: { id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number; division?: string; city?: string }) => void;
 }
 
 // ─── Procedural Club Logo Component ───
-const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isChampion }: {
-  name: string; division?: string; size?: number; isChampion?: boolean;
+const ClubLogo = React.memo(function ClubLogo({ name, size = 120, isChampion }: {
+  name: string; size?: number; isChampion?: boolean;
 }) {
   const hash = hashString(name);
-  const isLeague = division === 'league';
-  const isMale = division === 'male';
-  const primaryColor = isLeague ? '#d4a853' : isMale ? '#22d3ee' : '#c084fc';
-  const secondaryColor = isLeague ? '#f5d78e' : isMale ? '#06b6d4' : '#a855f7';
-  const lightColor = isLeague ? '#f5d78e' : isMale ? '#67e8f9' : '#e9d5ff';
-  const darkColor = isLeague ? '#a07c30' : isMale ? '#0e7490' : '#7c3aed';
+  // Unified clubs use gold/league color scheme
+  const primaryColor = '#d4a853';
+  const secondaryColor = '#f5d78e';
+  const lightColor = '#f5d78e';
+  const darkColor = '#a07c30';
 
   // Generate pattern variants based on hash
-  const segments = 5 + (hash % 4); // 5-8 radial segments
+  const segments = 5 + (hash % 4);
   const rotation = (hash % 360);
-  const innerPattern = hash % 5; // 0-4 different inner pattern types
-  const accentCount = 3 + (hash % 3); // 3-5 accent dots
+  const innerPattern = hash % 5;
+  const accentCount = 3 + (hash % 3);
 
-  // Extract initials: take first letter of each word, up to 3
+  // Extract initials
   const words = name.trim().split(/\s+/);
   const initials = words.length >= 2
     ? words.slice(0, 2).map(w => w[0]).join('').toUpperCase()
@@ -61,7 +59,6 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      {/* Champion glow ring — animated pulse */}
       {isChampion && (
         <>
           <div
@@ -74,15 +71,11 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
           />
           <div
             className="absolute rounded-full"
-            style={{
-              inset: -4,
-              border: `1px solid rgba(234, 179, 8, 0.15)`,
-            }}
+            style={{ inset: -4, border: `1px solid rgba(234, 179, 8, 0.15)` }}
           />
         </>
       )}
 
-      {/* Main logo SVG */}
       <svg
         width={size}
         height={size}
@@ -91,20 +84,15 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
         style={{ filter: isChampion ? 'drop-shadow(0 0 12px rgba(234, 179, 8, 0.2))' : undefined }}
       >
         <defs>
-          {/* Main gradient */}
           <linearGradient id={`grad-${hash}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={primaryColor} />
             <stop offset="50%" stopColor={secondaryColor} />
             <stop offset="100%" stopColor={primaryColor} />
           </linearGradient>
-
-          {/* Overlay gradient for depth */}
           <linearGradient id={`grad2-${hash}`} x1="0%" y1="100%" x2="100%" y2="0%">
             <stop offset="0%" stopColor={lightColor} stopOpacity="0.15" />
             <stop offset="100%" stopColor={primaryColor} stopOpacity="0.05" />
           </linearGradient>
-
-          {/* Champion shimmer gradient */}
           {isChampion && (
             <linearGradient id={`shimmer-${hash}`} x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="transparent" />
@@ -114,69 +102,35 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           )}
-
-          {/* Clip path for shield shape */}
           <clipPath id={`shield-${hash}`}>
             <path d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z" />
           </clipPath>
-
-          {/* Radial glow filter */}
           <filter id={`glow-${hash}`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
-        {/* ── Shield background fill ── */}
-        <path
-          d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z"
-          fill={`url(#grad-${hash})`}
-          opacity="0.12"
-        />
+        <path d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z" fill={`url(#grad-${hash})`} opacity="0.12" />
 
-        {/* ── Inner patterns (clipped to shield) ── */}
         <g clipPath={`url(#shield-${hash})`}>
-          {/* Radial segment lines */}
           {Array.from({ length: segments }).map((_, i) => {
             const angle = (360 / segments) * i + rotation;
             return (
-              <line
-                key={`seg-${i}`}
-                x1="60" y1="60"
-                x2={60 + Math.cos(angle * Math.PI / 180) * 120}
-                y2={60 + Math.sin(angle * Math.PI / 180) * 120}
-                stroke={lightColor}
-                strokeWidth="0.5"
-                opacity="0.1"
-              />
+              <line key={`seg-${i}`} x1="60" y1="60" x2={60 + Math.cos(angle * Math.PI / 180) * 120} y2={60 + Math.sin(angle * Math.PI / 180) * 120} stroke={lightColor} strokeWidth="0.5" opacity="0.1" />
             );
           })}
 
-          {/* Inner pattern variations */}
           {innerPattern === 0 && (
-            /* Diamond grid */
             <>
-              <rect x="30" y="30" width="60" height="60" rx="2"
-                transform="rotate(45 60 60)" fill="none" stroke={lightColor} strokeWidth="0.4" opacity="0.12" />
-              <rect x="38" y="38" width="44" height="44" rx="2"
-                transform="rotate(45 60 60)" fill="none" stroke={lightColor} strokeWidth="0.3" opacity="0.08" />
+              <rect x="30" y="30" width="60" height="60" rx="2" transform="rotate(45 60 60)" fill="none" stroke={lightColor} strokeWidth="0.4" opacity="0.12" />
+              <rect x="38" y="38" width="44" height="44" rx="2" transform="rotate(45 60 60)" fill="none" stroke={lightColor} strokeWidth="0.3" opacity="0.08" />
             </>
           )}
-          {innerPattern === 1 && (
-            /* Horizontal stripes */
-            Array.from({ length: 7 }).map((_, i) => (
-              <line
-                key={`stripe-${i}`}
-                x1="8" y1={25 + i * 14}
-                x2="112" y2={25 + i * 14}
-                stroke={lightColor}
-                strokeWidth="0.4"
-                opacity="0.08"
-              />
-            ))
-          )}
+          {innerPattern === 1 && Array.from({ length: 7 }).map((_, i) => (
+            <line key={`stripe-${i}`} x1="8" y1={25 + i * 14} x2="112" y2={25 + i * 14} stroke={lightColor} strokeWidth="0.4" opacity="0.08" />
+          ))}
           {innerPattern === 2 && (
-            /* Concentric circles */
             <>
               <circle cx="60" cy="60" r="40" fill="none" stroke={primaryColor} strokeWidth="0.5" opacity="0.1" />
               <circle cx="60" cy="60" r="30" fill="none" stroke={primaryColor} strokeWidth="0.4" opacity="0.08" />
@@ -184,28 +138,12 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
             </>
           )}
           {innerPattern === 3 && (
-            /* Cross-hatch */
             <>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <line
-                  key={`ch1-${i}`}
-                  x1={20 + i * 16} y1="4"
-                  x2={20 + i * 16} y2="117"
-                  stroke={lightColor} strokeWidth="0.3" opacity="0.06"
-                />
-              ))}
-              {Array.from({ length: 6 }).map((_, i) => (
-                <line
-                  key={`ch2-${i}`}
-                  x1="8" y1={20 + i * 16}
-                  x2="112" y2={20 + i * 16}
-                  stroke={lightColor} strokeWidth="0.3" opacity="0.06"
-                />
-              ))}
+              {Array.from({ length: 6 }).map((_, i) => (<line key={`ch1-${i}`} x1={20 + i * 16} y1="4" x2={20 + i * 16} y2="117" stroke={lightColor} strokeWidth="0.3" opacity="0.06" />))}
+              {Array.from({ length: 6 }).map((_, i) => (<line key={`ch2-${i}`} x1="8" y1={20 + i * 16} x2="112" y2={20 + i * 16} stroke={lightColor} strokeWidth="0.3" opacity="0.06" />))}
             </>
           )}
           {innerPattern === 4 && (
-            /* Chevron pattern */
             <>
               <polyline points="20,35 60,20 100,35" fill="none" stroke={lightColor} strokeWidth="0.5" opacity="0.1" />
               <polyline points="20,55 60,40 100,55" fill="none" stroke={lightColor} strokeWidth="0.5" opacity="0.08" />
@@ -214,114 +152,43 @@ const ClubLogo = React.memo(function ClubLogo({ name, division, size = 120, isCh
             </>
           )}
 
-          {/* Central decorative circles */}
           <circle cx="60" cy="58" r="32" fill="none" stroke={primaryColor} strokeWidth="0.8" opacity="0.12" />
           <circle cx="60" cy="58" r="22" fill="none" stroke={primaryColor} strokeWidth="0.5" opacity="0.08" />
-
-          {/* Accent dots at intersections */}
           {Array.from({ length: accentCount }).map((_, i) => {
             const dotAngle = (360 / accentCount) * i + rotation * 0.5;
-            const dotR = 28;
-            return (
-              <circle
-                key={`dot-${i}`}
-                cx={60 + Math.cos(dotAngle * Math.PI / 180) * dotR}
-                cy={58 + Math.sin(dotAngle * Math.PI / 180) * dotR}
-                r="1.5"
-                fill={lightColor}
-                opacity="0.2"
-              />
-            );
+            return <circle key={`dot-${i}`} cx={60 + Math.cos(dotAngle * Math.PI / 180) * 28} cy={58 + Math.sin(dotAngle * Math.PI / 180) * 28} r="1.5" fill={lightColor} opacity="0.2" />;
           })}
-
-          {/* Depth overlay gradient */}
-          <path
-            d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z"
-            fill={`url(#grad2-${hash})`}
-          />
+          <path d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z" fill={`url(#grad2-${hash})`} />
         </g>
 
-        {/* ── Shield outer border ── */}
-        <path
-          d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z"
-          fill="none"
-          stroke={primaryColor}
-          strokeWidth="2"
-          opacity="0.35"
-        />
+        <path d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z" fill="none" stroke={primaryColor} strokeWidth="2" opacity="0.35" />
+        <path d="M60 11 L105 27 L105 66 Q105 96 60 110 Q15 96 15 66 L15 27 Z" fill="none" stroke={primaryColor} strokeWidth="0.5" opacity="0.15" />
+        <path d="M60 14 L98 28 L98 32 L60 20 L22 32 L22 28 Z" fill={primaryColor} opacity="0.08" />
+        <path d="M60 106 Q90 96 100 80 L100 84 Q90 100 60 110 Q30 100 20 84 L20 80 Q30 96 60 106 Z" fill={primaryColor} opacity="0.06" />
 
-        {/* ── Shield inner border ── */}
-        <path
-          d="M60 11 L105 27 L105 66 Q105 96 60 110 Q15 96 15 66 L15 27 Z"
-          fill="none"
-          stroke={primaryColor}
-          strokeWidth="0.5"
-          opacity="0.15"
-        />
-
-        {/* ── Top accent chevron ── */}
-        <path
-          d="M60 14 L98 28 L98 32 L60 20 L22 32 L22 28 Z"
-          fill={primaryColor}
-          opacity="0.08"
-        />
-
-        {/* ── Bottom accent chevron ── */}
-        <path
-          d="M60 106 Q90 96 100 80 L100 84 Q90 100 60 110 Q30 100 20 84 L20 80 Q30 96 60 106 Z"
-          fill={primaryColor}
-          opacity="0.06"
-        />
-
-        {/* ── Club initials ── */}
-        <text
-          x="60"
-          y="62"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill={primaryColor}
-          fontSize={initials.length > 2 ? '20' : '26'}
-          fontWeight="900"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          letterSpacing="1"
-          opacity="0.85"
-          filter={`url(#glow-${hash})`}
-        >
+        <text x="60" y="62" textAnchor="middle" dominantBaseline="middle" fill={primaryColor} fontSize={initials.length > 2 ? '20' : '26'} fontWeight="900" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="1" opacity="0.85" filter={`url(#glow-${hash})`}>
           {initials}
         </text>
 
-        {/* ── Champion shimmer overlay ── */}
         {isChampion && (
-          <path
-            d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z"
-            fill={`url(#shimmer-${hash})`}
-          >
+          <path d="M60 4 L112 24 L112 68 Q112 102 60 117 Q8 102 8 68 L8 24 Z" fill={`url(#shimmer-${hash})`}>
             <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" />
           </path>
         )}
       </svg>
 
-      {/* Champion shimmer sweep overlay (CSS) */}
       {isChampion && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ borderRadius: '16px' }}>
-          <div
-            className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(105deg, transparent 40%, rgba(250, 204, 21, 0.08) 45%, rgba(250, 204, 21, 0.15) 50%, rgba(250, 204, 21, 0.08) 55%, transparent 60%)',
-              animation: 'clubLogoShimmer 3s ease-in-out infinite',
-            }}
-          />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(250, 204, 21, 0.08) 45%, rgba(250, 204, 21, 0.15) 50%, rgba(250, 204, 21, 0.08) 55%, transparent 60%)', animation: 'clubLogoShimmer 3s ease-in-out infinite' }} />
         </div>
       )}
     </div>
   );
 })
 
-// ─── Banner Geometric Pattern ───
-function BannerPattern({ division }: { division?: string }) {
-  const isMale = division === 'male';
-  const color = division === 'league' ? '#d4a853' : isMale ? '#22d3ee' : '#c084fc';
-
+// ─── Banner Geometric Pattern — Gold/League style ───
+function BannerPattern() {
+  const color = '#d4a853';
   return (
     <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 220">
       <defs>
@@ -330,23 +197,15 @@ function BannerPattern({ division }: { division?: string }) {
           <stop offset="100%" stopColor={color} stopOpacity="0.02" />
         </linearGradient>
       </defs>
-
-      {/* Diagonal lines */}
       <line x1="0" y1="0" x2="400" y2="220" stroke={color} strokeWidth="0.5" opacity="0.06" />
       <line x1="50" y1="0" x2="400" y2="175" stroke={color} strokeWidth="0.3" opacity="0.04" />
       <line x1="100" y1="0" x2="400" y2="150" stroke={color} strokeWidth="0.3" opacity="0.04" />
       <line x1="0" y1="50" x2="350" y2="220" stroke={color} strokeWidth="0.3" opacity="0.04" />
-      <line x1="300" y1="0" x2="400" y2="55" stroke={color} strokeWidth="0.3" opacity="0.03" />
-      <line x1="350" y1="0" x2="400" y2="27" stroke={color} strokeWidth="0.3" opacity="0.03" />
-
-      {/* Geometric shapes */}
       <polygon points="320,20 340,10 360,20 360,40 340,50 320,40" fill="none" stroke={color} strokeWidth="0.5" opacity="0.07" />
       <polygon points="40,130 55,120 70,130 70,150 55,160 40,150" fill="none" stroke={color} strokeWidth="0.5" opacity="0.05" />
       <circle cx="360" cy="160" r="25" fill="none" stroke={color} strokeWidth="0.4" opacity="0.05" />
       <circle cx="360" cy="160" r="15" fill="none" stroke={color} strokeWidth="0.3" opacity="0.04" />
       <rect x="70" y="30" width="30" height="30" rx="2" transform="rotate(15 85 45)" fill="none" stroke={color} strokeWidth="0.4" opacity="0.05" />
-
-      {/* Accent dots */}
       <circle cx="150" cy="20" r="1.5" fill={color} opacity="0.1" />
       <circle cx="250" cy="40" r="1" fill={color} opacity="0.08" />
       <circle cx="50" cy="80" r="1.5" fill={color} opacity="0.06" />
@@ -373,48 +232,77 @@ function StatBlock({ icon: Icon, label, value, sub, color }: {
   );
 }
 
-export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileProps) {
-  // Close on Escape key for accessibility
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+// Unified member type from the API
+interface UnifiedMember {
+  id: string;
+  gamertag: string;
+  name: string;
+  division: string;
+  avatar: string | null;
+  tier: string;
+  points: number;
+  totalWins: number;
+  totalMvp: number;
+  streak: number;
+  maxStreak: number;
+  matches: number;
+  isActive: boolean;
+  role: string;
+  clubDivision: string;
+  city?: string;
+}
 
-  // Fetch unified cross-division profile data
-  const { data: unifiedData, isLoading: isLoadingUnified } = useQuery({
-    queryKey: ['club-unified-profile', club.id],
+export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileProps) {
+  const totalMatches = club.wins + club.losses;
+  const winRate = totalMatches > 0 ? Math.round((club.wins / totalMatches) * 100) : 0;
+  const isUndefeated = club.losses === 0 && club.wins > 0;
+  const isChampion = rank === 1;
+  const rankLabel = rank === 1 ? '🏆 Juara League' : rank === 2 ? '🥈 Juara 2' : rank === 3 ? '🥉 Peringkat 3' : rank ? `#${rank}` : '';
+
+  // Fetch unified club profile with members from both divisions
+  const { data: unifiedData, isLoading: isUnifiedLoading } = useQuery({
+    queryKey: ['unified-club-profile', club.id],
     queryFn: async () => {
       const res = await fetch(`/api/clubs/unified-profile?clubId=${club.id}`);
+      if (!res.ok) throw new Error('Failed to fetch');
       return res.json();
     },
     enabled: !!club.id,
   });
 
-  // Use unified data when available, fallback to club prop
-  const displayData = unifiedData || club;
-  const isMixed = (displayData as any).isMixed || false;
-  const maleCount = (displayData as any).maleMembers ?? (club.division === 'male' ? (club.members?.length || 0) : 0);
-  const femaleCount = (displayData as any).femaleMembers ?? (club.division === 'female' ? (club.members?.length || 0) : 0);
-  const displayWins = (displayData as any).wins ?? club.wins;
-  const displayLosses = (displayData as any).losses ?? club.losses;
-  const displayPoints = (displayData as any).points ?? club.points;
-  const displayGameDiff = (displayData as any).gameDiff ?? club.gameDiff;
-  const displayChampionSeasons = (displayData as any).championSeasons ?? club.championSeasons;
-  const displayDivision = isMixed ? 'league' : (club.division || 'male');
+  // Use unified data if available, fall back to prop data
+  const displayWins = unifiedData?.wins ?? club.wins;
+  const displayLosses = unifiedData?.losses ?? club.losses;
+  const displayPoints = unifiedData?.points ?? club.points;
+  const displayGameDiff = unifiedData?.gameDiff ?? club.gameDiff;
+  const displayTotalMatches = displayWins + displayLosses;
+  const displayWinRate = displayTotalMatches > 0 ? Math.round((displayWins / displayTotalMatches) * 100) : 0;
+  const displayIsUndefeated = displayLosses === 0 && displayWins > 0;
 
-  // Use gold/league theme for mixed clubs, division theme for single-division clubs
-  const dt = displayDivision === 'league' ? getDivisionTheme('male') : getDivisionTheme(club.division === 'female' ? 'female' : 'male');
+  // Members from unified data (both divisions) or prop data (single division fallback)
+  const members: UnifiedMember[] = unifiedData?.members || club.members?.map(m => ({
+    ...m,
+    division: club.division || 'male',
+    totalWins: 0,
+    totalMvp: 0,
+    streak: 0,
+    maxStreak: 0,
+    matches: 0,
+    isActive: true,
+    role: 'member',
+    clubDivision: club.division || 'male',
+  })) || [];
 
-  const totalMatches = displayWins + displayLosses;
-  const winRate = totalMatches > 0 ? Math.round((displayWins / totalMatches) * 100) : 0;
-  const isUndefeated = displayLosses === 0 && displayWins > 0;
-  const isChampion = rank === 1;
+  const hasBothDivisions = unifiedData?.hasMaleDivision && unifiedData?.hasFemaleDivision;
+  const maleCount = unifiedData?.maleMembers ?? (club.division === 'male' ? members.length : 0);
+  const femaleCount = unifiedData?.femaleMembers ?? (club.division === 'female' ? members.length : 0);
 
-  const rankLabel = rank === 1 ? '🏆 Juara League' : rank === 2 ? '🥈 Juara 2' : rank === 3 ? '🥉 Peringkat 3' : rank ? `#${rank}` : '';
-
-  // Members from unified data or fallback to club prop
-  const members = ((displayData as any).members || club.members || []) as Array<{ id: string; name: string; gamertag: string; avatar?: string | null; tier: string; points: number; division?: string; clubDivision?: string; isCaptain?: boolean }>;
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   return (
     <AnimatePresence>
@@ -437,22 +325,32 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Header Banner ── */}
-          <div className="relative h-52 overflow-hidden">
-            {/* AI-generated division background */}
-            <Image src={club.division === 'female' ? '/bg-female.jpg' : '/bg-male.jpg'} alt="" fill sizes="100vw" className="absolute inset-0 object-cover" aria-hidden="true" />
+          <div className="relative h-80">
+            {/* Unified club banner — use league/gold theme */}
+            <Image src={club.bannerImage || '/bg-section.jpg'} alt="" fill sizes="100vw" className="absolute inset-0 object-cover" aria-hidden="true" />
 
-            {/* Division gradient overlay */}
+            {/* Gold gradient overlay — unified club uses league gold */}
             <div className="absolute inset-0 bg-gradient-to-br from-background/70 via-background/40 to-background/80" />
 
             {/* Geometric SVG pattern overlay */}
-            <BannerPattern division={club.division} />
+            <BannerPattern />
+
+            {/* Division color accents — bilateral cyan left, purple right */}
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+              {unifiedData?.hasMaleDivision && (
+                <div className="absolute top-0 left-0 w-1/2 h-full" style={{ background: 'radial-gradient(ellipse at 20% 30%, rgba(34,211,238,0.06) 0%, transparent 60%)' }} />
+              )}
+              {unifiedData?.hasFemaleDivision && (
+                <div className="absolute top-0 right-0 w-1/2 h-full" style={{ background: 'radial-gradient(ellipse at 80% 30%, rgba(192,132,252,0.06) 0%, transparent 60%)' }} />
+              )}
+            </div>
 
             {/* Bottom fade to background */}
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
 
             {/* Decorative large shield watermark */}
             <div className="absolute top-3 right-3 opacity-[0.06]">
-              <Shield className={`w-28 h-28 ${dt.text}`} />
+              <Shield className="w-28 h-28 text-idm-gold-warm" />
             </div>
 
             {/* Close button */}
@@ -468,7 +366,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             {rank && rank <= 3 && (
               <div className="absolute top-3 left-3 z-10">
                 <Badge className={`text-xs font-bold border-0 ${
-                  rank === 1 ? `bg-yellow-500/20 text-yellow-500 ${dt.glowChampion}` :
+                  rank === 1 ? 'bg-yellow-500/20 text-yellow-500' :
                   rank === 2 ? 'bg-gray-400/20 text-gray-400' :
                   'bg-amber-600/20 text-amber-600'
                 }`}>
@@ -477,7 +375,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               </div>
             )}
 
-            {/* ── Large Club Logo — overlapping banner bottom ── */}
+            {/* ── Large Club Logo ── */}
             <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 z-10">
               <div className={`rounded-2xl border-4 border-background overflow-hidden ${
                 isChampion ? 'bg-yellow-500/5' : ''
@@ -486,48 +384,19 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   <div className="relative" style={{ width: 120, height: 120 }}>
                     {isChampion && (
                       <>
-                        <div
-                          className="absolute rounded-full animate-pulse"
-                          style={{
-                            inset: -8,
-                            border: '2px solid rgba(234, 179, 8, 0.3)',
-                            boxShadow: '0 0 20px rgba(234, 179, 8, 0.15), 0 0 40px rgba(234, 179, 8, 0.05)',
-                          }}
-                        />
-                        <div
-                          className="absolute rounded-full"
-                          style={{ inset: -4, border: '1px solid rgba(234, 179, 8, 0.15)' }}
-                        />
+                        <div className="absolute rounded-full animate-pulse" style={{ inset: -8, border: '2px solid rgba(234, 179, 8, 0.3)', boxShadow: '0 0 20px rgba(234, 179, 8, 0.15), 0 0 40px rgba(234, 179, 8, 0.05)' }} />
+                        <div className="absolute rounded-full" style={{ inset: -4, border: '1px solid rgba(234, 179, 8, 0.15)' }} />
                       </>
                     )}
-                    <ClubLogoImage
-                      clubName={club.name}
-                      dbLogo={club.logo}
-                      alt={club.name}
-                      width={120}
-                      height={120}
-                      className="w-full h-full object-cover"
-                      style={isChampion ? { filter: 'drop-shadow(0 0 12px rgba(234, 179, 8, 0.2))' } : undefined}
-                    />
+                    <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={120} height={120} className="w-full h-full object-cover" style={isChampion ? { filter: 'drop-shadow(0 0 12px rgba(234, 179, 8, 0.2))' } : undefined} />
                     {isChampion && (
                       <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: 'linear-gradient(105deg, transparent 40%, rgba(250, 204, 21, 0.08) 45%, rgba(250, 204, 21, 0.15) 50%, rgba(250, 204, 21, 0.08) 55%, transparent 60%)',
-                            animation: 'clubLogoShimmer 3s ease-in-out infinite',
-                          }}
-                        />
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(250, 204, 21, 0.08) 45%, rgba(250, 204, 21, 0.15) 50%, rgba(250, 204, 21, 0.08) 55%, transparent 60%)', animation: 'clubLogoShimmer 3s ease-in-out infinite' }} />
                       </div>
                     )}
                   </div>
                 ) : (
-                  <ClubLogo
-                    name={club.name}
-                    division={club.division}
-                    size={120}
-                    isChampion={isChampion}
-                  />
+                  <ClubLogo name={club.name} size={120} isChampion={isChampion} />
                 )}
               </div>
             </div>
@@ -537,31 +406,44 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
           <div className="px-4 pt-20 pb-6">
             {/* Name & Division */}
             <div className="text-center mb-4">
-              <h2 className={`text-xl font-bold ${dt.gradientText}`}>{club.name}</h2>
-              <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-                {displayDivision && (
-                  <Badge className={`text-[10px] border-0 ${displayDivision === 'league' ? 'bg-[#d4a853]/10 text-[#d4a853]' : dt.badgeBg}`}>
-                    {displayDivision === 'league' ? '🏆 Liga IDM' : displayDivision === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
+              <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                {/* Unified club badge — show both divisions */}
+                {hasBothDivisions ? (
+                  <>
+                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border border-idm-gold-warm/20 border-0">
+                      <Shield className="w-3 h-3 mr-1" /> Club Mix
+                    </Badge>
+                    <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-0">
+                      🕺 {maleCount} Male
+                    </Badge>
+                    <Badge className="bg-purple-500/10 text-purple-400 text-[10px] border-0">
+                      💃 {femaleCount} Female
+                    </Badge>
+                  </>
+                ) : unifiedData?.hasMaleDivision ? (
+                  <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-0">
+                    🕺 Divisi Male
+                  </Badge>
+                ) : unifiedData?.hasFemaleDivision ? (
+                  <Badge className="bg-purple-500/10 text-purple-400 text-[10px] border-0">
+                    💃 Divisi Female
+                  </Badge>
+                ) : (
+                  <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
+                    <Shield className="w-3 h-3 mr-1" /> Club
                   </Badge>
                 )}
-                {isMixed && (
-                  <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20">
-                    ✨ Club Mix · 🕺 {maleCount} Male · 💃 {femaleCount} Female
-                  </Badge>
-                )}
-                {isUndefeated && (
+                {displayIsUndefeated && (
                   <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">
                     🔥 Tak Terkalahkan
                   </Badge>
                 )}
               </div>
-              {displayChampionSeasons && displayChampionSeasons.length > 0 && (
-                <Badge className="bg-idm-amber/10 text-idm-amber text-[10px] border border-idm-amber/20 mt-1">
-                  <Crown className="w-3 h-3 mr-1" /> Pemenang Liga IDM
-                </Badge>
-              )}
               <p className="text-[10px] text-muted-foreground mt-2 max-w-xs mx-auto">
-                {rank === 1
+                {unifiedData?.championSeasons?.length
+                  ? `Pemenang Liga IDM — Club terbaik dengan performa luar biasa`
+                  : rank === 1
                   ? 'Juara League — Club terbaik dengan performa luar biasa'
                   : rank === 2
                   ? 'Juara 2 — Pesaing kuat yang mengejar gelar'
@@ -572,26 +454,43 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
 
             {/* Main Stats Grid */}
             <div className="grid grid-cols-3 gap-2 mb-4">
-              <StatBlock icon={Trophy} label="Poin" value={displayPoints} color={dt.text} />
-              <StatBlock icon={Target} label="Rasio Win" value={`${winRate}%`} sub={`${displayWins}W/${displayLosses}L`} color="text-green-500" />
+              <StatBlock icon={Trophy} label="Poin" value={displayPoints} color="text-idm-gold-warm" />
+              <StatBlock icon={Target} label="Rasio Win" value={`${displayWinRate}%`} sub={`${displayWins}W/${displayLosses}L`} color="text-green-500" />
               <StatBlock icon={Music} label="Selisih Game" value={displayGameDiff > 0 ? `+${displayGameDiff}` : displayGameDiff} color="text-yellow-500" />
             </div>
 
-            {/* Per-Division Stats Breakdown (when mixed) */}
-            {isMixed && (displayData as any).divisionBreakdown && (
-              <div className="mb-4">
-                <h3 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
-                  <BarChart3 className="w-3.5 h-3.5 text-idm-amber" />
-                  Statistik Per Divisi
-                </h3>
+            {/* Per-division stats breakdown (when both divisions exist) */}
+            {hasBothDivisions && unifiedData?.divisionStats && (
+              <div className="mb-4 p-3 rounded-xl bg-muted/20 border border-border/20">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Statistik Per Divisi</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {Object.entries((displayData as any).divisionBreakdown as Record<string, { wins: number; losses: number; points: number; gameDiff: number; memberCount: number }>).map(([div, stats]) => (
-                    <div key={div} className={`p-2.5 rounded-xl ${div === 'male' ? 'bg-idm-male/5 border border-idm-male/10' : 'bg-idm-female/5 border border-idm-female/10'}`}>
-                      <p className={`text-[10px] font-bold mb-1 ${div === 'male' ? 'text-idm-male' : 'text-idm-female'}`}>
-                        {div === 'male' ? '🕺 Male' : '💃 Female'}
+                  {unifiedData.divisionStats.map((ds: { division: string; wins: number; losses: number; points: number; gameDiff: number }) => (
+                    <div key={ds.division} className={`p-2.5 rounded-lg border ${
+                      ds.division === 'male'
+                        ? 'bg-cyan-500/5 border-cyan-500/10'
+                        : 'bg-purple-500/5 border-purple-500/10'
+                    }`}>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${
+                        ds.division === 'male' ? 'text-cyan-400' : 'text-purple-400'
+                      }`}>
+                        {ds.division === 'male' ? '🕺 Male' : '💃 Female'}
                       </p>
-                      <p className="text-[9px] text-muted-foreground">{stats.wins}W/{stats.losses}L · {stats.points}pts</p>
-                      <p className="text-[9px] text-muted-foreground">{stats.memberCount} anggota · GD {stats.gameDiff > 0 ? '+' : ''}{stats.gameDiff}</p>
+                      <div className="space-y-0.5 text-[10px]">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Poin</span>
+                          <span className="font-bold text-white">{ds.points}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Rekor</span>
+                          <span className="font-bold">{ds.wins}W/{ds.losses}L</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">GD</span>
+                          <span className={`font-bold ${ds.gameDiff > 0 ? 'text-green-500' : ds.gameDiff < 0 ? 'text-red-500' : ''}`}>
+                            {ds.gameDiff > 0 ? '+' : ''}{ds.gameDiff}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -600,16 +499,14 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
 
             {/* Detailed Stats */}
             <div className="space-y-3 mb-4">
-              {/* Win Progress */}
               <div>
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="text-muted-foreground">Rasio Win</span>
-                  <span className={`font-bold ${dt.text}`}>{winRate}%</span>
+                  <span className="font-bold text-idm-gold-warm">{displayWinRate}%</span>
                 </div>
-                <Progress value={winRate} className="h-2" />
+                <Progress value={displayWinRate} className="h-2" />
               </div>
 
-              {/* Record */}
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-green-500/5 border border-green-500/10">
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-green-500" />
@@ -626,59 +523,69 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <span className="text-sm font-bold text-red-500">{displayLosses}</span>
               </div>
 
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/10">
                 <div className="flex items-center gap-2">
-                  <Zap className={`w-4 h-4 ${dt.text}`} />
+                  <Zap className="w-4 h-4 text-idm-gold-warm" />
                   <span className="text-xs font-medium">Total Match</span>
                 </div>
-                <span className={`text-sm font-bold ${dt.text}`}>{totalMatches}</span>
+                <span className="text-sm font-bold text-idm-gold-warm">{displayTotalMatches}</span>
               </div>
             </div>
 
-            {/* Roster */}
+            {/* Roster — Mixed members from both divisions */}
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <Users className={`w-4 h-4 ${dt.text}`} />
+                <Users className="w-4 h-4 text-idm-gold-warm" />
                 <h3 className="text-sm font-semibold">Daftar Pemain</h3>
-                <Badge className={`${dt.badgeBg} text-[10px] ml-auto`}>{members.length} Players</Badge>
+                <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] ml-auto">{members.length} Players</Badge>
               </div>
-              {isLoadingUnified ? (
+              {isUnifiedLoading ? (
                 <div className="flex items-center justify-center py-6">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-idm-male" />
+                  <div className="w-5 h-5 border-2 border-idm-gold-warm/30 border-t-idm-gold-warm rounded-full animate-spin" />
+                  <span className="ml-2 text-xs text-muted-foreground">Memuat anggota...</span>
                 </div>
               ) : members.length > 0 ? (
-                <div className="space-y-1.5">
-                  {members.map((p, i) => {
-                    const memberDivision = p.clubDivision || p.division || (club.division === 'league' || isMixed ? 'male' : club.division === 'male' ? 'male' : 'female');
+                <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar">
+                  {members.map((p) => {
+                    const isMale = p.division === 'male';
                     return (
                       <div
                         key={p.id}
                         className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors cursor-pointer interactive-scale"
-                        onClick={() => onPlayerClick?.(p)}
+                        onClick={() => onPlayerClick?.({
+                          id: p.id,
+                          name: p.name || p.gamertag,
+                          gamertag: p.gamertag,
+                          avatar: p.avatar,
+                          tier: p.tier,
+                          points: p.points,
+                          division: p.division,
+                          city: p.city,
+                        })}
                       >
                         <div className="relative w-8 rounded-md overflow-hidden shrink-0" style={{ aspectRatio: '3/4' }}>
-                          <Image src={getAvatarUrl(p.gamertag, memberDivision as 'male' | 'female', p.avatar)} alt={p.gamertag} fill sizes="60px" className="w-full h-full object-cover object-top" />
+                          <Image src={getAvatarUrl(p.gamertag, isMale ? 'male' : 'female', p.avatar)} alt={p.gamertag} fill sizes="60px" className="w-full h-full object-cover object-top" />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06]/50 via-transparent to-transparent" />
                         </div>
-                        {/* Division indicator dot */}
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${memberDivision === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} title={memberDivision === 'male' ? 'Male' : 'Female'} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{p.gamertag}</span>
                             <TierBadge tier={p.tier} />
-                            {p.isCaptain && (
-                              <span className="text-[8px] text-idm-amber font-bold uppercase">CPT</span>
-                            )}
-                            {isMixed && (
-                              <span className={`text-[8px] font-medium ${memberDivision === 'male' ? 'text-idm-male/60' : 'text-idm-female/60'}`}>
-                                {memberDivision === 'male' ? '🕺' : '💃'}
-                              </span>
+                            {/* Division indicator dot */}
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isMale ? 'bg-cyan-400' : 'bg-purple-400'}`} title={isMale ? 'Divisi Male' : 'Divisi Female'} />
+                            {p.role === 'captain' && (
+                              <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-idm-gold-warm/15 text-idm-gold-warm">CPT</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-muted-foreground">{p.name}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {isMale ? '🕺 Male' : '💃 Female'}
+                            {p.city && <> · <MapPin className="w-2.5 h-2.5 inline -mt-0.5" /> {p.city}</>}
+                            {p.totalWins > 0 && ` · ${p.totalWins}W`}
+                            {p.totalMvp > 0 && ` · ${p.totalMvp}x MVP`}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className={`text-xs font-bold ${dt.text}`}>{p.points}</p>
+                          <p className="text-xs font-bold text-idm-gold-warm">{p.points}</p>
                           <p className="text-[9px] text-muted-foreground">pts</p>
                         </div>
                         <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
@@ -687,8 +594,8 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                   })}
                 </div>
               ) : (
-                <div className={`p-4 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle} text-center`}>
-                  <Users className={`w-5 h-5 ${dt.text} mx-auto mb-1.5 opacity-40`} />
+                <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 text-center">
+                  <Users className="w-5 h-5 text-idm-gold-warm mx-auto mb-1.5 opacity-40" />
                   <p className="text-xs text-muted-foreground">Belum ada anggota</p>
                 </div>
               )}
@@ -697,20 +604,16 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             {/* Achievements */}
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <Award className={`w-4 h-4 ${dt.text}`} />
+                <Award className="w-4 h-4 text-idm-gold-warm" />
                 <h3 className="text-sm font-semibold">Prestasi</h3>
               </div>
-              {displayChampionSeasons && displayChampionSeasons.length > 0 && (
-                <div className="space-y-1.5 mb-2">
-                  {displayChampionSeasons.map((season: { id: string; name: string; number: number }) => (
-                    <div key={season.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-idm-amber/10 border border-idm-amber/20">
-                      <Crown className="w-4 h-4 text-idm-amber" />
-                      <span className="text-xs font-bold text-idm-amber">Pemenang Liga Season {season.number}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
               <div className="flex flex-wrap gap-1.5">
+                {/* League Season Champion badges — from admin designation */}
+                {unifiedData?.championSeasons?.map((cs: { id: string; name: string; number: number; division: string }) => (
+                  <Badge key={cs.id} className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0">
+                    <Crown className="w-3 h-3 mr-1" /> Pemenang Liga Season {cs.number}
+                  </Badge>
+                ))}
                 {displayWins >= 1 && (
                   <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">
                     <Star className="w-3 h-3 mr-1" /> Win Pertama
@@ -721,18 +624,18 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                     <Trophy className="w-3 h-3 mr-1" /> 3+ Win
                   </Badge>
                 )}
-                {isUndefeated && displayWins >= 2 && (
+                {displayIsUndefeated && displayWins >= 2 && (
                   <Badge className="bg-orange-500/10 text-orange-500 text-[10px] border-0">
                     <Flame className="w-3 h-3 mr-1" /> Tak Terkalahkan
                   </Badge>
                 )}
-                {rank === 1 && (
-                  <Badge className={`bg-yellow-500/10 text-yellow-500 text-[10px] border-0 ${dt.glowChampion}`}>
+                {rank === 1 && !unifiedData?.championSeasons?.length && (
+                  <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0">
                     <Crown className="w-3 h-3 mr-1" /> Juara League
                   </Badge>
                 )}
                 {rank && rank <= 4 && rank > 1 && (
-                  <Badge className={`${dt.badgeBg} text-[10px] border-0`}>
+                  <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
                     <Shield className="w-3 h-3 mr-1" /> 4 Besar
                   </Badge>
                 )}
@@ -741,27 +644,27 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                     <Music className="w-3 h-3 mr-1" /> Dominan (+{displayGameDiff} GD)
                   </Badge>
                 )}
-                {totalMatches >= 5 && (
+                {displayTotalMatches >= 5 && (
                   <Badge className="bg-amber-600/10 text-amber-600 text-[10px] border-0">
                     <BarChart3 className="w-3 h-3 mr-1" /> Club Veteran
                   </Badge>
                 )}
-                {winRate >= 70 && displayWins > 0 && (
-                  <Badge className={`${dt.badgeBg} text-[10px] border-0`}>
+                {displayWinRate >= 70 && displayWins > 0 && (
+                  <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
                     <TrendingUp className="w-3 h-3 mr-1" /> Rasio Win 70%+
                   </Badge>
                 )}
               </div>
             </div>
 
-            {/* Recent Matches — only shown when club has match history */}
-            {totalMatches > 0 ? (
+            {/* Recent Matches */}
+            {displayTotalMatches > 0 ? (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Music className={`w-4 h-4 ${dt.text}`} />
+                  <Music className="w-4 h-4 text-idm-gold-warm" />
                   <h3 className="text-sm font-semibold">Rekor Match</h3>
                 </div>
-                <div className={`p-3 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className="p-3 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-lg font-bold text-green-500">{displayWins}</p>
@@ -781,36 +684,36 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             ) : (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Music className={`w-4 h-4 ${dt.text}`} />
+                  <Music className="w-4 h-4 text-idm-gold-warm" />
                   <h3 className="text-sm font-semibold">Rekor Match</h3>
                 </div>
-                <div className={`p-4 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle} text-center`}>
-                  <Music className={`w-5 h-5 ${dt.text} mx-auto mb-1.5 opacity-40`} />
+                <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 text-center">
+                  <Music className="w-5 h-5 text-idm-gold-warm mx-auto mb-1.5 opacity-40" />
                   <p className="text-xs text-muted-foreground">Belum ada match dimainkan</p>
                 </div>
               </div>
             )}
 
             {/* Points Breakdown */}
-            <div className={`p-3 rounded-xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+            <div className="p-3 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/10">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className={`w-4 h-4 ${dt.text}`} />
+                <TrendingUp className="w-4 h-4 text-idm-gold-warm" />
                 <span className="text-xs font-semibold">Rincian Poin</span>
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Bonus Win ({displayWins} win × 2pts)</span>
-                  <span className={`font-bold ${dt.text}`}>+{displayWins * 2} pts</span>
+                  <span className="font-bold text-idm-gold-warm">+{displayWins * 2} pts</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Selisih Game ({displayGameDiff > 0 ? '+' : ''}{displayGameDiff})</span>
                   <span className={`font-bold ${displayGameDiff > 0 ? 'text-green-500' : 'text-red-500'}`}>{displayGameDiff > 0 ? '+' : ''}{displayGameDiff} pts</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Partisipasi ({totalMatches} match)</span>
-                  <span className="font-bold text-green-500">+{totalMatches * 5} pts</span>
+                  <span className="text-muted-foreground">Partisipasi ({displayTotalMatches} match)</span>
+                  <span className="font-bold text-green-500">+{displayTotalMatches * 5} pts</span>
                 </div>
-                {isUndefeated && displayWins > 0 && (
+                {displayIsUndefeated && displayWins > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bonus Tak Terkalahkan</span>
                     <span className="font-bold text-orange-500">+20 pts</span>
@@ -819,7 +722,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                 <div className="h-px bg-border my-1" />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className={dt.text}>{displayPoints} pts</span>
+                  <span className="text-idm-gold-warm">{displayPoints} pts</span>
                 </div>
               </div>
             </div>

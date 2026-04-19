@@ -145,7 +145,7 @@ export function SponsoredPrizes({ tournamentId, className = '' }: SponsoredPrize
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <h4 className="text-sm font-semibold text-[#d4a853] uppercase tracking-wider">
+      <h4 className="text-sm font-semibold text-idm-gold-warm uppercase tracking-wider">
         Sponsored Prizes
       </h4>
       <div className="grid gap-2">
@@ -166,7 +166,7 @@ export function SponsoredPrizes({ tournamentId, className = '' }: SponsoredPrize
                 />
               )}
               <div className="flex-1">
-                <div className="text-xs text-[#d4a853] mb-0.5">
+                <div className="text-xs text-idm-gold-warm mb-0.5">
                   {getPositionLabel(prize.position)}
                 </div>
                 <div className="font-medium text-sm">{prize.name}</div>

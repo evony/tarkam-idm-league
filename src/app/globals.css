@@ -43,6 +43,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   /* IDM Dance Tournament custom colors — Royal Gold Edition */
   --color-idm-gold: var(--idm-gold);
+  --color-idm-gold-warm: var(--idm-gold-warm);
   --color-idm-glow: var(--idm-glow);
   --color-idm-champagne: var(--idm-champagne);
   --color-idm-amber: var(--idm-amber);
@@ -95,6 +96,7 @@
   --sidebar-ring: #e5be4a;
   /* IDM custom — Night Gold */
   --idm-gold: #e5be4a;
+  --idm-gold-warm: #d4a853;
   --idm-glow: rgba(229, 190, 74, 0.35);
   --idm-champagne: #1a1608;
   --idm-amber: #f59e0b;
@@ -119,6 +121,31 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Apple HIG: compact icon buttons get 44px touch area via pseudo-element */
+  .touch-icon {
+    position: relative;
+  }
+  .touch-icon::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+  /* Lightweight CSS stagger animation — replaces Framer motion.div variants={item} for list items */
+  .stagger-item {
+    animation: stagger-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+/* Stagger delay — apply via style={{ animationDelay: `${i * 50}ms` }} */
+@keyframes stagger-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -275,13 +302,13 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
-/* Custom scrollbar — hidden visually, scroll still works */
+/* Custom scrollbar — Hidden visually but scroll still works */
 .custom-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
 }
 .custom-scrollbar::-webkit-scrollbar {
-  display: none;
+  display: none; /* Chrome, Safari, Edge */
 }
 
 /* Premium card hover — Gold glow */
@@ -1192,7 +1219,7 @@ html {
   position: absolute;
   bottom: -10px;
   border-radius: 50%;
-  background: #d4a853;
+  background: var(--idm-gold-warm);
   animation: float-up linear infinite;
   pointer-events: none;
 }
@@ -1614,9 +1641,9 @@ html {
   background: linear-gradient(
     90deg,
     transparent,
-    #d4a853,
+    var(--idm-gold-warm),
     rgba(212, 168, 83, 0.4),
-    #d4a853,
+    var(--idm-gold-warm),
     transparent
   );
   opacity: 0.5;
@@ -1639,7 +1666,7 @@ html {
 }
 
 .landing-scroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #d4a853, var(--idm-amber));
+  background: linear-gradient(180deg, var(--idm-gold-warm), var(--idm-amber));
 }
 
 /* ============================================
@@ -3197,7 +3224,7 @@ html {
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  color: #d4a853;
+  color: var(--idm-gold-warm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -3219,7 +3246,7 @@ html {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #d4a853, transparent);
+  background: linear-gradient(90deg, transparent, var(--idm-gold-warm), transparent);
 }
 
 /* ============================================
@@ -3259,7 +3286,7 @@ html {
 }
 
 .match-result-card.winner::before {
-  background: linear-gradient(90deg, #d4a853, #f0c674, #d4a853);
+  background: linear-gradient(90deg, var(--idm-gold-warm), #f0c674, var(--idm-gold-warm));
   animation: winner-glow 2s ease-in-out infinite;
 }
 
@@ -3288,7 +3315,7 @@ html {
    ============================================ */
 .bracket-match-live {
   animation: bracket-live-pulse 1.5s ease-in-out infinite;
-  border: 2px solid #d4a853;
+  border: 2px solid var(--idm-gold-warm);
 }
 
 @keyframes bracket-live-pulse {
@@ -3319,7 +3346,7 @@ html {
 }
 
 .swipe-indicator.active {
-  background: #d4a853;
+  background: var(--idm-gold-warm);
 }
 
 /* Pull to refresh */
@@ -3366,7 +3393,7 @@ html {
   transform: translateX(-50%);
   width: 24px;
   height: 3px;
-  background: #d4a853;
+  background: var(--idm-gold-warm);
   border-radius: 2px;
 }
 
@@ -3403,7 +3430,7 @@ html {
 
 .engagement-badge:hover {
   background: rgba(212, 168, 83, 0.1);
-  color: #d4a853;
+  color: var(--idm-gold-warm);
 }
 
 /* ============================================
@@ -3449,11 +3476,11 @@ html {
   padding: 2px;
   background: linear-gradient(
     90deg,
-    #d4a853,
+    var(--idm-gold-warm),
     #fde68a,
-    #d4a853,
+    var(--idm-gold-warm),
     #f5e6c8,
-    #d4a853
+    var(--idm-gold-warm)
   );
   background-size: 200% 100%;
   animation: champion-frame-shimmer 3s linear infinite;
@@ -3508,7 +3535,7 @@ html {
   height: 2px;
   z-index: 100;
   transform-origin: 0%;
-  background: linear-gradient(90deg, #d4a853, #fde68a, #d4a853);
+  background: linear-gradient(90deg, var(--idm-gold-warm), #fde68a, var(--idm-gold-warm));
 }
 
 /* Empty state elegant placeholder */

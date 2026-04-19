@@ -88,7 +88,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
     onConfirm: () => void;
   }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
-  // Fetch ALL seasons (Liga IDM is division-free)
+  // Fetch ALL seasons
   const { data: seasons, isLoading } = useQuery<SeasonData[]>({
     queryKey: ['admin-seasons'],
     queryFn: async () => {
@@ -611,7 +611,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                 {/* Squad editing mode */}
                                 {editingSquad && (
                                   <div className="space-y-3">
-                                    <p className="text-[10px] text-muted-foreground">Pilih tepat 5 pemain sebagai perwakilan squad (wajib minimal 1 female):</p>
+                                    <p className="text-[10px] text-muted-foreground">Pilih tepat 5 anggota dari club champion sebagai perwakilan squad (termasuk anggota divisi lain dengan nama club yang sama):</p>
 
                                     {/* Selected squad preview */}
                                     {squadSelection.length > 0 && (
@@ -655,12 +655,6 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                         className="text-[10px]"
                                         disabled={squadSelection.length !== 5 || updateSeason.isPending}
                                         onClick={() => {
-                                          // Validate: at least 1 female
-                                          const hasFemale = squadSelection.some(m => m.division === 'female');
-                                          if (!hasFemale) {
-                                            toast.error('Skuad wajib memiliki minimal 1 pemain female');
-                                            return;
-                                          }
                                           // Ensure first member is captain
                                           const squad = squadSelection.map((m, idx) => ({
                                             ...m,
@@ -675,8 +669,8 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                         {updateSeason.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Star className="w-3 h-3 mr-1" />}
                                         Simpan Skuad ({squadSelection.length}/5)
                                       </Button>
-                                      {squadSelection.length === 5 && !squadSelection.some(m => m.division === 'female') && (
-                                        <span className="text-[9px] text-red-400">⚠️ Min. 1 female</span>
+                                      {squadSelection.length === 5 && squadSelection.some(m => m.division !== squadSelection[0]?.division) && (
+                                        <span className="text-[9px] text-idm-gold-warm">✨ Cross-division</span>
                                       )}
                                       {squadSelection.length < 5 && squadSelection.length > 0 && (
                                         <span className="text-[9px] text-yellow-500">Pilih {5 - squadSelection.length} lagi</span>
@@ -860,46 +854,46 @@ function ChampionSquadSelector({
 }) {
   const [search, setSearch] = useState('');
 
-  // Fetch players from the CHAMPION CLUB only — for squad selection
-  const { data: allPlayers, isLoading } = useQuery({
-    queryKey: ['champion-club-players', championClubId],
+  // Fetch members from champion club AND same-named clubs across both divisions
+  // This allows selecting members from the same club name regardless of division
+  // e.g., if MAXIMOUS (male) is champion, MAXIMOUS (female) members are also available
+  const { data: clubData, isLoading } = useQuery({
+    queryKey: ['champion-club-members', championClubId],
     queryFn: async () => {
-      if (!championClubId) return [];
-      const membersRes = await fetch(`/api/clubs/${championClubId}/members`);
-      if (!membersRes.ok) return [];
-      const members = await membersRes.json();
-      return members.map((m: { player: { id: string; gamertag: string; division: string; avatar?: string | null } }) => ({
-        id: m.player.id,
-        gamertag: m.player.gamertag,
-        division: m.player.division,
-        avatar: m.player.avatar,
-      })).sort((a: { gamertag: string }, b: { gamertag: string }) => a.gamertag.localeCompare(b.gamertag));
+      const res = await fetch(`/api/clubs/champion-members?clubId=${championClubId}`);
+      if (!res.ok) return null;
+      return res.json();
     },
     enabled: !!championClubId,
   });
+
+  const allPlayers = clubData?.members || [];
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>;
   }
 
-  if (!allPlayers || allPlayers.length === 0) {
-    return <p className="text-[10px] text-muted-foreground text-center py-2">Tidak ada player ditemukan di club champion</p>;
+  if (allPlayers.length === 0) {
+    return <p className="text-[10px] text-muted-foreground text-center py-2">Tidak ada anggota club champion ditemukan</p>;
   }
 
   const filtered = search.trim()
-    ? allPlayers.filter(p => p.gamertag.toLowerCase().includes(search.toLowerCase()))
+    ? allPlayers.filter((p: { gamertag: string }) => p.gamertag.toLowerCase().includes(search.toLowerCase()))
     : allPlayers;
+
+  const maleCount = allPlayers.filter((p: { division: string }) => p.division === 'male').length;
+  const femaleCount = allPlayers.filter((p: { division: string }) => p.division === 'female').length;
 
   return (
     <div className="space-y-2">
       <Input
-        placeholder="Cari player (gamertag)..."
+        placeholder="Cari anggota club (gamertag)..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="text-xs h-8"
       />
       <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-        {filtered.map((player) => {
+        {filtered.map((player: { id: string; gamertag: string; division: string; avatar?: string | null; clubDivision: string; role: string }) => {
           const isSelected = selectedIds.includes(player.id);
           return (
             <div
@@ -909,7 +903,7 @@ function ChampionSquadSelector({
                   ? 'border-yellow-500/30 bg-yellow-500/5'
                   : 'border-border/20 bg-card/30 hover:bg-muted/20'
               }`}
-              onClick={() => onToggle(player)}
+              onClick={() => onToggle({ id: player.id, gamertag: player.gamertag, division: player.division })}
             >
               <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
                 <Image
@@ -925,6 +919,10 @@ function ChampionSquadSelector({
                 <p className="text-xs font-medium truncate">{player.gamertag}</p>
                 <p className="text-[9px] text-muted-foreground">
                   <span className="capitalize">{player.division}</span>
+                  {player.clubDivision !== player.division && (
+                    <span className="text-idm-gold-warm ml-1">• dari club {player.clubDivision}</span>
+                  )}
+                  {player.role === 'captain' && <span className="ml-1 text-yellow-500">• Captain</span>}
                 </p>
               </div>
               {isSelected && (
@@ -936,10 +934,12 @@ function ChampionSquadSelector({
           );
         })}
         {filtered.length === 0 && (
-          <p className="text-[10px] text-muted-foreground text-center py-2">Player tidak ditemukan</p>
+          <p className="text-[10px] text-muted-foreground text-center py-2">Anggota tidak ditemukan</p>
         )}
       </div>
-      <p className="text-[9px] text-muted-foreground text-center">{allPlayers.length} player dari semua club • {allPlayers.filter(p => p.division === 'male').length} male, {allPlayers.filter(p => p.division === 'female').length} female</p>
+      <p className="text-[9px] text-muted-foreground text-center">
+        {allPlayers.length} anggota club {clubData?.clubName || 'champion'} • {maleCount} male, {femaleCount} female • bebas pilih dari divisi mana saja
+      </p>
     </div>
   );
 }

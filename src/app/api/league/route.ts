@@ -1,10 +1,12 @@
 import { db } from '@/lib/db';
+import { withNeonRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  try {
   // Get all seasons (active + completed) — League is unified, not per-division
   // Completed seasons still have champion data that must be displayed
-  const seasons = await db.season.findMany({
+  const seasons = await withNeonRetry(() => db.season.findMany({
     where: { status: { in: ['active', 'completed'] } },
     orderBy: { number: 'desc' },
     include: {
@@ -19,11 +21,9 @@ export async function GET() {
         },
       },
     },
-  });
+  }));
 
-  const season = seasons[0];
-
-  if (!season) {
+  if (!seasons || seasons.length === 0) {
     return NextResponse.json({ hasData: false, reason: 'no_season' });
   }
 
@@ -43,9 +43,11 @@ export async function GET() {
         avatarMap.set(m.player.id, m.player.avatar);
       }
 
-      const squadRaw = championSeason.championSquad;
-      const squad = squadRaw ? (typeof squadRaw === 'string' ? JSON.parse(squadRaw) : squadRaw) as Array<{id: string; gamertag: string; division: string; role: string}> | null : null;
-      if (squad && squad.length > 0) {
+      // championSquad is stored as JSON string in SQLite — must parse first
+      const rawSquad = championSeason.championSquad;
+      const squad: Array<{id: string; gamertag: string; division: string; role: string}> | null =
+        rawSquad ? (typeof rawSquad === 'string' ? JSON.parse(rawSquad) : rawSquad as unknown as Array<{id: string; gamertag: string; division: string; role: string}>) : null;
+      if (squad && Array.isArray(squad) && squad.length > 0) {
         // Use championSquad but merge in avatar from club members
         return squad.map(s => ({
           id: s.id,
@@ -66,9 +68,25 @@ export async function GET() {
     })()
   } : null;
 
-  // All clubs — League treats clubs as unified entities (mixed male+female members)
-  const allClubs = await db.club.findMany({
-    where: { seasonId: season.id },
+  // Use the latest season as the "current" season reference
+  const season = seasons[0];
+
+  // Find the season with clubs for display — fall back to any season that has clubs
+  // This handles the case where the latest season (e.g., Season 2) has no clubs yet,
+  // but a previous season (e.g., Season 1) has clubs and data
+  const seasonWithClubs = await withNeonRetry(() => db.season.findFirst({
+    where: {
+      id: { in: seasons.map(s => s.id) },
+      clubs: { some: {} },
+    },
+    orderBy: { number: 'desc' },
+  }));
+
+  const activeSeasonId = seasonWithClubs?.id || season.id;
+
+  // All clubs — use the season that actually has clubs
+  const allClubs = await withNeonRetry(() => db.club.findMany({
+    where: { seasonId: activeSeasonId },
     orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
     include: {
       _count: { select: { members: true } },
@@ -78,38 +96,43 @@ export async function GET() {
         },
       },
     },
-  });
+  }));
 
-  // If no clubs exist yet, league hasn't started — show empty state
+  // If no clubs exist anywhere, league hasn't started — still return ligaChampion
   if (allClubs.length === 0) {
-    return NextResponse.json({ hasData: false, reason: 'no_clubs', season: { id: season.id, name: season.name } });
+    return NextResponse.json({
+      hasData: false,
+      reason: 'no_clubs',
+      season: { id: season.id, name: season.name },
+      ligaChampion, // ALWAYS return champion data even when no clubs in current season
+    });
   }
 
-  // All league matches
-  const leagueMatches = await db.leagueMatch.findMany({
-    where: { seasonId: season.id },
+  // All league matches — use activeSeasonId (the season with clubs)
+  const leagueMatches = await withNeonRetry(() => db.leagueMatch.findMany({
+    where: { seasonId: activeSeasonId },
     orderBy: [{ week: 'asc' }],
     include: {
       club1: true,
       club2: true,
     },
-  });
+  }));
 
   // All playoff matches
-  const playoffMatches = await db.playoffMatch.findMany({
-    where: { seasonId: season.id },
+  const playoffMatches = await withNeonRetry(() => db.playoffMatch.findMany({
+    where: { seasonId: activeSeasonId },
     include: {
       club1: true,
       club2: true,
     },
     orderBy: { round: 'asc' },
-  });
+  }));
 
   // Top players across all divisions — show all active players for roster display
-  const topPlayers = await db.player.findMany({
+  const topPlayers = await withNeonRetry(() => db.player.findMany({
     where: { isActive: true },
     orderBy: [{ points: 'desc' }, { totalWins: 'desc' }],
-  });
+  }));
 
   // Stats
   const totalClubs = allClubs.length;
@@ -122,35 +145,18 @@ export async function GET() {
   const totalWeeks = weeks.length > 0 ? Math.max(...weeks) : 0;
 
   // MVP candidates
-  const mvpCandidates = await db.participation.findMany({
+  const mvpCandidates = await withNeonRetry(() => db.participation.findMany({
     where: {
       isMvp: true,
-      tournament: { seasonId: season.id, status: 'completed' },
+      tournament: { seasonId: activeSeasonId, status: 'completed' },
     },
     include: { player: true },
     orderBy: { createdAt: 'desc' },
     take: 5,
-  });
+  }));
 
   // Detect pre-season state: clubs exist but no matches played yet
   const isPreSeason = allClubs.length > 0 && leagueMatches.length === 0;
-
-  // Query champion seasons for all clubs in this season
-  const clubIds = allClubs.map(c => c.id);
-  const championSeasonRows = await db.season.findMany({
-    where: { championClubId: { in: clubIds } },
-    select: { id: true, name: true, number: true, championClubId: true },
-    orderBy: { number: 'desc' },
-  });
-  // Build a map: clubId -> championSeasons[]
-  const championSeasonsMap = new Map<string, { id: string; name: string; number: number }[]>();
-  for (const cs of championSeasonRows) {
-    if (cs.championClubId) {
-      const arr = championSeasonsMap.get(cs.championClubId) || [];
-      arr.push({ id: cs.id, name: cs.name, number: cs.number });
-      championSeasonsMap.set(cs.championClubId, arr);
-    }
-  }
 
   return NextResponse.json({
     hasData: true,
@@ -161,6 +167,8 @@ export async function GET() {
       id: c.id,
       name: c.name,
       logo: c.logo,
+      bannerImage: c.bannerImage,
+      division: c.division,
       wins: c.wins,
       losses: c.losses,
       points: c.points,
@@ -169,13 +177,13 @@ export async function GET() {
       members: c.members.map(m => ({
         id: m.player.id,
         gamertag: m.player.gamertag,
+        name: m.player.gamertag, // Use gamertag as display name for profile modal
         division: m.player.division,
         tier: m.player.tier,
         points: m.player.points,
         role: m.role,
         avatar: m.player.avatar,
       })),
-      championSeasons: championSeasonsMap.get(c.id) || [],
     })),
     leagueMatches: leagueMatches.map(m => ({
       id: m.id, week: m.week, score1: m.score1, score2: m.score2,
@@ -217,7 +225,19 @@ export async function GET() {
       size: 5,
       main: 3,
       substitute: 2,
-      rule: 'Wajib minimal 1 peserta female. Tim tidak boleh semua male atau semua female.',
+      rule: 'Peserta bebas mix atau tidak mix dari divisi male dan female. Skuad champion dapat memilih anggota dari divisi mana saja.',
     },
   });
+
+  } catch (error: any) {
+    // Neon cold start or connection error — return graceful fallback
+    console.error('[/api/league] Error:', error?.message || error);
+    return NextResponse.json({
+      hasData: false,
+      reason: 'db_error',
+      error: error?.message || 'Database connection failed',
+      // Always attempt to preserve ligaChampion if we got that far
+      ligaChampion: null,
+    }, { status: 200 }); // Return 200 so React Query doesn't treat it as an error
+  }
 }

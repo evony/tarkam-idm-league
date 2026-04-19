@@ -198,7 +198,7 @@ function TimelineEvent({ event, idx }: { event: MatchEvent; idx: number }) {
     score_input: <Star className="w-3 h-3 text-emerald-400" />,
     mvp_selected: <Crown className="w-3 h-3 text-yellow-500" />,
     match_scheduled: <Clock className="w-3 h-3 text-amber-400" />,
-    match_end: <Trophy className="w-3 h-3 text-[#d4a853]" />,
+    match_end: <Trophy className="w-3 h-3 text-idm-gold-warm" />,
   };
 
   const teamColor = event.team === 'team1' ? dt.neonText : event.team === 'team2' ? 'text-purple-400' : 'text-muted-foreground';
@@ -1014,7 +1014,7 @@ export function MatchDayCenter() {
                       title: 'MVP Diberikan',
                       desc: `${selectedMatch.mvpPlayer.gamertag} dipilih sebagai MVP`,
                       icon: Crown,
-                      color: 'text-[#d4a853]',
+                      color: 'text-idm-gold-warm',
                     });
                   }
 
@@ -1025,7 +1025,7 @@ export function MatchDayCenter() {
                       title: 'Match Difinalisasi',
                       desc: 'Hasil dikonfirmasi oleh organizer',
                       icon: Trophy,
-                      color: 'text-[#d4a853]',
+                      color: 'text-idm-gold-warm',
                     });
                   }
 

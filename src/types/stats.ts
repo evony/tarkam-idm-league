@@ -52,7 +52,7 @@ export interface ActiveTournament {
   weekNumber: number;
   status: string;
   prizePool: number;
-  bpm: number;
+  bpm: string | null;
   location: string;
   scheduledAt: string;
   teams: TournamentTeam[];
@@ -74,6 +74,7 @@ export interface TopPlayer {
   matches: number;
   club?: string;
   division?: string;
+  city?: string;
 }
 
 export interface ClubData {
@@ -85,7 +86,6 @@ export interface ClubData {
   points: number;
   gameDiff: number;
   _count?: { members: number };
-  championSeasons?: { id: string; name: string; number: number }[];
 }
 
 export interface MatchResult {

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { hexToRgba } from '@/lib/utils';
 
 /* ═══════════════════════════════════════════════
    IDM League — Reusable Skeleton Components
@@ -141,7 +142,7 @@ export function MVPCardSkeleton({
   return (
     <div
       className={`relative rounded-2xl overflow-hidden min-h-[520px] border ${className}`}
-      style={{ borderColor: `${accent}15` }}
+      style={{ borderColor: hexToRgba(accent, 0x15) }}
       aria-hidden="true"
     >
       {/* Neon accent line */}
@@ -205,7 +206,7 @@ export function ChampionCardSkeleton({
   return (
     <Card
       className={`overflow-hidden border ${className}`}
-      style={{ borderColor: `${accent}20` }}
+      style={{ borderColor: hexToRgba(accent, 0x20) }}
       aria-hidden="true"
     >
       {/* Accent line */}
@@ -218,7 +219,7 @@ export function ChampionCardSkeleton({
         <div className="relative h-48 overflow-hidden">
           <div
             className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, ${accent}08 0%, ${accent}04 50%, transparent 100%)` }}
+            style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x04)} 50%, transparent 100%)` }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/60 to-transparent" />
           {/* Division label */}

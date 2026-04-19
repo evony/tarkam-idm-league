@@ -48,11 +48,11 @@ function FeedCard({ item, index }: { item: FeedItem; index: number }) {
       case 'achievement':
         return <TrendingUp className="w-4 h-4 text-green-400" />;
       case 'mvp':
-        return <Users className="w-4 h-4 text-[#d4a853]" />;
+        return <Users className="w-4 h-4 text-idm-gold-warm" />;
       case 'tournament':
         return <Clock className="w-4 h-4 text-blue-400" />;
       case 'champion':
-        return <TrendingUp className="w-4 h-4 text-[#d4a853]" />;
+        return <TrendingUp className="w-4 h-4 text-idm-gold-warm" />;
       default:
         return null;
     }
@@ -260,13 +260,13 @@ export function CountdownTimer({ targetDate, label, className = '' }: CountdownT
         ].map((item, index) => (
           <div key={index} className="text-center">
             <motion.div
-              className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-[#d4a853]/10 border border-[#d4a853]/20"
+              className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-idm-gold-warm/10 border border-idm-gold-warm/20"
               key={`${item.value}-${index}`}
               initial={{ scale: 1 }}
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 0.3 }}
             >
-              <span className="text-xl sm:text-2xl font-black text-[#d4a853]">
+              <span className="text-xl sm:text-2xl font-black text-idm-gold-warm">
                 {String(item.value).padStart(2, '0')}
               </span>
             </motion.div>

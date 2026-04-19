@@ -49,3 +49,20 @@ export async function requireAdmin(request: Request): Promise<{ id: string; user
   }
   return admin;
 }
+
+/**
+ * Helper to require super_admin role in API routes.
+ * Returns 401 if not authenticated, 403 if not super_admin, or the admin data if authorized.
+ */
+export async function requireSuperAdmin(request: Request): Promise<{ id: string; username: string; role: string } | NextResponse> {
+  const result = await requireAdmin(request);
+  if (result instanceof NextResponse) return result;
+
+  if (result.role !== 'super_admin') {
+    return NextResponse.json(
+      { error: 'Forbidden - Super admin access required' },
+      { status: 403 }
+    );
+  }
+  return result;
+}

@@ -25,7 +25,6 @@ interface LeagueClub {
   id: string; name: string; logo: string | null; wins: number; losses: number;
   points: number; gameDiff: number; memberCount: number;
   members: ClubMember[];
-  championSeasons?: { id: string; name: string; number: number }[];
 }
 
 interface LeagueMatchData {
@@ -84,7 +83,7 @@ export function LeagueView() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[#d4a853] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-idm-gold-warm border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -100,8 +99,8 @@ export function LeagueView() {
         transition={{ duration: 0.6 }}
         className="max-w-5xl mx-auto"
       >
-        <div className="relative rounded-2xl overflow-hidden border border-[#d4a853]/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#d4a853 1px, transparent 1px), linear-gradient(90deg, #d4a853 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.1) 0%, transparent 50%)' }} />
           <div className="relative p-8 sm:p-12 z-10">
             <div className="flex flex-col items-center text-center">
@@ -112,36 +111,36 @@ export function LeagueView() {
                 transition={{ delay: 0.2, type: 'spring' }}
                 className="relative mb-6"
               >
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#d4a853]/20 to-[#d4a853]/5 border border-[#d4a853]/20 flex items-center justify-center">
-                  <Trophy className="w-8 h-8 text-[#d4a853]" />
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-idm-gold-warm/20 to-idm-gold-warm/5 border border-idm-gold-warm/20 flex items-center justify-center">
+                  <Trophy className="w-8 h-8 text-idm-gold-warm" />
                 </div>
                 <motion.div
                   animate={{ y: [-3, 3, -3], opacity: [0.5, 1, 0.5] }}
                   transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#d4a853] opacity-70"
+                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-idm-gold-warm opacity-70"
                 />
               </motion.div>
 
               {/* Season name badge if available */}
               {isNoClubs && data.season && (
-                <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[10px] border-[#d4a853]/20 font-bold uppercase tracking-wider mb-3">
+                <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-idm-gold-warm/20 font-bold uppercase tracking-wider mb-3">
                   {data.season.name} — AKTIF
                 </Badge>
               )}
 
-              <h3 className="text-xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, #d4a853, #f5d78e, #d4a853)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="text-xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {isNoSeason ? 'Season Belum Dimulai' : 'Liga Belum Dimulai'}
               </h3>
               <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
                 {isNoSeason
-                  ? 'Liga IDM akan tersedia setelah season dimulai dan club terbentuk. Club di Liga IDM menggunakan tim mix — gabungan peserta male & female.'
-                  : 'Season sudah aktif, tapi club belum terbentuk. Liga IDM akan dimulai setelah club terdaftar dan pemain dialokasikan ke tim mix.'}
+                  ? 'Liga IDM akan tersedia setelah season dimulai dan club terbentuk. Club di Liga IDM bebas mix atau tidak mix dari divisi male dan female.'
+                  : 'Season sudah aktif, tapi club belum terbentuk. Liga IDM akan dimulai setelah club terdaftar dan pemain dialokasikan.'}
               </p>
 
               {/* What to expect */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
                 {(isNoSeason ? [
-                  { icon: Shield, label: 'Tim Mix', desc: 'Male & female dalam satu tim' },
+                  { icon: Shield, label: 'Bebas Mix', desc: 'Male & female bebas digabung' },
                   { icon: Swords, label: 'Match Mingguan', desc: 'Jadwal liga setiap pekan' },
                   { icon: Crown, label: 'Playoff', desc: 'Grand Final BO5' },
                 ] : [
@@ -149,8 +148,8 @@ export function LeagueView() {
                   { icon: Swords, label: 'Match Mingguan', desc: 'Jadwal liga setiap pekan' },
                   { icon: Crown, label: 'Playoff', desc: 'Grand Final BO5' },
                 ]).map((step, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-[#d4a853]/5 border border-[#d4a853]/10 text-center">
-                    <step.icon className="w-5 h-5 mx-auto mb-1.5 text-[#d4a853]" />
+                  <div key={i} className="p-3 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/10 text-center">
+                    <step.icon className="w-5 h-5 mx-auto mb-1.5 text-idm-gold-warm" />
                     <p className="text-xs font-semibold">{step.label}</p>
                     <p className="text-[9px] text-muted-foreground mt-0.5">{step.desc}</p>
                   </div>
@@ -158,14 +157,14 @@ export function LeagueView() {
               </div>
 
               {/* League format preview */}
-              <div className="mt-4 p-3 rounded-xl border border-[#d4a853]/10 bg-[#d4a853]/5 w-full max-w-lg">
+              <div className="mt-4 p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5 w-full max-w-lg">
                 <div className="flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-[#d4a853] shrink-0 mt-0.5" />
+                  <Info className="w-4 h-4 text-idm-gold-warm shrink-0 mt-0.5" />
                   <div className="text-left">
-                    <span className="text-xs font-semibold text-[#d4a853]">Format Liga</span>
+                    <span className="text-xs font-semibold text-idm-gold-warm">Format Liga</span>
                     <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
                       3 pemain inti + 2 cadangan per tim.
-                      Wajib minimal <span className="text-[#d4a853] font-semibold">1 peserta female</span> — tim tidak boleh semua male atau semua female.
+                      Peserta <span className="text-idm-gold-warm font-semibold">bebas mix</span> dari divisi male dan female — skuad champion dapat memilih anggota dari divisi mana saja.
                     </p>
                   </div>
                 </div>
@@ -173,6 +172,60 @@ export function LeagueView() {
             </div>
           </div>
         </div>
+
+        {/* Season Champion Card — shown even when current season has no clubs */}
+        {data.ligaChampion && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4 rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
+          >
+            <div className="h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
+            <div className="relative p-4 sm:p-5 z-10">
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <ClubLogoImage clubName={data.ligaChampion.name} dbLogo={data.ligaChampion.logo} alt={data.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-md">
+                    <Crown className="w-3 h-3 text-[#0c0a06]" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {data.ligaChampion.seasonNumber} Champion</Badge>
+                    <Badge className="bg-yellow-500/10 text-yellow-500 text-[8px] border-0">Liga IDM</Badge>
+                  </div>
+                  <h4 className="text-base font-black text-white truncate">{data.ligaChampion.name}</h4>
+                  <p className="text-[11px] text-muted-foreground">Juara Liga IDM Season {data.ligaChampion.seasonNumber} — {data.ligaChampion.members.length} pemain (male & female)</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                  {data.ligaChampion.members.slice(0, 5).map(m => (
+                    <div
+                      key={m.id}
+                      className={`w-7 h-7 rounded-md overflow-hidden shrink-0 border ${m.division === 'male' ? 'border-cyan-500/20' : 'border-purple-500/20'}`}
+                      title={m.gamertag}
+                    >
+                      <Image
+                        src={getAvatarUrl(m.gamertag, m.division as 'male' | 'female', m.avatar)}
+                        alt={m.gamertag}
+                        width={28}
+                        height={28}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ))}
+                  {data.ligaChampion.members.length > 5 && (
+                    <div className="w-7 h-7 rounded-md flex items-center justify-center text-[8px] font-bold border border-white/10 bg-white/5 text-muted-foreground">
+                      +{data.ligaChampion.members.length - 5}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     );
   }
@@ -195,8 +248,8 @@ export function LeagueView() {
         className="max-w-5xl mx-auto space-y-4"
       >
         {/* Hero Banner - Pre-Season */}
-        <div className="relative rounded-2xl overflow-hidden border border-[#d4a853]/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#d4a853 1px, transparent 1px), linear-gradient(90deg, #d4a853 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.12) 0%, transparent 50%)' }} />
           <div className="relative p-6 sm:p-8 z-10">
             <div className="flex flex-col items-center text-center">
@@ -207,32 +260,32 @@ export function LeagueView() {
                 transition={{ delay: 0.2, type: 'spring' }}
                 className="relative mb-5"
               >
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#d4a853]/20 to-[#d4a853]/5 border border-[#d4a853]/20 flex items-center justify-center" style={{ boxShadow: '0 0 40px rgba(212,168,83,0.15)' }}>
-                  <Trophy className="w-9 h-9 text-[#d4a853]" />
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-idm-gold-warm/20 to-idm-gold-warm/5 border border-idm-gold-warm/20 flex items-center justify-center" style={{ boxShadow: '0 0 40px rgba(212,168,83,0.15)' }}>
+                  <Trophy className="w-9 h-9 text-idm-gold-warm" />
                 </div>
                 <motion.div
                   animate={{ y: [-4, 4, -4], opacity: [0.4, 1, 0.4] }}
                   transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#d4a853]/80"
+                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-idm-gold-warm/80"
                 />
               </motion.div>
 
               {/* Season Badge */}
-              <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[10px] border-[#d4a853]/20 font-bold uppercase tracking-wider mb-3">
+              <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-idm-gold-warm/20 font-bold uppercase tracking-wider mb-3">
                 {data.season?.name} — PRE-SEASON
               </Badge>
 
-              <h3 className="text-2xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, #d4a853, #f5d78e, #d4a853)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="text-2xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Liga IDM
               </h3>
               <p className="text-sm text-muted-foreground max-w-lg mb-6 leading-relaxed">
-                {stats.totalClubs} club sudah terbentuk dan siap bertanding. Liga IDM menunggu jadwal resmi — pertarungan antar club dengan tim mix male & female.
+                {stats.totalClubs} club sudah terbentuk dan siap bertanding. Liga IDM menunggu jadwal resmi — pertarungan antar club, peserta bebas mix dari divisi male dan female.
               </p>
 
               {/* Live Stats */}
               <div className="grid grid-cols-4 gap-3 w-full max-w-md mb-6">
-                <div className="p-3 rounded-xl bg-[#d4a853]/5 border border-[#d4a853]/10 text-center">
-                  <p className="text-lg font-bold text-[#d4a853]">{stats.totalClubs}</p>
+                <div className="p-3 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/10 text-center">
+                  <p className="text-lg font-bold text-idm-gold-warm">{stats.totalClubs}</p>
                   <p className="text-[9px] text-muted-foreground">Clubs</p>
                 </div>
                 <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/10 text-center">
@@ -245,22 +298,22 @@ export function LeagueView() {
                 </div>
                 <div className="p-3 rounded-xl bg-green-500/5 border border-green-500/10 text-center">
                   <p className="text-lg font-bold text-green-400">{clubsFemale}/{stats.totalClubs}</p>
-                  <p className="text-[9px] text-muted-foreground">Mix Valid</p>
+                  <p className="text-[9px] text-muted-foreground">Bebas Mix</p>
                 </div>
               </div>
 
               {/* Format Info */}
-              <div className="p-3 rounded-xl border border-[#d4a853]/10 bg-[#d4a853]/5 w-full max-w-lg">
+              <div className="p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5 w-full max-w-lg">
                 <div className="flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-[#d4a853] shrink-0 mt-0.5" />
+                  <Info className="w-4 h-4 text-idm-gold-warm shrink-0 mt-0.5" />
                   <div className="text-left">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold text-[#d4a853]">Format Tim Liga</span>
-                      <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[9px] border-0">{teamFormat.size} Pemain</Badge>
+                      <span className="text-xs font-semibold text-idm-gold-warm">Format Tim Liga</span>
+                      <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-0">{teamFormat.size} Pemain</Badge>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
                       <span className="text-foreground font-medium">{teamFormat.main} pemain inti</span> + <span className="text-foreground font-medium">{teamFormat.substitute} cadangan</span> per tim.
-                      Wajib minimal <span className="text-[#d4a853] font-semibold">1 peserta female</span> — tim harus mix.
+                      Peserta <span className="text-idm-gold-warm font-semibold">bebas mix</span> dari divisi male dan female.
                     </p>
                   </div>
                 </div>
@@ -275,22 +328,22 @@ export function LeagueView() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="rounded-2xl border border-[#d4a853]/25 overflow-hidden"
+            className="rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
           >
-            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#d4a853 1px, transparent 1px), linear-gradient(90deg, #d4a853 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
-            <div className="h-0.5 bg-gradient-to-r from-transparent via-[#d4a853] to-transparent" />
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
+            <div className="h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
             <div className="relative p-4 sm:p-5 z-10">
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
-                  <ClubLogoImage clubName={data.ligaChampion.name} dbLogo={data.ligaChampion.logo} alt={data.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-[#d4a853]/25" />
-                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#d4a853] flex items-center justify-center shadow-md">
+                  <ClubLogoImage clubName={data.ligaChampion.name} dbLogo={data.ligaChampion.logo} alt={data.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-md">
                     <Crown className="w-3 h-3 text-[#0c0a06]" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <Badge className="bg-[#d4a853]/15 text-[#d4a853] text-[8px] border-[#d4a853]/20 font-bold uppercase tracking-wider">Season {data.ligaChampion.seasonNumber} Champion</Badge>
+                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {data.ligaChampion.seasonNumber} Champion</Badge>
                     <Badge className="bg-yellow-500/10 text-yellow-500 text-[8px] border-0">Liga IDM</Badge>
                   </div>
                   <h4 className="text-base font-black text-white truncate">{data.ligaChampion.name}</h4>
@@ -327,9 +380,9 @@ export function LeagueView() {
         {/* Club Preview Grid */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Shield className="w-4 h-4 text-[#d4a853]" />
+            <Shield className="w-4 h-4 text-idm-gold-warm" />
             <h3 className="text-sm font-semibold">Club Terdaftar</h3>
-            <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[9px] border-0">{stats.totalClubs}</Badge>
+            <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-0">{stats.totalClubs}</Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {clubs.map((club, idx) => {
@@ -340,7 +393,7 @@ export function LeagueView() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="p-3 rounded-xl border border-[#d4a853]/10 bg-[#d4a853]/5 hover:bg-[#d4a853]/10 transition-colors cursor-pointer"
+                  className="p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/10 transition-colors cursor-pointer"
                   onClick={() => setSelectedClub(club)}
                 >
                   <div className="flex items-center gap-2.5 mb-2">
@@ -354,7 +407,7 @@ export function LeagueView() {
                     {clubFemale > 0 && <span className="text-purple-400">♀{clubFemale}</span>}
                     <span className="ml-auto">
                       {clubFemale > 0 ? (
-                        <span className="text-green-500 text-[9px]">✓ mix</span>
+                        <span className="text-green-500 text-[9px]">✓ bebas mix</span>
                       ) : (
                         <span className="text-red-400 text-[9px]">⚠ need ♀</span>
                       )}
@@ -370,12 +423,12 @@ export function LeagueView() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { icon: Calendar, label: 'Menunggu Jadwal', desc: 'Liga IDM akan dijadwalkan setelah pendanaan terpenuhi', status: 'waiting' },
-            { icon: Swords, label: 'Match Antar Club', desc: 'Club bertanding dengan tim mix male & female', status: 'upcoming' },
+            { icon: Swords, label: 'Match Antar Club', desc: 'Club bertanding, peserta bebas mix dari divisi mana saja', status: 'upcoming' },
             { icon: Crown, label: 'Playoff', desc: 'Top club melaju ke playoff Grand Final', status: 'upcoming' },
           ].map((step, i) => (
             <div key={i} className="p-4 rounded-xl bg-muted/30 border border-border/20">
               <div className="flex items-center gap-2 mb-2">
-                <step.icon className="w-5 h-5 text-[#d4a853]" />
+                <step.icon className="w-5 h-5 text-idm-gold-warm" />
                 <span className="text-xs font-semibold">{step.label}</span>
                 <Badge className={`text-[8px] border-0 ml-auto ${
                   step.status === 'waiting' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-muted text-muted-foreground'
@@ -418,41 +471,41 @@ export function LeagueView() {
 
       {/* ═══ HERO BANNER — Liga IDM ═══ */}
       <motion.div variants={item}>
-        <div className="relative rounded-2xl overflow-hidden border border-[#d4a853]/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
+        <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
           {/* Decorative grid */}
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#d4a853 1px, transparent 1px), linear-gradient(90deg, #d4a853 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           {/* Gold radial glow */}
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.1) 0%, transparent 50%)' }} />
 
           <div className="relative p-5 lg:p-6 z-10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               {/* Logo */}
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#d4a853]/20 to-[#d4a853]/5 border border-[#d4a853]/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(212,168,83,0.1)' }}>
-                <Trophy className="w-7 h-7 text-[#d4a853]" />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-idm-gold-warm/20 to-idm-gold-warm/5 border border-idm-gold-warm/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(212,168,83,0.1)' }}>
+                <Trophy className="w-7 h-7 text-idm-gold-warm" />
               </div>
               {/* Title */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[9px] border-[#d4a853]/20 font-bold uppercase tracking-wider">Liga IDM</Badge>
+                  <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Liga IDM</Badge>
                   {data.season && <Badge className="bg-muted/50 text-muted-foreground text-[9px] border-0">{data.season.name}</Badge>}
                 </div>
-                <h2 className="text-xl lg:text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #d4a853, #f5d78e, #d4a853)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h2 className="text-xl lg:text-2xl font-bold" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   IDM League
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Club bertanding dengan tim mix — gabungan peserta male & female</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Club bertanding — peserta bebas mix dari divisi male dan female</p>
               </div>
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-lg font-bold text-[#d4a853]">{stats.totalClubs}</p>
+                  <p className="text-lg font-bold text-idm-gold-warm">{stats.totalClubs}</p>
                   <p className="text-[9px] text-muted-foreground">Clubs</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-[#d4a853]">{stats.completedMatches}</p>
+                  <p className="text-lg font-bold text-idm-gold-warm">{stats.completedMatches}</p>
                   <p className="text-[9px] text-muted-foreground">Dimainkan</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-[#d4a853]">{stats.totalWeeks > 0 ? `${weeks.length}/${stats.totalWeeks}` : '-'}</p>
+                  <p className="text-lg font-bold text-idm-gold-warm">{stats.totalWeeks > 0 ? `${weeks.length}/${stats.totalWeeks}` : '-'}</p>
                   <p className="text-[9px] text-muted-foreground">{stats.totalWeeks > 0 ? 'Weeks' : 'Jadwal'}</p>
                 </div>
               </div>
@@ -462,7 +515,7 @@ export function LeagueView() {
             <div className="mt-4">
               <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
                 <span>Progress Liga</span>
-                <span className="text-[#d4a853] font-semibold">
+                <span className="text-idm-gold-warm font-semibold">
                   {stats.totalWeeks > 0
                     ? `${Math.round((stats.playedWeeks / stats.totalWeeks) * 100)}%`
                     : stats.completedMatches > 0
@@ -473,9 +526,9 @@ export function LeagueView() {
               </div>
               <div className="w-full h-2 rounded-full bg-muted/50 overflow-hidden">
                 {stats.totalWeeks > 0 ? (
-                  <div className="h-full rounded-full" style={{ width: `${(stats.playedWeeks / stats.totalWeeks) * 100}%`, background: 'linear-gradient(90deg, #d4a853, #f5d78e, #d4a853)' }} />
+                  <div className="h-full rounded-full" style={{ width: `${(stats.playedWeeks / stats.totalWeeks) * 100}%`, background: 'linear-gradient(90deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))' }} />
                 ) : (
-                  <div className="h-full rounded-full w-0" style={{ background: 'linear-gradient(90deg, #d4a853, #f5d78e, #d4a853)' }} />
+                  <div className="h-full rounded-full w-0" style={{ background: 'linear-gradient(90deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))' }} />
                 )}
               </div>
               {stats.totalWeeks === 0 && (
@@ -484,17 +537,17 @@ export function LeagueView() {
             </div>
 
             {/* Team Format Info */}
-            <div className="mt-4 p-3 rounded-xl border border-[#d4a853]/10 bg-[#d4a853]/5">
+            <div className="mt-4 p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5">
               <div className="flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-[#d4a853] shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-idm-gold-warm shrink-0 mt-0.5" />
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-[#d4a853]">Format Tim Liga</span>
-                    <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[9px] border-0">{teamFormat.size} Pemain</Badge>
+                    <span className="text-xs font-semibold text-idm-gold-warm">Format Tim Liga</span>
+                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-0">{teamFormat.size} Pemain</Badge>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
                     <span className="text-foreground font-medium">{teamFormat.main} pemain inti</span> + <span className="text-foreground font-medium">{teamFormat.substitute} cadangan</span> per tim.
-                    Wajib minimal <span className="text-[#d4a853] font-semibold">1 peserta female</span> — tim tidak boleh semua male atau semua female, harus mix.
+                    Peserta <span className="text-idm-gold-warm font-semibold">bebas mix</span> dari divisi male dan female — skuad champion dapat memilih anggota dari divisi mana saja.
                   </p>
                 </div>
               </div>
@@ -536,10 +589,10 @@ export function LeagueView() {
               const wr = club.wins + club.losses > 0 ? Math.round((club.wins / (club.wins + club.losses)) * 100) : 0;
 
               return (
-                <motion.div key={club.id} variants={item}>
+                <div key={club.id} className="stagger-item" style={{ animationDelay: `${idx * 50}ms` }}>
                   <div
                     className={`rounded-xl transition-all cursor-pointer ${
-                      isChampion ? 'border border-[#d4a853]/20' : isTop4 ? 'border border-border/30' : 'border border-border/20'
+                      isChampion ? 'border border-idm-gold-warm/20' : isTop4 ? 'border border-border/30' : 'border border-border/20'
                     }`}
                     style={isChampion ? { background: 'linear-gradient(135deg, rgba(212,168,83,0.06) 0%, rgba(20,17,10,0.6) 50%, rgba(212,168,83,0.04) 100%)' } : { background: 'rgba(20,17,10,0.4)' }}
                     onClick={() => setExpandedClub(isExpanded ? null : club.id)}
@@ -548,10 +601,10 @@ export function LeagueView() {
                     <div className="flex items-center gap-3 p-3">
                       {/* Rank */}
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
-                        idx === 0 ? 'bg-[#d4a853]/20 text-[#d4a853]' :
+                        idx === 0 ? 'bg-idm-gold-warm/20 text-idm-gold-warm' :
                         idx === 1 ? 'bg-gray-400/20 text-gray-400' :
                         idx === 2 ? 'bg-amber-600/20 text-amber-600' :
-                        isTop4 ? 'bg-[#d4a853]/10 text-[#d4a853]/60' :
+                        isTop4 ? 'bg-idm-gold-warm/10 text-idm-gold-warm/60' :
                         'bg-muted text-muted-foreground'
                       }`}>
                         {idx < 3 ? ['🥇', '🥈', '🥉'][idx] : idx + 1}
@@ -559,12 +612,12 @@ export function LeagueView() {
 
                       {/* Club Logo */}
                       <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                        <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={40} height={40} className={`w-full h-full object-cover ${isChampion ? 'ring-2 ring-[#d4a853]/40' : ''}`} />
+                        <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={40} height={40} className={`w-full h-full object-cover ${isChampion ? 'ring-2 ring-idm-gold-warm/40' : ''}`} />
                       </div>
 
                       {/* Club Info */}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold truncate ${isChampion ? 'text-[#d4a853]' : ''}`}>{club.name}</p>
+                        <p className={`text-sm font-semibold truncate ${isChampion ? 'text-idm-gold-warm' : ''}`}>{club.name}</p>
                         <div className="flex items-center gap-2 text-[10px]">
                           <span className="text-green-500 font-medium">{club.wins}W</span>
                           <span className="text-muted-foreground">-</span>
@@ -583,7 +636,7 @@ export function LeagueView() {
 
                       {/* Points */}
                       <div className="text-right shrink-0 pl-3 border-l border-border/50">
-                        <p className={`text-xl font-bold ${isChampion ? 'text-[#d4a853]' : 'text-foreground'}`}>{club.points}</p>
+                        <p className={`text-xl font-bold ${isChampion ? 'text-idm-gold-warm' : 'text-foreground'}`}>{club.points}</p>
                         <p className="text-[9px] text-muted-foreground">PTS</p>
                       </div>
 
@@ -612,8 +665,8 @@ export function LeagueView() {
                           {club.members.length > 0 ? (
                             <>
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Flame className="w-3 h-3 text-[#d4a853]" />
-                                <span className="text-[10px] font-semibold text-[#d4a853]">Pemain Inti ({Math.min(3, club.members.length)})</span>
+                                <Flame className="w-3 h-3 text-idm-gold-warm" />
+                                <span className="text-[10px] font-semibold text-idm-gold-warm">Pemain Inti ({Math.min(3, club.members.length)})</span>
                               </div>
                               <div className="flex flex-wrap gap-1.5">
                                 {club.members.slice(0, 3).map(m => (
@@ -668,9 +721,9 @@ export function LeagueView() {
 
                               {/* Mix validation badge */}
                               {femaleCount > 0 ? (
-                                <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 mt-1">✓ Tim mix valid</Badge>
+                                <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 mt-1">✓ Bebas mix</Badge>
                               ) : (
-                                <Badge className="bg-red-500/10 text-red-500 text-[9px] border-0 mt-1">⚠ Minimal 1 female diperlukan</Badge>
+                                <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-0 mt-1">✨ Cross-division</Badge>
                               )}
                             </>
                           ) : (
@@ -679,7 +732,7 @@ export function LeagueView() {
 
                           {/* Click to see full profile */}
                           <button
-                            className="w-full text-center text-[10px] text-[#d4a853] font-semibold py-1.5 rounded-lg bg-[#d4a853]/5 border border-[#d4a853]/10 hover:bg-[#d4a853]/10 transition-colors"
+                            className="w-full text-center text-[10px] text-idm-gold-warm font-semibold py-1.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 hover:bg-idm-gold-warm/10 transition-colors"
                             onClick={(e) => { e.stopPropagation(); setSelectedClub(club); }}
                           >
                             Lihat Profil Club →
@@ -688,7 +741,7 @@ export function LeagueView() {
                       </motion.div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               );
             })}
 
@@ -710,17 +763,17 @@ export function LeagueView() {
                 <p className="text-sm text-muted-foreground">Belum ada jadwal match</p>
               </div>
             )}
-            {weeks.map(week => {
+            {weeks.map((week, idx) => {
               const weekMatches = leagueMatches.filter(m => m.week === week);
               const completed = weekMatches.filter(m => m.status === 'completed').length;
               return (
-                <motion.div key={week} variants={item}>
+                <div key={week} className="stagger-item" style={{ animationDelay: `${idx * 50}ms` }}>
                   <Card className="overflow-hidden" style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                     <CardContent className="p-0">
                       {/* Week header */}
                       <div className="flex items-center justify-between px-4 py-3 border-b border-border/30" style={{ background: 'rgba(212,168,83,0.03)' }}>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-[#d4a853]" />
+                          <Calendar className="w-4 h-4 text-idm-gold-warm" />
                           <h3 className="text-sm font-semibold">Week {week}</h3>
                         </div>
                         <Badge className={`text-[10px] border-0 ${
@@ -740,22 +793,22 @@ export function LeagueView() {
                             <div key={m.id} className={`p-3 rounded-xl transition-all border ${
                               isLive ? 'border-red-500/20 bg-red-500/5' :
                               m.status === 'completed' ? 'border-border/20 bg-muted/30' :
-                              'border-[#d4a853]/10 bg-[#d4a853]/5'
+                              'border-idm-gold-warm/10 bg-idm-gold-warm/5'
                             }`}>
                               <div className="flex items-center justify-between">
                                 {/* Club 1 */}
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   {m.club1.logo ? (
-                                    <ClubLogoImage clubName={m.club1.name} dbLogo={m.club1.logo} alt={m.club1.name} width={32} height={32} className={`w-8 h-8 rounded-lg object-cover shrink-0 ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'ring-1 ring-[#d4a853]/30' : ''}`} />
+                                    <ClubLogoImage clubName={m.club1.name} dbLogo={m.club1.logo} alt={m.club1.name} width={32} height={32} className={`w-8 h-8 rounded-lg object-cover shrink-0 ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'ring-1 ring-idm-gold-warm/30' : ''}`} />
                                   ) : (
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                                      m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'bg-[#d4a853]/15 text-[#d4a853]' : 'bg-[#d4a853]/10 text-[#d4a853]/60'
+                                      m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : 'bg-idm-gold-warm/10 text-idm-gold-warm/60'
                                     }`}>
                                       {m.club1.name.slice(0, 2).toUpperCase()}
                                     </div>
                                   )}
                                   <span className={`text-sm font-medium truncate ${
-                                    m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'text-[#d4a853] font-bold' : ''
+                                    m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'text-idm-gold-warm font-bold' : ''
                                   }`}>{m.club1.name}</span>
                                 </div>
 
@@ -765,25 +818,25 @@ export function LeagueView() {
                                     <span className="text-[10px] font-bold text-red-500 live-dot px-2 py-1 rounded bg-red-500/10">LIVE</span>
                                   ) : m.status === 'completed' ? (
                                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/50">
-                                      <span className={`text-base font-bold ${scoreGt(m.score1, m.score2) ? 'text-[#d4a853]' : 'text-muted-foreground'}`}>{m.score1}</span>
+                                      <span className={`text-base font-bold ${scoreGt(m.score1, m.score2) ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>{m.score1}</span>
                                       <span className="text-[10px] text-muted-foreground">-</span>
-                                      <span className={`text-base font-bold ${scoreGt(m.score2, m.score1) ? 'text-[#d4a853]' : 'text-muted-foreground'}`}>{m.score2}</span>
+                                      <span className={`text-base font-bold ${scoreGt(m.score2, m.score1) ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>{m.score2}</span>
                                     </div>
                                   ) : (
-                                    <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[10px] border-0">VS</Badge>
+                                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">VS</Badge>
                                   )}
                                 </div>
 
                                 {/* Club 2 */}
                                 <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
                                   <span className={`text-sm font-medium truncate ${
-                                    m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'text-[#d4a853] font-bold' : ''
+                                    m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'text-idm-gold-warm font-bold' : ''
                                   }`}>{m.club2.name}</span>
                                   {m.club2.logo ? (
-                                    <ClubLogoImage clubName={m.club2.name} dbLogo={m.club2.logo} alt={m.club2.name} width={32} height={32} className={`w-8 h-8 rounded-lg object-cover shrink-0 ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'ring-1 ring-[#d4a853]/30' : ''}`} />
+                                    <ClubLogoImage clubName={m.club2.name} dbLogo={m.club2.logo} alt={m.club2.name} width={32} height={32} className={`w-8 h-8 rounded-lg object-cover shrink-0 ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'ring-1 ring-idm-gold-warm/30' : ''}`} />
                                   ) : (
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                                      m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'bg-[#d4a853]/15 text-[#d4a853]' : 'bg-[#d4a853]/10 text-[#d4a853]/60'
+                                      m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : 'bg-idm-gold-warm/10 text-idm-gold-warm/60'
                                     }`}>
                                       {m.club2.name.slice(0, 2).toUpperCase()}
                                     </div>
@@ -793,7 +846,7 @@ export function LeagueView() {
                               {/* Format badge */}
                               <div className="flex items-center justify-center mt-2">
                                 <Badge className={`text-[9px] border-0 ${
-                                  m.format === 'BO5' ? 'bg-[#d4a853]/10 text-[#d4a853]' : 'bg-muted text-muted-foreground'
+                                  m.format === 'BO5' ? 'bg-idm-gold-warm/10 text-idm-gold-warm' : 'bg-muted text-muted-foreground'
                                 }`}>{m.format}</Badge>
                               </div>
                             </div>
@@ -802,7 +855,7 @@ export function LeagueView() {
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
               );
             })}
           </motion.div>
@@ -816,24 +869,24 @@ export function LeagueView() {
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-[#d4a853]/10 flex items-center justify-center">
-                      <Crown className="w-3.5 h-3.5 text-[#d4a853]" />
+                    <div className="w-7 h-7 rounded-lg bg-idm-gold-warm/10 flex items-center justify-center">
+                      <Crown className="w-3.5 h-3.5 text-idm-gold-warm" />
                     </div>
                     <h3 className="text-sm font-semibold">MVP Race</h3>
-                    <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[9px] border-0 ml-auto">LIGA IDM</Badge>
+                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-0 ml-auto">LIGA IDM</Badge>
                   </div>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
                     {mvpCandidates.map((p, idx) => (
                       <div key={p.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${
-                        idx === 0 ? 'bg-[#d4a853]/5 border border-[#d4a853]/10' : 'bg-muted/30 border border-border/20'
+                        idx === 0 ? 'bg-idm-gold-warm/5 border border-idm-gold-warm/10' : 'bg-muted/30 border border-border/20'
                       }`}>
                         <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                          idx === 0 ? 'bg-[#d4a853]/20 text-[#d4a853]' :
+                          idx === 0 ? 'bg-idm-gold-warm/20 text-idm-gold-warm' :
                           idx === 1 ? 'bg-gray-400/20 text-gray-400' :
                           idx === 2 ? 'bg-amber-600/20 text-amber-600' :
                           'bg-muted text-muted-foreground'
                         }`}>{idx + 1}</span>
-                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#d4a853]/20">
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-idm-gold-warm/20">
                           <Image
                             src={getAvatarUrl(p.gamertag, (p.division || 'male') as 'male' | 'female', p.avatar)}
                             alt={p.gamertag}
@@ -849,12 +902,12 @@ export function LeagueView() {
                             <TierBadge tier={p.tier} />
                           </div>
                           <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-1"><Crown className="w-3 h-3 text-[#d4a853]" />{p.totalMvp} MVP</span>
+                            <span className="flex items-center gap-1"><Crown className="w-3 h-3 text-idm-gold-warm" />{p.totalMvp} MVP</span>
                             <span className="flex items-center gap-1"><Flame className="w-3 h-3" />{p.streak} streak</span>
                             <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" />{p.totalWins}W</span>
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-[#d4a853]">{p.points} pts</span>
+                        <span className="text-sm font-bold text-idm-gold-warm">{p.points} pts</span>
                       </div>
                     ))}
                     {mvpCandidates.length === 0 && (
@@ -870,18 +923,18 @@ export function LeagueView() {
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-[#d4a853]/10 flex items-center justify-center">
-                      <Star className="w-3.5 h-3.5 text-[#d4a853]" />
+                    <div className="w-7 h-7 rounded-lg bg-idm-gold-warm/10 flex items-center justify-center">
+                      <Star className="w-3.5 h-3.5 text-idm-gold-warm" />
                     </div>
                     <h3 className="text-sm font-semibold">Top Performers</h3>
                   </div>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
                     {topPlayers.slice(0, 10).map((p, idx) => (
                       <div key={p.id} className={`flex items-center gap-3 p-2 rounded-lg ${
-                        idx === 0 ? 'bg-[#d4a853]/5 border border-[#d4a853]/10' : 'bg-muted/20'
+                        idx === 0 ? 'bg-idm-gold-warm/5 border border-idm-gold-warm/10' : 'bg-muted/20'
                       }`}>
                         <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
-                          idx === 0 ? 'bg-[#d4a853]/20 text-[#d4a853]' : 'bg-muted text-muted-foreground'
+                          idx === 0 ? 'bg-idm-gold-warm/20 text-idm-gold-warm' : 'bg-muted text-muted-foreground'
                         }`}>{idx + 1}</span>
                         <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
                           <Image
@@ -899,7 +952,7 @@ export function LeagueView() {
                             <TierBadge tier={p.tier} />
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-[#d4a853]">{p.points} pts</span>
+                        <span className="text-xs font-bold text-idm-gold-warm">{p.points} pts</span>
                       </div>
                     ))}
                   </div>
@@ -912,8 +965,8 @@ export function LeagueView() {
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-[#d4a853]/10 flex items-center justify-center">
-                      <TrendingUp className="w-3.5 h-3.5 text-[#d4a853]" />
+                    <div className="w-7 h-7 rounded-lg bg-idm-gold-warm/10 flex items-center justify-center">
+                      <TrendingUp className="w-3.5 h-3.5 text-idm-gold-warm" />
                     </div>
                     <h3 className="text-sm font-semibold">Peringkat Kekuatan Club</h3>
                   </div>
@@ -922,11 +975,11 @@ export function LeagueView() {
                       const wr = club.wins + club.losses > 0 ? Math.round((club.wins / (club.wins + club.losses)) * 100) : 0;
                       return (
                         <div key={club.id} className={`p-3 rounded-xl cursor-pointer interactive-scale border ${
-                          idx === 0 ? 'border-[#d4a853]/20 bg-[#d4a853]/5' : 'border-border/20 bg-muted/20'
+                          idx === 0 ? 'border-idm-gold-warm/20 bg-idm-gold-warm/5' : 'border-border/20 bg-muted/20'
                         }`} onClick={() => setSelectedClub(club)}>
                           <div className="flex items-center gap-2 mb-2">
                             <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={20} height={20} className="w-4 h-4 rounded object-cover shrink-0" />
-                            <span className={`text-xs font-semibold truncate ${idx === 0 ? 'text-[#d4a853]' : ''}`}>{club.name}</span>
+                            <span className={`text-xs font-semibold truncate ${idx === 0 ? 'text-idm-gold-warm' : ''}`}>{club.name}</span>
                           </div>
                           <div className="grid grid-cols-3 gap-1 text-center">
                             <div>
@@ -934,7 +987,7 @@ export function LeagueView() {
                               <p className="text-[8px] text-muted-foreground">WIN</p>
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-[#d4a853]">{wr}%</p>
+                              <p className="text-sm font-bold text-idm-gold-warm">{wr}%</p>
                               <p className="text-[8px] text-muted-foreground">WR</p>
                             </div>
                             <div>
@@ -959,9 +1012,9 @@ export function LeagueView() {
               <CardContent className="p-0">
                 <div className="px-4 py-3 border-b border-border/30" style={{ background: 'rgba(212,168,83,0.05)' }}>
                   <div className="flex items-center gap-2">
-                    <Crown className="w-4 h-4 text-[#d4a853]" />
+                    <Crown className="w-4 h-4 text-idm-gold-warm" />
                     <h3 className="text-sm font-semibold">Playoff Bracket</h3>
-                    <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[10px] border-0 ml-auto">🏆 BO5 Format</Badge>
+                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0 ml-auto">🏆 BO5 Format</Badge>
                   </div>
                 </div>
                 <div className="p-4">
@@ -972,7 +1025,7 @@ export function LeagueView() {
                       {playoffMatches.filter(m => m.round.startsWith('semifinal')).map(m => (
                         <div key={m.id} className="p-3 rounded-xl bg-muted/50 min-w-[160px] border border-border/30 interactive-scale">
                           <div className="space-y-2">
-                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'font-bold text-[#d4a853]' : ''}`}>
+                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'font-bold text-idm-gold-warm' : ''}`}>
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <ClubLogoImage clubName={m.club1.name} dbLogo={m.club1.logo} alt={m.club1.name} width={18} height={18} className="w-[18px] h-[18px] rounded object-cover shrink-0" />
                                 <span className="truncate">{m.club1.name}</span>
@@ -980,7 +1033,7 @@ export function LeagueView() {
                               <span className="font-mono shrink-0 ml-2">{m.score1 ?? '-'}</span>
                             </div>
                             <div className="h-px bg-border" />
-                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'font-bold text-[#d4a853]' : ''}`}>
+                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'font-bold text-idm-gold-warm' : ''}`}>
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <ClubLogoImage clubName={m.club2.name} dbLogo={m.club2.logo} alt={m.club2.name} width={18} height={18} className="w-[18px] h-[18px] rounded object-cover shrink-0" />
                                 <span className="truncate">{m.club2.name}</span>
@@ -988,12 +1041,12 @@ export function LeagueView() {
                               <span className="font-mono shrink-0 ml-2">{m.score2 ?? '-'}</span>
                             </div>
                           </div>
-                          <Badge className="mt-2 text-[9px] border-0 bg-[#d4a853]/10 text-[#d4a853]">BO5</Badge>
+                          <Badge className="mt-2 text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">BO5</Badge>
                         </div>
                       ))}
                       {playoffMatches.filter(m => m.round.startsWith('semifinal')).length === 0 && (
-                        <div className="p-3 rounded-xl bg-muted/30 min-w-[160px] text-center border border-dashed border-[#d4a853]/20">
-                          <Swords className="w-5 h-5 text-[#d4a853]/30 mx-auto mb-1" />
+                        <div className="p-3 rounded-xl bg-muted/30 min-w-[160px] text-center border border-dashed border-idm-gold-warm/20">
+                          <Swords className="w-5 h-5 text-idm-gold-warm/30 mx-auto mb-1" />
                           <p className="text-[10px] text-muted-foreground">Menunggu</p>
                         </div>
                       )}
@@ -1001,26 +1054,26 @@ export function LeagueView() {
 
                     {/* Connector */}
                     <div className="hidden lg:flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <div className="w-8 h-px bg-[#d4a853]/30" />
-                      <Trophy className="w-4 h-4 text-[#d4a853]" />
-                      <div className="w-8 h-px bg-[#d4a853]/30" />
+                      <div className="w-8 h-px bg-idm-gold-warm/30" />
+                      <Trophy className="w-4 h-4 text-idm-gold-warm" />
+                      <div className="w-8 h-px bg-idm-gold-warm/30" />
                     </div>
 
                     {/* Grand Final */}
                     <div>
                       <p className="text-[10px] text-muted-foreground text-center font-semibold mb-2 uppercase tracking-wider">Grand Final</p>
                       {playoffMatches.filter(m => m.round === 'grand_final').map(m => (
-                        <div key={m.id} className="p-4 rounded-xl min-w-[180px] border border-[#d4a853]/20" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.08) 0%, rgba(20,17,10,0.6) 50%, rgba(212,168,83,0.05) 100%)' }}>
+                        <div key={m.id} className="p-4 rounded-xl min-w-[180px] border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.08) 0%, rgba(20,17,10,0.6) 50%, rgba(212,168,83,0.05) 100%)' }}>
                           <div className="space-y-2">
-                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'font-bold text-[#d4a853]' : ''}`}>
+                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score1, m.score2) ? 'font-bold text-idm-gold-warm' : ''}`}>
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <ClubLogoImage clubName={m.club1.name} dbLogo={m.club1.logo} alt={m.club1.name} width={18} height={18} className="w-[18px] h-[18px] rounded object-cover shrink-0" />
                                 <span className="truncate">{m.club1.name}</span>
                               </div>
                               <span className="font-mono shrink-0 ml-2">{m.score1 ?? '-'}</span>
                             </div>
-                            <div className="h-px bg-[#d4a853]/20" />
-                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'font-bold text-[#d4a853]' : ''}`}>
+                            <div className="h-px bg-idm-gold-warm/20" />
+                            <div className={`flex items-center justify-between text-xs ${m.status === 'completed' && scoreGt(m.score2, m.score1) ? 'font-bold text-idm-gold-warm' : ''}`}>
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <ClubLogoImage clubName={m.club2.name} dbLogo={m.club2.logo} alt={m.club2.name} width={18} height={18} className="w-[18px] h-[18px] rounded object-cover shrink-0" />
                                 <span className="truncate">{m.club2.name}</span>
@@ -1029,13 +1082,13 @@ export function LeagueView() {
                             </div>
                           </div>
                           <div className="mt-3 text-center">
-                            <Badge className="text-[9px] border-0 bg-[#d4a853]/15 text-[#d4a853]" style={{ boxShadow: '0 0 12px rgba(212,168,83,0.15)' }}>🏆 BO5 Grand Final</Badge>
+                            <Badge className="text-[9px] border-0 bg-idm-gold-warm/15 text-idm-gold-warm" style={{ boxShadow: '0 0 12px rgba(212,168,83,0.15)' }}>🏆 BO5 Grand Final</Badge>
                           </div>
                         </div>
                       ))}
                       {playoffMatches.filter(m => m.round === 'grand_final').length === 0 && (
-                        <div className="p-4 rounded-xl bg-muted/30 min-w-[180px] text-center border border-dashed border-[#d4a853]/20">
-                          <Crown className="w-6 h-6 text-[#d4a853]/30 mx-auto mb-2" />
+                        <div className="p-4 rounded-xl bg-muted/30 min-w-[180px] text-center border border-dashed border-idm-gold-warm/20">
+                          <Crown className="w-6 h-6 text-idm-gold-warm/30 mx-auto mb-2" />
                           <p className="text-xs text-muted-foreground">Segera Hadir</p>
                         </div>
                       )}

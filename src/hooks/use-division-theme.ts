@@ -138,11 +138,11 @@ const femaleTheme: DivisionTheme = {
   hoverBg: 'hover-bg-female',
 };
 
-export function getDivisionTheme(division: Division | string): DivisionTheme {
+export function getDivisionTheme(division: Division): DivisionTheme {
   return division === 'male' ? maleTheme : femaleTheme;
 }
 
 export function useDivisionTheme(): DivisionTheme {
   const division = useAppStore((s) => s.division);
-  return division === 'male' ? maleTheme : femaleTheme;
+  return getDivisionTheme(division);
 }

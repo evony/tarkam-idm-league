@@ -34,7 +34,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  const { name, logo } = body;
+  const { name, logo, bannerImage } = body;
 
   const club = await db.club.findUnique({ where: { id } });
   if (!club) return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
@@ -54,6 +54,7 @@ export async function PUT(
     data: {
       ...(name && { name: name.trim() }),
       ...(logo !== undefined && { logo }),
+      ...(bannerImage !== undefined && { bannerImage }),
     },
   });
 

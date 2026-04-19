@@ -10,15 +10,13 @@ import type { StatsData } from '@/types/stats';
 interface TournamentHubProps {
   maleData: StatsData | undefined;
   femaleData: StatsData | undefined;
-  onEnterApp: (division: 'male' | 'female') => void;
+  cmsSections: Record<string, any>;
   cmsSettings?: Record<string, string>;
-  cmsSections?: Record<string, any>;
+  onEnterApp: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
 }
 
-export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, cmsSections, onVideoPlay }: TournamentHubProps) {
-  const maleVideoUrl = cmsSettings?.kompetisi_male_video_url || cmsSections?.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'male' && c.videoUrl)?.videoUrl;
-  const femaleVideoUrl = cmsSettings?.kompetisi_female_video_url || cmsSections?.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'female' && c.videoUrl)?.videoUrl;
+export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, onEnterApp, onVideoPlay }: TournamentHubProps) {
   return (
     <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Arena battle with bilateral division glow */}
@@ -42,6 +40,19 @@ export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, c
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
               <div className="relative p-6 sm:p-8 z-10">
+                {/* Video Play Button */}
+                {(() => {
+                  const maleVideoUrl = cmsSettings?.kompetisi_male_video_url || cmsSections.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'male' && c.videoUrl)?.videoUrl;
+                  return maleVideoUrl && onVideoPlay ? (
+                    <button
+                      onClick={() => onVideoPlay(maleVideoUrl, 'Weekly Male')}
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
+                      aria-label="Play video"
+                    >
+                      <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
+                    </button>
+                  ) : null;
+                })()}
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(6,182,212,0.1)' }}>
@@ -89,19 +100,8 @@ export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, c
                   <div className="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-semibold">Champion</div>
                 </div>
 
-                {/* Video Play */}
-                {maleVideoUrl && onVideoPlay && (
-                  <button
-                    onClick={() => onVideoPlay(maleVideoUrl, 'Weekly Male')}
-                    className="mt-4 w-full py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/15 text-cyan-400/80 text-xs font-semibold hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    Tonton Video Weekly Male
-                  </button>
-                )}
-
                 {/* CTA */}
-                <button onClick={() => onEnterApp('male')} className="mt-3 w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('male')} className="mt-5 w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
                   Masuk Male Division →
                 </button>
               </div>
@@ -116,6 +116,19 @@ export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, c
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(168,85,247,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
               <div className="relative p-6 sm:p-8 z-10">
+                {/* Video Play Button */}
+                {(() => {
+                  const femaleVideoUrl = cmsSettings?.kompetisi_female_video_url || cmsSections.kompetisi?.cards?.find((c: { division?: string; videoUrl?: string }) => c.division === 'female' && c.videoUrl)?.videoUrl;
+                  return femaleVideoUrl && onVideoPlay ? (
+                    <button
+                      onClick={() => onVideoPlay(femaleVideoUrl, 'Weekly Female')}
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
+                      aria-label="Play video"
+                    >
+                      <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
+                    </button>
+                  ) : null;
+                })()}
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(168,85,247,0.1)' }}>
@@ -163,19 +176,8 @@ export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, c
                   <div className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 font-semibold">Champion</div>
                 </div>
 
-                {/* Video Play */}
-                {femaleVideoUrl && onVideoPlay && (
-                  <button
-                    onClick={() => onVideoPlay(femaleVideoUrl, 'Weekly Female')}
-                    className="mt-4 w-full py-2.5 rounded-xl bg-purple-500/5 border border-purple-500/15 text-purple-400/80 text-xs font-semibold hover:bg-purple-500/10 hover:text-purple-400 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    Tonton Video Weekly Female
-                  </button>
-                )}
-
                 {/* CTA */}
-                <button onClick={() => onEnterApp('female')} className="mt-3 w-full py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('female')} className="mt-5 w-full py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
                   Masuk Female Division →
                 </button>
               </div>
@@ -187,18 +189,18 @@ export function TournamentHub({ maleData, femaleData, onEnterApp, cmsSettings, c
         <AnimatedSection variant="fadeUp">
           <button
             onClick={() => document.getElementById('dream')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-8 w-full relative rounded-2xl border border-[#d4a853]/15 bg-[#d4a853]/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-[#d4a853]/30 hover:bg-[#d4a853]/[0.06] transition-all duration-300 cursor-pointer"
+            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4a853]/10 border border-[#d4a853]/20 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-[#d4a853]" />
+              <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-idm-gold-warm" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-[#d4a853]">Liga IDM — Liga Profesional</p>
+                <p className="text-sm font-bold text-idm-gold-warm">Liga IDM — Liga Profesional</p>
                 <p className="text-[11px] text-muted-foreground">Weekly adalah latihan. Liga IDM adalah tujuan akhir. Lihat visi kami →</p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-[#d4a853]/50 group-hover:text-[#d4a853] group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-idm-gold-warm/50 group-hover:text-idm-gold-warm group-hover:translate-x-1 transition-all" />
           </button>
         </AnimatedSection>
       </div>

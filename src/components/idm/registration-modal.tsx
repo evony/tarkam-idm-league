@@ -265,9 +265,9 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
             aria-modal="true"
             aria-label="Form Pendaftaran Peserta"
           >
-            <Card className="border-[#d4a853]/20 bg-background shadow-2xl">
+            <Card className="border-idm-gold-warm/20 bg-background shadow-2xl">
               {/* Header */}
-              <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-[#d4a853]/10 px-5 py-4 flex items-center justify-between z-10">
+              <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${division === 'male' ? 'bg-[#06b6d4]/10' : 'bg-[#a855f7]/10'}`}>
                     <UserPlus className={`w-5 h-5 ${division === 'male' ? 'text-[#22d3ee]' : 'text-[#c084fc]'}`} />
@@ -315,7 +315,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
                           <Button
                             onClick={handleClose}
-                            className="bg-[#d4a853] hover:bg-[#d4a853]/90 text-[#0c0a06] font-bold"
+                            className="bg-idm-gold-warm hover:bg-idm-gold-warm/90 text-[#0c0a06] font-bold"
                           >
                             Tutup
                           </Button>

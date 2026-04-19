@@ -325,7 +325,7 @@ export function MyTournamentCard() {
                   <p className="text-[10px] text-muted-foreground">{data.player.name} • {data.player.city}</p>
                 </div>
                 <TierBadge tier={data.player.tier} />
-                <Button size="sm" variant="ghost" className="shrink-0 h-7 w-7 p-0" onClick={() => { setSubmittedName(''); setSearchName(''); }}>
+                <Button size="sm" variant="ghost" className="shrink-0 h-7 w-7 p-0 touch-icon" onClick={() => { setSubmittedName(''); setSearchName(''); }}>
                   <Search className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -615,7 +615,7 @@ export function MyTournamentCard() {
                   <span>{tournament.location}</span>
                 </div>
               )}
-              {tournament.bpm > 0 && (
+              {tournament.bpm && (
                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                   <Heart className="w-3 h-3 text-red-400 shrink-0" />
                   <span>{tournament.bpm} BPM</span>

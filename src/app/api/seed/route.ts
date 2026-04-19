@@ -10,26 +10,29 @@ export async function POST(request: Request) {
     const authResult = await requireAdmin(request);
     if (authResult instanceof NextResponse) return authResult;
   } else {
-    const playerCount = await db.player.count();
-    if (playerCount > 0) {
-      return NextResponse.json({ success: true, message: 'Database already has data — seeding skipped' });
+    const seasonCount = await db.season.count();
+    if (seasonCount > 0) {
+      return NextResponse.json({ success: true, message: 'Database already has seasons — seeding skipped' });
     }
   }
 
   try {
-    // Clear existing data
+    // Clear existing data (respect foreign key order)
+    await db.playerAchievement.deleteMany();
+    await db.playerPoint.deleteMany();
     await db.teamPlayer.deleteMany();
     await db.match.deleteMany();
     await db.team.deleteMany();
     await db.participation.deleteMany();
+    await db.tournamentPrize.deleteMany();
     await db.donation.deleteMany();
     await db.clubMember.deleteMany();
     await db.leagueMatch.deleteMany();
     await db.playoffMatch.deleteMany();
     await db.club.deleteMany();
     await db.tournament.deleteMany();
-    await db.season.deleteMany();
     await db.player.deleteMany();
+    await db.season.deleteMany();
 
     // ======== SEASONS ========
     const maleSeason = await db.season.create({
@@ -52,85 +55,91 @@ export async function POST(request: Request) {
       },
     });
 
-    // ======== PLAYERS — All points zeroed ========
+    // ======== MALE PLAYERS (all points = 0) ========
     const maleData = [
-      { gamertag: 'cepz', club: 'SALVADOR' },
+      { gamertag: 'AbdnZ', club: 'MAXIMOUS' },
+      { gamertag: 'afi', club: 'MAXIMOUS' },
       { gamertag: 'Afroki', club: 'SOUTHERN' },
       { gamertag: 'Airuen', club: 'AVENUE' },
-      { gamertag: 'Life', club: 'SALVADOR' },
       { gamertag: 'Armors', club: 'SOUTHERN' },
-      { gamertag: 'Bambang', club: 'MAXIMOUS' },
-      { gamertag: 'ziafu', club: 'MYSTERY' },
-      { gamertag: 'afi', club: 'MAXIMOUS' },
-      { gamertag: 'Kageno', club: 'AVENUE' },
-      { gamertag: 'janskie', club: 'SOUTHERN' },
-      { gamertag: 'zico', club: 'EUPHORIC' },
-      { gamertag: 'Vriskey_', club: 'EUPHORIC' },
       { gamertag: 'astro', club: 'MAXIMOUS' },
-      { gamertag: 'ipinnn', club: 'GYMSHARK' },
-      { gamertag: 'sheraid', club: 'MAXIMOUS' },
-      { gamertag: 'yay', club: 'MAXIMOUS' },
-      { gamertag: 'Oura', club: 'SALVADOR' },
-      { gamertag: 'Jave', club: 'RESTART' },
-      { gamertag: 'zmz', club: 'ALQA' },
-      { gamertag: 'Georgie', club: 'ALQA' },
+      { gamertag: 'Bambang', club: 'MAXIMOUS' },
+      { gamertag: 'Boby', club: 'MAXIMOUS' },
+      { gamertag: 'CARAOSEL', club: 'ORPHIC' },
+      { gamertag: 'cepz', club: 'SALVADOR' },
+      { gamertag: 'chand', club: 'MAXIMOUS' },
+      { gamertag: 'chikoo', club: 'SENSEI' },
       { gamertag: 'Chrollo', club: 'EUPHORIC' },
-      { gamertag: 'Vankless', club: 'SOUTHERN' },
+      { gamertag: 'DUUL', club: 'PARANOID' },
       { gamertag: 'Dylee', club: 'SENSEI' },
       { gamertag: 'Earth', club: 'MAXIMOUS' },
-      { gamertag: 'chikoo', club: 'SENSEI' },
       { gamertag: 'fyy', club: 'GYMSHARK' },
-      { gamertag: 'montiel', club: 'PARANOID' },
+      { gamertag: 'Georgie', club: 'ALQA' },
+      { gamertag: 'ipinnn', club: 'GYMSHARK' },
+      { gamertag: 'Jave', club: 'RESTART' },
+      { gamertag: 'janskie', club: 'SOUTHERN' },
+      { gamertag: 'jugger', club: 'GYMSHARK' },
+      { gamertag: 'justice', club: 'EUPHORIC' },
+      { gamertag: 'Kageno', club: 'AVENUE' },
+      { gamertag: 'KIERAN', club: 'MAXIMOUS' },
+      { gamertag: 'KIRA', club: 'SOUTHERN' },
+      { gamertag: 'Life', club: 'SALVADOR' },
       { gamertag: 'marimo', club: 'SECRETS' },
-      { gamertag: 'tonsky', club: 'MAXIMOUS' },
+      { gamertag: 'montiel', club: 'PARANOID' },
+      { gamertag: 'Oura', club: 'SALVADOR' },
       { gamertag: 'Ren', club: 'MAXIMOUS' },
       { gamertag: 'RIVALDO', club: 'EUPHORIC' },
-      { gamertag: 'jugger', club: 'GYMSHARK' },
-      { gamertag: 'WHYSON', club: 'RESTART' },
-      { gamertag: 'DUUL', club: 'PARANOID' },
-      { gamertag: 'ZORO', club: 'PARANOID' },
-      { gamertag: 'VICKY', club: 'MAXIMOUS' },
-      { gamertag: 'CARAOSEL', club: 'ORPIC' },
-      { gamertag: 'KIERAN', club: 'MAXIMOUS' },
       { gamertag: 'RONALD', club: 'MAXIMOUS' },
-      { gamertag: 'KIRA', club: 'SOUTHERN' },
-      { gamertag: 'XIAOPEI', club: 'CROWN' },
-      { gamertag: 'ZABYER', club: 'JASMINE' },
-      { gamertag: 'VBBOY', club: 'AVENUE' },
-      { gamertag: 'justice', club: 'EUPHORIC' },
+      { gamertag: 'rusel', club: 'GYMSHARK' },
+      { gamertag: 'sheraid', club: 'MAXIMOUS' },
+      { gamertag: 'sting', club: 'MAXIMOUS' },
       { gamertag: 'tazos', club: 'GYMSHARK' },
+      { gamertag: 'tonsky', club: 'MAXIMOUS' },
+      { gamertag: 'Vankless', club: 'SOUTHERN' },
+      { gamertag: 'VBBOY', club: 'AVENUE' },
+      { gamertag: 'VICKY', club: 'MAXIMOUS' },
+      { gamertag: 'Vriskey_', club: 'EUPHORIC' },
+      { gamertag: 'WHYSON', club: 'RESTART' },
+      { gamertag: 'XIAOPEI', club: 'CROWN' },
+      { gamertag: 'yay', club: 'MAXIMOUS' },
+      { gamertag: 'ziafu', club: 'MYSTERY' },
+      { gamertag: 'ZABYER', club: 'JASMINE' },
+      { gamertag: 'zmz', club: 'ALQA' },
+      { gamertag: 'ZORO', club: 'PARANOID' },
+      { gamertag: 'zico', club: 'EUPHORIC' },
     ];
 
+    // ======== FEMALE PLAYERS (all points = 0) ========
     const femaleData = [
-      { gamertag: 'Indy', club: 'MAXIMOUS' },
-      { gamertag: 'skylin', club: 'EUPHORIC' },
-      { gamertag: 'cheeyaqq', club: 'SECRETS' },
-      { gamertag: 'Vion', club: 'QUEEN' },
-      { gamertag: 'Veronicc', club: 'PARANOID' },
-      { gamertag: 'Liz', club: 'SOUTHERN' },
       { gamertag: 'Afrona', club: 'SOUTHERN' },
-      { gamertag: 'Elvareca', club: 'EUPHORIC' },
-      { gamertag: 'weywey', club: 'RNB' },
-      { gamertag: 'cami', club: 'MAXIMOUS' },
-      { gamertag: 'mishelle', club: 'PARANOID' },
-      { gamertag: 'kacee', club: 'MAXIMOUS' },
-      { gamertag: 'irazz', club: 'PARANOID' },
-      { gamertag: 'ciki_w', club: 'TOGETHER' },
-      { gamertag: 'reptil', club: 'SOUTHERN' },
-      { gamertag: 'meatry', club: 'YAKUZA' },
       { gamertag: 'AiTan', club: 'PARANOID' },
       { gamertag: 'arcalya', club: 'SOUTHERN' },
-      { gamertag: 's_melin', club: 'Plat R' },
-      { gamertag: 'yoonabi', club: 'PARANOID' },
-      { gamertag: 'Eive', club: 'PSALM' },
+      { gamertag: 'cami', club: 'MAXIMOUS' },
+      { gamertag: 'cheeyaqq', club: 'SECRETS' },
+      { gamertag: 'ciki_w', club: 'TOGETHER' },
       { gamertag: 'damncil', club: 'EUPHORIC' },
       { gamertag: 'dysa', club: 'RESTART' },
-      { gamertag: 'yaaay', club: 'YAKUZA' },
+      { gamertag: 'Elvareca', club: 'EUPHORIC' },
+      { gamertag: 'evony', club: 'GYMSHARK' },
+      { gamertag: 'Eive', club: 'PSALM' },
+      { gamertag: 'Indy', club: 'MAXIMOUS' },
+      { gamertag: 'irazz', club: 'PARANOID' },
+      { gamertag: 'kacee', club: 'MAXIMOUS' },
+      { gamertag: 'Liz', club: 'SOUTHERN' },
+      { gamertag: 'meatry', club: 'YAKUZA' },
+      { gamertag: 'mishelle', club: 'PARANOID' },
       { gamertag: 'moy', club: 'YAKUZA' },
-      { gamertag: 'EVONY', club: 'GYMSHARK' },
+      { gamertag: 'reptil', club: 'SOUTHERN' },
+      { gamertag: 's_melin', club: 'Plat R' },
+      { gamertag: 'skylin', club: 'EUPHORIC' },
+      { gamertag: 'Veronicc', club: 'PARANOID' },
+      { gamertag: 'Vion', club: 'QUEEN' },
+      { gamertag: 'weywey', club: 'RNB' },
+      { gamertag: 'yaaay', club: 'YAKUZA' },
+      { gamertag: 'yoonabi', club: 'PARANOID' },
     ];
 
-    // Create male players (all stats zeroed)
+    // Create players — all stats zeroed
     const malePlayers: Record<string, string> = {};
     for (const p of maleData) {
       const player = await db.player.create({
@@ -153,7 +162,6 @@ export async function POST(request: Request) {
       malePlayers[p.gamertag] = player.id;
     }
 
-    // Create female players (all stats zeroed)
     const femalePlayers: Record<string, string> = {};
     for (const p of femaleData) {
       const player = await db.player.create({
@@ -176,10 +184,9 @@ export async function POST(request: Request) {
       femalePlayers[p.gamertag] = player.id;
     }
 
-    // ======== CLUBS — All stats zeroed ========
-    // Unique clubs per division
-    const maleClubNames = [...new Set(maleData.map(p => p.club))];
-    const femaleClubNames = [...new Set(femaleData.map(p => p.club))];
+    // ======== CLUBS — all stats zeroed ========
+    const maleClubNames = [...new Set(maleData.map(p => p.club))].sort((a, b) => a.localeCompare(b));
+    const femaleClubNames = [...new Set(femaleData.map(p => p.club))].sort((a, b) => a.localeCompare(b));
 
     const maleClubs: Record<string, string> = {};
     for (const clubName of maleClubNames) {
@@ -214,7 +221,8 @@ export async function POST(request: Request) {
     }
 
     // ======== CLUB MEMBERSHIPS ========
-    // First male player in each club becomes captain
+    // Players are already sorted alphabetically in maleData/femaleData
+    // First player in each club becomes captain
     const maleClubFirstPlayer: Record<string, boolean> = {};
     for (const p of maleData) {
       const isFirst = !maleClubFirstPlayer[p.club];
@@ -241,44 +249,14 @@ export async function POST(request: Request) {
       });
     }
 
-    // ======== TOURNAMENTS — 1 active per division ========
-    await db.tournament.create({
-      data: {
-        name: 'Week 1 Tournament',
-        weekNumber: 1,
-        division: 'male',
-        seasonId: maleSeason.id,
-        status: 'registration',
-        prizePool: 50000,
-        location: 'Online - IDM Stage',
-      },
-    });
-
-    await db.tournament.create({
-      data: {
-        name: 'Week 1 Tournament',
-        weekNumber: 1,
-        division: 'female',
-        seasonId: femaleSeason.id,
-        status: 'registration',
-        prizePool: 50000,
-        location: 'Online - IDM Stage',
-      },
-    });
-
-    const malePlayerCount = maleData.length;
-    const femalePlayerCount = femaleData.length;
-    const maleClubCount = maleClubNames.length;
-    const femaleClubCount = femaleClubNames.length;
-
     return NextResponse.json({
       success: true,
-      message: 'Database seeded with IDM League data (all points zeroed)',
+      message: 'Database seeded with IDM League data (all points zeroed, sorted alphabetically)',
       stats: {
-        malePlayers: malePlayerCount,
-        femalePlayers: femalePlayerCount,
-        maleClubs: maleClubCount,
-        femaleClubs: femaleClubCount,
+        malePlayers: maleData.length,
+        femalePlayers: femaleData.length,
+        maleClubs: maleClubNames.length,
+        femaleClubs: femaleClubNames.length,
       },
     });
   } catch (e: unknown) {

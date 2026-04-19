@@ -5,7 +5,7 @@ import { useAppStore } from '@/lib/store';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Swords, Heart, BookOpen, Trophy } from 'lucide-react';
+import { Crown, Users, Swords, BookOpen, Trophy } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
 
@@ -27,7 +27,7 @@ import { PlayerProfile } from './player-profile';
 import { ClubProfile } from './club-profile';
 import { DonationModal } from './donation-modal';
 import { RegistrationModal } from './registration-modal';
-import { VideoModal } from './landing/video-modal';
+import { VideoModal } from './video-modal';
 import { BackToTop } from './ui/back-to-top';
 import { ScrollProgress } from './ui/scroll-progress';
 
@@ -93,8 +93,13 @@ export function LandingPage() {
 
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string }; ligaChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
     queryKey: ['league-landing'],
-    queryFn: async () => { const res = await fetch('/api/league'); return res.json(); },
-    staleTime: 60000,
+    queryFn: async () => { const res = await fetch('/api/league'); if (!res.ok) throw new Error('League API failed'); return res.json(); },
+    staleTime: 30000, // Reduced from 60s — refresh faster for Neon cold start recovery
+    gcTime: 300000, // Keep cached data for 5 minutes
+    retry: 3, // Retry 3 times for Neon cold start
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+    refetchOnWindowFocus: true, // Refetch when user comes back to tab
+    refetchOnReconnect: true, // Refetch when network reconnects
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;
@@ -164,7 +169,7 @@ export function LandingPage() {
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-md border-b border-[#d4a853]/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+          ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
           : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -193,15 +198,15 @@ export function LandingPage() {
                 aria-current={activeSection === item.id ? 'true' : undefined}
                 className={`relative px-3 py-1.5 text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   activeSection === item.id
-                    ? 'text-[#d4a853] font-semibold'
-                    : 'text-muted-foreground hover:text-[#d4a853]/70'
+                    ? 'text-idm-gold-warm font-semibold'
+                    : 'text-muted-foreground hover:text-idm-gold-warm/70'
                 }`}
               >
                 {item.label}
                 {activeSection === item.id && (
                   <motion.div
                     layoutId="nav-active"
-                    className="absolute bottom-0 left-1 right-1 h-[2px] bg-[#d4a853] rounded-full"
+                    className="absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -210,62 +215,70 @@ export function LandingPage() {
           </div>
 
           {/* Division Switch */}
-          <div className="relative flex items-center bg-background/50 backdrop-blur-sm rounded-full p-1 border border-[#d4a853]/20 shadow-[0_0_15px_rgba(212,168,83,0.1)]">
+          <div className="flex items-center bg-muted/80 backdrop-blur-sm rounded-full p-0.5 gap-0.5 border border-idm-gold-warm/15">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05, opacity: [1, 0.7, 1] }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
               onClick={() => enterApp('male')}
               aria-label="Enter Male Division"
-              className="relative z-10 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold tracking-wide transition-colors duration-300 text-[#22d3ee] hover:text-white"
+              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md"
             >
-              Male
+              🕺 Male
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05, opacity: [1, 0.7, 1] }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
               onClick={() => enterApp('female')}
               aria-label="Enter Female Division"
-              className="relative z-10 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold tracking-wide transition-colors duration-300 text-[#c084fc] hover:text-white"
+              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md"
             >
-              Female
+              💃 Female
             </motion.button>
           </div>
         </div>
       </nav>
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
-      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-[#d4a853]/10 safe-area-bottom">
+      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-idm-gold-warm/10 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {[
-            { id: 'about', label: 'Cerita', icon: BookOpen },
-            { id: 'kompetisi', label: 'Kompetisi', icon: Swords },
-            { id: 'champions', label: 'Champion', icon: Crown },
-            { id: 'mvp', label: 'MVP', icon: Heart },
-            { id: 'clubs', label: 'Club', icon: Users },
-            { id: 'dream', label: 'Liga IDM', icon: Trophy },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => scrollToSection(item.id)}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 ${
-                activeSection === item.id
-                  ? 'text-[#d4a853]'
-                  : 'text-muted-foreground hover:text-[#d4a853]/70'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium mt-1">{item.label}</span>
-              {activeSection === item.id && (
-                <motion.div
-                  layoutId="bottom-nav-active"
-                  className="absolute -bottom-0.5 w-8 h-0.5 bg-[#d4a853] rounded-full"
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                />
-              )}
-            </button>
-          ))}
+            { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
+            { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
+            { id: 'champions', label: 'Champion', icon: Crown, special: true },
+            { id: 'clubs', label: 'Club', icon: Users, special: false },
+            { id: 'dream', label: 'Liga IDM', icon: Trophy, special: false },
+          ].map(item => {
+            const isActive = (activeSection === 'champions' || activeSection === 'mvp') && item.id === 'champions' || activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 ${
+                  item.special
+                    ? isActive
+                      ? 'text-idm-gold-warm'
+                      : 'text-idm-gold-warm/70'
+                    : isActive
+                    ? 'text-idm-gold-warm'
+                    : 'text-muted-foreground hover:text-idm-gold-warm/70'
+                }`}
+              >
+                {item.special && (
+                  <span className="absolute inset-0 rounded-lg bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10" />
+                )}
+                {item.special && !isActive && (
+                  <span className="absolute inset-0 rounded-lg animate-pulse bg-idm-gold-warm/[0.03] shadow-[0_0_8px_rgba(212,168,83,0.08)]" />
+                )}
+                <item.icon className={`relative z-10 w-5 h-5 ${item.special ? 'drop-shadow-[0_0_4px_rgba(212,168,83,0.3)]' : ''}`} />
+                <span className={`relative z-10 text-[10px] font-medium mt-1 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="bottom-nav-active"
+                    className={`absolute -bottom-0.5 rounded-full transition-colors ${item.special ? 'w-10 h-1 bg-idm-gold-warm shadow-[0_0_8px_rgba(212,168,83,0.5)]' : 'w-8 h-0.5 bg-idm-gold-warm'}`}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </nav>
 
@@ -284,13 +297,13 @@ export function LandingPage() {
         cmsHeroTagline={cmsHeroTagline}
         cmsHeroBgDesktop={cmsHeroBgDesktop}
         cmsHeroBgMobile={cmsHeroBgMobile}
+        cmsHeroBgVideo={cms.hero_bg_video}
         cmsSections={cmsSections}
         leagueData={leagueData}
         nextSeason={nextSeason}
         maleData={maleData}
         particles={particles}
         onRegister={() => setRegistrationModalOpen(true)}
-        cmsHeroBgVideo={cms.hero_bg_video as string | undefined}
         onVideoPlay={openVideoModal}
       />
 
@@ -306,9 +319,9 @@ export function LandingPage() {
       <TournamentHub
         maleData={maleData}
         femaleData={femaleData}
-        onEnterApp={enterApp}
-        cmsSettings={cms}
         cmsSections={cmsSections}
+        cmsSettings={cms}
+        onEnterApp={enterApp}
         onVideoPlay={openVideoModal}
       />
 
@@ -426,6 +439,32 @@ export function LandingPage() {
         <ClubProfile
           club={selectedClub}
           onClose={() => setSelectedClub(null)}
+          onPlayerClick={(player) => {
+            // Find the player in the appropriate division's top players
+            const searchDivision = player.division || 'male';
+            const data = searchDivision === 'male' ? maleData : femaleData;
+            const found = data?.topPlayers?.find(p => p.id === player.id);
+            if (found) {
+              setSelectedPlayer({ ...found, division: searchDivision });
+            } else {
+              // Player not in topPlayers list — create a minimal profile
+              setSelectedPlayer({
+                id: player.id,
+                name: player.name || player.gamertag,
+                gamertag: player.gamertag,
+                avatar: player.avatar,
+                tier: player.tier || 'B',
+                points: player.points || 0,
+                totalWins: 0,
+                streak: 0,
+                maxStreak: 0,
+                totalMvp: 0,
+                matches: 0,
+                division: searchDivision,
+                city: (player as { city?: string }).city,
+              });
+            }
+          }}
         />
       )}
     </div>

@@ -65,14 +65,16 @@ export async function POST(
       }
     }
   } else if (format === 'group_stage') {
-    // For group stage, ranking is based on group results + playoff
-    const playoffMatches = tournament.matches.filter(m => m.round >= 2 && m.status === 'completed');
-    const maxPlayoffRound = playoffMatches.length > 0 ? Math.max(...playoffMatches.map(m => m.round)) : 0;
-    const finalMatch = playoffMatches.find(m => m.round === maxPlayoffRound);
+    // For group stage, ranking is based on playoff results
+    const finalMatch = tournament.matches.find(m => m.groupLabel === 'Final' && m.status === 'completed');
+    const thirdMatch = tournament.matches.find(m => m.groupLabel === '3rd' && m.status === 'completed');
 
     if (finalMatch) {
       rank1TeamId = finalMatch.winnerId;
       rank2TeamId = finalMatch.loserId;
+    }
+    if (thirdMatch) {
+      rank3TeamIds = thirdMatch.winnerId ? [thirdMatch.winnerId] : [];
     }
   }
 

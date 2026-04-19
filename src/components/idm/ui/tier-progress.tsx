@@ -98,7 +98,7 @@ export function TierProgress({
             >
               ⬆️
             </motion.div>
-            <div className="text-sm font-bold text-[#d4a853]">TIER UP!</div>
+            <div className="text-sm font-bold text-idm-gold-warm">TIER UP!</div>
           </div>
         </motion.div>
       )}

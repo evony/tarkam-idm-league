@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       defaultMatchFormat: defaultMatchFormat || 'BO1',
       prizePool: prizePool || 0,
       location: location || 'Online',
-      bpm: bpm || 128,
+      bpm: bpm || null,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
     },
   });

@@ -306,7 +306,7 @@ export function AdminAchievementPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 w-7 p-0"
+                              className="h-7 w-7 p-0 touch-icon"
                               onClick={() => {
                                 setSelectedAchievement(achievement);
                                 setFormData({
@@ -327,7 +327,7 @@ export function AdminAchievementPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              className="h-7 w-7 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10"
                               onClick={() => setConfirmDialog({
                                 open: true,
                                 title: 'Hapus Achievement?',

@@ -236,7 +236,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
       {/* ===== ACTIONS BAR ===== */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1 mr-auto">
-          <Button size="sm" variant={filterTier === 'all' ? 'default' : 'outline'} className={`text-[10px] h-7 ${filterTier === 'all' ? 'bg-[#d4a853] text-black hover:bg-[#d4a853]/80' : ''}`}
+          <Button size="sm" variant={filterTier === 'all' ? 'default' : 'outline'} className={`text-[10px] h-7 ${filterTier === 'all' ? 'bg-idm-gold-warm text-black hover:bg-idm-gold-warm/80' : ''}`}
             onClick={() => setFilterTier('all')}>Semua</Button>
           <Button size="sm" variant={filterTier === 'S' ? 'default' : 'outline'} className={`text-[10px] h-7 ${filterTier === 'S' ? 'bg-red-500 text-white' : ''}`}
             onClick={() => setFilterTier('S')}>S</Button>
@@ -288,10 +288,10 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
                 <div
                   className={`grid grid-cols-[2.5rem_1fr_3rem_3.5rem_3.5rem_3.5rem_3rem] sm:grid-cols-[2.5rem_1fr_3.5rem_4rem_4rem_4rem_5rem] gap-1 px-3 py-2 items-center cursor-pointer hover:bg-muted/30 transition-colors border-b border-border/5
                     ${p.upgradeInfo.shouldUpgrade ? 'bg-yellow-500/5' : ''}
-                    ${p.rank <= 3 ? 'bg-[#d4a853]/5' : ''}`}
+                    ${p.rank <= 3 ? 'bg-idm-gold-warm/5' : ''}`}
                   onClick={() => setExpandedPlayer(expandedPlayer === p.id ? null : p.id)}
                 >
-                  <span className={`text-xs font-bold ${p.rank <= 3 ? 'text-[#d4a853]' : 'text-muted-foreground'}`}>
+                  <span className={`text-xs font-bold ${p.rank <= 3 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
                     {p.rank <= 3 ? ['🥇', '🥈', '🥉'][p.rank - 1] : p.rank}
                   </span>
                   <div className="min-w-0">
@@ -321,7 +321,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
                       </div>
                     )}
                     {p.tier === 'S' && (
-                      <span className="text-[9px] text-[#d4a853]">MAX</span>
+                      <span className="text-[9px] text-idm-gold-warm">MAX</span>
                     )}
                     <span className="text-[8px] text-muted-foreground block">
                       {p.upgradeInfo.pointsToNext > 0 ? `${p.upgradeInfo.pointsToNext}pt lagi` : '✓'}

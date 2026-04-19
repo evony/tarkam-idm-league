@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Image as ImageIcon, Type, Layout, Save, Plus, Trash2, ChevronDown,
   ChevronUp, Eye, EyeOff, Edit3, X, Loader2, Palette,
-  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Heart, Link2, Swords
+  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Heart, Link2, Trophy, Shield, Swords
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { container, item } from '@/lib/animations';
+import { hexToRgba } from '@/lib/utils';
 import { CloudinaryPicker } from './cloudinary-picker';
 import { Cloud } from 'lucide-react';
 
@@ -29,6 +30,7 @@ interface CmsCard {
   subtitle: string;
   description: string;
   imageUrl: string | null;
+  videoUrl: string | null;
   linkUrl: string | null;
   tag: string | null;
   tagColor: string | null;
@@ -137,6 +139,7 @@ function CardEditor({
     subtitle: card.subtitle,
     description: card.description,
     imageUrl: card.imageUrl || '',
+    videoUrl: card.videoUrl || '',
     linkUrl: card.linkUrl || '',
     tag: card.tag || '',
     tagColor: card.tagColor || '#d4a853',
@@ -173,6 +176,11 @@ function CardEditor({
               <Textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} className="text-xs min-h-[60px]" placeholder="Deskripsi card" />
             </div>
             <CloudinaryImageField label="Gambar Card" value={form.imageUrl} onChange={(url) => setForm(p => ({ ...p, imageUrl: url }))} folder="cms/cards" />
+            <div>
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video URL</label>
+              <Input value={form.videoUrl} onChange={(e) => setForm(p => ({ ...p, videoUrl: e.target.value }))} className="text-xs h-8" placeholder="YouTube atau URL video (opsional)" />
+              <p className="text-[9px] text-muted-foreground/60 mt-0.5">Jika diisi, tombol play akan muncul di card</p>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-semibold text-muted-foreground">Link URL</label>
@@ -209,7 +217,7 @@ function CardEditor({
             </div>
             <div className="flex justify-end gap-2 pt-1">
               <Button size="sm" variant="ghost" className="text-[10px] h-7" onClick={() => setEditing(false)}>Batal</Button>
-              <Button size="sm" className="text-[10px] h-7 bg-[#d4a853] hover:bg-[#b8912e] text-black" disabled={isPending} onClick={handleSave}>
+              <Button size="sm" className="text-[10px] h-7 bg-idm-gold-warm hover:bg-[#b8912e] text-black" disabled={isPending} onClick={handleSave}>
                 {isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan
               </Button>
             </div>
@@ -230,7 +238,7 @@ function CardEditor({
               <div className="flex items-center gap-2">
                 <p className="text-xs font-semibold truncate">{card.title || 'Untitled Card'}</p>
                 {card.tag && (
-                  <Badge className="text-[8px] px-1.5 py-0 border-0" style={{ backgroundColor: `${card.tagColor || '#d4a853'}20`, color: card.tagColor || '#d4a853' }}>
+                  <Badge className="text-[8px] px-1.5 py-0 border-0" style={{ backgroundColor: hexToRgba(card.tagColor || '#d4a853', 0x20), color: card.tagColor || '#d4a853' }}>
                     {card.tag}
                   </Badge>
                 )}
@@ -302,13 +310,13 @@ function SectionEditor({
           className="p-3 cursor-pointer hover:bg-muted/30 transition-colors flex items-center gap-3"
           onClick={() => setExpanded(!expanded)}
         >
-          <div className="w-8 h-8 rounded-lg bg-[#d4a853]/10 flex items-center justify-center shrink-0">
-            <IconComponent className="w-4 h-4 text-[#d4a853]" />
+          <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
+            <IconComponent className="w-4 h-4 text-idm-gold-warm" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold">{section.title}</p>
-              <Badge className="text-[8px] border-0 bg-[#d4a853]/10 text-[#d4a853]">{section.slug}</Badge>
+              <Badge className="text-[8px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{section.slug}</Badge>
               {!section.isActive && <Badge className="text-[8px] bg-red-500/10 text-red-500 border-0">Nonaktif</Badge>}
             </div>
             {section.subtitle && <p className="text-[10px] text-muted-foreground">{section.subtitle}</p>}
@@ -361,7 +369,7 @@ function SectionEditor({
                   </div>
                   <div className="flex items-end gap-1">
                     <Button size="sm" variant="ghost" className="text-[10px] h-8 flex-1" onClick={() => setEditingSection(false)}>Batal</Button>
-                    <Button size="sm" className="text-[10px] h-8 bg-[#d4a853] hover:bg-[#b8912e] text-black" disabled={isPending} onClick={handleSaveSection}>
+                    <Button size="sm" className="text-[10px] h-8 bg-idm-gold-warm hover:bg-[#b8912e] text-black" disabled={isPending} onClick={handleSaveSection}>
                       {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Simpan
                     </Button>
                   </div>
@@ -385,7 +393,7 @@ function SectionEditor({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold flex items-center gap-1.5">
-                  <FileText className="w-3 h-3 text-[#d4a853]" /> Cards ({section.cards?.length || 0})
+                  <FileText className="w-3 h-3 text-idm-gold-warm" /> Cards ({section.cards?.length || 0})
                 </h4>
                 <Button
                   size="sm"
@@ -501,22 +509,9 @@ export function CmsPanel() {
     onError: (e: Error) => { toast.error(e.message); },
   });
 
-  const saveSetting = useMutation({
-    mutationFn: async (data: { key: string; value: string; type?: string }) => {
-      const res = await fetch('/api/cms/settings', {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-      return res.json();
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-settings'] }); toast.success('Setting berhasil disimpan!'); },
-    onError: (e: Error) => { toast.error(e.message); },
-  });
-
+  // Batch save — sends multiple settings in one API call, only 1 toast
   const saveSettingsBatch = useMutation({
-    mutationFn: async (items: { key: string; value: string; type: string }[]) => {
+    mutationFn: async (items: { key: string; value: string; type?: string }[]) => {
       const res = await fetch('/api/cms/settings', {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -525,8 +520,8 @@ export function CmsPanel() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-settings'] }); toast.success('Berhasil disimpan'); },
-    onError: () => { toast.error('Gagal menyimpan'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-settings'] }); toast.success('Setting berhasil disimpan!'); },
+    onError: (e: Error) => { toast.error(e.message); },
   });
 
   const seedCms = useMutation({
@@ -578,9 +573,9 @@ export function CmsPanel() {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Globe className="w-5 h-5 text-[#d4a853]" />
+          <Globe className="w-5 h-5 text-idm-gold-warm" />
           <h2 className="text-lg font-bold text-gradient-fury">CMS Landing Page</h2>
-          <Badge className="bg-[#d4a853]/10 text-[#d4a853] text-[10px] border-0">MANAGE</Badge>
+          <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">MANAGE</Badge>
         </div>
         <Button
           variant="outline"
@@ -605,7 +600,7 @@ export function CmsPanel() {
           <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
             {settingsLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-[#d4a853]" />
+                <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
               </div>
             ) : (
               <>
@@ -613,7 +608,7 @@ export function CmsPanel() {
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Palette className="w-4 h-4 text-[#d4a853]" /> Identitas Situs
+                      <Palette className="w-4 h-4 text-idm-gold-warm" /> Identitas Situs
                       <Badge className="text-[8px] border-0 bg-muted text-muted-foreground">Global</Badge>
                     </h3>
 
@@ -638,7 +633,7 @@ export function CmsPanel() {
                     <div className="grid grid-cols-2 gap-2 pt-2">
                       <Button
                         size="sm"
-                        className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                        className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                         onClick={() => {
                           saveSettingsBatch.mutate([
                             { key: 'site_title', value: settingsForm.site_title || '', type: 'text' },
@@ -657,8 +652,8 @@ export function CmsPanel() {
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#d4a853]" /> Hero Section
-                      <Badge className="text-[8px] border-0 bg-[#d4a853]/10 text-[#d4a853]">Section 1</Badge>
+                      <Sparkles className="w-4 h-4 text-idm-gold-warm" /> Hero Section
+                      <Badge className="text-[8px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">Section 1</Badge>
                     </h3>
 
                     <div className="space-y-3">
@@ -707,7 +702,6 @@ export function CmsPanel() {
                           folder="cms/backgrounds"
                         />
                       </div>
-
                       <div>
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Video Background (Opsional)</label>
                         <Input
@@ -722,7 +716,7 @@ export function CmsPanel() {
 
                     <Button
                       size="sm"
-                      className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                       onClick={() => {
                         saveSettingsBatch.mutate([
                           { key: 'hero_title', value: settingsForm.hero_title || '', type: 'text' },
@@ -744,7 +738,7 @@ export function CmsPanel() {
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-[#d4a853]" /> About / Cerita Kami
+                      <Heart className="w-4 h-4 text-idm-gold-warm" /> About / Cerita Kami
                       <Badge className="text-[8px] border-0 bg-cyan-500/10 text-cyan-400">Section 2</Badge>
                     </h3>
                     <p className="text-[10px] text-muted-foreground">Edit teks pada section About di landing page</p>
@@ -779,7 +773,7 @@ export function CmsPanel() {
                     </div>
                     <Button
                       size="sm"
-                      className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                       onClick={() => {
                         saveSettingsBatch.mutate([
                           { key: 'about_origin_story', value: settingsForm.about_origin_story || '', type: 'text' },
@@ -805,122 +799,139 @@ export function CmsPanel() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Male (Opsional)</label>
-                        <Input value={settingsForm.kompetisi_male_video_url || ''} onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_male_video_url: e.target.value }))} className="text-sm" placeholder="URL YouTube/MP4 — tombol play di card Male" />
+                        <Input
+                          value={settingsForm.kompetisi_male_video_url || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_male_video_url: e.target.value }))}
+                          className="text-sm"
+                          placeholder="URL YouTube/MP4 — tombol play di card Male"
+                        />
                         <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight turnamen Male Division</p>
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Female (Opsional)</label>
-                        <Input value={settingsForm.kompetisi_female_video_url || ''} onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_female_video_url: e.target.value }))} className="text-sm" placeholder="URL YouTube/MP4 — tombol play di card Female" />
+                        <Input
+                          value={settingsForm.kompetisi_female_video_url || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_female_video_url: e.target.value }))}
+                          className="text-sm"
+                          placeholder="URL YouTube/MP4 — tombol play di card Female"
+                        />
                         <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight turnamen Female Division</p>
                       </div>
                     </div>
-                    <Button size="sm" className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black" onClick={() => { saveSettingsBatch.mutate([ { key: 'kompetisi_male_video_url', value: settingsForm.kompetisi_male_video_url || '', type: 'text' }, { key: 'kompetisi_female_video_url', value: settingsForm.kompetisi_female_video_url || '', type: 'text' }, ]); }} disabled={saveSettingsBatch.isPending}>
+                    <Button
+                      size="sm"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
+                      onClick={() => {
+                        saveSettingsBatch.mutate([
+                          { key: 'kompetisi_male_video_url', value: settingsForm.kompetisi_male_video_url || '', type: 'text' },
+                          { key: 'kompetisi_female_video_url', value: settingsForm.kompetisi_female_video_url || '', type: 'text' },
+                        ]);
+                      }}
+                      disabled={saveSettingsBatch.isPending}
+                    >
                       {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Kompetisi
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* Liga IDM / The Dream — Landing Section #5 */}
+                {/* Liga IDM / The Dream — Landing Section #7 (Dream part) */}
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#d4a853]" /> Liga IDM / The Dream
-                      <Badge className="text-[8px] border-0 bg-purple-500/10 text-purple-400">Section 5</Badge>
+                      <Trophy className="w-4 h-4 text-idm-gold-warm" /> Liga IDM / The Dream
+                      <Badge className="text-[8px] border-0 bg-purple-500/10 text-purple-400">Section 7</Badge>
                     </h3>
-                    <p className="text-[10px] text-muted-foreground">Pengaturan section Liga IDM: deskripsi, stats manual, video champion, countdown timer, dan tombol CTA.</p>
-
+                    <p className="text-[10px] text-muted-foreground">Edit teks pada section Liga IDM / The Dream di landing page. Gunakan <code className="bg-muted px-1 rounded text-[9px]">{'{season}'}</code> untuk nomor season, <code className="bg-muted px-1 rounded text-[9px]">{'{champion}'}</code> untuk nama champion, <code className="bg-muted px-1 rounded text-[9px]">{'{clubs}'}</code> untuk jumlah club, <code className="bg-muted px-1 rounded text-[9px]">{'{matches}'}</code> untuk jumlah match, <code className="bg-muted px-1 rounded text-[9px]">{'{participants}'}</code> untuk total peserta.</p>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dream Description (Completed)</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Deskripsi (Season Completed — ada champion)</label>
                       <Textarea
                         rows={3}
-                        placeholder="Teks untuk season yang sudah selesai..."
+                        placeholder="Season {season} telah berlangsung dengan meriah — {champion} tampil sebagai champion..."
                         value={settingsForm.dream_description_completed || ''}
                         onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_completed: e.target.value }))}
                         className="text-xs resize-y"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dream Description (Active)</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Deskripsi (Season Active — belum ada champion)</label>
                       <Textarea
                         rows={3}
-                        placeholder="Teks untuk season yang sedang berlangsung..."
+                        placeholder="{clubs} club bertanding, peserta bebas mix dari divisi male dan female..."
                         value={settingsForm.dream_description_active || ''}
                         onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_active: e.target.value }))}
                         className="text-xs resize-y"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Season Next Text</label>
-                      <Input
-                        placeholder="Contoh: Season 2 Coming Soon"
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Teks "Season Next" (ajakan dukungan)</label>
+                      <Textarea
+                        rows={3}
+                        placeholder="Season {season} sudah terbukti — champion dinobatkan, club bertanding..."
                         value={settingsForm.dream_season_next_text || ''}
                         onChange={(e) => setSettingsForm(p => ({ ...p, dream_season_next_text: e.target.value }))}
-                        className="text-xs"
+                        className="text-xs resize-y"
                       />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Separator className="my-2" />
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5">
+                      <Shield className="w-3 h-3 text-idm-gold-warm" /> Statistik Liga (Manual)
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground">Isi manual jumlah club, match, dan peserta yang ditampilkan di section Liga IDM. Kosongkan untuk menggunakan data otomatis.</p>
+                    <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Clubs Competing</label>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Club Bertanding</label>
                         <Input
-                          placeholder="Contoh: 32"
+                          type="number"
+                          min="0"
                           value={settingsForm.dream_clubs_competing || ''}
                           onChange={(e) => setSettingsForm(p => ({ ...p, dream_clubs_competing: e.target.value }))}
-                          className="text-xs"
+                          className="text-sm"
+                          placeholder="Otomatis"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Matches Played</label>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Match Dimainkan</label>
                         <Input
-                          placeholder="Contoh: 128"
+                          type="number"
+                          min="0"
                           value={settingsForm.dream_matches_played || ''}
                           onChange={(e) => setSettingsForm(p => ({ ...p, dream_matches_played: e.target.value }))}
-                          className="text-xs"
+                          className="text-sm"
+                          placeholder="Otomatis"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Total Participants</label>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Peserta Total</label>
                         <Input
-                          placeholder="Contoh: 500+"
+                          type="number"
+                          min="0"
                           value={settingsForm.dream_total_participants || ''}
                           onChange={(e) => setSettingsForm(p => ({ ...p, dream_total_participants: e.target.value }))}
-                          className="text-xs"
+                          className="text-sm"
+                          placeholder="Otomatis"
                         />
                       </div>
                     </div>
-
+                    <Separator className="my-2" />
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5">
+                      <FileText className="w-3 h-3 text-idm-gold-warm" /> Video & Highlight
+                    </h4>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Champion (Opsional)</label>
-                      <Input
-                        placeholder="URL YouTube/MP4 — video highlight champion"
-                        value={settingsForm.champion_video_url || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, champion_video_url: e.target.value }))}
-                        className="text-xs"
-                      />
-                      <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video highlight juara/pemenang liga</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Countdown Label</label>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Champion (Opsional)</label>
                         <Input
-                          placeholder="Contoh: Menuju Season 2"
-                          value={settingsForm.countdown_label || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_label: e.target.value }))}
-                          className="text-xs"
+                          value={settingsForm.champion_video_url || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, champion_video_url: e.target.value }))}
+                          className="text-sm"
+                          placeholder="URL video YouTube/MP4 — tombol play di card champion"
                         />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Countdown Target Date</label>
-                        <Input
-                          type="datetime-local"
-                          value={settingsForm.countdown_target_date || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_target_date: e.target.value }))}
-                          className="text-xs"
-                        />
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Video showcase pemenang liga, muncul sebagai tombol play di section Champion</p>
                       </div>
                     </div>
-
+                    <Separator className="my-2" />
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5">
+                      <Type className="w-3 h-3 text-idm-gold-warm" /> CTA (Call to Action)
+                    </h4>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Teks Tombol Male</label>
@@ -939,10 +950,34 @@ export function CmsPanel() {
                         />
                       </div>
                     </div>
-
+                    <Separator className="my-2" />
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5">
+                      <Globe className="w-3 h-3 text-idm-gold-warm" /> Countdown Timer
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground">Jika diisi, countdown timer akan muncul di section Liga IDM.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Label</label>
+                        <Input
+                          value={settingsForm.countdown_label || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_label: e.target.value }))}
+                          className="text-sm"
+                          placeholder="Match Day Berikutnya"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Target Waktu</label>
+                        <Input
+                          type="datetime-local"
+                          value={settingsForm.countdown_target_date || ''}
+                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_target_date: e.target.value }))}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
                     <Button
                       size="sm"
-                      className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                       onClick={() => {
                         saveSettingsBatch.mutate([
                           { key: 'dream_description_completed', value: settingsForm.dream_description_completed || '', type: 'text' },
@@ -960,7 +995,7 @@ export function CmsPanel() {
                       }}
                       disabled={saveSettingsBatch.isPending}
                     >
-                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Liga IDM
+                      {saveSettingsBatch.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Liga IDM & CTA
                     </Button>
                   </CardContent>
                 </Card>
@@ -969,7 +1004,7 @@ export function CmsPanel() {
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Link2 className="w-4 h-4 text-[#d4a853]" /> Social Links
+                      <Link2 className="w-4 h-4 text-idm-gold-warm" /> Social Links
                       <Badge className="text-[8px] border-0 bg-green-500/10 text-green-400">Footer</Badge>
                     </h3>
                     <p className="text-[10px] text-muted-foreground">Masukkan URL social media. Kosongkan atau biarkan # untuk menyembunyikan icon di footer.</p>
@@ -1025,7 +1060,7 @@ export function CmsPanel() {
                     </div>
                     <Button
                       size="sm"
-                      className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                       onClick={() => {
                         saveSettingsBatch.mutate([
                           { key: 'social_discord_url', value: settingsForm.social_discord_url || '#', type: 'text' },
@@ -1045,7 +1080,7 @@ export function CmsPanel() {
                 <Card className="border border-border/50">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <PanelBottom className="w-4 h-4 text-[#d4a853]" /> Footer
+                      <PanelBottom className="w-4 h-4 text-idm-gold-warm" /> Footer
                       <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-400">Section 8</Badge>
                     </h3>
                     <div>
@@ -1066,7 +1101,7 @@ export function CmsPanel() {
                     </div>
                     <Button
                       size="sm"
-                      className="text-[10px] bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                      className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                       onClick={() => {
                         saveSettingsBatch.mutate([
                           { key: 'footer_text', value: settingsForm.footer_text || '', type: 'text' },
@@ -1088,10 +1123,10 @@ export function CmsPanel() {
         <TabsContent value="sections">
           <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
             {/* Add new section */}
-            <Card className="border border-dashed border-[#d4a853]/30 bg-[#d4a853]/5">
+            <Card className="border border-dashed border-idm-gold-warm/30 bg-idm-gold-warm/5">
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-[#d4a853]" /> Tambah Section Baru
+                  <Plus className="w-4 h-4 text-idm-gold-warm" /> Tambah Section Baru
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Input
@@ -1108,7 +1143,7 @@ export function CmsPanel() {
                   />
                   <Button
                     size="sm"
-                    className="text-xs bg-[#d4a853] hover:bg-[#b8912e] text-black"
+                    className="text-xs bg-idm-gold-warm hover:bg-[#b8912e] text-black"
                     disabled={!newSection.slug || !newSection.title || createSection.isPending}
                     onClick={() => {
                       createSection.mutate(newSection);
@@ -1124,7 +1159,7 @@ export function CmsPanel() {
             {/* Sections List */}
             {sectionsLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-[#d4a853]" />
+                <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
               </div>
             ) : (sections?.length ?? 0) > 0 ? (
               <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
@@ -1154,7 +1189,7 @@ export function CmsPanel() {
               <div className="py-12 text-center">
                 <Layout className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">Belum ada section</p>
-                <Button size="sm" className="bg-[#d4a853] hover:bg-[#b8912e] text-black" onClick={() => seedCms.mutate()} disabled={seedCms.isPending}>
+                <Button size="sm" className="bg-idm-gold-warm hover:bg-[#b8912e] text-black" onClick={() => seedCms.mutate()} disabled={seedCms.isPending}>
                   {seedCms.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />} Seed Default Content
                 </Button>
               </div>
