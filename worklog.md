@@ -106,3 +106,19 @@ Stage Summary:
 - Database schema adapted for SQLite with all models (Player, Season, Tournament, Team, Match, Club, etc.)
 - API routes working correctly
 - Server running and accessible
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Dashboard UI/UX high priority fixes (3 items)
+
+Work Log:
+- Fix #1: Tab aktif warna tidak berfungsi — `data-[state=active]:${dt.text}` dynamic class string tidak bisa di-compile Tailwind. Diganti dengan controlled Tabs (value/onValueChange) + conditional class menggunakan `activeTab === tab.value` untuk apply `${dt.text}` langsung tanpa data-attribute prefix.
+- Fix #2: Countdown hilang = layout tidak seimbang — ketika countdown tidak ada (tournament completed/tanpa jadwal), prize pool card tampil sendirian. Ditambahkan fallback card: Trophy icon + "Turnamen Selesai" atau "Season Aktif" + tombol "Lihat Hasil →" yang navigasi ke tab Match.
+- Fix #3: Hero banner mobile terlalu sempit — min-height ditingkatkan dari 120px ke 160px, judul dari `text-xl` ke `text-base` di mobile + `line-clamp-1`, baris info kedua disembunyikan di mobile (`hidden sm:flex`), gap antar item dikecilkan di mobile (`gap-3 sm:gap-4`), dan season name font size dikurangi di mobile (`text-[10px] sm:text-xs`).
+
+Stage Summary:
+- Tab navigasi dashboard sekarang menampilkan warna divisi yang benar (cyan untuk Male, purple untuk Female) saat aktif
+- Countdown + Prize Pool selalu dalam layout 2 kolom yang seimbang, tidak ada kolom kosong
+- Hero banner mobile lebih lega dan tidak overflow
+- Semua perbaikan lint pass, tidak ada error
