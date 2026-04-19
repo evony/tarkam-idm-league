@@ -18,7 +18,6 @@ export function CountdownTimer({ targetDate, className = '' }: CountdownTimerPro
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, []);
 
   useEffect(() => {
