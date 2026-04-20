@@ -1115,3 +1115,23 @@ Stage Summary:
 - Per-row ✓ (approve + tier) and ✗ (reject = delete participation) buttons implemented
 - No more multi-phase auto-advance confusion
 - Rejected players have their participation deleted, allowing them to re-register
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Add approved participants public view for players to verify registration
+
+Work Log:
+- Added `showApprovedList` state to registration-form.tsx and registration-modal.tsx
+- Added `approvedParticipants` query that fetches from `/api/tournaments?seasonId=X` and filters approved/assigned participations
+- Updated `alreadyInTournament` warning to include "Lihat Peserta Disetujui" button with expand/collapse
+- Added approved participants list section with animated expand/collapse in registration-form.tsx
+- Added "Lihat Peserta Disetujui" toggle link at bottom of registration form (always visible)
+- Applied same changes to registration-modal.tsx (inline approved list since modal has limited space)
+- Query is lazy-loaded (only fetches when `showApprovedList` is true)
+
+Stage Summary:
+- Players can now verify their registration by viewing the approved participants list
+- Two access points: (1) from the "Sudah Terdaftar" warning dialog, (2) from the bottom of the registration form
+- Approved list shows gamertag, name, tier badge, and points for each approved participant
+- Lazy-loaded query to avoid unnecessary API calls
