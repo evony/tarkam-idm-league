@@ -39,9 +39,9 @@ const TIER_CONFIG: Record<string, { color: string; bg: string; border: string; e
 const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'Round 3' };
 
 // Slot machine roller constants
-const ITEM_H = 48;
-const VISIBLE_COUNT = 2;
-const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 96px
+const ITEM_H = 44;
+const VISIBLE_COUNT = 3;
+const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 132px
 const STRIP_REPS = 3;
 const SPIN_DURATION = 1.5; // seconds
 const SPIN_EASE: [number, number, number, number] = [0.05, 0.7, 0.1, 1.0]; // fast start, slow end
@@ -95,8 +95,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     };
   }, []);
 
-  // Shuffle spinRevealOrder within tier groups so team sequence is random per round
-  const shuffledRevealOrder = useMemo(() => {
+  // Sort spinRevealOrder by teamIndex within tier groups — sequential placement (Team 1, 2, 3...)
+  const orderedRevealOrder = useMemo(() => {
     const result: SpinRevealItem[] = [];
     // Group by tier
     const groups: SpinRevealItem[][] = [];
@@ -108,19 +108,19 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       }
       groups[groups.length - 1].push(item);
     }
-    // Shuffle each tier group independently, then flatten
+    // Sort each tier group by teamIndex (sequential: Tim 1 → Tim 2 → Tim 3...)
     for (const group of groups) {
-      result.push(...shuffle([...group]));
+      result.push(...[...group].sort((a, b) => a.teamIndex - b.teamIndex));
     }
     return result;
   }, [spinRevealOrder]);
 
-  // Group steps by tier for round display (uses shuffled order)
+  // Group steps by tier for round display (uses ordered reveal)
   const roundGroups = useMemo(() => {
     const groups: { tier: string; steps: number[] }[] = [];
     let currentTier = '';
-    for (let i = 0; i < shuffledRevealOrder.length; i++) {
-      const tier = shuffledRevealOrder[i].tier;
+    for (let i = 0; i < orderedRevealOrder.length; i++) {
+      const tier = orderedRevealOrder[i].tier;
       if (tier !== currentTier) {
         groups.push({ tier, steps: [] });
         currentTier = tier;
@@ -128,10 +128,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       groups[groups.length - 1].steps.push(i);
     }
     return groups;
-  }, [shuffledRevealOrder]);
+  }, [orderedRevealOrder]);
 
-  // Total steps uses shuffled order
-  const totalSteps = shuffledRevealOrder.length;
+  // Total steps uses ordered reveal
+  const totalSteps = orderedRevealOrder.length;
 
   // Initialize team slots
   useEffect(() => {
@@ -144,11 +144,11 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
   // Get available players for cycling (exclude already assigned in same tier)
   const getAvailablePlayers = useCallback((stepIdx: number) => {
-    const item = shuffledRevealOrder[stepIdx];
+    const item = orderedRevealOrder[stepIdx];
     const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
     const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
     return available.length > 0 ? available : item.allPlayersInTier;
-  }, [shuffledRevealOrder, assignedPlayers]);
+  }, [orderedRevealOrder, assignedPlayers]);
 
   // Ref for startSpin to avoid hoisting issues
   const startSpinRef = useRef<(step: number) => void>(() => {});
@@ -157,7 +157,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
   const startSpin = useCallback((step: number) => {
     if (step >= totalSteps || !mountedRef.current) return;
 
-    const item = shuffledRevealOrder[step];
+    const item = orderedRevealOrder[step];
     // Get available players excluding already assigned
     const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
     const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
@@ -190,12 +190,12 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       }
     }
 
-    // Calculate where the target player should land (bottom item of viewport)
+    // Calculate where the target player should land (center item of viewport for 3 visible)
     const targetRep = STRIP_REPS - 2;
     const targetIdxInPlayers = shuffledAvailable.findIndex(p => p.id === targetPlayer.id);
     const targetGlobalIdx = targetRep * shuffledAvailable.length + targetIdxInPlayers;
-    // Bottom item position for VISIBLE_COUNT=2
-    const centerOffset = (VISIBLE_COUNT - 1) * ITEM_H;
+    // Center item position: middle of viewport
+    const centerOffset = Math.floor(VISIBLE_COUNT / 2) * ITEM_H;
     const targetY = -(targetGlobalIdx * ITEM_H) + centerOffset;
 
     // Set state and start animation
@@ -206,7 +206,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     isSpinningRef.current = true;
     setShowReveal(false);
     setSpinKey(prev => prev + 1);
-  }, [shuffledRevealOrder, totalSteps, assignedPlayers, getAvailablePlayers]);
+  }, [orderedRevealOrder, totalSteps, assignedPlayers, getAvailablePlayers]);
 
   // Keep ref in sync
   useEffect(() => { startSpinRef.current = startSpin; }, [startSpin]);
@@ -283,7 +283,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     const step = currentStepRef.current;
     if (step >= totalSteps) return;
 
-    const item = shuffledRevealOrder[step];
+    const item = orderedRevealOrder[step];
     const tierKey = item.tier.toLowerCase() as 's' | 'a' | 'b';
 
     // Use the randomly selected player instead of item.player
@@ -310,15 +310,15 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       if (!mountedRef.current) return;
       advanceToNextStep(step);
     }, 1500);
-  }, [shuffledRevealOrder, totalSteps, advanceToNextStep, randomSelection]);
+  }, [orderedRevealOrder, totalSteps, advanceToNextStep, randomSelection]);
 
   // Public doSpin for Play button click
   const doSpin = useCallback(() => {
     startSpin(currentStepRef.current);
   }, [startSpin]);
 
-  // Current step data (uses shuffled order)
-  const currentItem = currentStep < totalSteps ? shuffledRevealOrder[currentStep] : null;
+  // Current step data (uses ordered reveal)
+  const currentItem = currentStep < totalSteps ? orderedRevealOrder[currentStep] : null;
   const currentTier = currentItem?.tier || 'S';
   const tierConf = TIER_CONFIG[currentTier] || TIER_CONFIG.S;
   const currentRound = ROUND_LABELS[currentTier] || 'Round 1';
@@ -476,17 +476,17 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     className={`relative mx-auto w-80 lg:w-96 rounded-2xl border-2 ${tierConf.border} ${tierConf.bg} overflow-hidden`}
                     style={{ height: VIEWPORT_H, boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none' }}
                   >
-                    {/* Top gradient mask */}
-                    <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    {/* Top gradient mask — fades top item */}
+                    <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
-                    {/* Bottom gradient mask */}
-                    <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    {/* Bottom gradient mask — fades bottom item */}
+                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
-                    {/* Center highlight line */}
+                    {/* Center highlight line — highlights middle item for 3 visible */}
                     <div
                       className={`absolute inset-x-2 z-10 pointer-events-none rounded border-y-2 transition-colors duration-300
                         ${showReveal ? 'border-idm-gold-warm/60 bg-idm-gold-warm/5' : `border-white/10 lg:border-idm-gold-warm/10`}`}
-                      style={{ top: ITEM_H, height: ITEM_H }}
+                      style={{ top: Math.floor(VISIBLE_COUNT / 2) * ITEM_H, height: ITEM_H }}
                     />
 
                     {/* Roller content */}
