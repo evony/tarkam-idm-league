@@ -664,3 +664,25 @@ Stage Summary:
 - All dashboard views: full width on desktop ✅
 - Delete tournament: now sends auth cookies + shows error toasts if fails ✅
 - All protected API calls in tournament manager now include credentials ✅
+---
+Task ID: 2b
+Agent: main
+Task: Fix delete tournament 500 error (Neon transaction timeout)
+
+Work Log:
+- Investigated 500 error on DELETE /api/tournaments/[id]
+- Root cause: Single giant transaction with 100+ individual queries exceeded Neon serverless PostgreSQL ~5s transaction timeout
+- Old code: N+1 pattern — findUnique + update per player per match = hundreds of sequential queries in one transaction
+- Rewrote DELETE handler with:
+  1. Step 1 (points): Use `decrement` operator instead of read-then-write, batch per player
+  2. Step 2 (match stats): Collect all deltas in Map first, then apply in batch with `increment` operators
+  3. Step 3 (club stats): Same batch collection approach, single findMany per match for club memberships
+  4. Step 4 (deletion): Split into 3 small transactions instead of 1 giant one
+- Added `$executeRaw` with `GREATEST()` for clamping negative values to 0
+- Fixed loserId=null edge case (bye matches)
+- Dry-run tested successfully: 45 players, 10 matches, 15 clubs
+
+Stage Summary:
+- Delete tournament now works without transaction timeout ✅
+- Batch operations instead of N+1 queries ✅
+- Proper handling of null teams and null loserId ✅

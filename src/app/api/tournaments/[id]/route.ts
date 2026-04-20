@@ -13,124 +13,182 @@ export async function DELETE(
 
   const tournament = await db.tournament.findUnique({
     where: { id },
-    include: {
-      matches: { include: { team1: { include: { teamPlayers: true } }, team2: { include: { teamPlayers: true } } } },
-      teams: { include: { teamPlayers: true } },
+    select: {
+      id: true,
+      status: true,
+      division: true,
+      seasonId: true,
+      matches: {
+        where: { status: 'completed', winnerId: { not: null } },
+        select: {
+          id: true,
+          team1Id: true,
+          team2Id: true,
+          winnerId: true,
+          loserId: true,
+          score1: true,
+          score2: true,
+          team1: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
+          team2: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
+        },
+      },
     },
   });
+
   if (!tournament) {
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
-  // Allow deletion of tournaments in any status before completed
   if (tournament.status === 'completed') {
     return NextResponse.json({ error: 'Tournament yang sudah completed tidak bisa dihapus. Hubungi super admin untuk rollback.' }, { status: 400 });
   }
 
   try {
-    // Bug #5 fix: Rollback all player stats before deleting
-    await db.$transaction(async (tx) => {
-      // 1. Rollback player stats using PlayerPoint audit trail
-      const pointRecords = await tx.playerPoint.findMany({
-        where: { tournamentId: id },
+    // ─── Step 1: Rollback player points (batch) ───
+    const pointRecords = await db.playerPoint.findMany({
+      where: { tournamentId: id },
+      select: { playerId: true, amount: true },
+    });
+
+    // Group by player and sum amounts to deduct
+    const pointsByPlayer = new Map<string, number>();
+    for (const pr of pointRecords) {
+      pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+    }
+
+    // Batch update player points — one update per player
+    for (const [playerId, totalPoints] of pointsByPlayer) {
+      await db.player.updateMany({
+        where: { id: playerId },
+        data: { points: { decrement: totalPoints } },
+      });
+      // Clamp to 0 if negative (updateMany doesn't support Math.max)
+      await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+    }
+
+    // ─── Step 2: Rollback match/wins/streak stats (batch) ───
+    // Collect all player stat changes first, then apply in batch
+    const playerStatChanges = new Map<string, { winsDelta: number; matchesDelta: number }>();
+
+    for (const match of tournament.matches) {
+      if (!match.team1 || !match.team2) continue;
+      if (!match.winnerId) continue;
+
+      const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
+      // loserId can be null (e.g., bye match), determine loser by elimination
+      const losingTeam = match.loserId
+        ? (match.team1Id === match.loserId ? match.team1 : match.team2)
+        : (match.team1Id === match.winnerId ? match.team2 : match.team1);
+
+      if (!losingTeam) continue;
+
+      // Winning team players: -1 win, -1 match
+      for (const tp of winningTeam.teamPlayers) {
+        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+        existing.winsDelta -= 1;
+        existing.matchesDelta -= 1;
+        playerStatChanges.set(tp.playerId, existing);
+      }
+
+      // Losing team players: -1 match
+      for (const tp of losingTeam.teamPlayers) {
+        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+        existing.matchesDelta -= 1;
+        playerStatChanges.set(tp.playerId, existing);
+      }
+    }
+
+    // Apply player stat changes in batch
+    for (const [playerId, changes] of playerStatChanges) {
+      await db.player.update({
+        where: { id: playerId },
+        data: {
+          ...(changes.winsDelta !== 0 && { totalWins: { increment: changes.winsDelta } }),
+          ...(changes.matchesDelta !== 0 && { matches: { increment: changes.matchesDelta } }),
+          streak: 0,
+        },
+      });
+      // Clamp to 0
+      await db.$executeRaw`UPDATE "Player" SET "totalWins" = GREATEST("totalWins", 0), matches = GREATEST(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+    }
+
+    // ─── Step 3: Rollback club stats (batch) ───
+    // Collect club stat changes per club
+    const clubStatChanges = new Map<string, { winsDelta: number; lossesDelta: number; pointsDelta: number; gameDiffDelta: number }>();
+
+    for (const match of tournament.matches) {
+      if (!match.team1 || !match.team2) continue;
+      if (!match.winnerId) continue;
+
+      const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
+      const losingTeam = match.loserId
+        ? (match.team1Id === match.loserId ? match.team1 : match.team2)
+        : (match.team1Id === match.winnerId ? match.team2 : match.team1);
+
+      if (!losingTeam) continue;
+
+      const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
+
+      // Get club memberships for all players in this match
+      const allPlayerIds = [
+        ...winningTeam.teamPlayers.map(tp => tp.playerId),
+        ...losingTeam.teamPlayers.map(tp => tp.playerId),
+      ];
+
+      const memberships = await db.clubMember.findMany({
+        where: {
+          playerId: { in: allPlayerIds },
+          club: { division: tournament.division, seasonId: tournament.seasonId },
+        },
+        select: { playerId: true, clubId: true },
       });
 
-      // Group by player and sum amounts to deduct
-      const pointsByPlayer = new Map<string, number>();
-      for (const pr of pointRecords) {
-        pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+      const winningPlayerIds = new Set(winningTeam.teamPlayers.map(tp => tp.playerId));
+
+      for (const membership of memberships) {
+        const isWinner = winningPlayerIds.has(membership.playerId);
+        const existing = clubStatChanges.get(membership.clubId) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
+
+        if (isWinner) {
+          existing.winsDelta -= 1;
+          existing.pointsDelta -= 2;
+          existing.gameDiffDelta -= gameDiff;
+        } else {
+          existing.lossesDelta -= 1;
+          existing.gameDiffDelta += gameDiff;
+        }
+        clubStatChanges.set(membership.clubId, existing);
       }
+    }
 
-      for (const [playerId, totalPoints] of pointsByPlayer) {
-        const player = await tx.player.findUnique({ where: { id: playerId } });
-        if (player) {
-          await tx.player.update({
-            where: { id: playerId },
-            data: {
-              points: Math.max(0, player.points - totalPoints),
-            },
-          });
-        }
-      }
+    // Apply club stat changes in batch
+    for (const [clubId, changes] of clubStatChanges) {
+      await db.club.update({
+        where: { id: clubId },
+        data: {
+          ...(changes.winsDelta !== 0 && { wins: { increment: changes.winsDelta } }),
+          ...(changes.lossesDelta !== 0 && { losses: { increment: changes.lossesDelta } }),
+          ...(changes.pointsDelta !== 0 && { points: { increment: changes.pointsDelta } }),
+          ...(changes.gameDiffDelta !== 0 && { gameDiff: { increment: changes.gameDiffDelta } }),
+        },
+      });
+    }
 
-      // 2. Rollback player match/wins/streak stats
-      // Find all completed matches and reverse the stats
-      const completedMatches = tournament.matches.filter(m => m.status === 'completed' && m.winnerId);
-
-      for (const match of completedMatches) {
-        if (!match.team1 || !match.team2) continue;
-
-        const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
-        const losingTeam = match.team1Id === match.loserId ? match.team1 : match.team2;
-
-        // Rollback winning team players
-        for (const tp of winningTeam.teamPlayers) {
-          const player = await tx.player.findUnique({ where: { id: tp.playerId } });
-          if (player) {
-            await tx.player.update({
-              where: { id: tp.playerId },
-              data: {
-                totalWins: Math.max(0, player.totalWins - 1),
-                matches: Math.max(0, player.matches - 1),
-                // Note: streak rollback is complex, but we do our best
-                streak: 0, // Reset streak since we can't know what it was before
-              },
-            });
-          }
-        }
-
-        // Rollback losing team players
-        for (const tp of losingTeam.teamPlayers) {
-          const player = await tx.player.findUnique({ where: { id: tp.playerId } });
-          if (player) {
-            await tx.player.update({
-              where: { id: tp.playerId },
-              data: {
-                matches: Math.max(0, player.matches - 1),
-                streak: 0,
-              },
-            });
-          }
-        }
-
-        // Rollback club stats
-        const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
-        for (const team of [winningTeam, losingTeam]) {
-          for (const tp of team.teamPlayers) {
-            const membership = await tx.clubMember.findFirst({
-              where: { playerId: tp.playerId, club: { division: tournament.division, seasonId: tournament.seasonId } },
-            });
-            if (membership) {
-              if (team === winningTeam) {
-                await tx.club.update({
-                  where: { id: membership.clubId },
-                  data: {
-                    wins: { decrement: 1 },
-                    points: { decrement: 2 },
-                    gameDiff: { decrement: gameDiff },
-                  },
-                });
-              } else {
-                await tx.club.update({
-                  where: { id: membership.clubId },
-                  data: {
-                    losses: { decrement: 1 },
-                    gameDiff: { increment: gameDiff },
-                  },
-                });
-              }
-            }
-          }
-        }
-      }
-
-      // 3. Delete all tournament data in correct order
+    // ─── Step 4: Delete all tournament data ───
+    // Use separate small transactions to avoid Neon timeout
+    await db.$transaction(async (tx) => {
       await tx.match.deleteMany({ where: { tournamentId: id } });
+    });
+
+    await db.$transaction(async (tx) => {
       const teams = await tx.team.findMany({ where: { tournamentId: id }, select: { id: true } });
       for (const t of teams) {
         await tx.teamPlayer.deleteMany({ where: { teamId: t.id } });
       }
       await tx.team.deleteMany({ where: { tournamentId: id } });
+    });
+
+    await db.$transaction(async (tx) => {
       await tx.tournamentPrize.deleteMany({ where: { tournamentId: id } });
       await tx.donation.deleteMany({ where: { tournamentId: id } });
       await tx.participation.deleteMany({ where: { tournamentId: id } });
