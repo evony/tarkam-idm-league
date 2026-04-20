@@ -5,19 +5,18 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Gamepad2, Trophy, Users, Shield,
-  Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound
+  Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound,
+  PanelLeftClose, PanelLeftOpen, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { AdminLogin } from './admin-login';
 import { LandingPage } from './landing-page';
 import { DonationPopup } from './donation-popup';
 import { NotificationStack } from './notification-stack';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -96,14 +95,11 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
   );
 }
 
-
-
-function SidebarContent({ onNav }: { onNav?: () => void }) {
-  const { currentView, setCurrentView, division, adminAuth, clearAdminAuth } = useAppStore();
+/* ─── Collapsible Desktop Sidebar ─── */
+function DesktopSidebar() {
+  const { currentView, setCurrentView, division, adminAuth, clearAdminAuth, sidebarCollapsed, toggleSidebarCollapsed } = useAppStore();
   const dt = useDivisionTheme();
-  const isMobile = useIsMobile();
 
-  // Fetch league summary for dynamic season info
   const { data: leagueSummary } = useQuery<{ seasonNumber: number; status: string; completedWeeks: number; totalWeeks: number; percentage: number }>({
     queryKey: ['league-summary'],
     queryFn: () => fetch('/api/league').then(r => r.json()).then(d => {
@@ -122,177 +118,216 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
   });
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // Ignore errors
-    }
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
     clearAdminAuth();
     setCurrentView('landing');
     toast.success('Berhasil logout');
-    onNav?.();
   };
 
-  /* Premium nav item class — desktop gets left border active indicator + hover lift */
-  const navItemClass = (isActive: boolean) => {
-    const base = 'w-full flex items-center gap-3 text-sm font-medium transition-all duration-200 rounded-lg';
-    if (isActive) {
-      return `${base} ${dt.navActive} glow-pulse lg:rounded-l-none lg:border-l-2 ${division === 'male' ? 'lg:border-l-idm-male' : 'lg:border-l-idm-female'}`;
-    }
-    return `${base} text-muted-foreground hover:bg-muted/60 hover:text-foreground`;
-  };
+  const collapsed = sidebarCollapsed;
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Logo — Premium desktop, compact mobile */}
-      <div className="p-4 lg:p-5 pb-2 lg:pb-3">
-        <div className="flex items-center gap-2.5 lg:gap-3 mb-1">
-          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl overflow-hidden glow-pulse shrink-0 lg:shadow-lg lg:shadow-idm-gold/10">
-            <Image src="/logo1.webp" alt="IDM" width={48} height={48} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <h1 className="text-gradient-fury text-base lg:text-lg font-bold leading-tight">IDM League</h1>
-            <p className="text-[10px] lg:text-xs text-muted-foreground">Fan Made Edition</p>
-          </div>
+    <aside
+      className={`hidden lg:flex flex-col border-r border-border/60 ${dt.glassStrong} sticky top-0 h-screen overflow-hidden shadow-lg shadow-black/5 transition-all duration-300 ease-in-out ${
+        collapsed ? 'w-16' : 'w-72'
+      }`}
+    >
+      {/* Logo + Toggle */}
+      <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2.5 px-5'} pt-4 pb-2`}>
+        <div className={`rounded-xl overflow-hidden glow-pulse shrink-0 ${collapsed ? 'w-9 h-9' : 'w-11 h-11 lg:shadow-lg lg:shadow-idm-gold/10'}`}>
+          <Image src="/logo1.webp" alt="IDM" width={48} height={48} className="w-full h-full object-cover" />
         </div>
+        {!collapsed && (
+          <div className="min-w-0">
+            <h1 className="text-gradient-fury text-base font-bold leading-tight truncate">IDM League</h1>
+            <p className="text-[10px] text-muted-foreground">Fan Made Edition</p>
+          </div>
+        )}
+      </div>
+
+      {/* Toggle Button */}
+      <div className={`flex ${collapsed ? 'justify-center' : 'justify-end'} px-2 pb-2`}>
+        <button
+          onClick={toggleSidebarCollapsed}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Division Toggle */}
-      <div className="px-4 lg:px-5 pb-3">
-        <DivisionToggle />
-      </div>
-
-      <div className="section-divider !my-0" />
-
-      {/* Navigation — desktop gets wider padding + hover lift effects */}
-      <nav className="flex-1 px-2 lg:px-3 py-3 space-y-0.5 lg:space-y-1">
-        <button
-          onClick={() => { setCurrentView('landing'); onNav?.(); }}
-          className={navItemClass(currentView === 'landing')}
-        >
-          <div className={`flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 rounded-lg ${currentView === 'landing' ? dt.iconBg : ''} shrink-0`}>
-            <Home className="w-4 h-4" />
-          </div>
-          <span className="px-3 py-2.5 lg:py-3">Home</span>
-        </button>
-
-        <div className="px-3 py-1.5 lg:py-2">
-          <p className="text-[9px] lg:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Navigasi</p>
-        </div>
-
-        {actionItems.map((navItem) => {
-          const Icon = navItem.icon;
-          const isActive = currentView === navItem.id;
-          return (
-            <button
-              key={navItem.id}
-              onClick={() => { setCurrentView(navItem.id); onNav?.(); }}
-              className={navItemClass(isActive)}
-            >
-              <div className={`flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 rounded-lg ${isActive ? dt.iconBg : ''} shrink-0`}>
-                <Icon className={`w-4 h-4 ${isActive ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
-              </div>
-              <span className="px-3 py-2.5 lg:py-3">{navItem.label}</span>
-              {isActive && (
-                <div className={`ml-auto w-1.5 h-1.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
-              )}
-            </button>
-          );
-        })}
-
-        {navItems.map((navItem) => {
-          const Icon = navItem.icon;
-          const isActive = currentView === navItem.id;
-          return (
-            <button
-              key={navItem.id}
-              onClick={() => { setCurrentView(navItem.id); onNav?.(); }}
-              className={navItemClass(isActive)}
-            >
-              <div className={`flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 rounded-lg ${isActive ? dt.iconBg : ''} shrink-0`}>
-                <Icon className={`w-4 h-4 ${isActive ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
-              </div>
-              <span className="px-3 py-2.5 lg:py-3">{navItem.label}</span>
-              {isActive && (
-                <div className={`ml-auto w-1.5 h-1.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
-              )}
-            </button>
-          );
-        })}
-        {/* Admin — always visible, shows login if not authenticated */}
-        {(() => {
-          const isActive = currentView === 'admin';
-          return (
-            <button
-              onClick={() => { setCurrentView('admin'); onNav?.(); }}
-              className={navItemClass(isActive)}
-            >
-              <div className={`flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 rounded-lg ${isActive ? dt.iconBg : ''} shrink-0`}>
-                <Shield className={`w-4 h-4 ${isActive ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
-              </div>
-              <span className="px-3 py-2.5 lg:py-3">Admin</span>
-              {isActive && (
-                <div className={`ml-auto w-1.5 h-1.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
-              )}
-            </button>
-          );
-        })()}
-      </nav>
-
-      {/* Admin Status / Logout — premium card on desktop */}
-      {adminAuth.isAuthenticated && (
-        <div className="mx-3 lg:mx-4 p-3 lg:p-4 rounded-xl bg-idm-gold/5 border border-idm-gold/20 mb-2 lg:shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-3 h-3 text-idm-gold" />
-            <span className="text-[10px] font-semibold text-idm-gold uppercase tracking-wider">
-              {adminAuth.admin?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-foreground font-medium">{adminAuth.admin?.username}</span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-idm-gold hover:bg-idm-gold/10"
-                onClick={() => setCurrentView('admin')}
-                title="Ganti Password (di halaman login)"
-              >
-                <KeyRound className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                onClick={handleLogout}
-                title="Logout"
-              >
-                <LogOut className="w-3 h-3" />
-              </Button>
-            </div>
-          </div>
+      {!collapsed && (
+        <div className="px-5 pb-3">
+          <DivisionToggle />
         </div>
       )}
 
-      {/* Season Status — premium progress card on desktop */}
-      <div className={`mx-3 lg:mx-4 p-3 lg:p-4 rounded-xl ${dt.cardPremium} mb-3 lg:shadow-sm`}>
-        <div className="flex items-center gap-2 mb-2">
-          <Flame className={`w-3 h-3 ${dt.text}`} />
-          <span className={`text-[10px] font-semibold ${dt.text} uppercase tracking-wider`}>Season {leagueSummary?.seasonNumber ?? 1}</span>
-        </div>
-        <div className="w-full h-1.5 lg:h-2 rounded-full bg-muted overflow-hidden">
-          <div
-            className={`h-full rounded-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} transition-all duration-700`}
-            style={{ width: `${leagueSummary?.percentage || 0}%` }}
+      <div className="section-divider !my-0" />
+
+      {/* Navigation */}
+      <nav className={`flex-1 ${collapsed ? 'px-1.5' : 'px-3'} py-3 space-y-0.5 overflow-y-auto custom-scrollbar`}>
+        {/* Home */}
+        <NavButton
+          icon={Home} label="Home" collapsed={collapsed}
+          isActive={currentView === 'landing'}
+          iconBg={currentView === 'landing' ? dt.iconBg : ''}
+          activeGlow={currentView === 'landing'}
+          division={division}
+          onClick={() => setCurrentView('landing')}
+        />
+
+        {!collapsed && (
+          <div className="px-3 py-1.5">
+            <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Navigasi</p>
+          </div>
+        )}
+
+        {collapsed && <div className="my-1 mx-auto w-6 h-px bg-border/40" />}
+
+        {/* Action items */}
+        {actionItems.map(item => (
+          <NavButton
+            key={item.id} icon={item.icon} label={item.label} collapsed={collapsed}
+            isActive={currentView === item.id}
+            iconBg={currentView === item.id ? dt.iconBg : ''}
+            activeGlow={currentView === item.id}
+            division={division}
+            onClick={() => setCurrentView(item.id)}
           />
+        ))}
+
+        {/* Nav items */}
+        {navItems.map(item => (
+          <NavButton
+            key={item.id} icon={item.icon} label={item.label} collapsed={collapsed}
+            isActive={currentView === item.id}
+            iconBg={currentView === item.id ? dt.iconBg : ''}
+            activeGlow={currentView === item.id}
+            division={division}
+            onClick={() => setCurrentView(item.id)}
+          />
+        ))}
+
+        {collapsed && <div className="my-1 mx-auto w-6 h-px bg-border/40" />}
+
+        {/* Admin */}
+        <NavButton
+          icon={Shield} label="Admin" collapsed={collapsed}
+          isActive={currentView === 'admin'}
+          iconBg={currentView === 'admin' ? dt.iconBg : ''}
+          activeGlow={currentView === 'admin'}
+          division={division}
+          onClick={() => setCurrentView('admin')}
+        />
+      </nav>
+
+      {/* Bottom section — only when expanded */}
+      {!collapsed && (
+        <>
+          {/* Admin Status / Logout */}
+          {adminAuth.isAuthenticated && (
+            <div className="mx-4 p-3 rounded-xl bg-idm-gold/5 border border-idm-gold/20 mb-2">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-3 h-3 text-idm-gold" />
+                <span className="text-[10px] font-semibold text-idm-gold uppercase tracking-wider">
+                  {adminAuth.admin?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-foreground font-medium">{adminAuth.admin?.username}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-idm-gold hover:bg-idm-gold/10"
+                    onClick={() => setCurrentView('admin')} title="Admin Panel">
+                    <KeyRound className="w-3 h-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                    onClick={handleLogout} title="Logout">
+                    <LogOut className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Season Status */}
+          <div className={`mx-4 p-3 rounded-xl ${dt.cardPremium} mb-3`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Flame className={`w-3 h-3 ${dt.text}`} />
+              <span className={`text-[10px] font-semibold ${dt.text} uppercase tracking-wider`}>Season {leagueSummary?.seasonNumber ?? 1}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} transition-all duration-700`}
+                style={{ width: `${leagueSummary?.percentage || 0}%` }}
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1.5">
+              {leagueSummary ? `${leagueSummary.percentage}% • Week ${leagueSummary.completedWeeks}/${leagueSummary.totalWeeks || '?'}` : 'Memuat...'}
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* Collapsed: mini admin indicator */}
+      {collapsed && adminAuth.isAuthenticated && (
+        <div className="px-2 pb-2 flex justify-center">
+          <div className="w-8 h-8 rounded-lg bg-idm-gold/10 border border-idm-gold/20 flex items-center justify-center"
+            title={`${adminAuth.admin?.username} (${adminAuth.admin?.role === 'super_admin' ? 'Super Admin' : 'Admin'})`}>
+            <Shield className="w-3.5 h-3.5 text-idm-gold" />
+          </div>
         </div>
-        <p className="text-[9px] text-muted-foreground mt-1.5">
-          {leagueSummary ? `${leagueSummary.percentage}% Selesai • Week ${leagueSummary.completedWeeks}/${leagueSummary.totalWeeks || '?'}` : 'Memuat...'}
-        </p>
+      )}
+    </aside>
+  );
+}
+
+/* ─── Nav Button — shared between collapsed & expanded ─── */
+function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow, division, onClick }: {
+  icon: typeof Home; label: string; collapsed: boolean;
+  isActive: boolean; iconBg: string; activeGlow: boolean; division: string;
+  onClick: () => void;
+}) {
+  const dt = useDivisionTheme();
+
+  if (collapsed) {
+    return (
+      <button
+        onClick={onClick}
+        title={label}
+        className={`w-full flex items-center justify-center py-2.5 rounded-lg transition-all duration-200 relative ${
+          isActive
+            ? `${dt.navActive} glow-pulse`
+            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+        }`}
+      >
+        <div className={`flex items-center justify-center w-9 h-9 rounded-lg ${iconBg}`}>
+          <Icon className={`w-4 h-4 ${activeGlow ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
+        </div>
+        {isActive && (
+          <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 text-sm font-medium transition-all duration-200 rounded-lg ${
+        isActive
+          ? `${dt.navActive} glow-pulse border-l-2 ${division === 'male' ? 'border-l-idm-male' : 'border-l-idm-female'}`
+          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+      }`}
+    >
+      <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${iconBg} shrink-0`}>
+        <Icon className={`w-4 h-4 ${activeGlow ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
       </div>
-
-
-    </div>
+      <span className="py-2.5">{label}</span>
+      {isActive && (
+        <div className={`ml-auto w-1.5 h-1.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+      )}
+    </button>
   );
 }
 
@@ -369,10 +404,8 @@ export function AppShell() {
       </header>
 
       <div className="flex flex-1">
-        {/* Desktop Sidebar — premium/elegant wider with subtle shadow */}
-        <aside className={`hidden lg:block w-72 border-r border-border/60 ${dt.glassStrong} sticky top-0 h-screen overflow-y-auto custom-scrollbar shadow-lg shadow-black/5`}>
-          <SidebarContent />
-        </aside>
+        {/* Desktop Sidebar — Collapsible */}
+        <DesktopSidebar />
 
         {/* Main Content */}
         <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
@@ -391,7 +424,7 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Nav — 5 items: Home, Dashboard, Tour Saya, Match Day, League */}
+      {/* Mobile Bottom Nav */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border safe-area-bottom`}>
         <div className="flex justify-around py-1 px-0.5">
           <button
