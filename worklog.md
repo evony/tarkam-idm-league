@@ -686,3 +686,57 @@ Stage Summary:
 - Delete tournament now works without transaction timeout ✅
 - Batch operations instead of N+1 queries ✅
 - Proper handling of null teams and null loserId ✅
+---
+Task ID: 3
+Agent: Main Agent
+Task: Spin Animation UX Improvement — slower, Play button, non-blocking, compact, accurate
+
+Work Log:
+- Analyzed current TeamSpinReveal component (Dialog-based, per-step manual play, 35-50 cycles)
+- Analyzed unused TeamRevealSpin component (full-screen overlay, auto-play option, 20-30 cycles)
+- Redesigned and rewrote TeamSpinReveal with merged best features from both components:
+  1. SLOWER ANIMATION: 50-70 cycles with 5-phase gradual slowdown (55ms → 90ms → 150ms → 260ms → 420ms+)
+     - Total spin duration ~6-8 seconds (was ~3-4 seconds)
+     - Phase 5 has exponential slowdown for dramatic "almost stopping" effect
+     - 700ms dramatic pause before reveal (was 500ms)
+     - 1800ms after-reveal pause (was 1500ms)
+  2. PLAY BUTTON PER STEP: Admin clicks "Acak!" (Play) button to control each spin
+     - Green gradient button with Play icon
+     - Shows which tier/team will be spun
+     - Auto Play option via Zap button in header or below Play button
+  3. NON-BLOCKING UI: Full-screen overlay (not Dialog) with always-visible close button (X)
+     - Can close at any time (during spin, reveal, etc.)
+     - No modal that blocks clicking outside
+  4. COMPACT SCROLLABLE LAYOUT: 3-column team grid on desktop (was 2-column)
+     - max-h-[45vh] with custom scrollbar
+     - Smaller card padding (p-2)
+     - Team grid uses dark theme colors (white/5, white/10) instead of muted
+  5. ACCURATE NAME DISPLAY: Cycles only through unassigned players in same tier
+     - getAvailablePlayers() filters out already-revealed players from cycling pool
+     - Final reveal always shows the actual assigned player from backend
+  6. ROUND INDICATORS: Header shows Round 1 (S), Round 2 (A), Round 3 (B) with progress
+     - Current round highlighted with tier colors
+     - Completed rounds show ✓
+     - Shows step within round (e.g., "3/6" for 3rd S-tier reveal out of 6)
+  7. AUTO PLAY: Merged from unused TeamRevealSpin component
+     - Toggle in header (Auto/Manual button with Zap icon)
+     - Also available below Play button as "Auto Play semua"
+     - Uses ref (autoPlayRef) to avoid stale closure in doSpin callback
+  8. VISUAL IMPROVEMENTS:
+     - Scan line effect during spin (white bar moving top to bottom)
+     - Larger slot machine display (w-80 h-28, was w-72 h-24)
+     - 16 sparkle particles on reveal (was 12) with gold/amber/white colors
+     - Points display after reveal ("X pts")
+     - Tier Badge shown below player name on reveal
+  9. STALE CLOSURE FIX: Used currentStepRef and autoPlayRef for timer callbacks
+     - doSpin reads currentStep from ref (not state) to avoid stale closure
+     - autoPlay read from ref in post-reveal timeout
+- Deleted unused team-reveal-spin.tsx file (not imported anywhere)
+- Lint check: clean (zero errors)
+- Dev server running, page loads with HTTP 200
+
+Stage Summary:
+- Complete spin animation UX overhaul: slower, more dramatic, non-blocking, compact, accurate
+- Key improvements: 5-phase slowdown, always-visible close button, 3-col grid, filtered cycling names, round indicators, auto-play toggle
+- Unused TeamRevealSpin component deleted
+- All changes backward compatible (same props interface)
