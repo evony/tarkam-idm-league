@@ -203,14 +203,42 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ========== COUNTDOWN + PRIZE POOL ========== */}
+      {/* ========== COUNTDOWN / STATUS + PRIZE POOL ========== */}
       <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
-        {t?.scheduledAt && t.status !== 'completed' && (
+        {t?.scheduledAt && t.status !== 'completed' ? (
           <div className={`flex items-center justify-center rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
             <CountdownTimer targetDate={t.scheduledAt} />
           </div>
+        ) : (
+          <div className={`flex flex-col justify-center gap-3 rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                <Trophy className={`w-4 h-4 ${dt.neonText}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold truncate">{t?.name || 'IDM League'}</p>
+                <p className="text-[10px] text-muted-foreground">{data.season?.name || 'Season ' + (data.season?.number || 1)}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className={`rounded-lg ${dt.bg} p-2 text-center`}>
+                <p className={`text-sm font-black ${dt.neonText}`}>{t?.status === 'completed' ? 'Selesai' : t?.status === 'live' ? 'Live' : t?.status === 'registration' ? 'Registrasi' : 'Aktif'}</p>
+                <p className="text-[9px] text-muted-foreground">Status</p>
+              </div>
+              <div className={`rounded-lg ${dt.bg} p-2 text-center`}>
+                <p className={`text-sm font-black ${dt.neonText}`}>{t?.format === 'group_stage' ? 'Group+PO' : t?.format === 'double_elimination' ? 'DBL Elim' : 'SGL Elim'}</p>
+                <p className="text-[9px] text-muted-foreground">Format</p>
+              </div>
+            </div>
+            {t?.scheduledAt && t.status === 'completed' && (
+              <p className="text-[10px] text-muted-foreground text-center">🏆 Turnamen telah selesai</p>
+            )}
+            {!t?.scheduledAt && (
+              <p className="text-[10px] text-muted-foreground text-center">⏳ Jadwal belum ditentukan</p>
+            )}
+          </div>
         )}
-        <div className={`p-3 lg:p-6 rounded-xl ${dt.bgSubtle} ${dt.border} shadow-sm lg:shadow-md`}>
+        <div className={`flex flex-col justify-between p-3 lg:p-6 rounded-xl ${dt.bgSubtle} ${dt.border} shadow-sm lg:shadow-md`}>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">💰 Prize Pool</span>
             <span className={`text-lg lg:text-2xl font-bold ${dt.neonGradient}`}>{formatCurrency(t?.prizePool || 0)}</span>
