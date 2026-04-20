@@ -2550,12 +2550,8 @@ html {
   background: rgba(192, 132, 252, 0.08);
 }
 
-/* Decorative corner accent line */
+/* Decorative corner accent line — pseudo-elements draw neon corners; base class is transparent */
 .casino-corner-accent {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
   z-index: 2;
 }
 
@@ -2564,10 +2560,11 @@ html {
   position: absolute;
   top: 0;
   left: 0;
-  width: 16px;
+  width: 20px;
   height: 2px;
   background: linear-gradient(90deg, var(--idm-male), transparent);
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .casino-corner-accent::after {
@@ -2576,9 +2573,10 @@ html {
   top: 0;
   left: 0;
   width: 2px;
-  height: 16px;
+  height: 20px;
   background: linear-gradient(180deg, var(--idm-male), transparent);
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .casino-corner-accent-female::before {
@@ -2900,12 +2898,8 @@ html {
   background-clip: text;
 }
 
-/* Casino corner accent — decorative neon corner */
+/* Casino corner accent — decorative neon corner (inherits position:relative from .casino-card) */
 .casino-corner-accent {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  pointer-events: none;
   opacity: 0.35;
   z-index: 2;
 }
@@ -2914,16 +2908,17 @@ html {
   content: '';
   position: absolute;
   background: var(--idm-male);
+  pointer-events: none;
 }
 .casino-corner-accent::before {
-  width: 100%;
+  width: 20px;
   height: 1px;
   top: 0;
   left: 0;
 }
 .casino-corner-accent::after {
   width: 1px;
-  height: 100%;
+  height: 20px;
   top: 0;
   left: 0;
 }

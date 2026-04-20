@@ -64,3 +64,24 @@ Stage Summary:
 - Tournament stuck at team_generation with 0 teams can now be properly reverted
 - Finalize now auto-advances from main_event when all matches are done
 - Bug 3 (score min=0) was already fixed in current code
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix Tour Saya full width + CSS click blocking bug
+
+Work Log:
+- Discovered critical CSS bug: `.casino-corner-accent` class was setting `position: absolute; width: 16-20px; height: 16-20px; pointer-events: none` directly on Card elements, making them collapsed and completely unclickable
+- Fixed both definitions of `.casino-corner-accent` in globals.css (lines 2554 and 2904) — removed `position: absolute`, `width`, `height` from base class, moved `pointer-events: none` to pseudo-elements only
+- Changed all 7 instances of `max-w-lg mx-auto` to full width (`space-y-4`) in my-tournament-card.tsx
+- Restructured player dashboard view with responsive 2-column grid (`lg:grid-cols-2`) — status cards on left, match history on right
+- Restructured overview default view with responsive 2-column grid — top teams + recent results on left, upcoming matches + participants on right
+- Added `sm:p-5` responsive padding to player dashboard header
+- Increased match history initial display from 3 to 5 items
+- Added `max-h-96 overflow-y-auto custom-scrollbar` to match history list
+- Added `max-h-72 overflow-y-auto custom-scrollbar` to recent results and upcoming matches lists
+
+Stage Summary:
+- Critical CSS bug fixed: casino-corner-accent no longer collapses Cards or blocks clicks
+- Tour Saya is now full width with responsive 2-column grid layout
+- All interactive elements (search input, buttons, expand/collapse) are now clickable
+- Content is better organized with proper scrolling for long lists
