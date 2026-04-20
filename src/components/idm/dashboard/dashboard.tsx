@@ -5,7 +5,7 @@ import { useAppStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Crown, Star, Users, Swords, TrendingUp } from 'lucide-react';
+import { Trophy, Crown, Star, Swords, TrendingUp, Users, Zap } from 'lucide-react';
 
 export function Dashboard() {
   const { division } = useAppStore();
@@ -24,77 +24,125 @@ export function Dashboard() {
     return (
       <div className="space-y-6">
         <div className="h-44 rounded-2xl bg-muted animate-pulse" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="h-64 rounded-xl bg-muted animate-pulse" />
+          <div className="h-64 rounded-xl bg-muted animate-pulse" />
         </div>
       </div>
     );
   }
 
+  const hasActive = !!data.activeTournament;
+  const completedWeeks = data.seasonProgress?.completedWeeks || 0;
+  const totalWeeks = data.seasonProgress?.totalWeeks || 0;
+  const progressPct = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
+
   return (
-    <div className="space-y-6">
-      {/* Hero Banner */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden border border-border">
-        <div className={`absolute inset-0 ${isMale ? 'bg-gradient-to-br from-amber-500/10 via-transparent to-yellow-600/5' : 'bg-gradient-to-br from-pink-500/10 via-transparent to-rose-600/5'}`} />
-        <div className="relative p-6 sm:p-8">
-          <div className="flex items-center gap-2 mb-2">
+    <div className="space-y-5">
+      {/* ── Hero Banner — Clean & Punchy ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-2xl overflow-hidden border border-border"
+      >
+        {/* Gradient background */}
+        <div className={`absolute inset-0 ${isMale
+          ? 'bg-gradient-to-br from-amber-500/10 via-transparent to-yellow-600/5'
+          : 'bg-gradient-to-br from-pink-500/10 via-transparent to-rose-600/5'
+        }`} />
+
+        <div className="relative p-5 sm:p-7">
+          {/* Top row — badges */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <Badge className={`${accentBg} ${accentText} border-0 text-xs`}>
               {division === 'male' ? '🕺' : '💃'} {division.charAt(0).toUpperCase() + division.slice(1)} Division
             </Badge>
             <Badge variant="outline" className="text-[10px]">{data.season.name}</Badge>
+            {hasActive && (
+              <Badge className="bg-red-500/10 text-red-400 border-0 text-[10px]">
+                <span className="flex h-1.5 w-1.5 mr-1 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" /></span>
+                LIVE
+              </Badge>
+            )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black mb-1">{data.activeTournament?.name || 'No Active Tournament'}</h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            {data.activeTournament ? `Week ${data.activeTournament.weekNumber} · ${data.activeTournament.bpm || 120} BPM` : 'Stay tuned for the next tournament'}
+
+          {/* Tournament name / status */}
+          <h1 className="text-2xl sm:text-3xl font-black mb-1">
+            {hasActive ? data.activeTournament.name : 'No Active Tournament'}
+          </h1>
+          <p className="text-sm text-muted-foreground mb-4">
+            {hasActive
+              ? `Week ${data.activeTournament.weekNumber} · ${data.activeTournament.bpm || 120} BPM · ${data.activeTournament.location || 'Online'}`
+              : 'Stay tuned for the next tournament'}
           </p>
-          {data.activeTournament && (
-            <div className="flex flex-wrap items-center gap-4">
-              <div className={`rounded-xl ${accentBg} border ${accentBorder} px-4 py-3`}>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Prize Pool</div>
-                <div className={`text-xl font-black ${accentText}`}>Rp {data.activeTournament.prizePool.toLocaleString()}</div>
+
+          {/* Inline quick stats — compact, no big cards */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            {hasActive && (
+              <div className="flex items-center gap-1.5">
+                <Trophy className={`w-3.5 h-3.5 ${accentText}`} />
+                <span className="text-muted-foreground">Prize</span>
+                <span className={`font-bold ${accentText}`}>Rp {data.activeTournament.prizePool.toLocaleString()}</span>
               </div>
-              <div className="rounded-xl bg-muted/50 border border-border px-4 py-3">
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Season Donation</div>
-                <div className="text-xl font-black">Rp {data.seasonDonationTotal.toLocaleString()}</div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <Users className={`w-3.5 h-3.5 ${accentText}`} />
+              <span className="text-muted-foreground">Players</span>
+              <span className={`font-bold ${accentText}`}>{data.totalPlayers}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Zap className={`w-3.5 h-3.5 ${accentText}`} />
+              <span className="text-muted-foreground">Season</span>
+              <span className={`font-bold ${accentText}`}>{completedWeeks}/{totalWeeks} Week</span>
+            </div>
+            {data.seasonDonationTotal > 0 && (
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className={`w-3.5 h-3.5 ${accentText}`} />
+                <span className="text-muted-foreground">Donasi</span>
+                <span className={`font-bold ${accentText}`}>Rp {data.seasonDonationTotal.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Season progress bar — visual & clean */}
+          {totalWeeks > 0 && (
+            <div className="mt-4 max-w-md">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Season Progress</span>
+                <span className={`text-[10px] font-bold ${accentText}`}>{progressPct}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${isMale
+                    ? 'bg-gradient-to-r from-amber-500 to-yellow-400'
+                    : 'bg-gradient-to-r from-pink-500 to-rose-400'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                />
               </div>
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { icon: Users, label: 'Total Players', value: data.totalPlayers },
-          { icon: Trophy, label: 'Prize Pool', value: `Rp ${data.totalPrizePool.toLocaleString()}` },
-          { icon: Swords, label: 'Season Progress', value: `${data.seasonProgress.completedWeeks}/${data.seasonProgress.totalWeeks}` },
-          { icon: TrendingUp, label: 'Donations', value: `Rp ${data.seasonDonationTotal.toLocaleString()}` },
-        ].map((stat, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <stat.icon className={`w-4 h-4 ${accentText}`} />
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{stat.label}</span>
-                </div>
-                <div className={`text-lg font-black ${accentText}`}>{stat.value}</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Two Column */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ── Two Column — Top Players + Weekly Champions ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top Players */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2"><Crown className={`w-4 h-4 ${accentText}`} /> Top Players</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Crown className={`w-4 h-4 ${accentText}`} /> Top Players
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 max-h-96 overflow-y-auto custom-scrollbar">
             {data.topPlayers.map((player: any, i: number) => (
               <div key={player.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? (isMale ? 'bg-amber-500/20 text-amber-400' : 'bg-pink-500/20 text-pink-400') : 'bg-muted text-muted-foreground'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i < 3
+                  ? (isMale ? 'bg-amber-500/20 text-amber-400' : 'bg-pink-500/20 text-pink-400')
+                  : 'bg-muted text-muted-foreground'
+                }`}>
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -113,7 +161,9 @@ export function Dashboard() {
         {/* Weekly Champions */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2"><Trophy className={`w-4 h-4 ${accentText}`} /> Weekly Champions</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Trophy className={`w-4 h-4 ${accentText}`} /> Weekly Champions
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
             {data.weeklyChampions.length === 0 ? (
@@ -144,11 +194,13 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Recent Matches */}
+      {/* ── Recent Matches ── */}
       {data.recentMatches.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2"><TrendingUp className={`w-4 h-4 ${accentText}`} /> Recent Matches</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Swords className={`w-4 h-4 ${accentText}`} /> Recent Matches
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
