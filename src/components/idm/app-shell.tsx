@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Gamepad2, Trophy, Users, Shield,
   Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound,
-  PanelLeftClose, PanelLeftOpen, ChevronRight
+  PanelLeftClose, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -145,14 +145,22 @@ function DesktopSidebar() {
         )}
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button — with pulse indicator */}
       <div className={`flex ${collapsed ? 'justify-center' : 'justify-end'} px-2 pb-2`}>
         <button
           onClick={toggleSidebarCollapsed}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="group relative p-1.5 rounded-lg transition-all duration-200"
+          title={collapsed ? 'Buka sidebar' : 'Tutup sidebar'}
         >
-          {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          {/* Pulse glow ring */}
+          <span className="absolute inset-0 rounded-lg bg-idm-gold/20 animate-pulse-pointer" />
+          {/* Arrow icon */}
+          <span className="relative z-10 flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:bg-muted/60 rounded-lg transition-colors">
+            {collapsed
+              ? <ChevronRight className="w-4 h-4" />
+              : <PanelLeftClose className="w-4 h-4" />
+            }
+          </span>
         </button>
       </div>
 

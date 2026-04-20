@@ -71,9 +71,16 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
-  sidebarCollapsed: false,
-  setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-  toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  sidebarCollapsed: typeof window !== 'undefined' ? (localStorage.getItem('idm-sidebar-collapsed') === 'true') : false,
+  setSidebarCollapsed: (collapsed) => {
+    try { localStorage.setItem('idm-sidebar-collapsed', String(collapsed)); } catch { /* ignore */ }
+    set({ sidebarCollapsed: collapsed });
+  },
+  toggleSidebarCollapsed: () => set((s) => {
+    const next = !s.sidebarCollapsed;
+    try { localStorage.setItem('idm-sidebar-collapsed', String(next)); } catch { /* ignore */ }
+    return { sidebarCollapsed: next };
+  }),
 
   loading: false,
   setLoading: (l) => set({ loading: l }),
