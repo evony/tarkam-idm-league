@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
-  Crown, Settings, UserPlus, X, Loader2, Clock, MapPin, Phone, Globe, BarChart3, Camera, Pencil, Trash2, Search,
-  LayoutDashboard, Building2, Award, Sliders, Flame, Calendar, CheckCircle2, XCircle, Wallet, Save, UserCog
+  Crown, X, Loader2, Clock, MapPin, Phone, Globe, Camera, Pencil, Trash2, Search,
+  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -341,14 +341,14 @@ export function AdminPanel() {
   const [newDonation, setNewDonation] = useState({ donorName: '', amount: '', message: '', type: 'season' });
   const [paymentFormState, setPaymentForm] = useState<Record<string, string> | null>(null);
   const paymentForm = paymentFormState ?? (cmsSettings || {});
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileCategory, setMobileCategory] = useState('dashboard');
 
   const categoryTabMap: Record<string, string[]> = {
-    dashboard: ['overview'],
-    tournament: ['players', 'tournaments', 'matches', 'rankings'],
-    league: ['seasons', 'clubs', 'sponsors', 'achievements'],
-    system: ['admins', 'donations', 'cms', 'settings'],
+    dashboard: ['dashboard'],
+    tournament: ['pemain', 'turnamen'],
+    league: ['liga'],
+    system: ['konten', 'keuangan', 'pengaturan'],
   };
 
   const [searchPlayer, setSearchPlayer] = useState('');
@@ -477,19 +477,13 @@ export function AdminPanel() {
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
             {(categoryTabMap[mobileCategory] || []).map(tabValue => {
               const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
-                overview: { icon: LayoutDashboard, label: 'Overview' },
-                players: { icon: Users, label: 'Players' },
-                tournaments: { icon: Music, label: 'Tourney' },
-                matches: { icon: Trophy, label: 'Match' },
-                rankings: { icon: BarChart3, label: 'Rank' },
-                seasons: { icon: Calendar, label: 'Season' },
-                clubs: { icon: Crown, label: 'Club' },
-                sponsors: { icon: Building2, label: 'Sponsor' },
-                achievements: { icon: Award, label: 'Achieve' },
-                admins: { icon: UserCog, label: 'Admin' },
-                donations: { icon: Gift, label: 'Donasi' },
-                cms: { icon: Globe, label: 'CMS' },
-                settings: { icon: Sliders, label: 'Settings' },
+                dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
+                pemain: { icon: Users, label: 'Pemain' },
+                turnamen: { icon: Music, label: 'Turnamen' },
+                liga: { icon: Crown, label: 'Liga' },
+                konten: { icon: Globe, label: 'Konten' },
+                keuangan: { icon: Gift, label: 'Keuangan' },
+                pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
               if (!cfg) return null;
@@ -542,19 +536,13 @@ export function AdminPanel() {
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(categoryTabMap[mobileCategory] || []).map(tabValue => {
               const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
-                overview: { icon: LayoutDashboard, label: 'Overview' },
-                players: { icon: Users, label: 'Players' },
-                tournaments: { icon: Music, label: 'Tourney' },
-                matches: { icon: Trophy, label: 'Match' },
-                rankings: { icon: BarChart3, label: 'Rank' },
-                seasons: { icon: Calendar, label: 'Season' },
-                clubs: { icon: Crown, label: 'Club' },
-                sponsors: { icon: Building2, label: 'Sponsor' },
-                achievements: { icon: Award, label: 'Achieve' },
-                admins: { icon: UserCog, label: 'Admin' },
-                donations: { icon: Gift, label: 'Donasi' },
-                cms: { icon: Globe, label: 'CMS' },
-                settings: { icon: Sliders, label: 'Settings' },
+                dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
+                pemain: { icon: Users, label: 'Pemain' },
+                turnamen: { icon: Music, label: 'Turnamen' },
+                liga: { icon: Crown, label: 'Liga' },
+                konten: { icon: Globe, label: 'Konten' },
+                keuangan: { icon: Gift, label: 'Keuangan' },
+                pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
               if (!cfg) return null;
@@ -577,13 +565,13 @@ export function AdminPanel() {
           </div>
         </div>
 
-        {/* ====== OVERVIEW TAB ====== */}
-        <TabsContent value="overview">
+        {/* ====== DASHBOARD TAB ====== */}
+        <TabsContent value="dashboard">
           <AdminOverview division={storeDivision} />
         </TabsContent>
 
-        {/* ====== PLAYERS TAB ====== */}
-        <TabsContent value="players">
+        {/* ====== PEMAIN TAB ====== */}
+        <TabsContent value="pemain">
           <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
             {/* Pending Registrations */}
             {pendingRegistrations?.length > 0 && (
@@ -760,15 +748,24 @@ export function AdminPanel() {
           </motion.div>
         </TabsContent>
 
-        {/* ====== TOURNAMENTS TAB ====== */}
-        <TabsContent value="tournaments">
+        {/* ====== TURNAMEN TAB ====== */}
+        <TabsContent value="turnamen">
           <TournamentManager division={storeDivision} dt={dt} stats={stats} setConfirmDialog={setConfirmDialog} />
         </TabsContent>
 
-        {/* ====== MATCHES TAB ====== */}
-        <TabsContent value="matches">
+        {/* ====== LIGA TAB ====== */}
+        <TabsContent value="liga">
           <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
-            {/* League Match Scoring */}
+            {/* Season Management */}
+            <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
+
+            {/* Club Management */}
+            <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.seasonForClubs?.id || stats?.season?.id} setConfirmDialog={setConfirmDialog} />
+
+            {/* Rankings */}
+            <RankingPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
+
+            {/* League Match Scoring — moved from old matches tab */}
             <Card className={dt.casinoCard}>
               <div className={dt.casinoBar} />
               <CardContent className="p-4 relative z-10">
@@ -829,7 +826,7 @@ export function AdminPanel() {
               </CardContent>
             </Card>
 
-            {/* Playoff Match Scoring */}
+            {/* Playoff Match Scoring — moved from old matches tab */}
             <Card className={dt.casinoCard}>
               <div className={dt.casinoBar} />
               <CardContent className="p-4 relative z-10">
@@ -876,23 +873,8 @@ export function AdminPanel() {
           </motion.div>
         </TabsContent>
 
-        {/* ====== RANKINGS TAB ====== */}
-        <TabsContent value="rankings">
-          <RankingPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
-        </TabsContent>
-
-        {/* ====== SEASONS TAB ====== */}
-        <TabsContent value="seasons">
-          <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
-        </TabsContent>
-
-        {/* ====== CLUBS TAB ====== */}
-        <TabsContent value="clubs">
-          <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.seasonForClubs?.id || stats?.season?.id} setConfirmDialog={setConfirmDialog} />
-        </TabsContent>
-
-        {/* ====== DONATIONS TAB ====== */}
-        <TabsContent value="donations">
+        {/* ====== KEUANGAN TAB ====== */}
+        <TabsContent value="keuangan">
           <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
             {/* Pending Donations — Approval Queue */}
             {donations?.donations?.filter((d: { status: string }) => d.status === 'pending').length > 0 && (
@@ -1088,29 +1070,21 @@ export function AdminPanel() {
           </motion.div>
         </TabsContent>
 
-        {/* ====== SPONSORS TAB ====== */}
-        <TabsContent value="sponsors">
-          <AdminSponsorPanel />
+        {/* ====== KONTEN TAB ====== */}
+        <TabsContent value="konten">
+          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+            <AdminSponsorPanel />
+            <AdminAchievementPanel />
+            <CmsPanel />
+          </motion.div>
         </TabsContent>
 
-        {/* ====== ACHIEVEMENTS TAB ====== */}
-        <TabsContent value="achievements">
-          <AdminAchievementPanel />
-        </TabsContent>
-
-        {/* ====== ADMINS TAB ====== */}
-        <TabsContent value="admins">
-          <AdminManagement />
-        </TabsContent>
-
-        {/* ====== SETTINGS TAB ====== */}
-        <TabsContent value="settings">
-          <AdminSettingsPanel />
-        </TabsContent>
-
-        {/* ====== CMS TAB ====== */}
-        <TabsContent value="cms">
-          <CmsPanel />
+        {/* ====== PENGATURAN TAB ====== */}
+        <TabsContent value="pengaturan">
+          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+            <AdminSettingsPanel />
+            <AdminManagement />
+          </motion.div>
         </TabsContent>
       </Tabs>
 
