@@ -12,6 +12,8 @@ const config: Config & { safelist?: string[] } = {
     // Division-tinted hover states (used dynamically via useDivisionTheme)
     'hover:border-idm-male/20', 'hover:border-idm-female/20',
     'hover:bg-idm-male/5', 'hover:bg-idm-female/5',
+    // Active tab colors (conditional but need to be in CSS output)
+    'data-[state=active]:text-idm-male', 'data-[state=active]:text-idm-female',
   ],
   theme: {
         extend: {
