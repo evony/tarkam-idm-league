@@ -41,13 +41,12 @@ export async function POST(
   // ===== DETERMINE TEAM RANKINGS =====
   const format = tournament.format;
 
-  // Find champion, runner-up, semi-finalists based on bracket results
   let rank1TeamId: string | null = null;
   let rank2TeamId: string | null = null;
   let rank3TeamIds: string[] = [];
 
   if (format === 'single_elimination' || format === 'double_elimination') {
-    // Find the final match (highest round in upper bracket)
+    // Find the final match (highest round in upper bracket or grand final)
     const upperMatches = tournament.matches.filter(m => m.bracket === 'upper' || m.bracket === 'grand_final');
     const maxRound = Math.max(...upperMatches.map(m => m.round));
     const finalMatch = upperMatches.find(m => m.round === maxRound && m.status === 'completed');
@@ -64,8 +63,16 @@ export async function POST(
         }
       }
     }
+
+    // For DE: also check grand final
+    if (format === 'double_elimination') {
+      const gf = tournament.matches.find(m => m.bracket === 'grand_final' && m.status === 'completed');
+      if (gf) {
+        rank1TeamId = gf.winnerId;
+        rank2TeamId = gf.loserId;
+      }
+    }
   } else if (format === 'group_stage') {
-    // For group stage, ranking is based on playoff results
     const finalMatch = tournament.matches.find(m => m.groupLabel === 'Final' && m.status === 'completed');
     const thirdMatch = tournament.matches.find(m => m.groupLabel === '3rd' && m.status === 'completed');
 
@@ -90,46 +97,45 @@ export async function POST(
   }
 
   // ===== AWARD PRIZE POINTS WITH AUDIT TRAIL =====
+  // Bug #6 fix: Use position field for matching instead of label string matching
   const tierUpgrades: { playerId: string; gamertag: string; fromTier: string; toTier: string }[] = [];
 
-  for (const prize of tournament.prizes) {
-    const isMvpPrize = prize.label.toLowerCase().includes('mvp');
-    const teamPrizeMap: Record<number, string | null> = {
-      1: rank1TeamId,
-      2: rank2TeamId,
-      3: rank3TeamIds[0] || null,
-    };
+  // Build position → team map
+  const positionTeamMap: Record<number, string | null> = {
+    1: rank1TeamId,
+    2: rank2TeamId,
+    3: rank3TeamIds[0] || null,
+  };
 
-    // Map prize label to reason
-    const getPrizeReason = (label: string): string => {
+  for (const prize of tournament.prizes) {
+    const isMvpPrize = prize.label.toLowerCase().includes('mvp') || prize.position === 99;
+
+    // Map prize reason
+    const getPrizeReason = (position: number, label: string): string => {
       const l = label.toLowerCase();
-      if (l.includes('mvp')) return 'prize_mvp';
-      if (l.includes('juara 1') || l.includes('1st')) return 'prize_juara1';
-      if (l.includes('juara 2') || l.includes('2nd')) return 'prize_juara2';
-      if (l.includes('juara 3') || l.includes('3rd')) return 'prize_juara3';
+      if (l.includes('mvp') || position === 99) return 'prize_mvp';
+      if (position === 1 || l.includes('juara 1') || l.includes('1st') || l.includes('champion')) return 'prize_juara1';
+      if (position === 2 || l.includes('juara 2') || l.includes('2nd') || l.includes('runner')) return 'prize_juara2';
+      if (position === 3 || l.includes('juara 3') || l.includes('3rd')) return 'prize_juara3';
       return 'prize_other';
     };
 
     if (isMvpPrize && mvpPlayerId) {
-      // Award MVP points directly to the player
       const player = await db.player.findUnique({ where: { id: mvpPlayerId } });
       if (player) {
-        // Award points with audit trail
         await awardPoints({
           playerId: mvpPlayerId,
           amount: prize.pointsPerPlayer,
-          reason: getPrizeReason(prize.label),
+          reason: getPrizeReason(prize.position, prize.label),
           description: `MVP - ${tournament.name}`,
           tournamentId: id,
         });
 
-        // Update MVP count
         await db.player.update({
           where: { id: mvpPlayerId },
           data: { totalMvp: player.totalMvp + 1 },
         });
 
-        // Update participation
         const part = await db.participation.findUnique({
           where: { playerId_tournamentId: { playerId: mvpPlayerId, tournamentId: id } },
         });
@@ -140,7 +146,6 @@ export async function POST(
           });
         }
 
-        // Check tier upgrade
         const upgrade = await processTierUpgrade(mvpPlayerId);
         if (upgrade?.upgraded) {
           tierUpgrades.push({ playerId: mvpPlayerId, gamertag: player.gamertag, fromTier: upgrade.fromTier, toTier: upgrade.toTier });
@@ -154,15 +159,25 @@ export async function POST(
       if (lastMatch) {
         await db.match.update({ where: { id: lastMatch.id }, data: { mvpPlayerId } });
       }
-    } else {
-      // Team prize — find the team at this position
+    } else if (!isMvpPrize) {
+      // Bug #6 fix: Use position field first, fall back to label matching
       let targetTeamId: string | null = null;
-      if (prize.label.toLowerCase().includes('juara 1') || prize.label.toLowerCase().includes('1st')) {
-        targetTeamId = rank1TeamId;
-      } else if (prize.label.toLowerCase().includes('juara 2') || prize.label.toLowerCase().includes('2nd')) {
-        targetTeamId = rank2TeamId;
-      } else if (prize.label.toLowerCase().includes('juara 3') || prize.label.toLowerCase().includes('3rd')) {
-        targetTeamId = rank3TeamIds[0] || null;
+
+      // Primary: use position field (1=1st, 2=2nd, 3=3rd)
+      if (prize.position >= 1 && prize.position <= 3) {
+        targetTeamId = positionTeamMap[prize.position] || null;
+      }
+
+      // Fallback: if position is 0 or invalid, try label matching
+      if (!targetTeamId && prize.position === 0) {
+        const l = prize.label.toLowerCase();
+        if (l.includes('juara 1') || l.includes('1st') || l.includes('champion')) {
+          targetTeamId = rank1TeamId;
+        } else if (l.includes('juara 2') || l.includes('2nd') || l.includes('runner')) {
+          targetTeamId = rank2TeamId;
+        } else if (l.includes('juara 3') || l.includes('3rd')) {
+          targetTeamId = rank3TeamIds[0] || null;
+        }
       }
 
       if (targetTeamId) {
@@ -173,16 +188,14 @@ export async function POST(
 
         if (team) {
           for (const tp of team.teamPlayers) {
-            // Award points with audit trail
             await awardPoints({
               playerId: tp.playerId,
               amount: prize.pointsPerPlayer,
-              reason: getPrizeReason(prize.label),
+              reason: getPrizeReason(prize.position, prize.label),
               description: `${prize.label} - ${tournament.name} (${team.name})`,
               tournamentId: id,
             });
 
-            // Update participation
             const part = await db.participation.findUnique({
               where: { playerId_tournamentId: { playerId: tp.playerId, tournamentId: id } },
             });
@@ -196,7 +209,6 @@ export async function POST(
               });
             }
 
-            // Check tier upgrade
             const upgrade = await processTierUpgrade(tp.playerId);
             if (upgrade?.upgraded) {
               tierUpgrades.push({ playerId: tp.playerId, gamertag: tp.player.gamertag, fromTier: upgrade.fromTier, toTier: upgrade.toTier });

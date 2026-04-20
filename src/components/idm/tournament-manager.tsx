@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Plus, Play, Users, Zap, Crown, Loader2, Trash2,
   UserPlus, Check, X, Trophy, Gift, Star, ArrowRight, RefreshCw,
-  Heart, MapPin, Pencil, Calendar, ChevronLeft
+  Heart, MapPin, Pencil, Calendar, ChevronLeft, Undo2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -215,6 +215,20 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Skor berhasil disubmit!'); },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
+
+  // Bug #7 fix: Undo score mutation
+  const undoScoreMutation = useMutation({
+    mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
+      const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId }),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal undo skor'); }
+      return r.json();
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Skor berhasil di-undo!'); },
     onError: (e: Error) => { toast.error(e.message); },
   });
 
@@ -455,11 +469,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       onClick={() => openEditDialog(t)} title="Edit Tournament">
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
-                    {(t.status === 'setup' || t.status === 'registration') && (
+                    {t.status !== 'completed' && (
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true, title: 'Hapus Tournament?',
-                          description: `Tournament "${t.name}" dan semua data terkait akan dihapus permanen.`,
+                          description: `Tournament "${t.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
                           onConfirm: () => deleteMutation.mutate(t.id)
                         })} title="Hapus Tournament">
                         <Trash2 className="w-3.5 h-3.5" />
@@ -495,11 +509,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   onClick={() => openEditDialog(selected)} title="Edit Tournament">
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
-                {(selected.status === 'setup' || selected.status === 'registration') && (
+                {selected.status !== 'completed' && (
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                     onClick={() => setConfirmDialog({
                       open: true, title: 'Hapus Tournament?',
-                      description: `Tournament "${selected.name}" dan semua data terkait akan dihapus permanen.`,
+                      description: `Tournament "${selected.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
                       onConfirm: () => deleteMutation.mutate(selected.id)
                     })} title="Hapus Tournament">
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1166,7 +1180,24 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                           {m.mvpPlayer && <p className="text-[9px] text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
 
-                          {/* Actions */}
+                          {/* Undo button for completed matches (Bug #7) */}
+                          {selected.status === 'main_event' && m.status === 'completed' && m.team1Id && m.team2Id && (
+                            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
+                              <Button size="sm" variant="outline" className="text-[10px] h-6 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
+                                disabled={undoScoreMutation.isPending}
+                                onClick={() => {
+                                  setConfirmDialog({
+                                    open: true, title: 'Undo Skor?',
+                                    description: `Batalkan skor ${getTeamName(m.team1Id)} ${m.score1} - ${m.score2} ${getTeamName(m.team2Id)}? Stats pemain akan dikembalikan.`,
+                                    onConfirm: () => undoScoreMutation.mutate({ tournamentId: selected.id, matchId: m.id })
+                                  });
+                                }}>
+                                {undoScoreMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Undo2 className="w-3 h-3 mr-1" />} Undo
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Actions for live/pending matches */}
                           {selected.status === 'main_event' && m.team1Id && m.team2Id && m.status !== 'completed' && (
                             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
                               {(m.status === 'ready' || m.status === 'pending') && (

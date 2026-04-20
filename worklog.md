@@ -478,3 +478,84 @@ Stage Summary:
 - Database re-seeded with correct data
 - All APIs verified working
 - Key improvements: expanded tournament manager, admin login, scoring, Cloudinary support
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix all 8 tournament engine bugs
+
+Work Log:
+- Bug #1 (CRITICAL): Fixed Double Elimination bracket advancement
+  - Root cause: Lower bracket advancement used `findFirst` without position, always filling first empty slot
+  - Fix: Added structured groupLabel format (e.g., "U1-1", "L2-3") for position-based routing
+  - UR1 losers → LR1 with position pairing (pos1,2 → L1-1; pos3,4 → L1-2, etc.)
+  - UR2+ losers drop to even LR rounds at matching position
+  - LR odd rounds → next even round (same position, team1 slot)
+  - LR even rounds → next odd round (halved position, odd/even slot)
+  - LR final winner → Grand Final (team2 slot)
+
+- Bug #2 (CRITICAL): Fixed Playoff scoring doesn't update club stats
+  - Root cause: /api/tournaments/[id]/score/route.ts never updated Club model stats
+  - Fix: Added `updateClubStatsForPlayer()` helper that finds player's club membership and increments wins/losses/points/gameDiff
+  - Applied to win, loss, and draw scenarios in score submission
+
+- Bug #3 (CRITICAL): Added transaction wrapping on score submit
+  - Root cause: Score submission did multiple DB writes without transaction — data inconsistency risk
+  - Fix: Wrapped entire score submission in `db.$transaction()` with 30s timeout
+  - Includes match update, participation update, player stats update, point audit records, and club stats
+
+- Bug #4 (CRITICAL): Fixed Group Stage playoff to support 3+ groups
+  - Root cause: `checkAndSeedPlayoffs()` only handled 2 groups (A, B) — 3+ groups were discarded
+  - Fix: Added comprehensive seeding for 1, 2, 3, 4, and 5+ groups:
+    - 1 group: 1st vs 4th, 2nd vs 3rd
+    - 2 groups: A1 vs B2, B1 vs A2 (original)
+    - 3 groups: 3 group winners + best 2nd place, semi-finals
+    - 4 groups: QF cross-bracket (A1vD2, B1vC2, C1vB2, D1vA2) + SF + Final + 3rd
+    - 5+ groups: Generic playoff bracket with wildcards
+  - Also created proper playoff match placeholders during bracket generation
+
+- Bug #5 (CRITICAL): Fixed Delete tournament to rollback player stats
+  - Root cause: DELETE handler only cascaded data deletion, never rolled back player points/wins/streak
+  - Fix: Added full rollback using PlayerPoint audit trail before deletion
+  - Deducts points from player.points for all point records
+  - Decrements totalWins, matches for winning/losing team players
+  - Resets streak to 0 (can't reconstruct exact prior streak)
+  - Rolls back club stats (wins, losses, points, gameDiff)
+  - Uses `db.$transaction()` for atomic rollback + deletion
+  - Changed: allows deletion at any status before "completed" (was only setup/registration)
+
+- Bug #6 (MEDIUM): Fixed Prize matching uses position instead of label strings
+  - Root cause: finalize route matched prizes by label string ("Juara 1" vs "Champion") — language-dependent
+  - Fix: Primary matching now uses `prize.position` field (1=1st, 2=2nd, 3=3rd, 99=MVP)
+  - Fallback: if position=0, still tries label matching for backward compatibility
+  - Added MVP detection by `position === 99` in addition to label matching
+
+- Bug #7 (MEDIUM): Added undo score feature
+  - New PUT handler on /api/tournaments/[id]/score route
+  - Checks match is completed and winner/loser haven't advanced to another match
+  - Uses PlayerPoint audit trail to calculate and deduct points
+  - Rolls back player stats (totalWins, matches, streak)
+  - Rolls back club stats (wins, losses, points, gameDiff)
+  - Removes winner/loser from subsequent matches (resets to pending)
+  - Resets match to "ready" with scores cleared
+  - Moves tournament from finalization back to main_event if needed
+  - All in a transaction for data integrity
+  - Added Undo2 button in tournament-manager UI with confirmation dialog
+
+- Bug #8 (MEDIUM): Fixed Race condition on concurrent score submission
+  - Root cause: No locking — two concurrent requests could both score the same match
+  - Fix: Match status check is now inside `db.$transaction()` which provides row-level locking
+  - If match is already completed within the transaction, it throws error
+  - Transaction has maxWait: 10000ms, timeout: 30000ms
+
+Files modified:
+- /src/app/api/tournaments/[id]/generate-bracket/route.ts — Complete rewrite with structured groupLabels and 3+ group support
+- /src/app/api/tournaments/[id]/score/route.ts — Complete rewrite with transaction, club stats, DE advancement, undo
+- /src/app/api/tournaments/[id]/route.ts — Rewrite DELETE with stats rollback, allow delete before completed
+- /src/app/api/tournaments/[id]/finalize/route.ts — Position-based prize matching, DE grand final handling
+- /src/components/idm/tournament-manager.tsx — Undo button, undo mutation, extended delete permission
+
+Stage Summary:
+- All 8 tournament engine bugs fixed
+- Lint clean, dev server running
+- Key architectural improvements: structured groupLabels, transaction wrapping, audit-trail-based undo

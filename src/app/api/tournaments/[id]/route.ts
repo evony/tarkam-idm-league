@@ -11,30 +11,141 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const tournament = await db.tournament.findUnique({ where: { id } });
+  const tournament = await db.tournament.findUnique({
+    where: { id },
+    include: {
+      matches: { include: { team1: { include: { teamPlayers: true } }, team2: { include: { teamPlayers: true } } } },
+      teams: { include: { teamPlayers: true } },
+    },
+  });
   if (!tournament) {
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
-  // Allow deletion of tournaments in setup or registration status only
-  if (tournament.status !== 'setup' && tournament.status !== 'registration') {
-    return NextResponse.json({ error: 'Hanya tournament dengan status setup atau registration yang bisa dihapus' }, { status: 400 });
+  // Allow deletion of tournaments in any status before completed
+  if (tournament.status === 'completed') {
+    return NextResponse.json({ error: 'Tournament yang sudah completed tidak bisa dihapus. Hubungi super admin untuk rollback.' }, { status: 400 });
   }
 
-  // Delete in order: matches → teamPlayers → teams → prizes → donations → participations → tournament
-  await db.match.deleteMany({ where: { tournamentId: id } });
-  const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
-  for (const t of teams) {
-    await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
-  }
-  await db.team.deleteMany({ where: { tournamentId: id } });
-  await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
-  await db.donation.deleteMany({ where: { tournamentId: id } });
-  await db.participation.deleteMany({ where: { tournamentId: id } });
-  await db.playerPoint.deleteMany({ where: { tournamentId: id } });
-  await db.tournament.delete({ where: { id } });
+  try {
+    // Bug #5 fix: Rollback all player stats before deleting
+    await db.$transaction(async (tx) => {
+      // 1. Rollback player stats using PlayerPoint audit trail
+      const pointRecords = await tx.playerPoint.findMany({
+        where: { tournamentId: id },
+      });
 
-  return NextResponse.json({ success: true });
+      // Group by player and sum amounts to deduct
+      const pointsByPlayer = new Map<string, number>();
+      for (const pr of pointRecords) {
+        pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+      }
+
+      for (const [playerId, totalPoints] of pointsByPlayer) {
+        const player = await tx.player.findUnique({ where: { id: playerId } });
+        if (player) {
+          await tx.player.update({
+            where: { id: playerId },
+            data: {
+              points: Math.max(0, player.points - totalPoints),
+            },
+          });
+        }
+      }
+
+      // 2. Rollback player match/wins/streak stats
+      // Find all completed matches and reverse the stats
+      const completedMatches = tournament.matches.filter(m => m.status === 'completed' && m.winnerId);
+
+      for (const match of completedMatches) {
+        if (!match.team1 || !match.team2) continue;
+
+        const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
+        const losingTeam = match.team1Id === match.loserId ? match.team1 : match.team2;
+
+        // Rollback winning team players
+        for (const tp of winningTeam.teamPlayers) {
+          const player = await tx.player.findUnique({ where: { id: tp.playerId } });
+          if (player) {
+            await tx.player.update({
+              where: { id: tp.playerId },
+              data: {
+                totalWins: Math.max(0, player.totalWins - 1),
+                matches: Math.max(0, player.matches - 1),
+                // Note: streak rollback is complex, but we do our best
+                streak: 0, // Reset streak since we can't know what it was before
+              },
+            });
+          }
+        }
+
+        // Rollback losing team players
+        for (const tp of losingTeam.teamPlayers) {
+          const player = await tx.player.findUnique({ where: { id: tp.playerId } });
+          if (player) {
+            await tx.player.update({
+              where: { id: tp.playerId },
+              data: {
+                matches: Math.max(0, player.matches - 1),
+                streak: 0,
+              },
+            });
+          }
+        }
+
+        // Rollback club stats
+        const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
+        for (const team of [winningTeam, losingTeam]) {
+          for (const tp of team.teamPlayers) {
+            const membership = await tx.clubMember.findFirst({
+              where: { playerId: tp.playerId, club: { division: tournament.division, seasonId: tournament.seasonId } },
+            });
+            if (membership) {
+              if (team === winningTeam) {
+                await tx.club.update({
+                  where: { id: membership.clubId },
+                  data: {
+                    wins: { decrement: 1 },
+                    points: { decrement: 2 },
+                    gameDiff: { decrement: gameDiff },
+                  },
+                });
+              } else {
+                await tx.club.update({
+                  where: { id: membership.clubId },
+                  data: {
+                    losses: { decrement: 1 },
+                    gameDiff: { increment: gameDiff },
+                  },
+                });
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Delete all tournament data in correct order
+      await tx.match.deleteMany({ where: { tournamentId: id } });
+      const teams = await tx.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+      for (const t of teams) {
+        await tx.teamPlayer.deleteMany({ where: { teamId: t.id } });
+      }
+      await tx.team.deleteMany({ where: { tournamentId: id } });
+      await tx.tournamentPrize.deleteMany({ where: { tournamentId: id } });
+      await tx.donation.deleteMany({ where: { tournamentId: id } });
+      await tx.participation.deleteMany({ where: { tournamentId: id } });
+      await tx.playerPoint.deleteMany({ where: { tournamentId: id } });
+      await tx.playerAchievement.deleteMany({ where: { tournamentId: id } });
+      await tx.tournamentSponsor.deleteMany({ where: { tournamentId: id } });
+      await tx.sponsoredPrize.deleteMany({ where: { tournamentId: id } });
+      await tx.tournament.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Delete tournament error:', error);
+    return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
+  }
 }
 
 export async function GET(
