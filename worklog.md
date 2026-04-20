@@ -559,3 +559,36 @@ Stage Summary:
 - All 8 tournament engine bugs fixed
 - Lint clean, dev server running
 - Key architectural improvements: structured groupLabels, transaction wrapping, audit-trail-based undo
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Create spin animation UI for team generation reveal and integrate into tournament-manager
+
+Work Log:
+- Read current state of tournament-manager.tsx (1510 lines), generate-teams API route, and worklog
+- Backend already returns `spinRevealOrder` data with proper structure (teamIndex, teamName, tier, player, allPlayersInTier)
+- Backend already names teams after Tier S player (`Tim {gamertag}`)
+- State `spinRevealData` and mutation `generateTeamsMutation` already wired to set spin data on success
+- Created new component: /src/components/idm/team-spin-reveal.tsx
+  - Slot-machine style animation with Framer Motion
+  - Cycles through player names at increasing intervals (slow down effect)
+  - Sparkle/particle effect on reveal
+  - Shows all team slots progressively filling up (S → A → B per team)
+  - Tier-colored indicators (S=red, A=yellow, B=blue)
+  - Progress bar and step counter
+  - Auto-advances through all steps with 1.2s pauses between reveals
+  - Celebration screen with PartyPopper when all teams complete
+  - "Lanjut ke Bracket" button to close and continue
+- Integrated into tournament-manager.tsx:
+  - Added import for TeamSpinReveal and useCallback
+  - Added handleSpinComplete callback to clear spin data and show toast
+  - Added TeamSpinReveal component in JSX at end of return (before closing motion.div)
+- Lint check: clean (zero errors)
+- Dev server running, page returns HTTP 200
+
+Stage Summary:
+- Spin animation component fully functional: TeamSpinReveal
+- Flow: Generate Teams → API returns spinRevealOrder → Dialog opens with slot-machine animation → Teams revealed one by one → Close → Continue to bracket
+- Team naming already uses Tier S player name (Tim {gamertag}) from previous session
+- No new API changes needed — backend was already prepared

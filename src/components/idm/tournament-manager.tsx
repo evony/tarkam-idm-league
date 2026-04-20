@@ -17,7 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { TierBadge } from './tier-badge';
 import { StatusBadge } from './status-badge';
-import { useState, useMemo } from 'react';
+import { TeamSpinReveal } from './team-spin-reveal';
+import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { container, item } from '@/lib/animations';
@@ -398,6 +399,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       setShowPrizeConfig(true);
     }
   }
+
+  // Handle spin reveal completion
+  const handleSpinComplete = useCallback(() => {
+    setSpinRevealData(null);
+    toast.success('Tim berhasil di-generate! 🎉');
+  }, []);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
@@ -1505,6 +1512,16 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== SPIN REVEAL ANIMATION ===== */}
+      {spinRevealData && (
+        <TeamSpinReveal
+          spinRevealOrder={spinRevealData.spinRevealOrder}
+          teamCount={spinRevealData.teamCount}
+          onComplete={handleSpinComplete}
+          division={division}
+        />
+      )}
     </motion.div>
   );
 }
