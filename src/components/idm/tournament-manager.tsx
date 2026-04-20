@@ -1971,17 +1971,19 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               {m.status === 'live' && (
                                 <>
                                   <Input type="number" min="0" placeholder={getTeamName(m.team1Id)} className="w-16 h-6 text-[10px]"
-                                    value={scoreInputs[m.id]?.s1 || ''}
-                                    onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 || '' } }))} />
+                                    value={scoreInputs[m.id]?.s1 ?? ''}
+                                    onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 ?? '' } }))} />
                                   <span className="text-[10px] text-muted-foreground">vs</span>
                                   <Input type="number" min="0" placeholder={getTeamName(m.team2Id)} className="w-16 h-6 text-[10px]"
-                                    value={scoreInputs[m.id]?.s2 || ''}
-                                    onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 || '' } }))} />
+                                    value={scoreInputs[m.id]?.s2 ?? ''}
+                                    onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 ?? '' } }))} />
                                   <Button size="sm" className="text-[10px] h-6 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
-                                    disabled={!scoreInputs[m.id]?.s1 || !scoreInputs[m.id]?.s2 || scoreMutation.isPending}
+                                    disabled={scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s1 === undefined || scoreInputs[m.id]?.s2 === '' || scoreInputs[m.id]?.s2 === undefined || scoreMutation.isPending}
                                     onClick={() => {
                                       const s1 = parseInt(scoreInputs[m.id].s1);
                                       const s2 = parseInt(scoreInputs[m.id].s2);
+                                      if (isNaN(s1) || isNaN(s2)) { toast.error('Skor harus berupa angka!'); return; }
+                                      if (s1 < 0 || s2 < 0) { toast.error('Skor tidak boleh negatif!'); return; }
                                       const isGroupBracket = m.bracket === 'group';
                                       if (s1 === s2 && !isGroupBracket) { toast.error('Skor tidak boleh seri di bracket eliminasi!'); return; }
                                       setConfirmDialog({
@@ -2043,7 +2045,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 <p className="text-base font-semibold text-idm-gold-warm flex items-center gap-2">🏆 Fase Finalisasi — Pilih MVP & Konfirmasi</p>
 
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Pembagian Hadiah (dari fase persetujuan):</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-muted-foreground">💰 Pembagian Hadiah</p>
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-idm-gold-warm hover:bg-idm-gold-warm/10"
+                      onClick={() => setShowPrizeConfig(!showPrizeConfig)}>
+                      {showPrizeConfig ? 'Sembunyikan' : '✏️ Edit Hadiah'}
+                    </Button>
+                  </div>
                   {selected.prizes?.length > 0 ? (
                     selected.prizes.map((p: { id: string; label: string; prizeAmount: number; pointsPerPlayer: number; recipientCount: number }) => (
                       <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 text-xs">
@@ -2054,7 +2062,89 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-yellow-500">⚠️ Belum ada pembagian hadiah. Anda masih bisa finalisasi, hadiah bisa ditambahkan nanti.</p>
+                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                      <p className="text-xs text-yellow-500 font-medium">⚠️ Belum ada pembagian hadiah</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Klik "Edit Hadiah" untuk mengatur, atau langsung finalisasi tanpa hadiah.</p>
+                    </div>
+                  )}
+
+                  {showPrizeConfig && (
+                    <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/10">
+                      <div>
+                        <Label className="text-[10px] font-semibold">💰 Total Prize Pool</Label>
+                        <Input type="number" className="h-7 text-xs mt-1"
+                          placeholder={String(referencePrizePool)}
+                          value={manualPrizePool}
+                          onChange={e => setManualPrizePool(e.target.value)} />
+                        <p className="text-[9px] text-muted-foreground mt-0.5">💡 Referensi: {formatCurrency(referencePrizePool)} (berdasarkan peserta & saweran)</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id="manualPrizeFinal"
+                          checked={wantsManualPrize}
+                          onChange={e => { setWantsManualPrize(e.target.checked); if (!e.target.checked) setShowPrizeConfig(false); }}
+                          className="rounded" />
+                        <label htmlFor="manualPrizeFinal" className="text-[10px] font-medium cursor-pointer">☑️ Atur pembagian hadiah manual</label>
+                      </div>
+                      {wantsManualPrize && (
+                        <div className="space-y-1.5">
+                          {prizes.map((prize, i) => (
+                            <div key={i} className="flex items-center gap-1.5">
+                              <Input placeholder="Label" value={prize.label} className="h-7 text-[10px] flex-1"
+                                onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, label: e.target.value, isMvp: e.target.value.toLowerCase().includes('mvp') } : p))} />
+                              <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-7 text-[10px] w-28"
+                                onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, prizeAmount: parseInt(e.target.value) || 0 } : p))} />
+                              <span className="text-[9px] text-muted-foreground w-14">
+                                {prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '÷ 1' : '÷ 3'}
+                              </span>
+                              <span className="text-[9px] text-idm-gold-warm w-20">
+                                = {Math.floor((prize.prizeAmount / 1000) / (prize.isMvp || prize.label.toLowerCase().includes('mvp') ? 1 : 3))} pts{prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '' : '/org'}
+                              </span>
+                              <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-red-400 hover:text-red-300"
+                                onClick={() => setPrizes(prev => prev.filter((_, j) => j !== i))}>
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button size="sm" variant="outline" className="h-6 text-[10px] w-full"
+                            onClick={() => setPrizes(prev => [...prev, { label: '', position: prev.length + 1, prizeAmount: 0, recipientCount: 3, isMvp: false }])}>
+                            <Plus className="w-3 h-3 mr-1" /> Tambah Hadiah
+                          </Button>
+                          <Button size="sm" className="h-7 text-[10px] w-full bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
+                            disabled={updateMutation.isPending}
+                            onClick={() => {
+                              const pool = parseInt(manualPrizePool) || referencePrizePool;
+                              updateMutation.mutate({
+                                id: selected.id,
+                                data: {
+                                  prizePool: pool,
+                                  prizes: prizes.filter(p => p.label && p.prizeAmount > 0).map(p => ({
+                                    label: p.label,
+                                    position: p.isMvp || p.label.toLowerCase().includes('mvp') ? 99 : p.position,
+                                    prizeAmount: p.prizeAmount,
+                                    recipientCount: p.isMvp || p.label.toLowerCase().includes('mvp') ? 1 : 3,
+                                  })),
+                                },
+                              });
+                            }}>
+                            {updateMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                            Simpan Hadiah
+                          </Button>
+                          {(() => {
+                            const totalUsed = prizes.reduce((sum, p) => sum + p.prizeAmount, 0);
+                            const effectivePool = parseInt(manualPrizePool) || referencePrizePool;
+                            return (
+                              <div className={`text-[10px] p-2 rounded-lg ${totalUsed > effectivePool ? 'bg-red-500/10 text-red-400' : totalUsed === effectivePool ? 'bg-green-500/10 text-green-400' : 'bg-muted/30 text-muted-foreground'}`}>
+                                <div className="flex justify-between"><span>Total Hadiah:</span><span>{formatCurrency(totalUsed)}</span></div>
+                                <div className="flex justify-between"><span>Prize Pool:</span><span>{formatCurrency(effectivePool)}</span></div>
+                                <div className="flex justify-between font-semibold border-t border-current/10 pt-1 mt-1">
+                                  <span>Sisa:</span><span>{formatCurrency(effectivePool - totalUsed)}</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

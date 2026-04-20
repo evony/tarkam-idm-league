@@ -33,9 +33,14 @@ export async function POST(
     return NextResponse.json({ error: 'Tournament must be in finalization status' }, { status: 400 });
   }
 
-  // Check if prizes exist
+  // Check if prizes exist — warn but don't block
   if (!tournament.prizes || tournament.prizes.length === 0) {
-    return NextResponse.json({ error: 'No prizes configured. Please configure prizes in approval phase.' }, { status: 400 });
+    // Prizes are optional — continue without prize distribution
+    // Only block if there are no completed matches at all
+    const completedMatches = tournament.matches.filter(m => m.status === 'completed');
+    if (completedMatches.length === 0) {
+      return NextResponse.json({ error: 'Tournament has no completed matches. Cannot finalize.' }, { status: 400 });
+    }
   }
 
   // ===== DETERMINE TEAM RANKINGS =====
