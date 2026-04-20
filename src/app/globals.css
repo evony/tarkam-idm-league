@@ -1473,18 +1473,30 @@ html {
    20. AMBIENT LIGHT EFFECT
    ============================================ */
 @keyframes ambient-orbit {
-  0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
 }
 
 .ambient-light {
   position: absolute;
-  width: 300px;
-  height: 300px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(229, 190, 74, 0.08) 0%, transparent 70%);
   pointer-events: none;
   animation: ambient-orbit 20s linear infinite;
+}
+
+@media (min-width: 640px) {
+  @keyframes ambient-orbit-lg {
+    0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+  }
+  .ambient-light {
+    width: 300px;
+    height: 300px;
+    animation: ambient-orbit-lg 20s linear infinite;
+  }
 }
 
 /* ============================================
