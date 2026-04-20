@@ -291,8 +291,16 @@ export function MyTournamentCard() {
 
           <div className="text-center py-3">
             <Shield className={`w-8 h-8 ${dt.neonText} mx-auto mb-2 opacity-50`} />
-            <h3 className="text-sm font-bold mb-1">Belum Masuk Tim</h3>
-            <p className="text-xs text-muted-foreground">{data.message}</p>
+            <h3 className="text-sm font-bold mb-1">
+              {data.tournament.status === 'registration' ? 'Pendaftaran Belum Dibuka' :
+               data.tournament.status === 'approval' ? 'Menunggu Persetujuan' :
+               'Belum Masuk Tim'}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {data.tournament.status === 'registration' ? 'Tournament sedang dalam fase pendaftaran. Hubungi admin untuk mendaftar.' :
+               data.tournament.status === 'approval' ? (data.participationStatus === 'registered' ? 'Pendaftaran kamu sedang menunggu persetujuan admin.' : data.participationStatus === 'approved' ? 'Kamu sudah disetujui! Tim akan segera dibentuk.' : data.message) :
+               data.message}
+            </p>
           </div>
         </CardContent>
       </Card>

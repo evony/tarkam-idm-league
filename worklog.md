@@ -1219,3 +1219,26 @@ Stage Summary:
 - Finalize endpoint now handles edge cases properly (null team matches, no completed matches)
 - Score input now properly supports 0 values
 - checkAllMatchesComplete auto-advancement is smarter about unfilled bracket slots
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix all tournament engine bugs (division filter, rollback, finalization, stuck tournament)
+
+Work Log:
+- Fixed Bug #1: Added division filter to my-status API - female players now correctly see their own division's tournament
+- Fixed Bug #2: Added participation status reset (assigned→approved) in rollback Phase 6
+- Verified Bug #3: Score input min={0} was already correct in code
+- Fixed Bug #4: Improved finalization error messages with status-specific guidance in Indonesian
+- Fixed Bug #5: Added registration/approval phases to my-status API active tournament query + better frontend messages
+- Fixed Bug #6: Added try-catch around entire rollback logic + Phase 0 orphan data cleanup
+- Fixed Bug #7: Cleaned up stuck tournament (team_generation with 0 teams) by reverting to setup, then to approval
+- Also added division filter for latest tournament fallback in my-status API
+
+Stage Summary:
+- my-status API now correctly filters by player's division
+- Rollback logic is now robust with error handling and orphan cleanup (Phase 0)
+- Phase 6 now resets participation status from 'assigned' back to 'approved'
+- Finalize endpoint gives helpful Indonesian error messages based on current status
+- Frontend shows contextual messages for registration/approval phases
+- Stuck tournament cleaned up and now at 'approval' status with clean data
+- All API endpoints returning 200, no compilation errors

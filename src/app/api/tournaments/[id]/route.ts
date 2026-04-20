@@ -281,6 +281,60 @@ export async function PUT(
       const targetIdx = statusOrder.indexOf(body.status);
 
       if (targetIdx < currentIdx) {
+        const revertErrors: string[] = [];
+
+        try {
+        // ─── PHASE 0: Always cleanup orphaned data when reverting ───
+        // This handles cases where data from later phases exists even though status is earlier
+        // (e.g., from a failed rollback that left the tournament in an inconsistent state)
+        if (targetIdx < statusOrder.indexOf('finalization')) {
+          // Always clean up prizes if they exist but we're reverting before finalization
+          const existingPrizes = await db.tournamentPrize.findMany({ where: { tournamentId: id }, select: { id: true } });
+          if (existingPrizes.length > 0) {
+            // Rollback any remaining prize point records
+            const prizePointRecords = await db.playerPoint.findMany({
+              where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } },
+              select: { playerId: true, amount: true },
+            });
+            const pointsByPlayer = new Map<string, number>();
+            for (const pr of prizePointRecords) {
+              pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+            }
+            for (const [playerId, totalPoints] of pointsByPlayer) {
+              await db.player.updateMany({ where: { id: playerId }, data: { points: { decrement: totalPoints } } });
+              await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+            }
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
+            await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
+          }
+
+          // Always reset finalizedAt/completedAt if reverting before finalization
+          const tournamentData = await db.tournament.findUnique({ where: { id }, select: { finalizedAt: true, completedAt: true } });
+          if (tournamentData?.finalizedAt || tournamentData?.completedAt) {
+            await db.tournament.update({ where: { id }, data: { finalizedAt: null, completedAt: null } });
+          }
+
+          // Always rollback any remaining MVP stats
+          const mvpParts = await db.participation.findMany({ where: { tournamentId: id, isMvp: true }, select: { playerId: true } });
+          for (const mvp of mvpParts) {
+            await db.player.update({ where: { id: mvp.playerId }, data: { totalMvp: { decrement: 1 } } });
+            await db.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+          }
+
+          // Always reset isWinner/isMvp on participations if they shouldn't be set
+          await db.participation.updateMany({ where: { tournamentId: id, isWinner: true }, data: { isWinner: false } });
+          await db.participation.updateMany({ where: { tournamentId: id, isMvp: true }, data: { isMvp: false } });
+
+          // Always reset team ranks
+          await db.team.updateMany({ where: { tournamentId: id, rank: { not: null } }, data: { rank: null, isWinner: false } });
+
+          // Always delete orphaned player achievements
+          await db.playerAchievement.deleteMany({ where: { tournamentId: id } });
+
+          // Always reset match MVP references
+          await db.match.updateMany({ where: { tournamentId: id, mvpPlayerId: { not: null } }, data: { mvpPlayerId: null } });
+        }
+
         // ─── PHASE 1: Rollback finalization effects ───
         // If reverting before finalization (from finalization/completed back to main_event or earlier)
         if (targetIdx < statusOrder.indexOf('finalization') && currentIdx >= statusOrder.indexOf('finalization')) {
@@ -575,16 +629,29 @@ export async function PUT(
           });
         }
 
-        // ─── PHASE 6: Reset participation pointsEarned to 0 when reverting before team_generation ───
+        // ─── PHASE 6: Reset participation when reverting before team_generation ───
         if (targetIdx < statusOrder.indexOf('team_generation') && currentIdx >= statusOrder.indexOf('team_generation')) {
           await db.participation.updateMany({
             where: { tournamentId: id },
             data: { pointsEarned: 0, isMvp: false, isWinner: false },
           });
+          // Reset assigned participations back to approved (team generation sets status to 'assigned')
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: 'assigned' },
+            data: { status: 'approved' },
+          });
         }
+      } catch (revertError) {
+        console.error('Revert phase error:', revertError);
+        revertErrors.push(revertError instanceof Error ? revertError.message : 'Unknown revert error');
       }
-    }
-  }
+      // Always update status even if some cleanup steps failed
+      if (revertErrors.length > 0) {
+        console.warn('Revert completed with errors:', revertErrors);
+      }
+      } // closes if (targetIdx < currentIdx)
+    } // closes if (currentTournament)
+  } // closes if (body._revert && body.status)
   delete body._revert; // Don't store this in DB
 
   // Handle prizes update

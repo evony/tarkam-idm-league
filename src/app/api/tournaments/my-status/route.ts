@@ -41,10 +41,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ found: false, message: 'Pemain tidak ditemukan' });
     }
 
-    // Step 2: Find the active tournament (unified league — no division filter)
+    // Step 2: Find the active tournament (filtered by player's division)
     const activeTournament = await db.tournament.findFirst({
       where: {
-        status: { in: ['team_generation', 'bracket_generation', 'main_event', 'finalization'] },
+        division: player.division,
+        status: { in: ['registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization'] },
       },
       include: {
         season: { select: { id: true, name: true, number: true } },
@@ -87,9 +88,10 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    // If no active tournament, check for upcoming/completed
+    // If no active tournament, check for completed ones in player's division
     if (!activeTournament) {
       const latestTournament = await db.tournament.findFirst({
+        where: { division: player.division },
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,

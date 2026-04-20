@@ -30,7 +30,14 @@ export async function POST(
   }
 
   if (tournament.status !== 'finalization') {
-    return NextResponse.json({ error: 'Tournament must be in finalization status' }, { status: 400 });
+    return NextResponse.json({ 
+      error: `Tournament harus dalam status finalization. Status saat ini: ${tournament.status}. ${
+        tournament.status === 'main_event' ? 'Selesaikan semua match terlebih dahulu.' :
+        tournament.status === 'team_generation' ? 'Generate tim dan bracket terlebih dahulu.' :
+        tournament.status === 'bracket_generation' ? 'Mulai event dan selesaikan match terlebih dahulu.' :
+        'Lanjutkan proses tournament hingga fase finalisasi.'
+      }` 
+    }, { status: 400 });
   }
 
   // Check that there are no incomplete matches that have both teams assigned
