@@ -27,6 +27,7 @@ interface TeamSpinRevealProps {
   teamCount: number;
   onComplete: () => void;
   division: string;
+  tournamentId: string;
 }
 
 const TIER_CONFIG: Record<string, { color: string; bg: string; border: string; emoji: string; shadow: string }> = {
@@ -41,8 +42,8 @@ const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'R
 const ITEM_H = 48;
 const VISIBLE_COUNT = 2;
 const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 96px
-const STRIP_REPS = 7;
-const SPIN_DURATION = 3.5; // seconds
+const STRIP_REPS = 4;
+const SPIN_DURATION = 2.0; // seconds
 const SPIN_EASE: [number, number, number, number] = [0.05, 0.7, 0.1, 1.0]; // fast start, slow end
 
 // Fisher-Yates shuffle — unbiased, in-place
@@ -54,7 +55,7 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
-export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, division }: TeamSpinRevealProps) {
+export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, division, tournamentId }: TeamSpinRevealProps) {
   // Team slots state
   const [teamSlots, setTeamSlots] = useState<Record<number, { s?: SpinPlayer; a?: SpinPlayer; b?: SpinPlayer; name?: string }>>({});
   const [currentStep, setCurrentStep] = useState(0);
@@ -68,6 +69,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
   const [rollerStrip, setRollerStrip] = useState<SpinPlayer[]>([]);
   const [rollerTargetY, setRollerTargetY] = useState(0);
   const [spinKey, setSpinKey] = useState(0);
+
+  // Random selection tracking — ensures truly random picks instead of predetermined
+  const [assignedPlayers, setAssignedPlayers] = useState<Record<string, Set<string>>>({}); // tier -> set of player IDs
+  const [randomSelection, setRandomSelection] = useState<Record<number, SpinPlayer>>({}); // step -> randomly selected player
 
   // Refs for avoiding stale closures in timers
   const autoPlayRef = useRef(false);
@@ -137,16 +142,13 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     setTeamSlots(slots);
   }, [teamCount]);
 
-  // Get available players for cycling (exclude already revealed in same tier)
+  // Get available players for cycling (exclude already assigned in same tier)
   const getAvailablePlayers = useCallback((stepIdx: number) => {
     const item = shuffledRevealOrder[stepIdx];
-    const revealedInTier = shuffledRevealOrder
-      .slice(0, stepIdx)
-      .filter(s => s.tier === item.tier)
-      .map(s => s.player.id);
-    const available = item.allPlayersInTier.filter(p => !revealedInTier.includes(p.id));
+    const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
+    const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
     return available.length > 0 ? available : item.allPlayersInTier;
-  }, [shuffledRevealOrder]);
+  }, [shuffledRevealOrder, assignedPlayers]);
 
   // Ref for startSpin to avoid hoisting issues
   const startSpinRef = useRef<(step: number) => void>(() => {});
@@ -156,9 +158,29 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     if (step >= totalSteps || !mountedRef.current) return;
 
     const item = shuffledRevealOrder[step];
+    // Get available players excluding already assigned
+    const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
+    const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
+    const pool = available.length > 0 ? available : item.allPlayersInTier;
+
+    // RANDOMLY SELECT from available pool (NOT the predetermined item.player)
+    const randomIdx = Math.floor(Math.random() * pool.length);
+    const targetPlayer = pool[randomIdx];
+
+    // Mark this player as assigned for this tier
+    setAssignedPlayers(prev => {
+      const updated = { ...prev };
+      const tierSet = new Set(prev[item.tier] || []);
+      tierSet.add(targetPlayer.id);
+      updated[item.tier] = tierSet;
+      return updated;
+    });
+
+    // Store the randomly selected player for this step
+    setRandomSelection(prev => ({ ...prev, [step]: targetPlayer }));
+
     // Shuffle available players so the visual cycling appears random each spin
-    const shuffledAvailable = shuffle([...getAvailablePlayers(step)]);
-    const targetPlayer = item.player;
+    const shuffledAvailable = shuffle([...pool]);
 
     // Build the name strip — repeat players multiple times for long scroll
     const strip: SpinPlayer[] = [];
@@ -184,10 +206,46 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     isSpinningRef.current = true;
     setShowReveal(false);
     setSpinKey(prev => prev + 1);
-  }, [shuffledRevealOrder, totalSteps, getAvailablePlayers]);
+  }, [shuffledRevealOrder, totalSteps, assignedPlayers, getAvailablePlayers]);
 
   // Keep ref in sync
   useEffect(() => { startSpinRef.current = startSpin; }, [startSpin]);
+
+  // Save team results to backend after all spins complete
+  const saveTeamResults = useCallback(async () => {
+    if (!spinRevealOrder || spinRevealOrder.length === 0 || !tournamentId) return;
+
+    try {
+      // Build the team assignments from teamSlots for persistence
+      const teamAssignments = [];
+      for (let i = 0; i < teamCount; i++) {
+        const slot = teamSlots[i];
+        if (slot?.s && slot?.a && slot?.b) {
+          teamAssignments.push({
+            teamIndex: i,
+            sPlayerId: slot.s.id,
+            aPlayerId: slot.a.id,
+            bPlayerId: slot.b.id,
+          });
+        }
+      }
+
+      if (teamAssignments.length > 0) {
+        const res = await fetch(`/api/tournaments/${tournamentId}/save-spin-results`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ teamAssignments }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Failed to save' }));
+          console.error('Save spin results error:', err.error);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to save team results', e);
+    }
+  }, [teamSlots, teamCount, spinRevealOrder, tournamentId]);
 
   // Advance to next step after reveal
   const advanceToNextStep = useCallback((completedStep: number) => {
@@ -198,6 +256,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       setIsComplete(true);
       setAutoPlay(false);
       autoPlayRef.current = false;
+      // Save results after all spins are done
+      saveTeamResults();
     } else {
       setCurrentStep(nextStep);
       currentStepRef.current = nextStep;
@@ -213,7 +273,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
         // Manual: ready for next Play click
       }
     }
-  }, [totalSteps]);
+  }, [totalSteps, saveTeamResults]);
 
   // Handle slot machine animation completion
   const handleSpinComplete = useCallback(() => {
@@ -226,17 +286,20 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     const item = shuffledRevealOrder[step];
     const tierKey = item.tier.toLowerCase() as 's' | 'a' | 'b';
 
+    // Use the randomly selected player instead of item.player
+    const selectedPlayer = randomSelection[step] || item.player;
+
     setIsSpinning(false);
     isSpinningRef.current = false;
     setShowReveal(true);
 
-    // Update team slot
+    // Update team slot with RANDOM selection
     setTeamSlots(prev => {
       const updated = { ...prev };
       const slot = { ...updated[item.teamIndex] };
-      slot[tierKey] = item.player;
+      slot[tierKey] = selectedPlayer;
       if (tierKey === 's') {
-        slot.name = item.teamName;
+        slot.name = `Tim ${selectedPlayer.gamertag}`;
       }
       updated[item.teamIndex] = slot;
       return updated;
@@ -247,7 +310,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       if (!mountedRef.current) return;
       advanceToNextStep(step);
     }, 1500);
-  }, [shuffledRevealOrder, totalSteps, advanceToNextStep]);
+  }, [shuffledRevealOrder, totalSteps, advanceToNextStep, randomSelection]);
 
   // Public doSpin for Play button click
   const doSpin = useCallback(() => {
@@ -441,7 +504,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       >
                         {rollerStrip.map((player, i) => {
                           // Check if this is the center item at the final position
-                          const isTargetItem = showReveal && player.id === currentItem.player.id
+                          const selectedPlayerForStep = randomSelection[currentStep] || currentItem?.player;
+                          const isTargetItem = showReveal && selectedPlayerForStep && player.id === selectedPlayerForStep.id
                             && i >= (STRIP_REPS - 3) * Math.floor(rollerStrip.length / STRIP_REPS)
                             && i <= (STRIP_REPS - 1) * Math.floor(rollerStrip.length / STRIP_REPS);
 
@@ -514,7 +578,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                         className="flex items-center justify-center gap-2"
                       >
                         <TierBadge tier={currentTier} />
-                        <span className="text-xs text-white/40 lg:text-idm-gold-warm/40">{currentItem.player.points} pts</span>
+                        <span className="text-xs text-white/40 lg:text-idm-gold-warm/40">{(randomSelection[currentStep] || currentItem?.player)?.points} pts</span>
                         <span className="text-xs text-green-400 font-semibold">✅ Terpilih!</span>
                       </motion.div>
                     )}

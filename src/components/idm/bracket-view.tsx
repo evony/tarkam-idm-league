@@ -45,6 +45,21 @@ function BracketMatchCard({ match }: { match: Match }) {
   const winner2 = hasScore && match.score2! > match.score1!;
   const isLive = match.status === 'live' || match.status === 'main_event';
   const isCompleted = match.status === 'completed' || match.status === 'scoring';
+  const isByeMatch = (!match.team1 || !match.team2) && !isCompleted;
+
+  // Helper to get team display name: BYE for null teams in pending/ready, TBD otherwise
+  const getTeamLabel = (team: { id: string; name: string } | null) => {
+    if (team) return team.name;
+    if (match.status === 'pending' || match.status === 'ready') return 'BYE';
+    return 'TBD';
+  };
+
+  // Helper to get team score display
+  const getTeamScore = (team: { id: string; name: string } | null, score: number | null) => {
+    if (!team && (match.status === 'pending' || match.status === 'ready')) return '';
+    if (hasScore) return score;
+    return '-';
+  };
 
   return (
     <div
@@ -52,37 +67,43 @@ function BracketMatchCard({ match }: { match: Match }) {
         isLive ? `border-2 border-red-500/60 ${dt.neonPulse}` :
         isCompleted ? `border ${dt.border}` :
         `border ${dt.borderSubtle}`
-      } transition-all hover:shadow-lg`}
+      } transition-all hover:shadow-lg relative`}
       style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
     >
+      {/* BYE badge */}
+      {isByeMatch && (
+        <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
+          BYE
+        </div>
+      )}
       {/* Team 1 */}
-      <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''}`}>
+      <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!match.team1 && isByeMatch ? 'opacity-40' : ''}`}>
         <div className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold mr-2 shrink-0 ${
           winner1 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
-          {(match.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
+          {getTeamLabel(match.team1).slice(0, 2).toUpperCase()}
         </div>
-        <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-          {(match.team1?.name || 'TBD')}
+        <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !match.team1 && isByeMatch ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+          {getTeamLabel(match.team1)}
         </span>
         <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
-          {hasScore ? match.score1 : '-'}
+          {getTeamScore(match.team1, match.score1)}
         </span>
       </div>
       {/* Team 2 */}
-      <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''}`}>
+      <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!match.team2 && isByeMatch ? 'opacity-40' : ''}`}>
         <div className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold mr-2 shrink-0 ${
           winner2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
-          {(match.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
+          {getTeamLabel(match.team2).slice(0, 2).toUpperCase()}
         </div>
-        <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-          {(match.team2?.name || 'TBD')}
+        <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !match.team2 && isByeMatch ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+          {getTeamLabel(match.team2)}
         </span>
         <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
-          {hasScore ? match.score2 : '-'}
+          {getTeamScore(match.team2, match.score2)}
         </span>
       </div>
       {/* MVP indicator */}
@@ -536,23 +557,28 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                 <motion.div
                   key={m.id}
                   whileHover={{ scale: 1.01 }}
-                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : dt.borderSubtle} transition-all ${dt.hoverBorder}`}
+                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : dt.borderSubtle} transition-all ${dt.hoverBorder} relative`}
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
-                  <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-                      {(m.team1?.name || 'TBD')}
+                  {(!m.team1 || !m.team2) && m.status !== 'completed' && (
+                    <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
+                      BYE
+                    </div>
+                  )}
+                  <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 && m.status !== 'completed' ? 'opacity-40' : ''}`}>
+                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 && m.status !== 'completed' ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                      {m.team1?.name || (m.status === 'pending' || m.status === 'ready' ? 'BYE' : 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                      {hasScore ? m.score1 : '-'}
+                      {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
                     </span>
                   </div>
-                  <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-                      {(m.team2?.name || 'TBD')}
+                  <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 && m.status !== 'completed' ? 'opacity-40' : ''}`}>
+                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 && m.status !== 'completed' ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                      {m.team2?.name || (m.status === 'pending' || m.status === 'ready' ? 'BYE' : 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                      {hasScore ? m.score2 : '-'}
+                      {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                     </span>
                   </div>
                 </motion.div>
@@ -580,30 +606,34 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               const isLive = m.status === 'live' || m.status === 'main_event';
               const label = mExt.groupLabel || (mExt.bracket === 'lower' ? '3rd Place' : `R${m.round}`);
               const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
+              const isByeMatch = (!m.team1 || !m.team2) && m.status !== 'completed';
               return (
                 <motion.div
                   key={m.id}
                   whileHover={{ scale: 1.01 }}
-                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : 'border-idm-gold-warm/20'} transition-all`}
+                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : 'border-idm-gold-warm/20'} transition-all relative`}
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
-                  <div className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${dt.neonText} bg-idm-gold-warm/5`}>
-                    {matchLabel}
+                  <div className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${dt.neonText} bg-idm-gold-warm/5 flex items-center justify-between`}>
+                    <span>{matchLabel}</span>
+                    {isByeMatch && (
+                      <span className="px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">BYE</span>
+                    )}
                   </div>
-                  <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-                      {(m.team1?.name || 'TBD')}
+                  <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 && isByeMatch ? 'opacity-40' : ''}`}>
+                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 && isByeMatch ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                      {m.team1?.name || (m.status === 'pending' || m.status === 'ready' ? 'BYE' : 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
-                      {hasScore ? m.score1 : '-'}
+                      {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
                     </span>
                   </div>
-                  <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-                      {(m.team2?.name || 'TBD')}
+                  <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 && isByeMatch ? 'opacity-40' : ''}`}>
+                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 && isByeMatch ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                      {m.team2?.name || (m.status === 'pending' || m.status === 'ready' ? 'BYE' : 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
-                      {hasScore ? m.score2 : '-'}
+                      {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                     </span>
                   </div>
                 </motion.div>

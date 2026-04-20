@@ -1444,11 +1444,24 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </div>
                 )}
 
-                {Object.entries(matchesByBracket).map(([bracket, matches]) => (
+                {Object.entries(matchesByBracket).map(([bracket, matches]) => {
+                  // Split into real matches and bye matches
+                  const sortedMatches = [...matches].sort((a: { round: number; matchNumber: number }, b: { round: number; matchNumber: number }) => a.round - b.round || a.matchNumber - b.matchNumber);
+                  const realMatches = sortedMatches.filter((m: { team1Id: string | null; team2Id: string | null; status: string }) => m.team1Id && m.team2Id);
+                  const byeMatches = sortedMatches.filter((m: { team1Id: string | null; team2Id: string | null; status: string }) => !m.team1Id || !m.team2Id);
+
+                  // Get team info for a bye match
+                  const getByeTeamName = (m: { team1Id: string | null; team2Id: string | null; team1: { name: string } | null; team2: { name: string } | null }) => {
+                    if (m.team1Id && m.team1) return m.team1.name;
+                    if (m.team2Id && m.team2) return m.team2.name;
+                    return 'TBD';
+                  };
+
+                  return (
                   <div key={bracket}>
                     <p className="text-[10px] font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS[bracket] || bracket}</p>
                     <div className="space-y-1.5">
-                      {matches.sort((a: { round: number; matchNumber: number }, b: { round: number; matchNumber: number }) => a.round - b.round || a.matchNumber - b.matchNumber).map((m: {
+                      {realMatches.map((m: {
                         id: string; round: number; matchNumber: number; bracket: string; format: string;
                         team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null;
                         status: string; winnerId: string | null; loserId: string | null; mvpPlayerId: string | null;
@@ -1547,9 +1560,38 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           )}
                         </div>
                       ))}
+
+                      {/* Bye matches section */}
+                      {byeMatches.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-border/10">
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
+                            <span className="text-[9px] text-muted-foreground">Tim berikut mendapat bye (langsung ke ronde berikutnya):</span>
+                          </div>
+                          {byeMatches.map((m: {
+                            id: string; round: number; matchNumber: number; bracket: string; format: string;
+                            team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null;
+                            status: string; winnerId: string | null; loserId: string | null; mvpPlayerId: string | null;
+                            team1: { name: string; teamPlayers: { player: { gamertag: string; tier: string } }[] } | null;
+                            team2: { name: string; teamPlayers: { player: { gamertag: string; tier: string } }[] } | null;
+                            winner: { name: string } | null; mvpPlayer: { gamertag: string } | null;
+                          }) => (
+                            <div key={m.id} className="p-2 rounded-lg border border-amber-500/15 bg-amber-500/5 text-xs opacity-70">
+                              <div className="flex items-center gap-2">
+                                <Badge className="text-[8px] border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
+                                <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
+                                <span className="text-muted-foreground">
+                                  {getByeTeamName(m)} <span className="text-amber-500/70 italic">(bye)</span>
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
                 <p className="text-[10px] text-muted-foreground text-center">
                   {selected.matches.filter((m: { status: string }) => m.status === 'completed').length} / {selected.matches.length} match selesai
@@ -1801,6 +1843,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           teamCount={spinRevealData.teamCount}
           onComplete={handleSpinComplete}
           division={division}
+          tournamentId={selectedId || ''}
         />
       )}
     </motion.div>

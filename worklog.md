@@ -858,3 +858,99 @@ Stage Summary:
 - Standard bracket seeding ensures fairness (top seeds get byes)
 - Score advancement logic remains compatible with new groupLabel positions
 - Lint passes clean
+---
+Task ID: 3
+Agent: full-stack-developer
+Task: Create save-spin-results API endpoint
+
+Work Log:
+- Reviewed existing project structure: API routes, api-auth module, Prisma schema (Team, TeamPlayer, Player, Tournament models)
+- Studied generate-teams route for pattern reference (requireAdmin, params handling, team operations)
+- Created /src/app/api/tournaments/[id]/save-spin-results/route.ts with POST handler
+- Endpoint logic: admin auth → find tournament → get existing teams (ordered by name asc) → for each assignment: find team by index, fetch player data, delete old TeamPlayers, create new TeamPlayers, update team name/power → return updated teams
+- Ran lint check: zero errors
+- Verified dev server running without issues
+
+Stage Summary:
+- New API endpoint: POST /api/tournaments/[id]/save-spin-results
+- Accepts teamAssignments array with {teamIndex, sPlayerId, aPlayerId, bPlayerId}
+- Updates team players, team name (Tim {S-tier-gamertag}), and recalculates power (sum of 3 players' points)
+- Admin-authenticated, validates input, returns updated teams with player details
+
+---
+Task ID: 1
+Agent: full-stack-developer
+Task: Fix spin UI - make selection truly random, speed up, show only 2 names
+
+Work Log:
+- Read current team-spin-reveal.tsx (780 lines) to understand the slot machine implementation
+- Added `assignedPlayers` state (Record<string, Set<string>>) to track which players have been assigned per tier
+- Added `randomSelection` state (Record<number, SpinPlayer>) to track randomly selected player per step
+- Modified `startSpin` to randomly select from available (unassigned) pool using Math.random() instead of predetermined `item.player`
+- Modified `handleSpinComplete` to use `randomSelection[step]` instead of `item.player` for team slot assignment
+- Updated team naming: S-tier player name used for team name via `Tim ${selectedPlayer.gamertag}`
+- Updated `getAvailablePlayers` to use `assignedPlayers` state instead of scanning previously revealed steps
+- Updated `isTargetItem` check in roller strip to use `randomSelection[currentStep]` instead of `currentItem.player.id`
+- Updated reveal points display to use `randomSelection[currentStep]` instead of `currentItem.player`
+- Added `saveTeamResults` callback function that logs assignments after all spins complete (ready for future API integration)
+- Called `saveTeamResults()` in `advanceToNextStep` when `nextStep >= totalSteps`
+- Reduced `STRIP_REPS` from 7 to 4 (shorter animation strip)
+- Reduced `SPIN_DURATION` from 3.5 to 2.0 seconds (faster spin)
+- Ran `bun run lint` — clean, zero errors
+
+Stage Summary:
+- Spin selection is now TRULY RANDOM — each spin randomly picks from unassigned players in the tier pool
+- assignedPlayers state tracks which players are used, preventing duplicates within a tier
+- Spin is faster: 2.0s duration (was 3.5s), 4 strip reps (was 7)
+- Only 2 names visible at a time (VISIBLE_COUNT=2 already in place)
+- saveTeamResults function ready for backend persistence after all spins complete
+- No API routes modified — all changes are frontend-only
+
+---
+Task ID: 2
+Agent: full-stack-developer
+Task: Fix bracket bye/TBD display - show BYE instead of confusing TBD
+
+Work Log:
+- Read bracket-view.tsx and tournament-manager.tsx to understand current implementation
+- Modified BracketMatchCard in bracket-view.tsx: added `isByeMatch` flag, `getTeamLabel()` helper (returns 'BYE' for null teams in pending/ready, 'TBD' otherwise), `getTeamScore()` helper (returns empty string instead of '-' for BYE teams), amber BYE badge overlay, and muted/italic styling for BYE team rows
+- Modified GroupStageView group match cards in bracket-view.tsx: same BYE logic applied with inline expressions for team name ('BYE' vs 'TBD'), score (empty vs '-'), opacity, italic styling, and BYE badge overlay
+- Modified GroupStageView playoff match cards in bracket-view.tsx: added `isByeMatch` flag, BYE badge in header, same team display logic with opacity/italic for BYE sides
+- Modified tournament-manager.tsx match display: split matches into `realMatches` (both teams present) and `byeMatches` (one team missing), real matches display unchanged, bye matches shown in separate amber-tinted section with explanatory text "Tim berikut mendapat bye (langsung ke ronde berikutnya):" and compact BYE-labeled cards
+- Added `getByeTeamName` helper in tournament-manager.tsx to extract the present team name from bye matches
+- Ran `bun run lint` — no errors
+
+Stage Summary:
+- bracket-view.tsx: BYE matches now show "BYE" label + amber badge + muted styling instead of confusing "TBD" with "-" scores
+- tournament-manager.tsx: Bye matches separated into distinct section with clear "BYE" indicator and Indonesian explanation text; real matches no longer mixed with bye placeholders
+- Both files pass lint cleanly, dev server running without errors
+
+---
+Task ID: session-coordination
+Agent: Main Agent
+Task: Fix Spin UI (truly random + speed up + 2 names) and Fix Bracket BYE display bug
+
+Work Log:
+- Analyzed both user-reported issues from previous session context:
+  1. Spin UI: selection is predictable/sequential (not random), too many names shown, too slow
+  2. Bracket: teams with bye show confusing "TBD" with score "-" that looks like "WO 1-0"
+- Read all relevant source files: team-spin-reveal.tsx, bracket-view.tsx, tournament-manager.tsx, generate-bracket/route.ts, generate-teams/route.ts, score/route.ts
+- Identified root cause of sequential spin: `item.player` from API was always the predetermined target, not randomly selected
+- Launched 3 parallel subagents:
+  - Agent 1 (Task ID: 1): Fix team-spin-reveal.tsx — truly random selection, speed up, 2 names visible
+  - Agent 2 (Task ID: 2): Fix bracket-view.tsx + tournament-manager.tsx — BYE display instead of TBD
+  - Agent 3 (Task ID: 3): Create save-spin-results API endpoint for persisting random spin results
+- After subagents completed, connected the pieces:
+  - Added `tournamentId` prop to TeamSpinReveal interface
+  - Updated `saveTeamResults()` to call POST `/api/tournaments/${tournamentId}/save-spin-results` with team assignments
+  - Updated tournament-manager.tsx to pass `tournamentId={selectedId || ''}` to TeamSpinReveal
+- Ran `bun run lint` — zero errors
+- Verified dev server running without errors
+
+Stage Summary:
+- **Spin UI Fixed**: Selection is now TRULY RANDOM (Math.random() from available pool, tracked via assignedPlayers state), NOT sequential/predictable
+- **Spin Speed**: STRIP_REPS reduced 7→4, SPIN_DURATION reduced 3.5s→2.0s (much faster)
+- **Spin Persistence**: New API endpoint `/api/tournaments/[id]/save-spin-results` saves random team compositions to DB after all spins complete
+- **Bracket BYE Fixed**: Bye matches now show "BYE" label + amber badge + muted styling instead of confusing "TBD" with "-" scores
+- **Tournament Manager**: Bye matches separated into distinct section with clear "BYE" indicator and Indonesian explanation text
+- All changes lint clean, dev server running
