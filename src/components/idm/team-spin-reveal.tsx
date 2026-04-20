@@ -39,11 +39,20 @@ const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'R
 
 // Slot machine roller constants
 const ITEM_H = 48;
-const VISIBLE_COUNT = 3;
-const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 144px
+const VISIBLE_COUNT = 2;
+const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 96px
 const STRIP_REPS = 7;
 const SPIN_DURATION = 3.5; // seconds
 const SPIN_EASE: [number, number, number, number] = [0.05, 0.7, 0.1, 1.0]; // fast start, slow end
+
+// Fisher-Yates shuffle — unbiased, in-place
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, division }: TeamSpinRevealProps) {
   // Team slots state
@@ -67,7 +76,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
   const mountedRef = useRef(true);
   const spinCompletedRef = useRef(false);
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const totalSteps = spinRevealOrder.length;
 
   // Keep refs in sync
   useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
@@ -82,12 +90,32 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     };
   }, []);
 
-  // Group steps by tier for round display
+  // Shuffle spinRevealOrder within tier groups so team sequence is random per round
+  const shuffledRevealOrder = useMemo(() => {
+    const result: SpinRevealItem[] = [];
+    // Group by tier
+    const groups: SpinRevealItem[][] = [];
+    let currentTier = '';
+    for (const item of spinRevealOrder) {
+      if (item.tier !== currentTier) {
+        groups.push([]);
+        currentTier = item.tier;
+      }
+      groups[groups.length - 1].push(item);
+    }
+    // Shuffle each tier group independently, then flatten
+    for (const group of groups) {
+      result.push(...shuffle([...group]));
+    }
+    return result;
+  }, [spinRevealOrder]);
+
+  // Group steps by tier for round display (uses shuffled order)
   const roundGroups = useMemo(() => {
     const groups: { tier: string; steps: number[] }[] = [];
     let currentTier = '';
-    for (let i = 0; i < spinRevealOrder.length; i++) {
-      const tier = spinRevealOrder[i].tier;
+    for (let i = 0; i < shuffledRevealOrder.length; i++) {
+      const tier = shuffledRevealOrder[i].tier;
       if (tier !== currentTier) {
         groups.push({ tier, steps: [] });
         currentTier = tier;
@@ -95,7 +123,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       groups[groups.length - 1].steps.push(i);
     }
     return groups;
-  }, [spinRevealOrder]);
+  }, [shuffledRevealOrder]);
+
+  // Total steps uses shuffled order
+  const totalSteps = shuffledRevealOrder.length;
 
   // Initialize team slots
   useEffect(() => {
@@ -108,14 +139,14 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
   // Get available players for cycling (exclude already revealed in same tier)
   const getAvailablePlayers = useCallback((stepIdx: number) => {
-    const item = spinRevealOrder[stepIdx];
-    const revealedInTier = spinRevealOrder
+    const item = shuffledRevealOrder[stepIdx];
+    const revealedInTier = shuffledRevealOrder
       .slice(0, stepIdx)
       .filter(s => s.tier === item.tier)
       .map(s => s.player.id);
     const available = item.allPlayersInTier.filter(p => !revealedInTier.includes(p.id));
     return available.length > 0 ? available : item.allPlayersInTier;
-  }, [spinRevealOrder]);
+  }, [shuffledRevealOrder]);
 
   // Ref for startSpin to avoid hoisting issues
   const startSpinRef = useRef<(step: number) => void>(() => {});
@@ -124,27 +155,25 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
   const startSpin = useCallback((step: number) => {
     if (step >= totalSteps || !mountedRef.current) return;
 
-    const item = spinRevealOrder[step];
-    const availablePlayers = getAvailablePlayers(step);
+    const item = shuffledRevealOrder[step];
+    // Shuffle available players so the visual cycling appears random each spin
+    const shuffledAvailable = shuffle([...getAvailablePlayers(step)]);
     const targetPlayer = item.player;
 
     // Build the name strip — repeat players multiple times for long scroll
     const strip: SpinPlayer[] = [];
     for (let r = 0; r < STRIP_REPS; r++) {
-      // Slight rotation for visual variety
-      const offset = (r * 3) % availablePlayers.length;
-      for (let i = 0; i < availablePlayers.length; i++) {
-        strip.push(availablePlayers[(i + offset) % availablePlayers.length]);
+      for (let i = 0; i < shuffledAvailable.length; i++) {
+        strip.push(shuffledAvailable[i]);
       }
     }
 
-    // Calculate where the target player should land (center of viewport)
+    // Calculate where the target player should land (bottom item of viewport)
     const targetRep = STRIP_REPS - 2;
-    const offsetForTargetRep = (targetRep * 3) % availablePlayers.length;
-    const targetIdxInPlayers = availablePlayers.findIndex(p => p.id === targetPlayer.id);
-    const adjustedIdx = (targetIdxInPlayers + availablePlayers.length - offsetForTargetRep) % availablePlayers.length;
-    const targetGlobalIdx = targetRep * availablePlayers.length + adjustedIdx;
-    const centerOffset = VIEWPORT_H / 2 - ITEM_H / 2;
+    const targetIdxInPlayers = shuffledAvailable.findIndex(p => p.id === targetPlayer.id);
+    const targetGlobalIdx = targetRep * shuffledAvailable.length + targetIdxInPlayers;
+    // Bottom item position for VISIBLE_COUNT=2
+    const centerOffset = (VISIBLE_COUNT - 1) * ITEM_H;
     const targetY = -(targetGlobalIdx * ITEM_H) + centerOffset;
 
     // Set state and start animation
@@ -155,7 +184,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     isSpinningRef.current = true;
     setShowReveal(false);
     setSpinKey(prev => prev + 1);
-  }, [spinRevealOrder, totalSteps, getAvailablePlayers]);
+  }, [shuffledRevealOrder, totalSteps, getAvailablePlayers]);
 
   // Keep ref in sync
   useEffect(() => { startSpinRef.current = startSpin; }, [startSpin]);
@@ -194,7 +223,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     const step = currentStepRef.current;
     if (step >= totalSteps) return;
 
-    const item = spinRevealOrder[step];
+    const item = shuffledRevealOrder[step];
     const tierKey = item.tier.toLowerCase() as 's' | 'a' | 'b';
 
     setIsSpinning(false);
@@ -218,15 +247,15 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       if (!mountedRef.current) return;
       advanceToNextStep(step);
     }, 1500);
-  }, [spinRevealOrder, totalSteps, advanceToNextStep]);
+  }, [shuffledRevealOrder, totalSteps, advanceToNextStep]);
 
   // Public doSpin for Play button click
   const doSpin = useCallback(() => {
     startSpin(currentStepRef.current);
   }, [startSpin]);
 
-  // Current step data
-  const currentItem = currentStep < totalSteps ? spinRevealOrder[currentStep] : null;
+  // Current step data (uses shuffled order)
+  const currentItem = currentStep < totalSteps ? shuffledRevealOrder[currentStep] : null;
   const currentTier = currentItem?.tier || 'S';
   const tierConf = TIER_CONFIG[currentTier] || TIER_CONFIG.S;
   const currentRound = ROUND_LABELS[currentTier] || 'Round 1';
@@ -385,10 +414,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     style={{ height: VIEWPORT_H, boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none' }}
                   >
                     {/* Top gradient mask */}
-                    <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
                     {/* Bottom gradient mask */}
-                    <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
                     {/* Center highlight line */}
                     <div
@@ -413,8 +442,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                         {rollerStrip.map((player, i) => {
                           // Check if this is the center item at the final position
                           const isTargetItem = showReveal && player.id === currentItem.player.id
-                            && i >= (STRIP_REPS - 3) * (rollerStrip.length / STRIP_REPS)
-                            && i <= (STRIP_REPS - 1) * (rollerStrip.length / STRIP_REPS);
+                            && i >= (STRIP_REPS - 3) * Math.floor(rollerStrip.length / STRIP_REPS)
+                            && i <= (STRIP_REPS - 1) * Math.floor(rollerStrip.length / STRIP_REPS);
 
                           return (
                             <div

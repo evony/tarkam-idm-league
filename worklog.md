@@ -779,3 +779,82 @@ Stage Summary:
 - Play button: visible always, disabled during spin, re-enabled after selection
 - Spin duration: ~3.5 seconds (was too long before)
 - All responsive styling with lg: prefix for desktop
+
+---
+Task ID: 1
+Agent: Spin UI Fix Agent
+Task: Fix Spin UI - 2 names visible + random shuffle
+
+Work Log:
+- Read worklog.md to understand previous agent work (18+ previous tasks)
+- Read current team-spin-reveal.tsx (702 lines) to understand the slot machine implementation
+- Changed VISIBLE_COUNT from 3 to 2 (line 42), VIEWPORT_H now 96px instead of 144px
+- Added Fisher-Yates shuffle function (lines 48-55) — unbiased in-place array shuffle
+- Added `shuffledRevealOrder` useMemo that shuffles spinRevealOrder within tier groups
+  - Groups steps by tier (S, A, B), then shuffles each group independently
+  - Flattens back in tier order (all S steps first, then A, then B) but randomized within each tier
+- Replaced all internal references from `spinRevealOrder` to `shuffledRevealOrder`:
+  - getAvailablePlayers callback
+  - startSpin callback (including dependency array)
+  - handleSpinComplete callback (including dependency array)
+  - currentItem derivation
+  - roundGroups useMemo
+  - totalSteps constant
+- In startSpin: shuffle availablePlayers before building the strip
+  - `const shuffledAvailable = shuffle([...getAvailablePlayers(step)])`
+  - Strip now repeats shuffledAvailable directly (no offset rotation needed since it's already random)
+  - Simplified target calculation since shuffled order is random each spin
+- Adjusted centerOffset for VISIBLE_COUNT=2:
+  - Changed from `VIEWPORT_H / 2 - ITEM_H / 2` to `(VISIBLE_COUNT - 1) * ITEM_H`
+  - This targets the bottom item (2nd of 2 visible items) as the "selected" item
+  - Highlight line at `style={{ top: ITEM_H, height: ITEM_H }}` already correctly highlights bottom slot
+- Reduced gradient masks from h-10 to h-6 (proportional to smaller 96px viewport)
+- Fixed Math.floor for isTargetItem calculation (rollerStrip.length / STRIP_REPS)
+- Moved totalSteps declaration after shuffledRevealOrder to fix temporal dead zone
+- Ran `bun run lint` — clean, zero errors
+
+Stage Summary:
+- VISIBLE_COUNT reduced from 3 to 2 — compact 2-row slot machine
+- Spin results now appear random — each spin shuffles available players independently
+- Team reveal order randomized within each tier group (S steps shuffled, A steps shuffled, B steps shuffled)
+- No API changes needed — all fixes are purely frontend/animation
+- Lint clean, dev server running
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Spin UI - 2 names visible + random shuffle
+
+Work Log:
+- Changed VISIBLE_COUNT from 3 to 2 in team-spin-reveal.tsx
+- Added Fisher-Yates shuffle function to the component
+- Created shuffledRevealOrder useMemo that shuffles steps within each tier group independently
+- Modified startSpin to shuffle allPlayersInTier before building roller strip (each spin shows names in different order)
+- Adjusted centerOffset for VISIBLE_COUNT=2 (bottom item is selected)
+- Reduced gradient mask heights from h-10 to h-6 for the smaller viewport
+- Simplified strip building (no longer needs offset rotation since list is already shuffled)
+
+Stage Summary:
+- Slot machine now shows only 2 names at a time (96px viewport)
+- Spin results appear truly random (shuffled reveal order + shuffled player list per spin)
+- Lint passes clean
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix Bracket WO Bug - No more TBD 1-0 WO matches
+
+Work Log:
+- Added standardSeeding() helper function for proper bracket seeding positions
+- Rewrote single elimination section to use standard seeding (no WO matches)
+- Bye teams are now placed directly into R2 instead of creating WO R1 matches
+- R1 only contains real matches where both teams exist
+- Applied same fix to double elimination upper bracket
+- R2 matches with both teams filled (two bye teams) get status='ready'
+- groupLabel positions preserved so score advancement still works correctly
+
+Stage Summary:
+- No more WO matches with TBD 1-0 displayed in bracket
+- Bye teams skip R1 and appear directly in R2
+- Standard bracket seeding ensures fairness (top seeds get byes)
+- Score advancement logic remains compatible with new groupLabel positions
+- Lint passes clean
