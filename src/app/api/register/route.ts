@@ -62,8 +62,9 @@ function normalizeCity(city: string): string {
 interface DuplicateCheck {
   isBlocked: boolean;
   isHighRisk: boolean;
-  canReRegister: boolean;       // For rejected/inactive — full re-registration
-  canSignUpForTournament: boolean; // For approved — sign up for active tournament
+  canReRegister: boolean;       // True for both approved+active (daftar ulang turnamen) and rejected/inactive (daftar ulang penuh)
+  isApprovedPlayer: boolean;    // True if the matching player is approved+active (just create participation, don't reset)
+  alreadyInTournament: boolean; // True if already has participation in active tournament
   reRegisterPlayerId: string | null;
   similarPlayers: Array<{
     id: string;
@@ -90,7 +91,8 @@ function checkDuplicates(
   city: string,
   phone: string | null,
   division: string,
-  existingPlayers: Array<{ id: string; name: string; gamertag: string; division: string; city: string; phone: string | null; registrationStatus: string; isActive: boolean }>
+  existingPlayers: Array<{ id: string; name: string; gamertag: string; division: string; city: string; phone: string | null; registrationStatus: string; isActive: boolean }>,
+  activeTournamentParticipations: Array<{ playerId: string; tournamentId: string; status: string }> = []
 ): DuplicateCheck {
   const normalizedName = name.toLowerCase().trim();
   const normalizedCity = normalizeCity(city);
@@ -183,13 +185,32 @@ function checkDuplicates(
   const exactNamePlayer = similarPlayers.find(p => p.matchDetails.nameMatch);
 
   if (exactNamePlayer) {
+    // Check if already registered in active tournament
+    const existingParticipation = activeTournamentParticipations.find(
+      p => p.playerId === exactNamePlayer.id
+    );
+
+    if (existingParticipation) {
+      return {
+        isBlocked: true,
+        isHighRisk: true,
+        canReRegister: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: true,
+        reRegisterPlayerId: null,
+        similarPlayers: [exactNamePlayer],
+        message: `Nama "${name}" sudah terdaftar di turnamen minggu ini (status: ${existingParticipation.status}). Tidak perlu mendaftar lagi.`,
+      };
+    }
+
     // Rejected or inactive — full re-registration (reset player data)
     if (exactNamePlayer.registrationStatus === 'rejected' || !exactNamePlayer.isActive) {
       return {
         isBlocked: false,
         isHighRisk: false,
         canReRegister: true,
-        canSignUpForTournament: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
         reRegisterPlayerId: exactNamePlayer.id,
         similarPlayers: [exactNamePlayer],
         message: `Nama "${name}" sudah terdaftar sebelumnya tapi ditolak/nonaktif. Anda bisa mendaftar ulang untuk masuk antrian persetujuan admin.`,
@@ -202,34 +223,55 @@ function checkDuplicates(
         isBlocked: true,
         isHighRisk: true,
         canReRegister: false,
-        canSignUpForTournament: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
         reRegisterPlayerId: null,
         similarPlayers: [exactNamePlayer],
         message: `Pendaftaran diblokir! Nama "${name}" sudah dalam antrian persetujuan admin (gamertag: "${exactNamePlayer.gamertag}"). Silakan tunggu admin menyetujui pendaftaran Anda.`,
       };
     }
 
-    // Approved and active — allow signing up for tournament (NOT re-registration)
+    // Approved and active — daftar ulang for tournament (just create participation, don't reset player)
     return {
       isBlocked: false,
       isHighRisk: false,
-      canReRegister: false,
-      canSignUpForTournament: true,
+      canReRegister: true,
+      isApprovedPlayer: true,
+      alreadyInTournament: false,
       reRegisterPlayerId: exactNamePlayer.id,
       similarPlayers: [exactNamePlayer],
-      message: `Nama "${name}" sudah terdaftar sebagai peserta aktif (gamertag: "${exactNamePlayer.gamertag}"). Klik "Daftar Turnamen" untuk mendaftar di turnamen minggu ini.`,
+      message: `Nama "${name}" sudah terdaftar sebagai peserta aktif (gamertag: "${exactNamePlayer.gamertag}"). Klik "Daftar Ulang" untuk mendaftar di turnamen minggu ini.`,
     };
   }
 
   const phoneMatchPlayer = similarPlayers.find(p => p.matchDetails.phoneMatch);
 
   if (phoneMatchPlayer) {
+    // Check if already registered in active tournament
+    const existingParticipation = activeTournamentParticipations.find(
+      p => p.playerId === phoneMatchPlayer.id
+    );
+
+    if (existingParticipation) {
+      return {
+        isBlocked: true,
+        isHighRisk: true,
+        canReRegister: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: true,
+        reRegisterPlayerId: null,
+        similarPlayers: [phoneMatchPlayer],
+        message: `Nomor WhatsApp ini sudah terdaftar di turnamen minggu ini atas nama "${phoneMatchPlayer.name}" (status: ${existingParticipation.status}).`,
+      };
+    }
+
     if (phoneMatchPlayer.registrationStatus === 'rejected' || !phoneMatchPlayer.isActive) {
       return {
         isBlocked: false,
         isHighRisk: false,
         canReRegister: true,
-        canSignUpForTournament: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
         reRegisterPlayerId: phoneMatchPlayer.id,
         similarPlayers: [phoneMatchPlayer],
         message: `Nomor WhatsApp ini sudah terdaftar sebelumnya dengan nama "${phoneMatchPlayer.name}" tapi ditolak/nonaktif. Anda bisa mendaftar ulang.`,
@@ -241,22 +283,24 @@ function checkDuplicates(
         isBlocked: true,
         isHighRisk: true,
         canReRegister: false,
-        canSignUpForTournament: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
         reRegisterPlayerId: null,
         similarPlayers: [phoneMatchPlayer],
         message: `Pendaftaran diblokir! Nomor WhatsApp ini sudah dalam antrian persetujuan admin atas nama "${phoneMatchPlayer.name}".`,
       };
     }
 
-    // Approved and active — allow signing up for tournament
+    // Approved and active — daftar ulang for tournament
     return {
       isBlocked: false,
       isHighRisk: false,
-      canReRegister: false,
-      canSignUpForTournament: true,
+      canReRegister: true,
+      isApprovedPlayer: true,
+      alreadyInTournament: false,
       reRegisterPlayerId: phoneMatchPlayer.id,
       similarPlayers: [phoneMatchPlayer],
-      message: `Nomor WhatsApp ini sudah terdaftar atas nama "${phoneMatchPlayer.name}" (gamertag: "${phoneMatchPlayer.gamertag}"). Klik "Daftar Turnamen" untuk mendaftar di turnamen minggu ini.`,
+      message: `Nomor WhatsApp ini sudah terdaftar atas nama "${phoneMatchPlayer.name}" (gamertag: "${phoneMatchPlayer.gamertag}"). Klik "Daftar Ulang" untuk mendaftar di turnamen minggu ini.`,
     };
   }
 
@@ -266,7 +310,8 @@ function checkDuplicates(
       isBlocked: false,
       isHighRisk: false,
       canReRegister: false,
-      canSignUpForTournament: false,
+      isApprovedPlayer: false,
+      alreadyInTournament: false,
       similarPlayers,
       message: `Terdapat nama yang mirip: ${similarPlayers.map(p => p.name).join(', ')}. Yakin nama ini berbeda?`,
     };
@@ -276,7 +321,8 @@ function checkDuplicates(
     isBlocked: false,
     isHighRisk: false,
     canReRegister: false,
-    canSignUpForTournament: false,
+    isApprovedPlayer: false,
+    alreadyInTournament: false,
     reRegisterPlayerId: null,
     similarPlayers: [],
     message: '',
@@ -303,6 +349,44 @@ async function findActiveTournament(division: string) {
   });
 
   return tournament;
+}
+
+// Helper to create participation for a player in an active tournament
+async function createParticipationForTournament(playerId: string, division: string) {
+  const activeTournament = await findActiveTournament(division);
+  if (!activeTournament) return { tournament: null, participation: null, error: null };
+
+  // Check if already registered in this tournament
+  const existingParticipation = await db.participation.findUnique({
+    where: { playerId_tournamentId: { playerId, tournamentId: activeTournament.id } },
+  });
+
+  if (existingParticipation) {
+    return {
+      tournament: activeTournament,
+      participation: null,
+      error: `Anda sudah terdaftar di ${activeTournament.name} (status: ${existingParticipation.status}).`,
+    };
+  }
+
+  const participation = await db.participation.create({
+    data: {
+      playerId,
+      tournamentId: activeTournament.id,
+      status: 'registered',
+      pointsEarned: 0,
+    },
+  });
+
+  // Update tournament status from setup to registration if needed
+  if (activeTournament.status === 'setup') {
+    await db.tournament.update({
+      where: { id: activeTournament.id },
+      data: { status: 'registration' },
+    });
+  }
+
+  return { tournament: activeTournament, participation, error: null };
 }
 
 // GET - Check for duplicate names (for real-time validation)
@@ -333,7 +417,19 @@ export async function GET(request: Request) {
     },
   });
 
-  const result = checkDuplicates(name, city || '', phone, division || '', allPlayers);
+  // Also fetch active tournament participations for same-tournament duplicate check
+  let activeTournamentParticipations: Array<{ playerId: string; tournamentId: string; status: string }> = [];
+  if (division) {
+    const activeTournament = await findActiveTournament(division);
+    if (activeTournament) {
+      activeTournamentParticipations = await db.participation.findMany({
+        where: { tournamentId: activeTournament.id },
+        select: { playerId: true, tournamentId: true, status: true },
+      });
+    }
+  }
+
+  const result = checkDuplicates(name, city || '', phone, division || '', allPlayers, activeTournamentParticipations);
 
   return NextResponse.json({
     exists: result.similarPlayers.length > 0,
@@ -341,7 +437,8 @@ export async function GET(request: Request) {
     isBlocked: result.isBlocked,
     isHighRisk: result.isHighRisk,
     canReRegister: result.canReRegister,
-    canSignUpForTournament: result.canSignUpForTournament,
+    isApprovedPlayer: result.isApprovedPlayer,
+    alreadyInTournament: result.alreadyInTournament,
     reRegisterPlayerId: result.reRegisterPlayerId,
     message: result.message,
   });
@@ -350,7 +447,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, joki, phone, city, clubId, division, force, reRegister, reRegisterPlayerId, signUpForTournament } = body;
+    const { name, joki, phone, city, clubId, division, force, reRegister, reRegisterPlayerId, isApprovedPlayer } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -370,84 +467,10 @@ export async function POST(request: Request) {
     const trimmedCity = city.trim();
     const trimmedPhone = phone.trim();
 
-    // ====== TOURNAMENT SIGN-UP FLOW ======
-    // When an already-approved player wants to join the current tournament
-    if (signUpForTournament && reRegisterPlayerId) {
-      const existingPlayer = await db.player.findUnique({
-        where: { id: reRegisterPlayerId },
-      });
-
-      if (!existingPlayer) {
-        return NextResponse.json({ error: 'Player tidak ditemukan' }, { status: 404 });
-      }
-
-      if (existingPlayer.registrationStatus !== 'approved' || !existingPlayer.isActive) {
-        return NextResponse.json({ error: 'Player belum disetujui. Hubungi admin.' }, { status: 400 });
-      }
-
-      // Find active tournament for this division
-      const activeTournament = await findActiveTournament(division);
-
-      if (!activeTournament) {
-        return NextResponse.json({
-          error: 'Tidak ada turnamen yang sedang menerima pendaftaran saat ini.',
-        }, { status: 400 });
-      }
-
-      // Check if already registered in this tournament
-      const existingParticipation = await db.participation.findUnique({
-        where: { playerId_tournamentId: { playerId: existingPlayer.id, tournamentId: activeTournament.id } },
-      });
-
-      if (existingParticipation) {
-        return NextResponse.json({
-          error: `Anda sudah terdaftar di ${activeTournament.name} (status: ${existingParticipation.status}).`,
-        }, { status: 400 });
-      }
-
-      // Create participation record
-      const participation = await db.participation.create({
-        data: {
-          playerId: existingPlayer.id,
-          tournamentId: activeTournament.id,
-          status: 'registered',
-          pointsEarned: 0,
-        },
-      });
-
-      // Update tournament status from setup to registration if needed
-      if (activeTournament.status === 'setup') {
-        await db.tournament.update({
-          where: { id: activeTournament.id },
-          data: { status: 'registration' },
-        });
-      }
-
-      return NextResponse.json({
-        success: true,
-        isTournamentSignUp: true,
-        message: `Berhasil mendaftar di ${activeTournament.name}! Menunggu persetujuan admin.`,
-        player: {
-          id: existingPlayer.id,
-          name: existingPlayer.name,
-          gamertag: existingPlayer.gamertag,
-          division: existingPlayer.division,
-          city: existingPlayer.city,
-        },
-        tournament: {
-          id: activeTournament.id,
-          name: activeTournament.name,
-          weekNumber: activeTournament.weekNumber,
-        },
-        participation: {
-          id: participation.id,
-          status: participation.status,
-        },
-      }, { status: 200 });
-    }
-
     // ====== RE-REGISTRATION FLOW ======
-    // When rejected/inactive user confirms re-registration
+    // Handles two cases:
+    // 1. Approved+active player → isApprovedPlayer=true → just create participation (don't reset player)
+    // 2. Rejected/inactive player → isApprovedPlayer=false → reset player data + create participation
     if (reRegister && reRegisterPlayerId) {
       const existingPlayer = await db.player.findUnique({
         where: { id: reRegisterPlayerId },
@@ -457,84 +480,135 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Player tidak ditemukan' }, { status: 404 });
       }
 
-      if (clubId) {
-        const club = await db.club.findUnique({ where: { id: clubId } });
-        if (!club) {
-          return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 400 });
+      if (isApprovedPlayer) {
+        // ====== APPROVED PLAYER: Daftar ulang turnamen ======
+        // Just create participation, don't change player status
+        if (existingPlayer.registrationStatus !== 'approved' || !existingPlayer.isActive) {
+          return NextResponse.json({ error: 'Player belum disetujui. Hubungi admin.' }, { status: 400 });
         }
-      }
 
-      // Update existing player back to pending status
-      const updatedPlayer = await db.player.update({
-        where: { id: reRegisterPlayerId },
-        data: {
-          name: trimmedName,
-          city: trimmedCity,
-          phone: trimmedPhone,
-          joki: joki?.trim() || null,
-          division,
-          registrationStatus: 'pending',
-          isActive: true,
-          tier: 'B',
-        },
-      });
+        const { tournament, participation, error } = await createParticipationForTournament(existingPlayer.id, division);
 
-      // Also sign up for active tournament if exists
-      const activeTournament = await findActiveTournament(division);
-      if (activeTournament) {
-        const existingParticipation = await db.participation.findUnique({
-          where: { playerId_tournamentId: { playerId: updatedPlayer.id, tournamentId: activeTournament.id } },
-        });
-        if (!existingParticipation) {
-          await db.participation.create({
-            data: {
-              playerId: updatedPlayer.id,
-              tournamentId: activeTournament.id,
-              status: 'registered',
-              pointsEarned: 0,
+        if (error) {
+          return NextResponse.json({ error }, { status: 400 });
+        }
+
+        if (!tournament || !participation) {
+          return NextResponse.json({
+            success: true,
+            message: 'Data Anda sudah terverifikasi. Namun tidak ada turnamen yang sedang menerima pendaftaran saat ini.',
+            player: {
+              id: existingPlayer.id,
+              name: existingPlayer.name,
+              gamertag: existingPlayer.gamertag,
+              division: existingPlayer.division,
+              city: existingPlayer.city,
             },
+            isReRegistration: true,
+            isApprovedReRegister: true,
+            tournament: null,
+          }, { status: 200 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Berhasil mendaftar di ${tournament.name}! Menunggu persetujuan admin untuk menentukan tier Anda.`,
+          player: {
+            id: existingPlayer.id,
+            name: existingPlayer.name,
+            gamertag: existingPlayer.gamertag,
+            division: existingPlayer.division,
+            city: existingPlayer.city,
+          },
+          isReRegistration: true,
+          isApprovedReRegister: true,
+          tournament: { id: tournament.id, name: tournament.name, weekNumber: tournament.weekNumber },
+          participation: { id: participation.id, status: participation.status },
+        }, { status: 200 });
+      } else {
+        // ====== REJECTED/INACTIVE PLAYER: Full re-registration ======
+        // Reset player data + create participation
+        if (clubId) {
+          const club = await db.club.findUnique({ where: { id: clubId } });
+          if (!club) {
+            return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 400 });
+          }
+        }
+
+        const updatedPlayer = await db.player.update({
+          where: { id: reRegisterPlayerId },
+          data: {
+            name: trimmedName,
+            city: trimmedCity,
+            phone: trimmedPhone,
+            joki: joki?.trim() || null,
+            division,
+            registrationStatus: 'pending',
+            isActive: true,
+            tier: 'B',
+          },
+        });
+
+        // Also sign up for active tournament if exists
+        const { tournament, participation, error } = await createParticipationForTournament(updatedPlayer.id, division);
+
+        if (clubId) {
+          const existingMembership = await db.clubMember.findFirst({
+            where: { playerId: updatedPlayer.id },
           });
-          if (activeTournament.status === 'setup') {
-            await db.tournament.update({
-              where: { id: activeTournament.id },
-              data: { status: 'registration' },
+          if (existingMembership) {
+            await db.clubMember.update({
+              where: { id: existingMembership.id },
+              data: { clubId },
+            });
+          } else {
+            await db.clubMember.create({
+              data: { clubId, playerId: updatedPlayer.id, role: 'member' },
             });
           }
         }
-      }
 
-      if (clubId) {
-        const existingMembership = await db.clubMember.findFirst({
-          where: { playerId: updatedPlayer.id },
-        });
-        if (existingMembership) {
-          await db.clubMember.update({
-            where: { id: existingMembership.id },
-            data: { clubId },
-          });
-        } else {
-          await db.clubMember.create({
-            data: { clubId, playerId: updatedPlayer.id, role: 'member' },
-          });
+        const tournamentMsg = tournament
+          ? ` Anda juga otomatis terdaftar di ${tournament.name}.`
+          : '';
+
+        if (error && tournament) {
+          // Player was updated but already in tournament
+          return NextResponse.json({
+            success: true,
+            message: `Pendaftaran ulang berhasil!${tournamentMsg} Menunggu persetujuan admin.`,
+            player: {
+              id: updatedPlayer.id,
+              name: updatedPlayer.name,
+              gamertag: updatedPlayer.gamertag,
+              division: updatedPlayer.division,
+              city: updatedPlayer.city,
+              registrationStatus: updatedPlayer.registrationStatus,
+            },
+            isReRegistration: true,
+            isApprovedReRegister: false,
+            tournament: { id: tournament.id, name: tournament.name },
+          }, { status: 200 });
         }
-      }
 
-      return NextResponse.json({
-        success: true,
-        message: activeTournament
-          ? `Pendaftaran ulang berhasil! Anda juga otomatis terdaftar di ${activeTournament.name}. Menunggu persetujuan admin.`
-          : 'Pendaftaran ulang berhasil! Menunggu persetujuan admin.',
-        player: {
-          id: updatedPlayer.id,
-          name: updatedPlayer.name,
-          gamertag: updatedPlayer.gamertag,
-          division: updatedPlayer.division,
-          city: updatedPlayer.city,
-          registrationStatus: updatedPlayer.registrationStatus,
-        },
-        isReRegistration: true,
-        tournament: activeTournament ? { id: activeTournament.id, name: activeTournament.name } : null,
-      }, { status: 200 });
+        return NextResponse.json({
+          success: true,
+          message: tournament
+            ? `Pendaftaran ulang berhasil!${tournamentMsg} Menunggu persetujuan admin.`
+            : 'Pendaftaran ulang berhasil! Menunggu persetujuan admin.',
+          player: {
+            id: updatedPlayer.id,
+            name: updatedPlayer.name,
+            gamertag: updatedPlayer.gamertag,
+            division: updatedPlayer.division,
+            city: updatedPlayer.city,
+            registrationStatus: updatedPlayer.registrationStatus,
+          },
+          isReRegistration: true,
+          isApprovedReRegister: false,
+          tournament: tournament ? { id: tournament.id, name: tournament.name } : null,
+        }, { status: 200 });
+      }
     }
 
     // ====== NORMAL REGISTRATION FLOW ======
@@ -546,32 +620,32 @@ export async function POST(request: Request) {
       },
     });
 
-    const duplicateCheck = checkDuplicates(trimmedName, trimmedCity, trimmedPhone, division, existingPlayers);
+    // Also fetch active tournament participations for same-tournament check
+    let activeTournamentParticipations: Array<{ playerId: string; tournamentId: string; status: string }> = [];
+    const preCheckTournament = await findActiveTournament(division);
+    if (preCheckTournament) {
+      activeTournamentParticipations = await db.participation.findMany({
+        where: { tournamentId: preCheckTournament.id },
+        select: { playerId: true, tournamentId: true, status: true },
+      });
+    }
+
+    const duplicateCheck = checkDuplicates(trimmedName, trimmedCity, trimmedPhone, division, existingPlayers, activeTournamentParticipations);
 
     if (duplicateCheck.isBlocked) {
       return NextResponse.json({
         blocked: true,
         error: duplicateCheck.message,
+        alreadyInTournament: duplicateCheck.alreadyInTournament,
         similarPlayers: duplicateCheck.similarPlayers,
       }, { status: 409 });
     }
 
-    // If can sign up for tournament (approved player), return the option
-    if (duplicateCheck.canSignUpForTournament) {
-      return NextResponse.json({
-        canSignUpForTournament: true,
-        canReRegister: false,
-        reRegisterPlayerId: duplicateCheck.reRegisterPlayerId,
-        message: duplicateCheck.message,
-        similarPlayers: duplicateCheck.similarPlayers,
-      }, { status: 200 });
-    }
-
-    // If can re-register (rejected/inactive), return the option
+    // If can re-register (approved player or rejected/inactive), return the option
     if (duplicateCheck.canReRegister) {
       return NextResponse.json({
         canReRegister: true,
-        canSignUpForTournament: false,
+        isApprovedPlayer: duplicateCheck.isApprovedPlayer,
         isHighRisk: duplicateCheck.isHighRisk,
         reRegisterPlayerId: duplicateCheck.reRegisterPlayerId,
         message: duplicateCheck.message,
@@ -624,23 +698,7 @@ export async function POST(request: Request) {
     });
 
     // Also auto-sign up for active tournament if exists
-    const activeTournament = await findActiveTournament(division);
-    if (activeTournament) {
-      await db.participation.create({
-        data: {
-          playerId: player.id,
-          tournamentId: activeTournament.id,
-          status: 'registered',
-          pointsEarned: 0,
-        },
-      });
-      if (activeTournament.status === 'setup') {
-        await db.tournament.update({
-          where: { id: activeTournament.id },
-          data: { status: 'registration' },
-        });
-      }
-    }
+    const { tournament, participation, error: tournamentError } = await createParticipationForTournament(player.id, division);
 
     if (clubId) {
       await db.clubMember.create({
@@ -650,8 +708,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: activeTournament
-        ? `Pendaftaran berhasil! Anda juga otomatis terdaftar di ${activeTournament.name}. Menunggu persetujuan admin.`
+      message: tournament
+        ? `Pendaftaran berhasil! Anda juga otomatis terdaftar di ${tournament.name}. Menunggu persetujuan admin.`
         : 'Pendaftaran berhasil! Menunggu persetujuan admin.',
       player: {
         id: player.id,
@@ -661,7 +719,7 @@ export async function POST(request: Request) {
         city: player.city,
         registrationStatus: player.registrationStatus,
       },
-      tournament: activeTournament ? { id: activeTournament.id, name: activeTournament.name } : null,
+      tournament: tournament ? { id: tournament.id, name: tournament.name } : null,
     }, { status: 201 });
   } catch (e: unknown) {
     const error = e as Error;

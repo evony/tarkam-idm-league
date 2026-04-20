@@ -993,3 +993,35 @@ Work Log:
 Stage Summary:
 - Admin panel now uses max-w-[2200px] on desktop for near-full-width layout
 - Tournament cards dynamically change appearance based on status (border, bar color, bg tint, live indicator)
+---
+Task ID: 1
+Agent: main
+Task: Redesign registration flow — merge signUpForTournament into reRegister, add same-tournament duplicate guard
+
+Work Log:
+- Analyzed full codebase: Prisma schema, /api/register/route.ts (672 lines), registration-form.tsx, registration-modal.tsx
+- Rewrote /api/register/route.ts with simplified flow:
+  - Merged `signUpForTournament` flow into `reRegister` with `isApprovedPlayer` flag
+  - Approved+active players now get `canReRegister: true, isApprovedPlayer: true` (creates participation only, no player reset)
+  - Rejected/inactive players get `canReRegister: true, isApprovedPlayer: false` (resets player + creates participation)
+  - Added `alreadyInTournament` check in GET endpoint — queries active tournament participations
+  - Extracted `createParticipationForTournament()` helper to reduce code duplication
+  - Removed `canSignUpForTournament` / `signUpForTournament` entirely
+- Updated registration-form.tsx:
+  - Replaced `canSignUpForTournament` handling with unified `canReRegister` + `isApprovedPlayer`
+  - Approved player "Daftar Ulang" button is green (was separate "Daftar Turnamen" green button)
+  - Rejected/inactive "Daftar Ulang" button remains cyan
+  - Added `alreadyInTournament` blue info state
+  - Single `handleReRegisterSubmit(playerId, isApprovedPlayer)` function
+- Updated registration-modal.tsx:
+  - Same simplification as registration-form.tsx
+  - Added missing re-register flow that was previously absent
+  - Both forms now have consistent behavior
+- Lint passes clean, dev server running, app responds 200
+
+Stage Summary:
+- Registration flow simplified: one-step "Daftar Ulang" for all existing players (approved or rejected)
+- Same-tournament duplicate guard added at GET level (real-time feedback)
+- Player data and tournament participation are properly separated
+- Approved players keep their status when re-registering for a new tournament
+- No new API routes needed — all changes in existing /api/register endpoint

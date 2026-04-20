@@ -54,7 +54,8 @@ export function RegistrationForm() {
     isBlocked: boolean;
     isHighRisk: boolean;
     canReRegister: boolean;
-    canSignUpForTournament: boolean;
+    isApprovedPlayer: boolean;
+    alreadyInTournament: boolean;
     reRegisterPlayerId: string | null;
     message: string;
     similarPlayers: SimilarPlayer[];
@@ -101,14 +102,15 @@ export function RegistrationForm() {
 
       const data = await res.json();
 
-      // Handle blocked response (pending in queue)
+      // Handle blocked response (pending in queue or already in tournament)
       if (data.blocked) {
         setWarningState({
           show: true,
           isBlocked: true,
           isHighRisk: true,
           canReRegister: false,
-          canSignUpForTournament: false,
+          isApprovedPlayer: false,
+          alreadyInTournament: data.alreadyInTournament || false,
           reRegisterPlayerId: null,
           message: data.error || data.message,
           similarPlayers: data.similarPlayers || [],
@@ -117,30 +119,15 @@ export function RegistrationForm() {
         return;
       }
 
-      // Handle tournament sign-up available (approved player)
-      if (data.canSignUpForTournament) {
-        setWarningState({
-          show: true,
-          isBlocked: false,
-          isHighRisk: false,
-          canReRegister: false,
-          canSignUpForTournament: true,
-          reRegisterPlayerId: data.reRegisterPlayerId,
-          message: data.message,
-          similarPlayers: data.similarPlayers || [],
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Handle re-registration available response
+      // Handle re-registration available response (approved player or rejected/inactive)
       if (data.canReRegister) {
         setWarningState({
           show: true,
           isBlocked: false,
           isHighRisk: data.isHighRisk || false,
           canReRegister: true,
-          canSignUpForTournament: false,
+          isApprovedPlayer: data.isApprovedPlayer || false,
+          alreadyInTournament: false,
           reRegisterPlayerId: data.reRegisterPlayerId,
           message: data.message,
           similarPlayers: data.similarPlayers || [],
@@ -156,6 +143,8 @@ export function RegistrationForm() {
           isBlocked: false,
           isHighRisk: data.isHighRisk || false,
           canReRegister: false,
+          isApprovedPlayer: false,
+          alreadyInTournament: false,
           reRegisterPlayerId: null,
           message: data.message,
           similarPlayers: data.similarPlayers,
@@ -197,60 +186,10 @@ export function RegistrationForm() {
   const handleReRegister = () => {
     if (!warningState?.canReRegister || !warningState?.reRegisterPlayerId) return;
     setWarningState(prev => prev ? { ...prev, show: false } : null);
-    handleReRegisterSubmit(warningState.reRegisterPlayerId);
+    handleReRegisterSubmit(warningState.reRegisterPlayerId, warningState.isApprovedPlayer);
   };
 
-  const handleTournamentSignUp = () => {
-    if (!warningState?.canSignUpForTournament || !warningState?.reRegisterPlayerId) return;
-    setWarningState(prev => prev ? { ...prev, show: false } : null);
-    handleTournamentSignUpSubmit(warningState.reRegisterPlayerId);
-  };
-
-  const handleTournamentSignUpSubmit = async (playerId: string) => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          joki: formData.joki || null,
-          phone: formData.phone || null,
-          city: formData.city,
-          clubId: formData.clubId || null,
-          division,
-          signUpForTournament: true,
-          reRegisterPlayerId: playerId,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok || data.success) {
-        setSubmitResult({
-          success: true,
-          message: data.message,
-          gamertag: data.player?.gamertag || data.tournament?.name,
-        });
-        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
-        setWarningState(null);
-      } else {
-        setSubmitResult({
-          success: false,
-          message: data.error || 'Gagal mendaftar ke turnamen',
-        });
-      }
-    } catch {
-      setSubmitResult({
-        success: false,
-        message: 'Terjadi kesalahan jaringan',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleReRegisterSubmit = async (reRegisterPlayerId: string) => {
+  const handleReRegisterSubmit = async (reRegisterPlayerId: string, isApprovedPlayer: boolean) => {
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/register', {
@@ -265,6 +204,7 @@ export function RegistrationForm() {
           division,
           reRegister: true,
           reRegisterPlayerId,
+          isApprovedPlayer,
         }),
       });
 
@@ -274,7 +214,7 @@ export function RegistrationForm() {
         setSubmitResult({
           success: true,
           message: data.message,
-          gamertag: data.player?.gamertag,
+          gamertag: data.player?.gamertag || data.tournament?.name,
         });
         setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
         setWarningState(null);
@@ -298,7 +238,6 @@ export function RegistrationForm() {
     setWarningState(null);
   };
 
-  const divisionColor = division === 'male' ? 'cyan' : 'purple';
   const divisionEmoji = division === 'male' ? '🕺' : '💃';
 
   return (
@@ -383,9 +322,13 @@ export function RegistrationForm() {
           >
             <Card className={`${
               warningState.isBlocked
-                ? 'border-red-500/50 bg-red-500/5'
+                ? warningState.alreadyInTournament
+                  ? 'border-blue-500/50 bg-blue-500/5'
+                  : 'border-red-500/50 bg-red-500/5'
                 : warningState.canReRegister
-                  ? 'border-cyan-500/30 bg-cyan-500/5'
+                  ? warningState.isApprovedPlayer
+                    ? 'border-green-500/30 bg-green-500/5'
+                    : 'border-cyan-500/30 bg-cyan-500/5'
                   : warningState.isHighRisk
                     ? 'border-orange-500/30 bg-orange-500/5'
                     : 'border-yellow-500/30 bg-yellow-500/5'
@@ -394,17 +337,29 @@ export function RegistrationForm() {
                 <div className="flex items-start gap-3 mb-4">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                     warningState.isBlocked
-                      ? 'bg-red-500/10'
+                      ? warningState.alreadyInTournament
+                        ? 'bg-blue-500/10'
+                        : 'bg-red-500/10'
                       : warningState.canReRegister
-                        ? 'bg-cyan-500/10'
+                        ? warningState.isApprovedPlayer
+                          ? 'bg-green-500/10'
+                          : 'bg-cyan-500/10'
                         : warningState.isHighRisk
                           ? 'bg-orange-500/10'
                           : 'bg-yellow-500/10'
                   }`}>
                     {warningState.isBlocked ? (
-                      <Ban className="w-5 h-5 text-red-500" />
+                      warningState.alreadyInTournament ? (
+                        <Info className="w-5 h-5 text-blue-500" />
+                      ) : (
+                        <Ban className="w-5 h-5 text-red-500" />
+                      )
                     ) : warningState.canReRegister ? (
-                      <UserPlus className="w-5 h-5 text-cyan-500" />
+                      warningState.isApprovedPlayer ? (
+                        <Music className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <UserPlus className="w-5 h-5 text-cyan-500" />
+                      )
                     ) : warningState.isHighRisk ? (
                       <AlertTriangle className="w-5 h-5 text-orange-500" />
                     ) : (
@@ -414,17 +369,25 @@ export function RegistrationForm() {
                   <div className="flex-1">
                     <h3 className={`text-base font-bold mb-1 ${
                       warningState.isBlocked
-                        ? 'text-red-500'
+                        ? warningState.alreadyInTournament
+                          ? 'text-blue-500'
+                          : 'text-red-500'
                         : warningState.canReRegister
-                          ? 'text-cyan-500'
+                          ? warningState.isApprovedPlayer
+                            ? 'text-green-500'
+                            : 'text-cyan-500'
                           : warningState.isHighRisk
                             ? 'text-orange-500'
                             : 'text-yellow-500'
                     }`}>
                       {warningState.isBlocked
-                        ? 'Pendaftaran Diblokir!'
+                        ? warningState.alreadyInTournament
+                          ? 'Sudah Terdaftar di Turnamen!'
+                          : 'Pendaftaran Diblokir!'
                         : warningState.canReRegister
-                          ? 'Daftar Ulang Tersedia!'
+                          ? warningState.isApprovedPlayer
+                            ? 'Daftar Ulang Turnamen!'
+                            : 'Daftar Ulang Tersedia!'
                           : warningState.isHighRisk
                             ? 'Kemungkinan Duplikat!'
                             : 'Nama Mirip Terdeteksi!'}
@@ -434,84 +397,98 @@ export function RegistrationForm() {
                 </div>
 
                 {/* Similar players list */}
-                <div className="mb-4 p-3 rounded-lg bg-muted/50">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Data yang cocok:</p>
-                  <div className="space-y-2">
-                    {warningState.similarPlayers.slice(0, 3).map((player) => (
-                      <div key={player.id} className="flex items-center justify-between text-xs">
-                        <div>
-                          <span className="font-medium">{player.name}</span>
-                          <span className="text-muted-foreground ml-1">(@{player.gamertag})</span>
-                          {player.matchDetails.nameMatch && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px]">Nama Sama</span>
-                          )}
-                          {player.matchDetails.phoneMatch && !player.matchDetails.nameMatch && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px]">WA Sama</span>
-                          )}
-                          {/* Show player status */}
-                          {warningState.canReRegister && player.registrationStatus && (
-                            <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] ${
-                              player.registrationStatus === 'approved'
-                                ? 'bg-green-500/10 text-green-400'
-                                : player.registrationStatus === 'rejected'
-                                  ? 'bg-red-500/10 text-red-400'
-                                  : player.registrationStatus === 'pending'
-                                    ? 'bg-yellow-500/10 text-yellow-400'
-                                    : 'bg-muted text-muted-foreground'
-                            }`}>
-                              {player.registrationStatus === 'approved' ? 'Aktif' : player.registrationStatus === 'rejected' ? 'Ditolak' : player.registrationStatus === 'pending' ? 'Menunggu' : player.registrationStatus}
-                            </span>
-                          )}
+                {warningState.similarPlayers.length > 0 && (
+                  <div className="mb-4 p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">Data yang cocok:</p>
+                    <div className="space-y-2">
+                      {warningState.similarPlayers.slice(0, 3).map((player) => (
+                        <div key={player.id} className="flex items-center justify-between text-xs">
+                          <div>
+                            <span className="font-medium">{player.name}</span>
+                            <span className="text-muted-foreground ml-1">(@{player.gamertag})</span>
+                            {player.matchDetails.nameMatch && (
+                              <span className="ml-1 px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px]">Nama Sama</span>
+                            )}
+                            {player.matchDetails.phoneMatch && !player.matchDetails.nameMatch && (
+                              <span className="ml-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px]">WA Sama</span>
+                            )}
+                            {/* Show player status */}
+                            {player.registrationStatus && (
+                              <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] ${
+                                player.registrationStatus === 'approved'
+                                  ? 'bg-green-500/10 text-green-400'
+                                  : player.registrationStatus === 'rejected'
+                                    ? 'bg-red-500/10 text-red-400'
+                                    : player.registrationStatus === 'pending'
+                                      ? 'bg-yellow-500/10 text-yellow-400'
+                                      : 'bg-muted text-muted-foreground'
+                              }`}>
+                                {player.registrationStatus === 'approved' ? 'Aktif' : player.registrationStatus === 'rejected' ? 'Ditolak' : player.registrationStatus === 'pending' ? 'Menunggu' : player.registrationStatus}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            {player.matchDetails.cityMatch && (
+                              <div className="flex items-center gap-1 text-orange-400">
+                                <MapPin className="w-3 h-3" />
+                                <span>{player.city}</span>
+                              </div>
+                            )}
+                            {player.matchDetails.phoneMatch && (
+                              <div className="flex items-center gap-1 text-orange-400">
+                                <Phone className="w-3 h-3" />
+                                <span>{player.phone}</span>
+                              </div>
+                            )}
+                            {!player.matchDetails.cityMatch && !player.matchDetails.phoneMatch && (
+                              <span className="text-muted-foreground">{player.city}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          {player.matchDetails.cityMatch && (
-                            <div className="flex items-center gap-1 text-orange-400">
-                              <MapPin className="w-3 h-3" />
-                              <span>{player.city}</span>
-                            </div>
-                          )}
-                          {player.matchDetails.phoneMatch && (
-                            <div className="flex items-center gap-1 text-orange-400">
-                              <Phone className="w-3 h-3" />
-                              <span>{player.phone}</span>
-                            </div>
-                          )}
-                          {!player.matchDetails.cityMatch && !player.matchDetails.phoneMatch && (
-                            <span className="text-muted-foreground">{player.city}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Tournament sign-up info (approved player) */}
-                {warningState.canSignUpForTournament && (
+                {/* Approved player re-register info (daftar ulang turnamen) */}
+                {warningState.canReRegister && warningState.isApprovedPlayer && (
                   <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                     <div className="flex items-start gap-2">
                       <Music className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-green-400">
-                        <p><strong>Daftar Turnamen:</strong> Data Anda sudah terverifikasi. Anda akan didaftarkan ke turnamen minggu ini. Admin akan menyetujui dan menentukan tier Anda.</p>
+                        <p><strong>Daftar Ulang Turnamen:</strong> Data Anda sudah terverifikasi. Anda akan didaftarkan ke turnamen minggu ini. Admin akan menyetujui dan menentukan tier Anda.</p>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Re-registration info (rejected/inactive player) */}
-                {warningState.canReRegister && (
+                {warningState.canReRegister && !warningState.isApprovedPlayer && (
                   <div className="mb-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
                     <div className="flex items-start gap-2">
                       <UserPlus className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-cyan-400">
-                        <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke "Menunggu Persetujuan". Anda juga otomatis terdaftar di turnamen minggu ini.</p>
+                        <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke &quot;Menunggu Persetujuan&quot;. Anda juga otomatis terdaftar di turnamen minggu ini.</p>
                         <p className="mt-1 text-muted-foreground">Tier akan di-reset ke B dan admin akan menentukan tier yang sesuai.</p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Blocked message */}
-                {warningState.isBlocked && (
+                {/* Already in tournament message */}
+                {warningState.isBlocked && warningState.alreadyInTournament && (
+                  <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-blue-400">
+                        <strong>Sudah Terdaftar:</strong> Anda sudah terdaftar di turnamen minggu ini. Tidak perlu mendaftar lagi. Tunggu persetujuan admin atau hubungi admin jika ada kendala.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Blocked message (pending in queue) */}
+                {warningState.isBlocked && !warningState.alreadyInTournament && (
                   <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
@@ -542,30 +519,21 @@ export function RegistrationForm() {
                   >
                     {warningState.isBlocked ? 'Tutup' : 'Batalkan'}
                   </Button>
-                  {warningState.canSignUpForTournament && (
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-                      onClick={handleTournamentSignUp}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Music className="w-4 h-4 mr-1" />
-                      )}
-                      {isSubmitting ? 'Memproses...' : 'Daftar Turnamen'}
-                    </Button>
-                  )}
                   {warningState.canReRegister && (
                     <Button
                       size="sm"
-                      className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white"
+                      className={`flex-1 text-white ${
+                        warningState.isApprovedPlayer
+                          ? 'bg-green-500 hover:bg-green-600'
+                          : 'bg-cyan-500 hover:bg-cyan-600'
+                      }`}
                       onClick={handleReRegister}
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : warningState.isApprovedPlayer ? (
+                        <Music className="w-4 h-4 mr-1" />
                       ) : (
                         <UserPlus className="w-4 h-4 mr-1" />
                       )}
