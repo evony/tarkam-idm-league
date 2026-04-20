@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
     font-src 'self' https://fonts.gstatic.com;
     connect-src 'self' https://res.cloudinary.com https://*.cloudinary.com https://*.pusher.com wss://*.pusher.com;
     media-src 'self' https://res.cloudinary.com https://*.cloudinary.com blob:;
-    frame-src 'none';
+    frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
