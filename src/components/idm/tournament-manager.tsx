@@ -126,6 +126,32 @@ const STATUS_STYLE: Record<string, { border: string; bar: string; bg: string; ic
   completed:        { border: 'border-idm-gold-warm/30',   bar: 'bg-idm-gold-warm',              bg: 'bg-idm-gold-warm/5',                  icon: '🎉' },
 };
 
+// Quick action label per status — shown as primary button on each card
+const NEXT_ACTION: Record<string, { label: string; icon: string; color: string }> = {
+  setup:              { label: 'Buka Registrasi',   icon: '📋', color: 'text-green-400 hover:bg-green-500/10' },
+  registration:       { label: 'Lanjut Persetujuan', icon: '⏳', color: 'text-yellow-400 hover:bg-yellow-500/10' },
+  approval:           { label: 'Generate Tim',       icon: '👥', color: 'text-blue-400 hover:bg-blue-500/10' },
+  team_generation:    { label: 'Generate Bracket',   icon: '🏆', color: 'text-blue-400 hover:bg-blue-500/10' },
+  bracket_generation: { label: 'Mulai Event!',       icon: '🎮', color: 'text-red-400 hover:bg-red-500/10' },
+  main_event:         { label: 'Submit Skor',        icon: '📊', color: 'text-red-400 hover:bg-red-500/10' },
+  scoring:            { label: 'Finalisasi',         icon: '🏆', color: 'text-purple-400 hover:bg-purple-500/10' },
+  finalization:       { label: 'Selesaikan',         icon: '✅', color: 'text-idm-gold-warm hover:bg-idm-gold-warm/10' },
+  completed:          { label: 'Lihat Hasil',        icon: '🎉', color: 'text-idm-gold-warm hover:bg-idm-gold-warm/10' },
+};
+
+// Sort priority — lower number = shown first
+const STATUS_SORT: Record<string, number> = {
+  main_event: 0,
+  scoring: 1,
+  finalization: 2,
+  bracket_generation: 3,
+  team_generation: 4,
+  approval: 5,
+  registration: 6,
+  setup: 7,
+  completed: 8,
+};
+
 export function TournamentManager({ division, dt, stats, setConfirmDialog }: TournamentManagerProps) {
   const qc = useQueryClient();
   const seasonId = stats?.season?.id;
@@ -146,6 +172,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     { label: 'Juara 3', position: 3, prizeAmount: 0, recipientCount: 3, isMvp: false },
     { label: 'MVP', position: 4, prizeAmount: 0, recipientCount: 1, isMvp: true },
   ]);
+  const [tournamentFilter, setTournamentFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [approvalStep, setApprovalStep] = useState<'approve' | 'prize'>('approve');
   const [showPrizeConfig, setShowPrizeConfig] = useState(false);
   const [manualPrizePool, setManualPrizePool] = useState<string>('');
@@ -458,6 +485,23 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     return grouped;
   })();
 
+  // Sorted & filtered tournament list
+  const sortedFilteredTournaments = useMemo(() => {
+    if (!tournaments) return [];
+    let list = [...tournaments];
+    // Filter
+    if (tournamentFilter === 'active') list = list.filter((t: { status: string }) => t.status !== 'completed');
+    if (tournamentFilter === 'completed') list = list.filter((t: { status: string }) => t.status === 'completed');
+    // Sort: by status priority, then by weekNumber desc
+    list.sort((a: { status: string; weekNumber: number }, b: { status: string; weekNumber: number }) => {
+      const pa = STATUS_SORT[a.status] ?? 9;
+      const pb = STATUS_SORT[b.status] ?? 9;
+      if (pa !== pb) return pa - pb;
+      return b.weekNumber - a.weekNumber;
+    });
+    return list;
+  }, [tournaments, tournamentFilter]);
+
   const nextMatch = (() => {
     if (!selected?.matches) return null;
     return selected.matches.find((m: { status: string; team1Id: string | null; team2Id: string | null }) =>
@@ -590,13 +634,37 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       )}
 
       {/* ===== TOURNAMENT LIST ===== */}
+      {/* Filter tabs */}
+      {tournaments && tournaments.length > 0 && (
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/30">
+          {(['all', 'active', 'completed'] as const).map(f => (
+            <button key={f} onClick={() => setTournamentFilter(f)}
+              className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all ${
+                tournamentFilter === f
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}>
+              {f === 'all' ? `Semua (${tournaments.length})`
+                : f === 'active' ? `Aktif (${tournaments.filter((t: { status: string }) => t.status !== 'completed').length})`
+                : `Selesai (${tournaments.filter((t: { status: string }) => t.status === 'completed').length})`}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-2">
         {tournaments?.length === 0 && (
           <p className="text-xs text-muted-foreground text-center py-4">Belum ada tournament. Buat yang pertama!</p>
         )}
-        {tournaments?.map((t: { id: string; name: string; weekNumber: number; status: string; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number; location?: string; scheduledAt?: string; _count?: { teams: number; participations: number; matches: number } }) => {
+        {sortedFilteredTournaments.length === 0 && tournaments?.length > 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">Tidak ada tournament untuk filter ini.</p>
+        )}
+        {sortedFilteredTournaments.map((t: { id: string; name: string; weekNumber: number; status: string; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number; location?: string; scheduledAt?: string; _count?: { teams: number; participations: number; matches: number } }) => {
           const ss = STATUS_STYLE[t.status] || STATUS_STYLE.setup;
+          const na = NEXT_ACTION[t.status] || NEXT_ACTION.setup;
           const isLive = t.status === 'main_event';
+          const stepIdx = STEPS.findIndex(s => s.key === t.status);
+          const stepPct = Math.round(((stepIdx + 1) / STEPS.length) * 100);
           return (
           <div key={t.id}>
             <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-all duration-300 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''} ${isLive ? 'shadow-red-500/10 shadow-md' : dt.casinoGlow}`}
@@ -604,9 +672,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               <div className={`${ss.bar} h-1 transition-colors duration-300`} />
               <CardContent className="p-3 relative z-10">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold">{t.name}</p>
+                      <p className="text-sm font-semibold truncate">{t.name}</p>
                       {isLive && <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" /></span>}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -623,22 +691,36 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </>}
                     </div>
                   </div>
-                  <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-idm-gold-warm hover:text-idm-gold-warm/80 hover:bg-idm-gold-warm/10"
+                  <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
+                    {/* Quick Action Button */}
+                    <Button size="sm" variant="ghost"
+                      className={`h-7 px-2 text-[10px] font-medium ${na.color}`}
+                      onClick={() => setSelectedId(t.id)}
+                      title={na.label}>
+                      <span className="mr-1">{na.icon}</span>{na.label}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-idm-gold-warm hover:text-idm-gold-warm/80 hover:bg-idm-gold-warm/10"
                       onClick={() => openEditDialog(t)} title="Edit Tournament">
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-3 h-3" />
                     </Button>
                     {t.status !== 'completed' && (
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true, title: 'Hapus Tournament?',
                           description: `Tournament "${t.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
                           onConfirm: () => deleteMutation.mutate(t.id)
                         })} title="Hapus Tournament">
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
                   </div>
+                </div>
+                {/* Mini step progress bar */}
+                <div className="mt-2.5 flex items-center gap-2">
+                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-500 ${ss.bar}`} style={{ width: `${stepPct}%` }} />
+                  </div>
+                  <span className="text-[9px] text-muted-foreground shrink-0">{stepIdx + 1}/{STEPS.length}</span>
                 </div>
               </CardContent>
             </Card>
