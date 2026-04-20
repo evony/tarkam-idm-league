@@ -63,32 +63,34 @@ export function HeroSection({
         {cmsHeroBgVideo ? (() => {
           const ytId = getYouTubeId(cmsHeroBgVideo);
           return ytId ? (
-            /* YouTube: thumbnail + big play button (bandwidth friendly) */
+            /* YouTube autoplay embed as cinematic background (bandwidth goes to YouTube, not Vercel) */
             <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
-              <img
-                src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                aria-hidden="true"
-              />
-              {/* Dark overlay to dim the thumbnail */}
-              <div className="absolute inset-0 bg-black/60" />
-              {/* Big play button */}
+              <div className="absolute inset-0 w-full h-full overflow-hidden">
+                <iframe
+                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vh] min-w-[120%] min-h-[120%] border-0 pointer-events-none"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  aria-hidden="true"
+                  title="Hero background video"
+                />
+              </div>
+              {/* Dark overlay for text readability */}
+              <div className="absolute inset-0 bg-black/50" />
+              {/* Watch Video button — opens modal with controls */}
               {onVideoPlay && (
                 <button
                   onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
-                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 cursor-pointer group"
-                  aria-label="Play highlight video"
+                  className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-5 py-2.5 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 backdrop-blur-sm hover:bg-idm-gold-warm/30 hover:border-idm-gold-warm/60 transition-all cursor-pointer group"
+                  aria-label="Play video with controls"
                 >
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-idm-gold-warm/20 border-2 border-idm-gold-warm/50 flex items-center justify-center backdrop-blur-sm group-hover:bg-idm-gold-warm/30 group-hover:border-idm-gold-warm/70 group-hover:scale-110 transition-all duration-300">
-                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-idm-gold-warm fill-idm-gold-warm ml-1" />
-                  </div>
-                  <span className="text-sm sm:text-base font-bold text-idm-gold-warm tracking-wider uppercase">Watch Video</span>
+                  <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
+                  <span className="text-xs font-bold text-idm-gold-warm tracking-wider uppercase">Watch Video</span>
                 </button>
               )}
             </motion.div>
           ) : (
-            /* Cloudinary / direct video URL — autoplay background (optimal) */
+            /* Cloudinary / direct video URL — autoplay background */
             <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
               <video
                 src={cmsHeroBgVideo}
@@ -100,7 +102,7 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
-              {/* Dark overlay to dim the video */}
+              {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
             </motion.div>
           );
