@@ -11,17 +11,33 @@ import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 /**
- * Extracts YouTube video ID from various URL formats
+ * Extracts YouTube video ID and start time from various URL formats
  */
-function getYouTubeId(url: string): string | null {
+function parseYouTubeUrl(url: string): { id: string; startTime: number } | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
   ];
+  let id: string | null = null;
   for (const pattern of patterns) {
     const match = url.match(pattern);
-    if (match) return match[1];
+    if (match) { id = match[1]; break; }
   }
-  return null;
+  if (!id) return null;
+
+  let startTime = 0;
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const t = urlObj.searchParams.get('t');
+    if (t) {
+      const seconds = parseInt(t.replace(/s$/, ''), 10);
+      if (!isNaN(seconds)) startTime = seconds;
+    }
+  } catch {
+    const tMatch = url.match(/[?&]t=(\d+)s?/);
+    if (tMatch) startTime = parseInt(tMatch[1], 10);
+  }
+
+  return { id, startTime };
 }
 
 interface HeroSectionProps {
@@ -61,13 +77,14 @@ export function HeroSection({
         {/* Multi-layer Parallax Background — 3 depth layers */}
         {/* Layer 1: Deep background (slowest) */}
         {cmsHeroBgVideo ? (() => {
-          const ytId = getYouTubeId(cmsHeroBgVideo);
+          const ytInfo = parseYouTubeUrl(cmsHeroBgVideo);
+          const ytId = ytInfo?.id ?? null;
           return ytId ? (
             /* YouTube autoplay embed as cinematic background (bandwidth goes to YouTube, not Vercel) */
             <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
               <div className="absolute inset-0 w-full h-full overflow-hidden">
                 <iframe
-                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1${ytInfo?.startTime ? `&start=${ytInfo.startTime}` : ''}`}
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400%] sm:w-[140%] h-[400%] sm:h-[140%] min-w-full min-h-full border-0 pointer-events-none"
                   allow="autoplay; encrypted-media"
                   allowFullScreen
