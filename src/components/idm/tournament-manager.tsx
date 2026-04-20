@@ -87,6 +87,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     location: string; scheduledAt: string;
   }>({ id: '', name: '', weekNumber: '', format: 'single_elimination', defaultMatchFormat: 'BO1', prizePool: '', bpm: '', location: '', scheduledAt: '' });
 
+  // Spin reveal state for team generation
+  const [spinRevealData, setSpinRevealData] = useState<{
+    spinRevealOrder: { teamIndex: number; teamName: string; tier: string; player: { id: string; gamertag: string; tier: string; points: number }; allPlayersInTier: { id: string; gamertag: string; tier: string; points: number }[] }[];
+    teamCount: number;
+  } | null>(null);
+
   // Queries — fetch tournaments by seasonId (unified league, not by division)
   const { data: tournaments } = useQuery({
     queryKey: ['admin-tournaments', seasonId],
@@ -178,7 +184,16 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal generate tim'); }
       return r.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Tim berhasil di-generate!'); },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
+      // If spinRevealOrder is available, trigger spin animation instead of just a toast
+      if (data.spinRevealOrder && data.spinRevealOrder.length > 0) {
+        setSpinRevealData({ spinRevealOrder: data.spinRevealOrder, teamCount: data.teamCount });
+      } else {
+        toast.success('Tim berhasil di-generate!');
+      }
+    },
     onError: (e: Error) => { toast.error(e.message); },
   });
 

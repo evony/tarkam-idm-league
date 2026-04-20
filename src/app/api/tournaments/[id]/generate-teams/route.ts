@@ -95,7 +95,6 @@ export async function POST(
   const shuffledB = fisherYatesShuffle(bTier);
 
   // Delete existing teams first (regeneration support)
-  // TeamPlayer and Team cascade deletion
   const existingTeams = await db.team.findMany({ where: { tournamentId: id } });
   if (existingTeams.length > 0) {
     await db.teamPlayer.deleteMany({
@@ -105,6 +104,7 @@ export async function POST(
   }
 
   // Each team gets 1S + 1A + 1B
+  // Team naming: named after the S-tier player's gamertag
   const teams: { id: string; name: string; power: number; playerIds: string[] }[] = [];
 
   for (let i = 0; i < teamCount; i++) {
@@ -112,7 +112,8 @@ export async function POST(
     const aPlayer = shuffledA[i];
     const bPlayer = shuffledB[i];
 
-    const teamName = `Team ${String.fromCharCode(65 + i)}`; // Team A, Team B, etc.
+    // Name team after S-tier player
+    const teamName = `Tim ${sPlayer.player.gamertag}`;
     const power = sPlayer.player.points + aPlayer.player.points + bPlayer.player.points;
     const playerIds = [sPlayer.playerId, aPlayer.playerId, bPlayer.playerId];
 
@@ -138,31 +139,26 @@ export async function POST(
   if (teams.length >= 2) {
     let improved = true;
     let iterations = 0;
-    const maxIterations = teams.length * teams.length; // prevent infinite loops
+    const maxIterations = teams.length * teams.length;
 
     while (improved && iterations < maxIterations) {
       improved = false;
       iterations++;
 
-      // Recalculate team powers from DB
       const teamsWithPlayers = await db.team.findMany({
         where: { tournamentId: id },
         include: { teamPlayers: { include: { player: true } } },
       });
 
-      // Find min and max power
       const powers = teamsWithPlayers.map((t) => t.power);
       const maxPower = Math.max(...powers);
       const minPower = Math.min(...powers);
 
-      // Check if imbalance > 15%
       if (maxPower > 0 && (maxPower - minPower) / maxPower > 0.15) {
-        // Sort teams by power descending to find strongest and weakest
         const sorted = [...teamsWithPlayers].sort((a, b) => b.power - a.power);
         const strongest = sorted[0];
         const weakest = sorted[sorted.length - 1];
 
-        // Find B-tier players to swap
         const bPlayerStrongest = strongest.teamPlayers.find(
           (tp) => tp.player.tier === 'B'
         );
@@ -176,14 +172,13 @@ export async function POST(
           const newWeakestPower =
             weakest.power - bPlayerWeakest.player.points + bPlayerStrongest.player.points;
 
-          // Only swap if it reduces the imbalance
           const currentImbalance = maxPower - minPower;
           const newMaxPower = Math.max(newStrongestPower, newWeakestPower);
           const newMinPower = Math.min(newStrongestPower, newWeakestPower);
           const newImbalance = newMaxPower - newMinPower;
 
           if (newImbalance < currentImbalance) {
-            // Swap player assignments
+            // Swap B-tier player assignments
             await db.teamPlayer.update({
               where: { id: bPlayerStrongest.id },
               data: { playerId: bPlayerWeakest.playerId },
@@ -193,7 +188,6 @@ export async function POST(
               data: { playerId: bPlayerStrongest.playerId },
             });
 
-            // Update team powers
             await db.team.update({
               where: { id: strongest.id },
               data: { power: newStrongestPower },
@@ -205,6 +199,26 @@ export async function POST(
 
             improved = true;
           }
+        }
+      }
+    }
+
+    // After auto-balance swaps, update team names to reflect current S-tier player
+    // (S-tier players don't swap, but just in case)
+    const finalTeamsWithPlayers = await db.team.findMany({
+      where: { tournamentId: id },
+      include: { teamPlayers: { include: { player: true } } },
+    });
+
+    for (const team of finalTeamsWithPlayers) {
+      const sPlayer = team.teamPlayers.find(tp => tp.player.tier === 'S');
+      if (sPlayer) {
+        const correctName = `Tim ${sPlayer.player.gamertag}`;
+        if (team.name !== correctName) {
+          await db.team.update({
+            where: { id: team.id },
+            data: { name: correctName },
+          });
         }
       }
     }
@@ -228,5 +242,41 @@ export async function POST(
     orderBy: { name: 'asc' },
   });
 
-  return NextResponse.json({ teams: finalTeams, teamCount });
+  // Build spin reveal data for frontend animation
+  // Spin order: Team 1 S-tier, Team 2 S-tier, ..., Team 1 A-tier, Team 2 A-tier, ..., Team 1 B-tier, ...
+  const spinRevealOrder: {
+    teamIndex: number;
+    teamName: string;
+    tier: string;
+    player: { id: string; gamertag: string; tier: string; points: number };
+    allPlayersInTier: { id: string; gamertag: string; tier: string; points: number }[];
+  }[] = [];
+
+  for (const tier of ['S', 'A', 'B'] as const) {
+    const tierPlayers = tier === 'S' ? shuffledS : tier === 'A' ? shuffledA : shuffledB;
+    for (let i = 0; i < teamCount; i++) {
+      const team = finalTeams.find(t =>
+        t.teamPlayers.some(tp => tp.playerId === tierPlayers[i].playerId)
+      );
+      spinRevealOrder.push({
+        teamIndex: i,
+        teamName: team?.name || `Tim ${i + 1}`,
+        tier,
+        player: {
+          id: tierPlayers[i].player.id,
+          gamertag: tierPlayers[i].player.gamertag,
+          tier: tierPlayers[i].effectiveTier,
+          points: tierPlayers[i].player.points,
+        },
+        allPlayersInTier: tierPlayers.map(p => ({
+          id: p.player.id,
+          gamertag: p.player.gamertag,
+          tier: p.effectiveTier,
+          points: p.player.points,
+        })),
+      });
+    }
+  }
+
+  return NextResponse.json({ teams: finalTeams, teamCount, spinRevealOrder });
 }
