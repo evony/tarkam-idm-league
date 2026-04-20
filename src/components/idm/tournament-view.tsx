@@ -74,7 +74,7 @@ export function TournamentView() {
     const hasTournaments = tournaments && tournaments.length > 0;
 
     return (
-      <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 max-w-5xl mx-auto">
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Music className={`w-5 h-5 ${dt.neonText}`} />
           <h2 className="text-lg font-bold text-gradient-fury">Tournament Mingguan</h2>
@@ -230,7 +230,7 @@ export function TournamentView() {
 
   // Tournament Detail View — Read-only
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 max-w-5xl mx-auto">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
       <button onClick={() => setSelectedId(null)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
         ← Kembali ke tournament
       </button>

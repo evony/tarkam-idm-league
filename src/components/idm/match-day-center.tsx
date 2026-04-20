@@ -399,7 +399,7 @@ export function MatchDayCenter() {
 
   if (isLoading) {
     return (
-      <div className="space-y-5 max-w-5xl mx-auto">
+      <div className="space-y-5">
         <MatchDayHeroSkeleton />
         <div className="border-b border-border">
           <div className="flex items-center gap-0">
@@ -506,7 +506,7 @@ export function MatchDayCenter() {
   })() : null;
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-5 max-w-5xl mx-auto">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
 
       {/* ═══════ HERO: Featured Match Banner ═══════ */}
       <motion.div variants={item}>

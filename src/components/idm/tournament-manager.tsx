@@ -136,7 +136,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const createMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
       const r = await fetch('/api/tournaments', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membuat tournament'); }
@@ -149,7 +149,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const r = await fetch(`/api/tournaments/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal update'); }
@@ -161,7 +161,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const registerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[] } }) => {
       const r = await fetch(`/api/tournaments/${id}/register`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal register'); }
@@ -174,7 +174,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const approveMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const r = await fetch(`/api/tournaments/${id}/approve`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal approve'); }
@@ -187,7 +187,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const unapproveMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[]; unapproveAll?: boolean } }) => {
       const r = await fetch(`/api/tournaments/${id}/approve`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membatalkan persetujuan'); }
@@ -202,7 +202,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const generateTeamsMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}/generate-teams`, { method: 'POST' });
+      const r = await fetch(`/api/tournaments/${id}/generate-teams`, { method: 'POST', credentials: 'include' });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal generate tim'); }
       return r.json();
     },
@@ -220,7 +220,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const generateBracketMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}/generate-bracket`, { method: 'POST' });
+      const r = await fetch(`/api/tournaments/${id}/generate-bracket`, { method: 'POST', credentials: 'include' });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal generate bracket'); }
       return r.json();
     },
@@ -231,7 +231,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const startMatchMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
       const r = await fetch(`/api/tournaments/${tournamentId}/start-match`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId }),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal start match'); }
@@ -244,7 +244,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const scoreMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId, score1, score2 }: { tournamentId: string; matchId: string; score1: number; score2: number }) => {
       const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId, score1, score2 }),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal submit skor'); }
@@ -257,7 +257,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const undoScoreMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
       const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId }),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal undo skor'); }
@@ -270,7 +270,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const finalizeMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const r = await fetch(`/api/tournaments/${id}/finalize`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal finalisasi'); }
@@ -282,11 +282,15 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}`, { method: 'DELETE' });
-      if (!r.ok) throw new Error('Gagal hapus');
+      const r = await fetch(`/api/tournaments/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({ error: 'Gagal hapus tournament' }));
+        throw new Error(d.error || 'Gagal hapus tournament');
+      }
       return r.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); setSelectedId(null); toast.success('Tournament dihapus'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); setSelectedId(null); toast.success('Tournament berhasil dihapus!'); },
+    onError: (e: Error) => { toast.error(e.message); },
   });
 
   const openEditDialog = (t: { id: string; name: string; weekNumber: number; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number | null; location?: string | null; scheduledAt?: string | null }) => {
@@ -308,7 +312,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     mutationFn: async (data: { id: string } & Record<string, unknown>) => {
       const { id, ...rest } = data;
       const r = await fetch(`/api/tournaments/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(rest),
       });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal update tournament'); }
@@ -1016,7 +1020,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               if (pool > 0 || (wantsManualPrize && prizes.some(p => p.prizeAmount > 0))) {
                                 await fetch(`/api/tournaments/${selected.id}`, {
                                   method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
+                                  headers: { 'Content-Type': 'application/json' }, credentials: 'include',
                                   body: JSON.stringify({
                                     prizePool: pool,
                                     prizes: wantsManualPrize ? prizes.filter(p => p.label && p.prizeAmount > 0).map(p => ({
@@ -1191,7 +1195,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               const pool = parseInt(manualPrizePool) || referencePrizePool;
                               await fetch(`/api/tournaments/${selected.id}`, {
                                 method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json' }, credentials: 'include',
                                 body: JSON.stringify({
                                   prizePool: pool,
                                   prizes: wantsManualPrize ? prizes.filter(p => p.label && p.prizeAmount > 0).map(p => ({
@@ -1368,7 +1372,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               const pool = parseInt(manualPrizePool) || referencePrizePool;
                               await fetch(`/api/tournaments/${selected.id}`, {
                                 method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json' }, credentials: 'include',
                                 body: JSON.stringify({
                                   prizePool: pool,
                                   prizes: prizes.filter(p => p.label && p.prizeAmount > 0).map(p => ({

@@ -51,7 +51,7 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="space-y-5 max-w-5xl mx-auto"
+      className="space-y-5"
     >
       {/* Season Banner — shows that season IS active */}
       <div className={`relative rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[220px]`}>

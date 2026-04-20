@@ -97,8 +97,7 @@ export function LeagueView() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-5xl mx-auto"
-      >
+        >
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.1) 0%, transparent 50%)' }} />
@@ -245,7 +244,7 @@ export function LeagueView() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-5xl mx-auto space-y-4"
+        className="space-y-4"
       >
         {/* Hero Banner - Pre-Season */}
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
@@ -467,7 +466,7 @@ export function LeagueView() {
 
   return (
     <>
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 max-w-5xl mx-auto">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
 
       {/* ═══ HERO BANNER — Liga IDM ═══ */}
       <motion.div variants={item}>

@@ -645,3 +645,22 @@ Stage Summary:
 - Admin panel now uses full available width on desktop (up to 1600px)
 - Mobile layout unchanged (responsive padding still applies from app-shell)
 - This gives tournament manager and other admin tabs much more horizontal space
+---
+Task ID: 2
+Agent: main
+Task: Fix delete tournament not working + full width for all desktop views
+
+Work Log:
+- Confirmed all dashboard/app views already full width (max-w-5xl was already removed in previous changes)
+- Landing page views correctly retain max-width for centered content
+- Investigated delete tournament issue — found two root causes:
+  1. `credentials: 'include'` missing from ALL tournament manager fetch calls that hit protected API endpoints
+  2. `onError` handler missing from `deleteMutation`, so 401/500 errors were swallowed silently
+- Added `credentials: 'include'` to all 15 fetch calls in tournament-manager.tsx (POST, PUT, DELETE methods)
+- Added `onError` handler to deleteMutation with toast.error
+- Improved delete error handling: parse API error message properly with `.catch()` fallback
+
+Stage Summary:
+- All dashboard views: full width on desktop ✅
+- Delete tournament: now sends auth cookies + shows error toasts if fails ✅
+- All protected API calls in tournament manager now include credentials ✅

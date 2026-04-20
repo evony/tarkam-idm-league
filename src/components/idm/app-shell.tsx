@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
-  <div className="space-y-5 max-w-5xl mx-auto">
+  <div className="space-y-5">
     <Skeleton className="h-44 rounded-2xl" />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Skeleton className="h-20 rounded-xl" />

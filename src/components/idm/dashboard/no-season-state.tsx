@@ -18,8 +18,7 @@ export function NoSeasonState({ division }: NoSeasonStateProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="max-w-5xl mx-auto"
-    >
+      >
       <div className={`relative rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[420px]`}>
         <div className={dt.casinoBar} />
         {/* Background image */}
