@@ -592,3 +592,41 @@ Stage Summary:
 - Flow: Generate Teams → API returns spinRevealOrder → Dialog opens with slot-machine animation → Teams revealed one by one → Close → Continue to bracket
 - Team naming already uses Tier S player name (Tim {gamertag}) from previous session
 - No new API changes needed — backend was already prepared
+
+---
+Task ID: 18
+Agent: Main Agent
+Task: Redesign tournament engine UX flow — more user-friendly with tier balance validation gate
+
+Work Log:
+- Analyzed current tournament-manager.tsx (1525 lines) — previous session had already partially implemented UX improvements
+- Found duplicate `isTierBalanced` variable (lines 335 and 344) — removed the duplicate, kept `tierMaxCount` and `tierBalanceDeficit`
+- Fixed `tierBalanceNeeded` reference that was broken after removing duplicate — replaced with `tierMaxCount`
+- Added Current Step Guide card — prominent card at top of each phase explaining what the admin needs to do:
+  - Setup: "Tournament sudah dibuat, klik Buka Registrasi"
+  - Registration: "Daftarkan pemain, lalu lanjut ke persetujuan"
+  - Approval: 5-step guide including "Pastikan tier S=A=B" and "Generate Tim jika seimbang"
+  - Team Generation, Bracket, Main Event, Finalization — each with clear action items
+  - Each guide has a tip (💡) with helpful context
+- Enhanced step wizard (bigger icons text-lg→text-xl, wider padding px-3, wider min-w 80/96px)
+- Enhanced Tier Balance Status card in approval phase:
+  - Added deficit per tier shown inline (kurang X) when not balanced
+  - Added colored dot indicators for each tier bar
+  - Added ✓ checkmark on each tier when balanced
+  - Added green success card: "Siap generate X tim! Setiap tim = 1S + 1A + 1B"
+  - Added red warning card: "atau ubah tier pemain yang sudah ada agar seimbang"
+  - Shows "🚫 Generate Tim dinonaktifkan" badge when unbalanced
+  - Shows "🎯 X tim bisa dibuat" badge when balanced
+- Tier balance validation already in place from previous session:
+  - `isTierBalanced` flag blocks Generate Tim buttons when S≠A≠B
+  - Visual progress bars for each tier
+  - Warning messages near Generate Tim buttons
+- Lint passes clean
+- Dev server running, HTTP 200
+
+Stage Summary:
+- UX flow significantly improved with Step Guide card for each phase
+- Tier balance validation gate fully enforced: Generate Tim disabled when S≠A≠B
+- Duplicate variable bug fixed
+- Tier Balance card enhanced with deficit indicators, success/warning cards
+- Step wizard slightly larger and more readable
