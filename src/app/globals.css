@@ -2900,7 +2900,6 @@ html {
 
 /* Casino corner accent — decorative neon corner (inherits position:relative from .casino-card) */
 .casino-corner-accent {
-  opacity: 0.35;
   z-index: 2;
 }
 .casino-corner-accent::before,
@@ -2909,15 +2908,16 @@ html {
   position: absolute;
   background: var(--idm-male);
   pointer-events: none;
+  opacity: 0.6;
 }
 .casino-corner-accent::before {
   width: 20px;
-  height: 1px;
+  height: 2px;
   top: 0;
   left: 0;
 }
 .casino-corner-accent::after {
-  width: 1px;
+  width: 2px;
   height: 20px;
   top: 0;
   left: 0;

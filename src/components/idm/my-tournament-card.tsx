@@ -180,48 +180,45 @@ export function MyTournamentCard() {
 
   /* ─── RENDER: Search input bar (always visible at top) ─── */
   const searchBar = (
-    <Card className={`${dt.casinoCard} ${dt.cornerAccent}`}>
-      <div className={dt.casinoBar} />
-      <CardContent className="p-4 relative z-10">
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dt.iconBg}`}>
-            <Target className={`w-5 h-5 ${dt.neonText}`} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-gradient-fury">Cari Turnamen Kamu</h3>
-            <p className="text-[10px] text-muted-foreground">Ketik nama atau gamertag lalu tekan Cari</p>
-          </div>
-          {submittedName && (
-            <Button size="sm" variant="outline" className="h-7 text-[10px] shrink-0 gap-1" onClick={handleReset}>
-              <ArrowRight className="w-3 h-3 rotate-180" /> Kembali
-            </Button>
-          )}
+    <div className={`rounded-xl border ${division === 'male' ? 'border-idm-male/20 bg-idm-male/5' : 'border-idm-female/20 bg-idm-female/5'} p-4 relative z-10`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dt.iconBg}`}>
+          <Target className={`w-5 h-5 ${dt.neonText}`} />
         </div>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              ref={inputRef}
-              placeholder="Contoh: montiel, Afroki..."
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="pl-9 h-11 text-sm bg-white/95 dark:bg-white/10 border-2 border-idm-gold/30 focus:border-idm-gold placeholder:text-muted-foreground/60 rounded-lg"
-              maxLength={30}
-              autoComplete="off"
-            />
-          </div>
-          <Button
-            onClick={handleSearch}
-            disabled={!searchName.trim()}
-            className={`h-11 px-4 text-sm font-bold gap-1.5 shrink-0 ${division === 'male' ? 'bg-idm-male hover:bg-idm-male/90 text-white' : 'bg-idm-female hover:bg-idm-female/90 text-white'}`}
-          >
-            <Search className="w-4 h-4" />
-            Cari
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-bold text-gradient-fury">Cari Turnamen Kamu</h3>
+          <p className="text-[10px] text-muted-foreground">Ketik nama atau gamertag lalu tekan Cari</p>
+        </div>
+        {submittedName && (
+          <Button size="sm" variant="outline" className="h-7 text-[10px] shrink-0 gap-1" onClick={handleReset}>
+            <ArrowRight className="w-3 h-3 rotate-180" /> Kembali
           </Button>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            ref={inputRef}
+            placeholder="Contoh: montiel, Afroki..."
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className="pl-9 h-11 text-sm bg-background border-2 border-idm-gold/30 focus:border-idm-gold placeholder:text-muted-foreground/60 rounded-lg"
+            maxLength={30}
+            autoComplete="off"
+          />
         </div>
-      </CardContent>
-    </Card>
+        <Button
+          onClick={handleSearch}
+          disabled={!searchName.trim()}
+          className={`h-11 px-4 text-sm font-bold gap-1.5 shrink-0 ${division === 'male' ? 'bg-idm-male hover:bg-idm-male/90 text-white' : 'bg-idm-female hover:bg-idm-female/90 text-white'}`}
+        >
+          <Search className="w-4 h-4" />
+          Cari
+        </Button>
+      </div>
+    </div>
   );
 
   /* ─── RENDER: Player-specific results (when search is active) ─── */

@@ -85,3 +85,23 @@ Stage Summary:
 - Tour Saya is now full width with responsive 2-column grid layout
 - All interactive elements (search input, buttons, expand/collapse) are now clickable
 - Content is better organized with proper scrolling for long lists
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Fix Tour Saya search bar click blocking + dark color issue
+
+Work Log:
+- Identified root cause 1: `.casino-corner-accent` CSS class had `opacity: 0.35` on the parent Card element, making the ENTIRE search card 65% transparent (explaining the dark color)
+- Identified root cause 2: `.casino-card` class has `backdrop-filter: blur(16px)` which is a known browser bug that blocks clicks on elements inside
+- Fixed CSS: Removed `opacity: 0.35` from `.casino-corner-accent` parent class, moved opacity to pseudo-elements only
+- Rebuilt search bar: Replaced `<Card className={casinoCard cornerAccent}>` with a clean `<div>` using simple `bg-idm-male/5` or `bg-idm-female/5` background — no backdrop-filter, no overflow:hidden, no pseudo-element overlays
+- Changed Input background from `bg-white/95 dark:bg-white/10` to `bg-background` for consistent theming
+- Made Tour Saya full width by removing max-width constraint in app-shell for mytournament view
+- Removed unused Card/CardContent from search bar (still used elsewhere in component)
+
+Stage Summary:
+- Search bar is now fully clickable — no backdrop-filter, no pseudo-element overlays blocking interaction
+- Color matches the rest of the page — no more opacity:0.35 making it look dark
+- Tour Saya view is now full width (no max-w-[1600px] constraint)
+- Kembali button and all interactive elements are accessible
