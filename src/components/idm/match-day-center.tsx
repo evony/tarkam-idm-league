@@ -330,11 +330,11 @@ export function MatchDayCenter() {
       for (let i = 0; i < maxRounds; i++) {
         if (i < t1Rounds) {
           roundNum++;
-          events.push({ time: `R${roundNum}`, type: 'round_result', team: 'team1', description: `Ronde ${roundNum}: ${match.team1.name} memenangkan dance-off` });
+          events.push({ time: `R${roundNum}`, type: 'round_result', team: 'team1', description: `Ronde ${roundNum}: ${match.team1?.name || 'TBD'} memenangkan dance-off` });
         }
         if (i < t2Rounds) {
           roundNum++;
-          events.push({ time: `R${roundNum}`, type: 'round_result', team: 'team2', description: `Ronde ${roundNum}: ${match.team2.name} memenangkan dance-off` });
+          events.push({ time: `R${roundNum}`, type: 'round_result', team: 'team2', description: `Ronde ${roundNum}: ${match.team2?.name || 'TBD'} memenangkan dance-off` });
         }
       }
 
@@ -441,22 +441,22 @@ export function MatchDayCenter() {
   // No fake fallback data — if no matches have been played, stats show 0.
   // All data comes from organizer score input, not from game integration.
   const team1Stats = selectedMatch ? (() => {
-    const team1Name = selectedMatch.team1.name;
+    const team1Name = selectedMatch.team1?.name || 'TBD';
     const tMatches = data?.activeTournament?.matches || [];
     let wins = 0, losses = 0, draws = 0, mvpCount = 0, totalRoundsWon = 0, totalRoundsLost = 0;
     tMatches.forEach(m => {
-      if (m.team1.name === team1Name) {
+      if ((m.team1?.name || 'TBD') === team1Name) {
         if (m.score1 !== null && m.score2 !== null) {
           if (m.score1 > m.score2) wins++; else if (m.score1 < m.score2) losses++; else draws++;
           totalRoundsWon += m.score1; totalRoundsLost += m.score2;
         }
-        if (m.mvpPlayer && m.team1.name === team1Name) mvpCount++;
-      } else if (m.team2.name === team1Name) {
+        if (m.mvpPlayer && (m.team1?.name || 'TBD') === team1Name) mvpCount++;
+      } else if ((m.team2?.name || 'TBD') === team1Name) {
         if (m.score1 !== null && m.score2 !== null) {
           if (m.score2 > m.score1) wins++; else if (m.score2 < m.score1) losses++; else draws++;
           totalRoundsWon += m.score2; totalRoundsLost += m.score1;
         }
-        if (m.mvpPlayer && m.team2.name === team1Name) mvpCount++;
+        if (m.mvpPlayer && (m.team2?.name || 'TBD') === team1Name) mvpCount++;
       }
     });
     return {
@@ -473,22 +473,22 @@ export function MatchDayCenter() {
     };
   })() : null;
   const team2Stats = selectedMatch ? (() => {
-    const team2Name = selectedMatch.team2.name;
+    const team2Name = selectedMatch.team2?.name || 'TBD';
     const tMatches = data?.activeTournament?.matches || [];
     let wins = 0, losses = 0, draws = 0, mvpCount = 0, totalRoundsWon = 0, totalRoundsLost = 0;
     tMatches.forEach(m => {
-      if (m.team1.name === team2Name) {
+      if ((m.team1?.name || 'TBD') === team2Name) {
         if (m.score1 !== null && m.score2 !== null) {
           if (m.score1 > m.score2) wins++; else if (m.score1 < m.score2) losses++; else draws++;
           totalRoundsWon += m.score1; totalRoundsLost += m.score2;
         }
-        if (m.mvpPlayer && m.team1.name === team2Name) mvpCount++;
-      } else if (m.team2.name === team2Name) {
+        if (m.mvpPlayer && (m.team1?.name || 'TBD') === team2Name) mvpCount++;
+      } else if ((m.team2?.name || 'TBD') === team2Name) {
         if (m.score1 !== null && m.score2 !== null) {
           if (m.score2 > m.score1) wins++; else if (m.score2 < m.score1) losses++; else draws++;
           totalRoundsWon += m.score2; totalRoundsLost += m.score1;
         }
-        if (m.mvpPlayer && m.team2.name === team2Name) mvpCount++;
+        if (m.mvpPlayer && (m.team2?.name || 'TBD') === team2Name) mvpCount++;
       }
     });
     return {
@@ -557,7 +557,7 @@ export function MatchDayCenter() {
                         } ${isLive ? 'border-red-500/30' : ''}`}
                       >
                         {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 live-dot" />}
-                        {m.team1.name} vs {m.team2.name}
+                        {m.team1?.name || 'TBD'} vs {(m.team2?.name || 'TBD')}
                       </button>
                     );
                   })}
@@ -577,10 +577,10 @@ export function MatchDayCenter() {
                           : `${dt.iconBg} ${dt.text}`
                       }`}
                     >
-                      {selectedMatch.team1.name.slice(0, 2).toUpperCase()}
+                      {(selectedMatch.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
                     </motion.div>
                     <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? dt.neonText : ''}`}>
-                      {selectedMatch.team1.name}
+                      {selectedMatch.team1?.name || 'TBD'}
                     </p>
                     {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! && (
                       <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0 mt-1">
@@ -656,10 +656,10 @@ export function MatchDayCenter() {
                           : `${dt.iconBg} ${dt.text}`
                       }`}
                     >
-                      {selectedMatch.team2.name.slice(0, 2).toUpperCase()}
+                      {(selectedMatch.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
                     </motion.div>
                     <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? dt.neonText : ''}`}>
-                      {selectedMatch.team2.name}
+                      {selectedMatch.team2?.name || 'TBD'}
                     </p>
                     {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! && (
                       <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0 mt-1">
@@ -737,8 +737,8 @@ export function MatchDayCenter() {
                   team2Votes={predState.team2Votes}
                   userVote={predState.userVote}
                   onVote={(team) => handleVote(selectedMatch.id, team)}
-                  team1Name={selectedMatch.team1.name}
-                  team2Name={selectedMatch.team2.name}
+                  team1Name={selectedMatch.team1?.name || 'TBD'}
+                  team2Name={selectedMatch.team2?.name || 'TBD'}
                 />
               </motion.div>
             )}
@@ -757,8 +757,8 @@ export function MatchDayCenter() {
                       <div key={m.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${dt.bgSubtle} ${dt.borderSubtle} border`}>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[11px] font-semibold truncate">{m.team1.name}</span>
-                            <span className="text-[11px] font-semibold truncate">{m.team2.name}</span>
+                            <span className="text-[11px] font-semibold truncate">{m.team1?.name || 'TBD'}</span>
+                            <span className="text-[11px] font-semibold truncate">{(m.team2?.name || 'TBD')}</span>
                           </div>
                           <div className={`h-1.5 rounded-full ${dt.bg} overflow-hidden flex`}>
                             <div
@@ -785,7 +785,7 @@ export function MatchDayCenter() {
                                 : `${dt.bgSubtle} ${dt.text} ${dt.hoverBg}`
                             }`}
                           >
-                            {m.team1.name.slice(0, 2)}
+                            {(m.team1?.name || 'TBD').slice(0, 2)}
                           </button>
                           <button
                             onClick={() => handleVote(m.id, 'team2')}
@@ -795,7 +795,7 @@ export function MatchDayCenter() {
                                 : `${dt.bgSubtle} ${dt.text} ${dt.hoverBg}`
                             }`}
                           >
-                            {m.team2.name.slice(0, 2)}
+                            {(m.team2?.name || 'TBD').slice(0, 2)}
                           </button>
                         </div>
                       </div>
@@ -842,9 +842,9 @@ export function MatchDayCenter() {
                             ? `bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white`
                             : `${dt.iconBg} ${dt.text}`
                         }`}>
-                          {selectedMatch.team1.name.slice(0, 2).toUpperCase()}
+                          {(selectedMatch.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
                         </div>
-                        <p className="text-xs font-bold mt-1.5">{selectedMatch.team1.name}</p>
+                        <p className="text-xs font-bold mt-1.5">{selectedMatch.team1?.name || 'TBD'}</p>
                       </div>
                       <div className={`w-10 h-10 rounded-full ${dt.bgSubtle} ${dt.border} border flex items-center justify-center shrink-0`}>
                         <Users className={`w-4 h-4 ${dt.neonText}`} />
@@ -855,9 +855,9 @@ export function MatchDayCenter() {
                             ? `bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white`
                             : `${dt.iconBg} ${dt.text}`
                         }`}>
-                          {selectedMatch.team2.name.slice(0, 2).toUpperCase()}
+                          {(selectedMatch.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
                         </div>
-                        <p className="text-xs font-bold mt-1.5">{selectedMatch.team2.name}</p>
+                        <p className="text-xs font-bold mt-1.5">{selectedMatch.team2?.name || 'TBD'}</p>
                       </div>
                     </div>
 
@@ -891,8 +891,8 @@ export function MatchDayCenter() {
                         return (
                           <>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-semibold">{selectedMatch.team1.name}</span>
-                              <span className="text-xs font-semibold">{selectedMatch.team2.name}</span>
+                              <span className="text-xs font-semibold">{selectedMatch.team1?.name || 'TBD'}</span>
+                              <span className="text-xs font-semibold">{selectedMatch.team2?.name || 'TBD'}</span>
                             </div>
                             <div className={`h-3 rounded-full ${dt.bg} overflow-hidden flex`}>
                               <motion.div
@@ -976,7 +976,7 @@ export function MatchDayCenter() {
                     if (s1 > s2) {
                       moments.push({
                         time: 'Final',
-                        title: `${selectedMatch.team1.name} Dominasi`,
+                        title: `${selectedMatch.team1?.name || 'TBD'} Dominasi`,
                         desc: `Win ${s1}-${s2} dengan selisih ronde +${s1 - s2}`,
                         icon: Star,
                         color: 'text-emerald-400',
@@ -984,7 +984,7 @@ export function MatchDayCenter() {
                     } else if (s2 > s1) {
                       moments.push({
                         time: 'Final',
-                        title: `${selectedMatch.team2.name} Dominasi`,
+                        title: `${selectedMatch.team2?.name || 'TBD'} Dominasi`,
                         desc: `Win ${s2}-${s1} dengan selisih ronde +${s2 - s1}`,
                         icon: Star,
                         color: 'text-emerald-400',
@@ -1110,7 +1110,7 @@ export function MatchDayCenter() {
                           <div className={`flex items-center px-3 py-1.5 border-b ${dt.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
                             <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
                               {winner1 && <span className="mr-1">▸</span>}
-                              {m.team1.name}
+                              {m.team1?.name || 'TBD'}
                             </span>
                             <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-foreground'}`}>
                               {hasScore ? m.score1 : '-'}
@@ -1119,7 +1119,7 @@ export function MatchDayCenter() {
                           <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
                             <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
                               {winner2 && <span className="mr-1">▸</span>}
-                              {m.team2.name}
+                              {(m.team2?.name || 'TBD')}
                             </span>
                             <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-foreground'}`}>
                               {hasScore ? m.score2 : '-'}

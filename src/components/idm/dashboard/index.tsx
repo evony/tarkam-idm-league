@@ -296,7 +296,7 @@ export function Dashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold truncate">
-                {t.matches.filter(m => m.status === 'live' || m.status === 'main_event').map(m => `${m.team1.name} vs ${m.team2.name}`).join(' • ')}
+                {t.matches.filter(m => m.status === 'live' || m.status === 'main_event').map(m => `${(m.team1?.name || 'TBD')} vs ${(m.team2?.name || 'TBD')}`).join(' • ')}
               </p>
               <p className="text-[10px] text-muted-foreground">Week {t.weekNumber} — Match sedang berlangsung</p>
             </div>

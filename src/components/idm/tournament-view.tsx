@@ -24,7 +24,7 @@ interface Tournament {
     teamPlayers: { player: { id: string; name: string; gamertag: string; tier: string; points: number } }[]
   }[];
   matches: { id: string; score1: number | null; score2: number | null; status: string; round: number;
-    team1: { id: string; name: string }; team2: { id: string; name: string };
+    team1: { id: string; name: string } | null; team2: { id: string; name: string } | null;
     mvpPlayer: { id: string; name: string; gamertag: string } | null
   }[];
   participations: { id: string; status: string; pointsEarned: number; isMvp: boolean; isWinner: boolean;
@@ -393,7 +393,7 @@ export function TournamentView() {
                               {/* Team 1 */}
                               <div className={`flex items-center gap-1.5 flex-1 min-w-0 ${winner1 ? '' : winner2 ? 'opacity-50' : ''}`}>
                                 {winner1 && <span className={`${dt.neonText} text-xs`}>▸</span>}
-                                <span className={`text-xs font-semibold truncate ${winner1 ? dt.neonText : 'text-foreground/90'}`}>{m.team1.name}</span>
+                                <span className={`text-xs font-semibold truncate ${winner1 ? dt.neonText : 'text-foreground/90'}`}>{(m.team1?.name || 'TBD')}</span>
                               </div>
 
                               {/* Score / VS */}
@@ -413,7 +413,7 @@ export function TournamentView() {
 
                               {/* Team 2 */}
                               <div className={`flex items-center gap-1.5 flex-1 min-w-0 justify-end ${winner2 ? '' : winner1 ? 'opacity-50' : ''}`}>
-                                <span className={`text-xs font-semibold truncate ${winner2 ? dt.neonText : 'text-foreground/90'}`}>{m.team2.name}</span>
+                                <span className={`text-xs font-semibold truncate ${winner2 ? dt.neonText : 'text-foreground/90'}`}>{(m.team2?.name || 'TBD')}</span>
                                 {winner2 && <span className={`${dt.neonText} text-xs`}>◂</span>}
                               </div>
 

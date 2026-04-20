@@ -34,8 +34,8 @@ export interface TournamentMatch {
   score2: number | null;
   status: string;
   round?: number;
-  team1: { id: string; name: string };
-  team2: { id: string; name: string };
+  team1: { id: string; name: string } | null;
+  team2: { id: string; name: string } | null;
   mvpPlayer: { id: string; name: string; gamertag: string } | null;
 }
 

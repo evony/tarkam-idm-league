@@ -12,8 +12,8 @@ interface Match {
   score1: number | null;
   score2: number | null;
   status: string;
-  team1: { id: string; name: string };
-  team2: { id: string; name: string };
+  team1: { id: string; name: string } | null;
+  team2: { id: string; name: string } | null;
   mvpPlayer: { id: string; name: string; gamertag: string } | null;
   round?: number;
   bracket?: string;
@@ -61,10 +61,10 @@ function BracketMatchCard({ match }: { match: Match }) {
           winner1 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
-          {match.team1.name.slice(0, 2).toUpperCase()}
+          {(match.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
         </div>
         <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-          {match.team1.name || 'TBD'}
+          {(match.team1?.name || 'TBD')}
         </span>
         <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
           {hasScore ? match.score1 : '-'}
@@ -76,10 +76,10 @@ function BracketMatchCard({ match }: { match: Match }) {
           winner2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
-          {match.team2.name.slice(0, 2).toUpperCase()}
+          {(match.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
         </div>
         <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-          {match.team2.name || 'TBD'}
+          {(match.team2?.name || 'TBD')}
         </span>
         <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
           {hasScore ? match.score2 : '-'}
@@ -442,11 +442,11 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
       const teams = new Map<string, { name: string; wins: number; draws: number; losses: number; points: number; gamesWon: number; gamesLost: number }>();
       gMatches.forEach(m => {
         const hasScore = m.score1 !== null && m.score2 !== null;
-        if (!teams.has(m.team1.name)) teams.set(m.team1.name, { name: m.team1.name, wins: 0, draws: 0, losses: 0, points: 0, gamesWon: 0, gamesLost: 0 });
-        if (!teams.has(m.team2.name)) teams.set(m.team2.name, { name: m.team2.name, wins: 0, draws: 0, losses: 0, points: 0, gamesWon: 0, gamesLost: 0 });
+        if (!teams.has((m.team1?.name || 'TBD'))) teams.set((m.team1?.name || 'TBD'), { name: (m.team1?.name || 'TBD'), wins: 0, draws: 0, losses: 0, points: 0, gamesWon: 0, gamesLost: 0 });
+        if (!teams.has((m.team2?.name || 'TBD'))) teams.set((m.team2?.name || 'TBD'), { name: (m.team2?.name || 'TBD'), wins: 0, draws: 0, losses: 0, points: 0, gamesWon: 0, gamesLost: 0 });
         if (hasScore) {
-          const t1 = teams.get(m.team1.name)!;
-          const t2 = teams.get(m.team2.name)!;
+          const t1 = teams.get((m.team1?.name || 'TBD'))!;
+          const t2 = teams.get((m.team2?.name || 'TBD'))!;
           t1.gamesWon += m.score1!; t1.gamesLost += m.score2!;
           t2.gamesWon += m.score2!; t2.gamesLost += m.score1!;
           if (m.score1! > m.score2!) { t1.wins++; t1.points += 3; t2.losses++; }
@@ -541,7 +541,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                 >
                   <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''}`}>
                     <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-                      {m.team1.name || 'TBD'}
+                      {(m.team1?.name || 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                       {hasScore ? m.score1 : '-'}
@@ -549,7 +549,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                   </div>
                   <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''}`}>
                     <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-                      {m.team2.name || 'TBD'}
+                      {(m.team2?.name || 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                       {hasScore ? m.score2 : '-'}
@@ -592,7 +592,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                   </div>
                   <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''}`}>
                     <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-                      {m.team1.name || 'TBD'}
+                      {(m.team1?.name || 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
                       {hasScore ? m.score1 : '-'}
@@ -600,7 +600,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                   </div>
                   <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''}`}>
                     <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-                      {m.team2.name || 'TBD'}
+                      {(m.team2?.name || 'TBD')}
                     </span>
                     <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
                       {hasScore ? m.score2 : '-'}
