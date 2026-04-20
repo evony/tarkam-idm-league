@@ -439,7 +439,7 @@ export function AdminPanel() {
   // paymentForm is derived from cmsSettings (no useEffect needed)
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 max-w-5xl mx-auto">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 w-full">
       <div className="flex items-center gap-2 mb-2">
         <Shield className={`w-5 h-5 ${dt.neonText}`} />
         <h2 className="text-lg font-bold text-gradient-fury">Panel Admin</h2>

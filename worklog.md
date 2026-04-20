@@ -630,3 +630,18 @@ Stage Summary:
 - Duplicate variable bug fixed
 - Tier Balance card enhanced with deficit indicators, success/warning cards
 - Step wizard slightly larger and more readable
+---
+Task ID: 1
+Agent: main
+Task: Implement full width layout for desktop admin panel
+
+Work Log:
+- Identified layout constraint: admin-panel.tsx had `max-w-5xl mx-auto` (1024px) limiting width
+- App-shell main content area already allows up to `max-w-[1600px]`
+- Changed admin-panel.tsx wrapper from `max-w-5xl mx-auto` to `w-full`
+- Lint check passes clean
+
+Stage Summary:
+- Admin panel now uses full available width on desktop (up to 1600px)
+- Mobile layout unchanged (responsive padding still applies from app-shell)
+- This gives tournament manager and other admin tabs much more horizontal space
