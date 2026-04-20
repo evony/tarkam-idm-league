@@ -12,21 +12,42 @@ interface VideoModalProps {
 }
 
 /**
- * Extracts a YouTube video ID from various URL formats:
+ * Extracts YouTube video ID and start time from various URL formats:
  *  - https://www.youtube.com/watch?v=XXX
  *  - https://youtu.be/XXX
  *  - https://www.youtube.com/embed/XXX
  *  - https://youtube.com/watch?v=XXX&list=...
+ *  - https://youtu.be/XXX?t=123  (timestamp)
+ *  - https://www.youtube.com/watch?v=XXX&t=123s  (copy at current time)
  */
-function getYouTubeId(url: string): string | null {
+function parseYouTubeUrl(url: string): { id: string; startTime: number } | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
   ];
+  let id: string | null = null;
   for (const pattern of patterns) {
     const match = url.match(pattern);
-    if (match) return match[1];
+    if (match) { id = match[1]; break; }
   }
-  return null;
+  if (!id) return null;
+
+  // Extract start time from ?t=123s or ?t=123 or &t=123s
+  let startTime = 0;
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const t = urlObj.searchParams.get('t');
+    if (t) {
+      // Remove trailing 's' if present (e.g. "123s" → "123")
+      const seconds = parseInt(t.replace(/s$/, ''), 10);
+      if (!isNaN(seconds)) startTime = seconds;
+    }
+  } catch {
+    // URL parse failed, try regex fallback
+    const tMatch = url.match(/[?&]t=(\d+)s?/);
+    if (tMatch) startTime = parseInt(tMatch[1], 10);
+  }
+
+  return { id, startTime };
 }
 
 /* ─── Animation variants ─── */
@@ -54,9 +75,10 @@ const contentVariants = {
 
 export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
   /* ─── Resolve video source ─── */
-  const youtubeId = getYouTubeId(videoUrl);
+  const ytInfo = parseYouTubeUrl(videoUrl);
+  const youtubeId = ytInfo?.id ?? null;
   const isYouTube = youtubeId !== null;
-  const youtubeWatchUrl = youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : null;
+  const youtubeWatchUrl = youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}${ytInfo?.startTime ? `&t=${ytInfo.startTime}s` : ''}` : null;
 
   /* ─── Track iframe load state for fallback ─── */
   const [iframeError, setIframeError] = useState(false);
@@ -144,7 +166,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                   <>
                     {/* YouTube iframe — may be blocked in sandbox */}
                     <iframe
-                      src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                      src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1${ytInfo?.startTime ? `&start=${ytInfo.startTime}` : ''}`}
                       title={title ?? 'YouTube video'}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
