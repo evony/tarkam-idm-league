@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { verifyAdmin } from '@/lib/auth';
 
 export async function POST(
   request: Request,
@@ -65,4 +66,55 @@ export async function POST(
   }
 
   return NextResponse.json(results, { status: 201 });
+}
+
+// DELETE — unregister players from tournament (admin only)
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const admin = await verifyAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id } = await params;
+  const body = await request.json();
+  const { playerId, playerIds } = body;
+
+  const idsToRemove: string[] = playerIds || (playerId ? [playerId] : []);
+  if (idsToRemove.length === 0) {
+    return NextResponse.json({ error: 'playerId or playerIds required' }, { status: 400 });
+  }
+
+  const tournament = await db.tournament.findUnique({ where: { id } });
+  if (!tournament) {
+    return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
+  }
+
+  // Only allow unregister during registration/setup phase
+  if (tournament.status !== 'registration' && tournament.status !== 'setup') {
+    return NextResponse.json({ error: 'Cannot unregister — tournament already in progress' }, { status: 400 });
+  }
+
+  const results = { removed: 0, skipped: 0 };
+
+  for (const pid of idsToRemove) {
+    const existing = await db.participation.findUnique({
+      where: { playerId_tournamentId: { playerId: pid, tournamentId: id } },
+    });
+    if (!existing) {
+      results.skipped++;
+      continue;
+    }
+    // Only allow removing 'registered' status, not approved/assigned
+    if (existing.status !== 'registered') {
+      results.skipped++;
+      continue;
+    }
+    await db.participation.delete({
+      where: { playerId_tournamentId: { playerId: pid, tournamentId: id } },
+    });
+    results.removed++;
+  }
+
+  return NextResponse.json(results);
 }

@@ -263,6 +263,19 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onError: (e: Error) => { toast.error(e.message); },
   });
 
+  const unregisterMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[] } }) => {
+      const r = await fetch(`/api/tournaments/${id}/register`, {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membatalkan pendaftaran'); }
+      return r.json();
+    },
+    onSuccess: (res) => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success(`${res.removed} player dibatalkan pendaftarannya.`); },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
+
   const approveMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const r = await fetch(`/api/tournaments/${id}/approve`, {
@@ -843,62 +856,113 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                 {selected.status === 'registration' && (
                   <>
-                    <div className="flex items-center gap-3">
-                      <Button size="default" variant="outline" className="text-xs h-9 px-4"
-                        disabled={unregistered.length === 0 || registerMutation.isPending}
-                        onClick={() => setConfirmDialog({
-                          open: true, title: 'Daftarkan Semua Player?',
-                          description: `${unregistered.length} player akan didaftarkan ke tournament ini.`,
-                          onConfirm: () => registerMutation.mutate({
-                            id: selected.id,
-                            data: { playerIds: unregistered.map((p: { id: string }) => p.id) }
-                          })
-                        })}>
-                        {registerMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <UserPlus className="w-4 h-4 mr-1.5" />}
-                        Daftarkan Semua ({unregistered.length})
-                      </Button>
-                      <span className="text-xs text-muted-foreground">
-                        Terdaftar: <strong>{registeredIds.size}</strong> / Tersedia: <strong>{unregistered.length}</strong>
-                      </span>
-                    </div>
-
-                    <Input placeholder="🔍 Cari player..." value={searchPlayer} onChange={e => setSearchPlayer(e.target.value)} className="h-9 text-xs" />
-
-                    <div className="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar">
-                      {filteredUnregistered.slice(0, 20).map((p: { id: string; gamertag: string; name: string; tier: string; points: number }) => (
-                        <div key={p.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50">
-                          <div className="flex items-center gap-2">
-                            <TierBadge tier={p.tier} />
-                            <span className="text-xs font-medium">{p.gamertag}</span>
-                            <span className="text-[10px] text-muted-foreground">{p.points}pts</span>
-                          </div>
-                          <Button size="sm" variant="ghost" className={`h-7 text-xs ${dt.neonText}`}
-                            onClick={() => registerMutation.mutate({ id: selected.id, data: { playerId: p.id } })}>
-                            <UserPlus className="w-3.5 h-3.5 mr-1" /> Daftar
-                          </Button>
+                    {/* ── SECTION 1: TERDAFTAR (Prominent) ── */}
+                    <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-blue-400" />
+                          <p className="text-sm font-semibold text-blue-400">Peserta Terdaftar</p>
+                          <Badge className="text-[10px] border-0 bg-blue-500/20 text-blue-400">{registeredIds.size}</Badge>
                         </div>
-                      ))}
-                    </div>
+                        {registeredIds.size > 0 && (
+                          <Button size="sm" variant="ghost" className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={() => setConfirmDialog({
+                              open: true, title: 'Batalkan Semua Pendaftaran?',
+                              description: `${registeredIds.size} player akan dibatalkan pendaftarannya dari tournament ini.`,
+                              onConfirm: () => unregisterMutation.mutate({
+                                id: selected.id,
+                                data: { playerIds: selected.participations.map((p: { playerId: string }) => p.playerId) }
+                              })
+                            })}>
+                            <X className="w-3 h-3 mr-1" /> Batalkan Semua
+                          </Button>
+                        )}
+                      </div>
 
-                    {selected.participations?.length > 0 && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground mb-1">Terdaftar ({selected.participations.length}):</p>
-                        <div className="flex flex-wrap gap-1">
-                          {selected.participations.map((p: { id: string; playerId: string; player: { gamertag: string; tier: string }; status: string }) => (
-                            <Badge key={p.id} className={`text-[9px] border-0 ${p.status === 'registered' ? 'bg-blue-500/10 text-blue-500' : 'bg-green-500/10 text-green-500'}`}>
-                              <TierBadge tier={p.player?.tier || 'B'} /> {p.player?.gamertag}
-                            </Badge>
+                      {selected.participations?.length > 0 ? (
+                        <div className="space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
+                          {selected.participations.map((p: { id: string; playerId: string; player: { gamertag: string; tier: string; points: number }; status: string }) => (
+                            <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-blue-500/15 flex items-center justify-center text-[10px] font-bold text-blue-400">
+                                  {p.player?.gamertag?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium">{p.player?.gamertag}</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <TierBadge tier={p.player?.tier || 'B'} />
+                                    <span className="text-[10px] text-muted-foreground">{p.player?.points || 0}pts</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                onClick={() => unregisterMutation.mutate({ id: selected.id, data: { playerId: p.playerId } })}
+                                title="Batalkan pendaftaran">
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="py-6 text-center">
+                          <p className="text-xs text-muted-foreground">Belum ada peserta terdaftar</p>
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">Tambahkan pemain dari pool di bawah</p>
+                        </div>
+                      )}
 
-                    {selected.participations?.length > 0 && (
-                      <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4"
-                        onClick={() => updateMutation.mutate({ id: selected.id, data: { status: 'approval' } })}>
-                        <ArrowRight className="w-4 h-4 mr-1.5" /> Lanjut ke Persetujuan ({selected.participations.length} pemain)
-                      </Button>
-                    )}
+                      {/* Next step button — inline with registered section */}
+                      {selected.participations?.length > 0 && (
+                        <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4 w-full"
+                          onClick={() => updateMutation.mutate({ id: selected.id, data: { status: 'approval' } })}>
+                          <ArrowRight className="w-4 h-4 mr-1.5" /> Lanjut ke Persetujuan ({selected.participations.length} pemain)
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* ── SECTION 2: POOL PEMAIN TERSEDIA (Secondary) ── */}
+                    <div className="rounded-xl border border-border/30 bg-muted/10 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <UserPlus className="w-4 h-4 text-muted-foreground" />
+                          <p className="text-sm font-medium text-muted-foreground">Pool Pemain Tersedia</p>
+                          <Badge variant="outline" className="text-[10px]">{unregistered.length}</Badge>
+                        </div>
+                        <Button size="sm" variant="outline" className="h-7 text-[10px]"
+                          disabled={unregistered.length === 0 || registerMutation.isPending}
+                          onClick={() => setConfirmDialog({
+                            open: true, title: 'Daftarkan Semua Player?',
+                            description: `${unregistered.length} player akan didaftarkan ke tournament ini.`,
+                            onConfirm: () => registerMutation.mutate({
+                              id: selected.id,
+                              data: { playerIds: unregistered.map((p: { id: string }) => p.id) }
+                            })
+                          })}>
+                          {registerMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <UserPlus className="w-3 h-3 mr-1" />}
+                          Daftarkan Semua
+                        </Button>
+                      </div>
+
+                      <Input placeholder="🔍 Cari player..." value={searchPlayer} onChange={e => setSearchPlayer(e.target.value)} className="h-9 text-xs" />
+
+                      <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+                        {filteredUnregistered.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-4">{searchPlayer ? 'Tidak ditemukan' : 'Semua pemain sudah terdaftar'}</p>
+                        )}
+                        {filteredUnregistered.slice(0, 20).map((p: { id: string; gamertag: string; name: string; tier: string; points: number }) => (
+                          <div key={p.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/40 transition-colors">
+                            <div className="flex items-center gap-2">
+                              <TierBadge tier={p.tier} />
+                              <span className="text-xs font-medium">{p.gamertag}</span>
+                              <span className="text-[10px] text-muted-foreground">{p.points}pts</span>
+                            </div>
+                            <Button size="sm" variant="ghost" className={`h-7 text-xs ${dt.neonText}`}
+                              onClick={() => registerMutation.mutate({ id: selected.id, data: { playerId: p.id } })}>
+                              <Plus className="w-3.5 h-3.5 mr-1" /> Daftar
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
