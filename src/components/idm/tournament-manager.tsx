@@ -442,7 +442,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   // Derived data
   const currentStepIdx = STEPS.findIndex(s => s.key === selected?.status);
   const registeredIds = useMemo(() => new Set((selected?.participations || []).map((p: { playerId: string }) => p.playerId)), [selected?.participations]);
-  const unregistered = useMemo(() => (players || []).filter((p: { id: string }) => !registeredIds.has(p.id)), [players, registeredIds]);
+  const unregistered = useMemo(() => (players || []).filter((p: { id: string; registrationStatus?: string }) => !registeredIds.has(p.id) && p.registrationStatus === 'approved'), [players, registeredIds]);
   const filteredUnregistered = useMemo(() =>
     unregistered.filter((p: { gamertag: string; name: string }) =>
       p.gamertag.toLowerCase().includes(searchPlayer.toLowerCase()) || p.name.toLowerCase().includes(searchPlayer.toLowerCase())

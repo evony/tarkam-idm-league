@@ -6,6 +6,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { id } = await params;
   const body = await request.json();
   const { playerId, playerIds } = body;
@@ -36,9 +39,11 @@ export async function POST(
       continue;
     }
 
-    // IDM League is a unified league — allow any player regardless of division
-    // (tournament.division is 'liga', player.division is 'male'/'female' — both are valid)
-    // Skip division check since the league is unified
+    // Only allow registering players that have been approved by admin
+    if (player.registrationStatus !== 'approved') {
+      results.errors.push(`Player ${player.gamertag || pid} is not approved (status: ${player.registrationStatus})`);
+      continue;
+    }
 
     // Check if already registered
     const existing = await db.participation.findUnique({

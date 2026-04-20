@@ -696,166 +696,6 @@ export function AdminPanel() {
               </Card>
             )}
 
-            {/* ── Tournament Registration — Approve langsung dari sini ── */}
-            {activeTournaments?.length > 0 && (
-              <div className="space-y-3">
-                {activeTournaments.map((t: {
-                  id: string;
-                  name: string;
-                  weekNumber: number;
-                  status: string;
-                  participations?: Array<{
-                    id: string;
-                    playerId: string;
-                    status: string;
-                    tierOverride?: string | null;
-                    player: { id: string; gamertag: string; name: string; tier: string; points: number; division: string };
-                  }>;
-                }) => {
-                  const isApproval = t.status === 'approval';
-                  const pending = (t.participations || []).filter((p) => p.status === 'registered');
-                  const approved = (t.participations || []).filter((p) => ['approved', 'assigned'].includes(p.status));
-                  return (
-                    <Card key={t.id} className={`border ${isApproval ? 'border-yellow-500/25 bg-yellow-500/5' : 'border-green-500/25 bg-green-500/5'}`}>
-                      <CardContent className="p-4 space-y-3">
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Music className={`w-4 h-4 ${isApproval ? 'text-yellow-500' : 'text-green-500'}`} />
-                            <p className="text-sm font-semibold">{t.name}</p>
-                            <Badge className={`text-[9px] border-0 ${isApproval ? 'bg-yellow-500/15 text-yellow-500' : 'bg-green-500/15 text-green-500'}`}>
-                              {isApproval ? '⏳ Persetujuan' : '📋 Registrasi'}
-                            </Badge>
-                            <Badge variant="outline" className="text-[9px]">Week {t.weekNumber}</Badge>
-                          </div>
-                          {/* Quick action */}
-                          {isApproval && approved.length > 0 && (
-                            <Button size="sm" className="h-7 text-[10px] bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-3"
-                              onClick={() => setConfirmDialog({
-                                open: true,
-                                title: 'Lanjut ke Generate Tim?',
-                                description: `${approved.length} pemain sudah disetujui. Lanjutkan ke fase pembuatan tim?`,
-                                onConfirm: () => advanceTournament.mutate({ tournamentId: t.id, status: 'team_generation' })
-                              })}>
-                              <ArrowRight className="w-3 h-3 mr-1" /> Generate Tim
-                            </Button>
-                          )}
-                          {!isApproval && (t.participations || []).length > 0 && (
-                            <Button size="sm" className="h-7 text-[10px] bg-yellow-600 hover:bg-yellow-700 text-white px-3"
-                              onClick={() => setConfirmDialog({
-                                open: true,
-                                title: 'Lanjut ke Persetujuan?',
-                                description: `${(t.participations || []).length} pemain terdaftar. Lanjutkan ke fase persetujuan?`,
-                                onConfirm: () => advanceTournament.mutate({ tournamentId: t.id, status: 'approval' })
-                              })}>
-                              <ArrowRight className="w-3 h-3 mr-1" /> Lanjut Persetujuan
-                            </Button>
-                          )}
-                        </div>
-
-                        {/* Stats row */}
-                        <div className="flex items-center gap-3 text-[10px]">
-                          <span className="text-green-500 font-medium">✅ {approved.length} disetujui</span>
-                          {pending.length > 0 && (
-                            <span className="text-yellow-500 font-medium">⏳ {pending.length} menunggu</span>
-                          )}
-                          <span className="text-muted-foreground">👥 {(t.participations || []).length} total</span>
-                        </div>
-
-                        {/* Approved players — compact badges */}
-                        {approved.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {approved.map((p) => {
-                              const tier = p.tierOverride || p.player?.tier || 'B';
-                              const tierColor = tier === 'S' ? 'bg-red-500/15 text-red-400' : tier === 'A' ? 'bg-yellow-500/15 text-yellow-400' : 'bg-blue-500/15 text-blue-400';
-                              return (
-                                <div key={p.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${tierColor}`}>
-                                  {p.player?.gamertag}
-                                  <Badge className="text-[8px] border-0 px-1 py-0 bg-background/20 text-current">{tier}</Badge>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Pending approval — only shown in approval phase */}
-                        {isApproval && pending.length > 0 && (
-                          <div className="space-y-1.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
-                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Menunggu Persetujuan</p>
-                            {pending.map((p) => {
-                              const currentTier = p.player?.tier || 'B';
-                              return (
-                                <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-yellow-500/10">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-6 h-6 rounded-full bg-yellow-500/15 flex items-center justify-center text-[10px] font-bold text-yellow-500">
-                                      {p.player?.gamertag?.charAt(0)?.toUpperCase() || '?'}
-                                    </div>
-                                    <div className="min-w-0">
-                                      <span className="text-xs font-medium truncate block">{p.player?.gamertag}</span>
-                                      <span className="text-[10px] text-muted-foreground">{p.player?.name} · {p.player?.points || 0}pts</span>
-                                    </div>
-                                    <TierBadge tier={currentTier} />
-                                  </div>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <Select onValueChange={(tier) => setConfirmDialog({
-                                      open: true,
-                                      title: 'Setujui Pemain?',
-                                      description: `Setujui "${p.player?.gamertag}" sebagai Tier ${tier} di ${t.name}.`,
-                                      onConfirm: () => approveTournamentParticipation.mutate({ tournamentId: t.id, playerId: p.playerId, tier })
-                                    })}>
-                                      <SelectTrigger className="w-20 h-7 text-[10px]"><SelectValue placeholder="Setujui" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="S">Sebagai S</SelectItem>
-                                        <SelectItem value="A">Sebagai A</SelectItem>
-                                        <SelectItem value="B">Sebagai B</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                      onClick={() => setConfirmDialog({
-                                        open: true,
-                                        title: 'Batalkan Pendaftaran?',
-                                        description: `Batalkan pendaftaran "${p.player?.gamertag}" dari ${t.name}?`,
-                                        onConfirm: () => unregisterFromTournament.mutate({ tournamentId: t.id, playerId: p.playerId })
-                                      })}>
-                                      <X className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Registration phase — show registered players with unregister */}
-                        {!isApproval && (t.participations || []).length > 0 && (
-                          <div className="space-y-1 max-h-36 overflow-y-auto custom-scrollbar pr-1">
-                            {(t.participations || []).map((p) => (
-                              <div key={p.id} className="flex items-center justify-between p-1.5 rounded-lg bg-background/30">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <TierBadge tier={p.player?.tier || 'B'} />
-                                  <span className="text-xs font-medium truncate">{p.player?.gamertag}</span>
-                                  <span className="text-[10px] text-muted-foreground">{p.player?.points || 0}pts</span>
-                                </div>
-                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                  onClick={() => setConfirmDialog({
-                                    open: true,
-                                    title: 'Batalkan Pendaftaran?',
-                                    description: `Batalkan pendaftaran "${p.player?.gamertag}" dari ${t.name}?`,
-                                    onConfirm: () => unregisterFromTournament.mutate({ tournamentId: t.id, playerId: p.playerId })
-                                  })}>
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Player Management Header */}
             <div className="flex items-center justify-between gap-2">
               <div className="relative flex-1">
@@ -974,7 +814,177 @@ export function AdminPanel() {
 
         {/* ====== TURNAMEN TAB ====== */}
         <TabsContent value="turnamen">
-          <TournamentManager division={storeDivision} dt={dt} stats={stats} setConfirmDialog={setConfirmDialog} />
+          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+            {/* ── Tournament Registration Overview ── */}
+            {activeTournaments?.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2 text-idm-gold-warm">
+                  <Music className="w-4 h-4" /> Pendaftaran Turnamen Aktif
+                </h3>
+                {activeTournaments.map((t: {
+                  id: string;
+                  name: string;
+                  weekNumber: number;
+                  status: string;
+                  participations?: Array<{
+                    id: string;
+                    playerId: string;
+                    status: string;
+                    tierOverride?: string | null;
+                    player: { id: string; gamertag: string; name: string; tier: string; points: number; division: string };
+                  }>;
+                }) => {
+                  const isApproval = t.status === 'approval';
+                  const pending = (t.participations || []).filter((p) => p.status === 'registered');
+                  const approved = (t.participations || []).filter((p) => ['approved', 'assigned'].includes(p.status));
+                  return (
+                    <Card key={t.id} className={`border ${isApproval ? 'border-yellow-500/25 bg-yellow-500/5' : 'border-green-500/25 bg-green-500/5'}`}>
+                      <CardContent className="p-4 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Music className={`w-4 h-4 ${isApproval ? 'text-yellow-500' : 'text-green-500'}`} />
+                            <p className="text-sm font-semibold">{t.name}</p>
+                            <Badge className={`text-[9px] border-0 ${isApproval ? 'bg-yellow-500/15 text-yellow-500' : 'bg-green-500/15 text-green-500'}`}>
+                              {isApproval ? '⏳ Persetujuan' : '📋 Registrasi'}
+                            </Badge>
+                            <Badge variant="outline" className="text-[9px]">Week {t.weekNumber}</Badge>
+                          </div>
+                          {/* Quick action */}
+                          {isApproval && approved.length > 0 && (
+                            <Button size="sm" className="h-7 text-[10px] bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-3"
+                              onClick={() => setConfirmDialog({
+                                open: true,
+                                title: 'Lanjut ke Generate Tim?',
+                                description: `${approved.length} pemain sudah disetujui. Lanjutkan ke fase pembuatan tim?`,
+                                onConfirm: () => advanceTournament.mutate({ tournamentId: t.id, status: 'team_generation' })
+                              })}>
+                              <ArrowRight className="w-3 h-3 mr-1" /> Generate Tim
+                            </Button>
+                          )}
+                          {!isApproval && (t.participations || []).length > 0 && (
+                            <Button size="sm" className="h-7 text-[10px] bg-yellow-600 hover:bg-yellow-700 text-white px-3"
+                              onClick={() => setConfirmDialog({
+                                open: true,
+                                title: 'Lanjut ke Persetujuan?',
+                                description: `${(t.participations || []).length} pemain terdaftar. Lanjutkan ke fase persetujuan?`,
+                                onConfirm: () => advanceTournament.mutate({ tournamentId: t.id, status: 'approval' })
+                              })}>
+                              <ArrowRight className="w-3 h-3 mr-1" /> Lanjut Persetujuan
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Stats row */}
+                        <div className="flex items-center gap-3 text-[10px]">
+                          <span className="text-green-500 font-medium">✅ {approved.length} disetujui</span>
+                          {pending.length > 0 && (
+                            <span className="text-yellow-500 font-medium">⏳ {pending.length} menunggu</span>
+                          )}
+                          <span className="text-muted-foreground">👥 {(t.participations || []).length} total</span>
+                        </div>
+
+                        {/* Approved players — compact badges */}
+                        {approved.length > 0 && (
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1.5">Peserta Disetujui</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {approved.map((p) => {
+                                const tier = p.tierOverride || p.player?.tier || 'B';
+                                const tierColor = tier === 'S' ? 'bg-red-500/15 text-red-400' : tier === 'A' ? 'bg-yellow-500/15 text-yellow-400' : 'bg-blue-500/15 text-blue-400';
+                                return (
+                                  <div key={p.id} className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${tierColor}`}>
+                                    {p.player?.gamertag}
+                                    <Badge className="text-[8px] border-0 px-1 py-0 bg-background/20 text-current">{tier}</Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Pending approval — only shown in approval phase */}
+                        {isApproval && pending.length > 0 && (
+                          <div className="space-y-1.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Menunggu Persetujuan</p>
+                            {pending.map((p) => {
+                              const currentTier = p.player?.tier || 'B';
+                              return (
+                                <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-yellow-500/10">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-6 h-6 rounded-full bg-yellow-500/15 flex items-center justify-center text-[10px] font-bold text-yellow-500">
+                                      {p.player?.gamertag?.charAt(0)?.toUpperCase() || '?'}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <span className="text-xs font-medium truncate block">{p.player?.gamertag}</span>
+                                      <span className="text-[10px] text-muted-foreground">{p.player?.name} · {p.player?.points || 0}pts</span>
+                                    </div>
+                                    <TierBadge tier={currentTier} />
+                                  </div>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <Select onValueChange={(tier) => setConfirmDialog({
+                                      open: true,
+                                      title: 'Setujui Pemain?',
+                                      description: `Setujui "${p.player?.gamertag}" sebagai Tier ${tier} di ${t.name}.`,
+                                      onConfirm: () => approveTournamentParticipation.mutate({ tournamentId: t.id, playerId: p.playerId, tier })
+                                    })}>
+                                      <SelectTrigger className="w-20 h-7 text-[10px]"><SelectValue placeholder="Setujui" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="S">Sebagai S</SelectItem>
+                                        <SelectItem value="A">Sebagai A</SelectItem>
+                                        <SelectItem value="B">Sebagai B</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                      onClick={() => setConfirmDialog({
+                                        open: true,
+                                        title: 'Batalkan Pendaftaran?',
+                                        description: `Batalkan pendaftaran "${p.player?.gamertag}" dari ${t.name}?`,
+                                        onConfirm: () => unregisterFromTournament.mutate({ tournamentId: t.id, playerId: p.playerId })
+                                      })}>
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Registration phase — show registered players with unregister */}
+                        {!isApproval && (t.participations || []).length > 0 && (
+                          <div className="space-y-1 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Peserta Terdaftar</p>
+                            {(t.participations || []).map((p) => (
+                              <div key={p.id} className="flex items-center justify-between p-1.5 rounded-lg bg-background/30">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <TierBadge tier={p.player?.tier || 'B'} />
+                                  <span className="text-xs font-medium truncate">{p.player?.gamertag}</span>
+                                  <span className="text-[10px] text-muted-foreground">{p.player?.points || 0}pts</span>
+                                </div>
+                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  onClick={() => setConfirmDialog({
+                                    open: true,
+                                    title: 'Batalkan Pendaftaran?',
+                                    description: `Batalkan pendaftaran "${p.player?.gamertag}" dari ${t.name}?`,
+                                    onConfirm: () => unregisterFromTournament.mutate({ tournamentId: t.id, playerId: p.playerId })
+                                  })}>
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Tournament Manager */}
+            <TournamentManager division={storeDivision} dt={dt} stats={stats} setConfirmDialog={setConfirmDialog} />
+          </motion.div>
         </TabsContent>
 
         {/* ====== LIGA TAB ====== */}

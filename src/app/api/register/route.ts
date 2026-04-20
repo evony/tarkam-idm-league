@@ -227,14 +227,14 @@ function checkDuplicates(
       };
     }
 
-    // Player is approved and active — offer re-registration option
+    // Player is approved and active — BLOCK re-registration, only admin can modify
     return {
-      isBlocked: false,
+      isBlocked: true,
       isHighRisk: true,
-      canReRegister: true,
-      reRegisterPlayerId: exactNamePlayer.id,
+      canReRegister: false,
+      reRegisterPlayerId: null,
       similarPlayers: [exactNamePlayer],
-      message: `Nama "${name}" sudah terdaftar sebagai peserta aktif (gamertag: "${exactNamePlayer.gamertag}"). Jika Anda ingin mendaftar ulang untuk season ini, klik "Daftar Ulang" untuk masuk antrian persetujuan admin.`,
+      message: `Nama "${name}" sudah terdaftar sebagai peserta aktif (gamertag: "${exactNamePlayer.gamertag}"). Jika ingin mengubah data, hubungi admin.`,
     };
   }
 
@@ -266,14 +266,14 @@ function checkDuplicates(
       };
     }
 
-    // Player is approved and active — offer re-registration option
+    // Player is approved and active — BLOCK re-registration, only admin can modify
     return {
-      isBlocked: false,
+      isBlocked: true,
       isHighRisk: true,
-      canReRegister: true,
-      reRegisterPlayerId: phoneMatchPlayer.id,
+      canReRegister: false,
+      reRegisterPlayerId: null,
       similarPlayers: [phoneMatchPlayer],
-      message: `Nomor WhatsApp ini sudah terdaftar atas nama "${phoneMatchPlayer.name}" (gamertag: "${phoneMatchPlayer.gamertag}"). Jika ini adalah Anda dan ingin mendaftar ulang, klik "Daftar Ulang" untuk masuk antrian persetujuan admin.`,
+      message: `Nomor WhatsApp ini sudah terdaftar atas nama "${phoneMatchPlayer.name}" (gamertag: "${phoneMatchPlayer.gamertag}"). Jika ingin mengubah data, hubungi admin.`,
     };
   }
 
