@@ -277,6 +277,43 @@ export async function PUT(
       select: { status: true, division: true, seasonId: true },
     });
     if (currentTournament) {
+      // ─── SAFETY CHECK: Detect inconsistent state ───
+      // If tournament is at team_generation+ but has no teams, or at bracket_generation+ but has no matches,
+      // we may need to clean up orphaned data from a failed previous operation
+      if (['team_generation', 'bracket_generation', 'main_event', 'finalization'].includes(currentTournament.status)) {
+        const teamCount = await db.team.count({ where: { tournamentId: id } });
+        const matchCount = await db.match.count({ where: { tournamentId: id } });
+        if (currentTournament.status !== 'team_generation' && teamCount === 0) {
+          // Inconsistent: at bracket_generation+ with no teams
+          // Check for orphaned matches too and clean them up
+          if (matchCount > 0) {
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+            await db.match.deleteMany({ where: { tournamentId: id } });
+          }
+          // Reset to approval so admin can re-generate
+          await db.tournament.update({ where: { id }, data: { status: 'approval' } });
+          currentTournament.status = 'approval';
+        } else if (['bracket_generation', 'main_event', 'finalization'].includes(currentTournament.status) && matchCount === 0) {
+          // Inconsistent: at bracket_generation+ with no matches
+          // Delete orphaned teams if they exist
+          if (teamCount > 0) {
+            const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+            for (const t of teams) {
+              await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
+            }
+            await db.team.deleteMany({ where: { tournamentId: id } });
+          }
+          // Reset assigned participations back to approved
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: 'assigned' },
+            data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
+          });
+          // Reset to approval so admin can re-generate
+          await db.tournament.update({ where: { id }, data: { status: 'approval' } });
+          currentTournament.status = 'approval';
+        }
+      }
+
       const currentIdx = statusOrder.indexOf(currentTournament.status);
       const targetIdx = statusOrder.indexOf(body.status);
 

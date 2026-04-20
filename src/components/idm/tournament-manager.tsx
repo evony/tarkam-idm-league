@@ -1882,6 +1882,30 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </div>
                 )}
 
+                {/* Auto-advance prompt when all playable matches are completed in main_event */}
+                {selected.status === 'main_event' && selected.matches?.length > 0 && (() => {
+                  const playableMatches = selected.matches.filter((m: { team1Id: string | null; team2Id: string | null; status: string }) => m.team1Id && m.team2Id);
+                  const completedPlayable = playableMatches.filter((m: { status: string }) => m.status === 'completed');
+                  const hasIncomplete = playableMatches.some((m: { status: string }) => m.status !== 'completed');
+                  if (!hasIncomplete && completedPlayable.length > 0) {
+                    return (
+                      <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-bold text-green-400">✅ Semua match selesai!</p>
+                            <p className="text-[9px] text-muted-foreground">{completedPlayable.length} pertandingan telah diselesaikan</p>
+                          </div>
+                          <Button size="sm" className="text-[10px] h-7 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => updateMutation.mutate({ id: selected.id, data: { status: 'finalization' } })}>
+                            <ArrowRight className="w-3 h-3 mr-1" /> Lanjut ke Finalisasi
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {Object.entries(matchesByBracket).map(([bracket, matches]) => {
                   // Split into real matches and bye matches
                   const sortedMatches = [...matches].sort((a: { round: number; matchNumber: number }, b: { round: number; matchNumber: number }) => a.round - b.round || a.matchNumber - b.matchNumber);

@@ -1242,3 +1242,34 @@ Stage Summary:
 - Frontend shows contextual messages for registration/approval phases
 - Stuck tournament cleaned up and now at 'approval' status with clean data
 - All API endpoints returning 200, no compilation errors
+---
+Task ID: 19
+Agent: Main Agent
+Task: Enhance "Tour Saya" page with rich tournament overview and fix backend bugs
+
+Work Log:
+- Created new API endpoint `/api/tournaments/overview` that returns division-specific tournament status, tier distribution, recent/upcoming/live matches, top teams, top participants, and registered participants
+- Completely rewrote `MyTournamentCard` component with rich tournament overview before search:
+  - Active tournament status card with phase progress, quick stats, tier distribution bars
+  - Live match alerts with score display
+  - Champion card (if tournament completed)
+  - Top teams by power ranking
+  - Recent match results
+  - Upcoming match cards
+  - Participants card showing approved vs registered (with separate sections)
+  - Help card with search instructions
+- Search bar always visible at top, player-specific results appear below when searching
+- Added "Lanjut ke Finalisasi" button in tournament-manager when all playable matches are completed in main_event phase
+- Fixed finalize route: added try/catch for empty body parsing (mvpPlayerId is optional)
+- Added safety check in tournament PUT handler for inconsistent states (team_generation+ with 0 teams, bracket_generation+ with 0 matches) — auto-resets to approval
+- Added tierCountsAll field to overview API (includes registered participants for display during approval phase)
+- Registered participants shown separately from approved ones in the Tour Saya overview
+- Lint clean, all APIs verified working
+
+Stage Summary:
+- Tour Saya page now shows rich tournament overview even before searching (was just search box + help card before)
+- New API: `/api/tournaments/overview?division=male|female` returns comprehensive tournament data
+- Added auto-advance prompt "Lanjut ke Finalisasi" when all matches complete
+- Fixed finalize 400 error (empty body parsing)
+- Added safety net for inconsistent tournament states (dirty rollback recovery)
+- Tier distribution now shows all registered participants, not just approved

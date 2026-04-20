@@ -12,7 +12,12 @@ export async function POST(
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;
-  const body = await request.json();
+  let body: { mvpPlayerId?: string } = {};
+  try {
+    body = await request.json();
+  } catch {
+    // Empty body is OK — mvpPlayerId is optional
+  }
   const { mvpPlayerId } = body;
 
   const tournament = await db.tournament.findUnique({
