@@ -9,8 +9,8 @@ import { useState } from 'react';
 
 /* ─── Match data interface ─── */
 interface DanceMatchCardProps {
-  team1: { id: string; name: string };
-  team2: { id: string; name: string };
+  team1: { id: string; name: string } | null;
+  team2: { id: string; name: string } | null;
   score1: number | null;
   score2: number | null;
   status: string;
@@ -116,10 +116,10 @@ export function DanceMatchCard({
             {/* Team 1 — Left Side */}
             <div className={`flex-1 min-w-0 transition-all duration-300 ${dimTeam1 ? 'opacity-70' : ''}`}>
               <div className="flex items-center gap-2.5">
-                <TeamLogo name={team1.name} isWinner={winner1} size="lg" />
+                <TeamLogo name={team1?.name || 'TBD'} isWinner={winner1} size="lg" />
                 <div className="min-w-0 flex-1">
                   <p className={`text-sm font-bold truncate ${winner1 ? dt.neonText : 'text-foreground/80'}`}>
-                    {team1.name || 'TBD'}
+                    {team1?.name || 'TBD'}
                   </p>
                   {winner1 && (
                     <p className={`text-[9px] ${dt.text} font-semibold flex items-center gap-0.5 mt-0.5`}>
@@ -175,7 +175,7 @@ export function DanceMatchCard({
               <div className="flex items-center gap-2.5 justify-end">
                 <div className="min-w-0 flex-1">
                   <p className={`text-sm font-bold truncate ${winner2 ? dt.neonText : 'text-foreground/80'}`}>
-                    {team2.name || 'TBD'}
+                    {team2?.name || 'TBD'}
                   </p>
                   {winner2 && (
                     <p className={`text-[9px] ${dt.text} font-semibold flex items-center gap-0.5 mt-0.5 justify-end`}>
@@ -183,7 +183,7 @@ export function DanceMatchCard({
                     </p>
                   )}
                 </div>
-                <TeamLogo name={team2.name} isWinner={winner2} size="lg" />
+                <TeamLogo name={team2?.name || 'TBD'} isWinner={winner2} size="lg" />
               </div>
             </div>
           </div>
@@ -245,7 +245,7 @@ export function DanceMatchCard({
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-muted-foreground">Skor Akhir</span>
                   <span className={`font-semibold ${dt.neonText}`}>
-                    {team1.name} {score1} - {score2} {team2.name}
+                    {team1?.name || 'TBD'} {score1} - {score2} {team2?.name || 'TBD'}
                   </span>
                 </div>
               )}
