@@ -54,6 +54,7 @@ export function RegistrationForm() {
     isBlocked: boolean;
     isHighRisk: boolean;
     canReRegister: boolean;
+    canSignUpForTournament: boolean;
     reRegisterPlayerId: string | null;
     message: string;
     similarPlayers: SimilarPlayer[];
@@ -100,15 +101,32 @@ export function RegistrationForm() {
 
       const data = await res.json();
 
-      // Handle blocked response (only truly blocked when pending in queue)
+      // Handle blocked response (pending in queue)
       if (data.blocked) {
         setWarningState({
           show: true,
           isBlocked: true,
           isHighRisk: true,
           canReRegister: false,
+          canSignUpForTournament: false,
           reRegisterPlayerId: null,
           message: data.error || data.message,
+          similarPlayers: data.similarPlayers || [],
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Handle tournament sign-up available (approved player)
+      if (data.canSignUpForTournament) {
+        setWarningState({
+          show: true,
+          isBlocked: false,
+          isHighRisk: false,
+          canReRegister: false,
+          canSignUpForTournament: true,
+          reRegisterPlayerId: data.reRegisterPlayerId,
+          message: data.message,
           similarPlayers: data.similarPlayers || [],
         });
         setIsSubmitting(false);
@@ -122,6 +140,7 @@ export function RegistrationForm() {
           isBlocked: false,
           isHighRisk: data.isHighRisk || false,
           canReRegister: true,
+          canSignUpForTournament: false,
           reRegisterPlayerId: data.reRegisterPlayerId,
           message: data.message,
           similarPlayers: data.similarPlayers || [],
@@ -178,8 +197,57 @@ export function RegistrationForm() {
   const handleReRegister = () => {
     if (!warningState?.canReRegister || !warningState?.reRegisterPlayerId) return;
     setWarningState(prev => prev ? { ...prev, show: false } : null);
-    // Submit with re-register flag
     handleReRegisterSubmit(warningState.reRegisterPlayerId);
+  };
+
+  const handleTournamentSignUp = () => {
+    if (!warningState?.canSignUpForTournament || !warningState?.reRegisterPlayerId) return;
+    setWarningState(prev => prev ? { ...prev, show: false } : null);
+    handleTournamentSignUpSubmit(warningState.reRegisterPlayerId);
+  };
+
+  const handleTournamentSignUpSubmit = async (playerId: string) => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          joki: formData.joki || null,
+          phone: formData.phone || null,
+          city: formData.city,
+          clubId: formData.clubId || null,
+          division,
+          signUpForTournament: true,
+          reRegisterPlayerId: playerId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok || data.success) {
+        setSubmitResult({
+          success: true,
+          message: data.message,
+          gamertag: data.player?.gamertag || data.tournament?.name,
+        });
+        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+        setWarningState(null);
+      } else {
+        setSubmitResult({
+          success: false,
+          message: data.error || 'Gagal mendaftar ke turnamen',
+        });
+      }
+    } catch {
+      setSubmitResult({
+        success: false,
+        message: 'Terjadi kesalahan jaringan',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReRegisterSubmit = async (reRegisterPlayerId: string) => {
@@ -417,13 +485,25 @@ export function RegistrationForm() {
                   </div>
                 </div>
 
-                {/* Re-registration info */}
+                {/* Tournament sign-up info (approved player) */}
+                {warningState.canSignUpForTournament && (
+                  <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <div className="flex items-start gap-2">
+                      <Music className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-green-400">
+                        <p><strong>Daftar Turnamen:</strong> Data Anda sudah terverifikasi. Anda akan didaftarkan ke turnamen minggu ini. Admin akan menyetujui dan menentukan tier Anda.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Re-registration info (rejected/inactive player) */}
                 {warningState.canReRegister && (
                   <div className="mb-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
                     <div className="flex items-start gap-2">
                       <UserPlus className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-cyan-400">
-                        <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke "Menunggu Persetujuan". Admin akan memilihkan tier untuk Anda.</p>
+                        <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke "Menunggu Persetujuan". Anda juga otomatis terdaftar di turnamen minggu ini.</p>
                         <p className="mt-1 text-muted-foreground">Tier akan di-reset ke B dan admin akan menentukan tier yang sesuai.</p>
                       </div>
                     </div>
@@ -462,6 +542,21 @@ export function RegistrationForm() {
                   >
                     {warningState.isBlocked ? 'Tutup' : 'Batalkan'}
                   </Button>
+                  {warningState.canSignUpForTournament && (
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                      onClick={handleTournamentSignUp}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Music className="w-4 h-4 mr-1" />
+                      )}
+                      {isSubmitting ? 'Memproses...' : 'Daftar Turnamen'}
+                    </Button>
+                  )}
                   {warningState.canReRegister && (
                     <Button
                       size="sm"
