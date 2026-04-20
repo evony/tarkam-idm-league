@@ -277,26 +277,29 @@ export async function PUT(
       select: { status: true, division: true, seasonId: true },
     });
     if (currentTournament) {
-      // ─── SAFETY CHECK: Detect inconsistent state ───
-      // If tournament is at team_generation+ but has no teams, or at bracket_generation+ but has no matches,
-      // we may need to clean up orphaned data from a failed previous operation
+      const targetIdx = statusOrder.indexOf(body.status);
+
+      // ─── SAFETY CHECK: Detect and clean up inconsistent state when reverting ───
+      // When reverting, check for data that is inconsistent with the target state.
+      // Do NOT reset currentTournament.status here — the revert phases and final status update handle that.
+      // Resetting currentTournament.status would change currentIdx, causing phase conditions
+      // (e.g., Phase 4's "currentIdx >= team_generation") to fail, skipping necessary cleanup.
       if (['team_generation', 'bracket_generation', 'main_event', 'finalization'].includes(currentTournament.status)) {
         const teamCount = await db.team.count({ where: { tournamentId: id } });
         const matchCount = await db.match.count({ where: { tournamentId: id } });
-        if (currentTournament.status !== 'team_generation' && teamCount === 0) {
-          // Inconsistent: at bracket_generation+ with no teams
-          // Check for orphaned matches too and clean them up
+
+        // When reverting: proactively clean up data that shouldn't exist at the target status.
+        // This handles partial rollbacks where a Phase failed and left orphaned data,
+        // and the case where tournament is stuck at team_generation with 0 teams.
+        if (targetIdx < statusOrder.indexOf('team_generation')) {
+          // Target is before team_generation — teams and matches should not exist
           if (matchCount > 0) {
+            console.warn(`Safety check: Found ${matchCount} orphaned matches when reverting to ${body.status}, cleaning up`);
             await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
             await db.match.deleteMany({ where: { tournamentId: id } });
           }
-          // Reset to approval so admin can re-generate
-          await db.tournament.update({ where: { id }, data: { status: 'approval' } });
-          currentTournament.status = 'approval';
-        } else if (['bracket_generation', 'main_event', 'finalization'].includes(currentTournament.status) && matchCount === 0) {
-          // Inconsistent: at bracket_generation+ with no matches
-          // Delete orphaned teams if they exist
           if (teamCount > 0) {
+            console.warn(`Safety check: Found ${teamCount} orphaned teams when reverting to ${body.status}, cleaning up`);
             const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
             for (const t of teams) {
               await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
@@ -308,14 +311,29 @@ export async function PUT(
             where: { tournamentId: id, status: 'assigned' },
             data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
           });
-          // Reset to approval so admin can re-generate
-          await db.tournament.update({ where: { id }, data: { status: 'approval' } });
-          currentTournament.status = 'approval';
+        } else if (targetIdx < statusOrder.indexOf('bracket_generation')) {
+          // Target is between team_generation and bracket_generation — matches should not exist
+          if (matchCount > 0) {
+            console.warn(`Safety check: Found ${matchCount} orphaned matches when reverting to ${body.status}, cleaning up`);
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+            await db.match.deleteMany({ where: { tournamentId: id } });
+          }
+        }
+
+        // Also detect truly inconsistent states: at bracket_generation+ with no teams and no matches.
+        // This indicates data was likely lost from a failed operation.
+        if (currentTournament.status !== 'team_generation' && teamCount === 0 && matchCount === 0) {
+          // At bracket_generation+ with no teams and no matches — reset participation assignments
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: 'assigned' },
+            data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
+          });
+          // Don't reset currentTournament.status — let the revert phases handle the status change
         }
       }
 
       const currentIdx = statusOrder.indexOf(currentTournament.status);
-      const targetIdx = statusOrder.indexOf(body.status);
+      // targetIdx is already defined above (before the safety check)
 
       if (targetIdx < currentIdx) {
         const revertErrors: string[] = [];
@@ -677,6 +695,40 @@ export async function PUT(
             where: { tournamentId: id, status: 'assigned' },
             data: { status: 'approved' },
           });
+        }
+
+        // ─── ORPHANED DATA CLEANUP: Final safety net ───
+        // After all revert phases, check for any remaining data that shouldn't exist at the target status.
+        // This handles cases where a previous partial revert changed the status but left orphaned data,
+        // causing the phase conditions (which check currentIdx) to skip cleanup.
+        if (targetIdx < statusOrder.indexOf('team_generation')) {
+          const orphanedTeams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+          if (orphanedTeams.length > 0) {
+            console.warn(`Orphaned data cleanup: Found ${orphanedTeams.length} remaining teams after revert phases, cleaning up`);
+            for (const t of orphanedTeams) {
+              await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
+            }
+            await db.team.deleteMany({ where: { tournamentId: id } });
+          }
+          const orphanedMatchCount = await db.match.count({ where: { tournamentId: id } });
+          if (orphanedMatchCount > 0) {
+            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches after revert phases, cleaning up`);
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+            await db.match.deleteMany({ where: { tournamentId: id } });
+          }
+          // Ensure participations are in correct state for approval
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: 'assigned' },
+            data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
+          });
+        }
+        if (targetIdx < statusOrder.indexOf('bracket_generation')) {
+          const orphanedMatchCount = await db.match.count({ where: { tournamentId: id } });
+          if (orphanedMatchCount > 0) {
+            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches after revert phases, cleaning up`);
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+            await db.match.deleteMany({ where: { tournamentId: id } });
+          }
         }
       } catch (revertError) {
         console.error('Revert phase error:', revertError);

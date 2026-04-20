@@ -34,13 +34,38 @@ export async function POST(
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
+  // Auto-advance from main_event to finalization if all playable matches are completed
+  if (tournament.status === 'main_event') {
+    const playableIncomplete = tournament.matches.filter(
+      m => (m.status === 'pending' || m.status === 'ready' || m.status === 'live') && m.team1Id && m.team2Id
+    );
+    const completedMatches = tournament.matches.filter(m => m.status === 'completed');
+
+    if (playableIncomplete.length === 0 && completedMatches.length > 0) {
+      // All playable matches are done — auto-advance to finalization
+      await db.tournament.update({ where: { id }, data: { status: 'finalization' } });
+      tournament.status = 'finalization';
+    } else if (playableIncomplete.length > 0) {
+      return NextResponse.json({
+        error: `Masih ada ${playableIncomplete.length} pertandingan yang belum selesai (${playableIncomplete.map(m => m.status).filter((v, i, a) => a.indexOf(v) === i).join(', ')}). Selesaikan semua match terlebih dahulu, atau lanjutkan ke status finalization setelah semua match selesai.`,
+      }, { status: 400 });
+    } else {
+      return NextResponse.json({
+        error: 'Tournament belum ada match yang selesai. Mainkan dan selesaikan pertandingan terlebih dahulu sebelum finalisasi.',
+      }, { status: 400 });
+    }
+  }
+
   if (tournament.status !== 'finalization') {
     return NextResponse.json({ 
       error: `Tournament harus dalam status finalization. Status saat ini: ${tournament.status}. ${
-        tournament.status === 'main_event' ? 'Selesaikan semua match terlebih dahulu.' :
-        tournament.status === 'team_generation' ? 'Generate tim dan bracket terlebih dahulu.' :
-        tournament.status === 'bracket_generation' ? 'Mulai event dan selesaikan match terlebih dahulu.' :
-        'Lanjutkan proses tournament hingga fase finalisasi.'
+        tournament.status === 'team_generation' ? 'Generate bracket terlebih dahulu, lalu mainkan dan selesaikan semua match.' :
+        tournament.status === 'bracket_generation' ? 'Mulai event (main_event) dan selesaikan semua match terlebih dahulu.' :
+        tournament.status === 'approval' ? 'Setujui peserta dan generate tim terlebih dahulu.' :
+        tournament.status === 'registration' ? 'Buka registrasi dan setujui peserta terlebih dahulu.' :
+        tournament.status === 'setup' ? 'Lengkapi setup tournament terlebih dahulu.' :
+        tournament.status === 'completed' ? 'Tournament sudah difinalisasi. Tidak bisa finalisasi ulang.' :
+        'Lanjutkan proses tournament hingga fase main_event, selesaikan semua match, lalu finalisasi.'
       }` 
     }, { status: 400 });
   }

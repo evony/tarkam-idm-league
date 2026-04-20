@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 // GET /api/tournaments/my-status?name=xxx&division=female
 // Find a player's tournament status: team, matches, opponent, alive status
+// Supports completed tournaments with final results and prize info
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get('name');
@@ -14,15 +15,21 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Step 1: Find the player
+    // Step 1: Find the player — search by both name AND gamertag when only name is provided
     const playerWhere: Record<string, unknown> = {};
     if (gamertag) {
+      // Explicit gamertag search — use it directly
       playerWhere.gamertag = { equals: gamertag, mode: 'insensitive' };
+      if (division) playerWhere.division = division;
+      playerWhere.isActive = true;
     } else if (name) {
-      playerWhere.name = { equals: name, mode: 'insensitive' };
+      // Only name provided — search by name OR gamertag (so typing a gamertag in the name field still works)
+      playerWhere.OR = [
+        { name: { equals: name, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
+        { gamertag: { equals: name, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
+      ];
+      // No top-level isActive/division since they're embedded in each OR branch
     }
-    if (division) playerWhere.division = division;
-    playerWhere.isActive = true;
 
     const player = await db.player.findFirst({
       where: playerWhere,
@@ -41,11 +48,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ found: false, message: 'Pemain tidak ditemukan' });
     }
 
-    // Step 2: Find the active tournament (filtered by player's division)
+    // Step 2: Find the active or completed tournament (filtered by player's division)
+    // Includes 'completed' so players can see their final results after a tournament ends
     const activeTournament = await db.tournament.findFirst({
       where: {
         division: player.division,
-        status: { in: ['registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization'] },
+        status: { in: ['registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization', 'completed'] },
       },
       include: {
         season: { select: { id: true, name: true, number: true } },
@@ -88,7 +96,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    // If no active tournament, check for completed ones in player's division
+    // If no active or completed tournament, check for any tournament in player's division
     if (!activeTournament) {
       const latestTournament = await db.tournament.findFirst({
         where: { division: player.division },
@@ -112,6 +120,8 @@ export async function GET(request: Request) {
           : 'Belum ada tournament untuk division ini',
       });
     }
+
+    const isCompleted = activeTournament.status === 'completed';
 
     // Step 3: Find the player's team in this tournament
     const myTeam = activeTournament.teams.find(t =>
@@ -144,6 +154,8 @@ export async function GET(request: Request) {
           season: activeTournament.season,
           totalTeams: activeTournament.teams.length,
           totalMatches: activeTournament.matches.length,
+          isCompleted,
+          completedAt: activeTournament.completedAt,
         },
         myTeam: null,
         participationStatus: participation?.status || null,
@@ -152,6 +164,14 @@ export async function GET(request: Request) {
           : 'Anda belum terdaftar di tournament ini',
       });
     }
+
+    // Step 3b: Fetch participation data for prize/rank info (especially for completed tournaments)
+    const participation = await db.participation.findFirst({
+      where: {
+        playerId: player.id,
+        tournamentId: activeTournament.id,
+      },
+    });
 
     // Step 4: Find all matches involving myTeam
     const myMatches = activeTournament.matches.filter(
@@ -260,7 +280,8 @@ export async function GET(request: Request) {
       };
     }
 
-    return NextResponse.json({
+    // Build response with completed tournament data
+    const response: Record<string, unknown> = {
       found: true,
       player,
       hasActiveTournament: true,
@@ -277,6 +298,8 @@ export async function GET(request: Request) {
         season: activeTournament.season,
         totalTeams: activeTournament.teams.length,
         totalMatches: activeTournament.matches.length,
+        isCompleted,
+        completedAt: activeTournament.completedAt,
       },
       myTeam: {
         id: myTeam.id,
@@ -307,7 +330,27 @@ export async function GET(request: Request) {
         losses: formattedMatches.filter(m => m.lost).length,
         draws: formattedMatches.filter(m => m.isDraw).length,
       },
-    });
+    };
+
+    // Include participation data for completed tournaments (rank, prize info, final results)
+    if (isCompleted && participation) {
+      response.participation = {
+        pointsEarned: participation.pointsEarned,
+        isWinner: participation.isWinner,
+        isMvp: participation.isMvp,
+        status: participation.status,
+      };
+      // Also include team rank at top level for easy access
+      response.teamRank = myTeam.rank;
+      response.prizeInfo = {
+        pointsEarned: participation.pointsEarned,
+        isWinner: participation.isWinner,
+        isMvp: participation.isMvp,
+        teamRank: myTeam.rank,
+      };
+    }
+
+    return NextResponse.json(response);
   } catch (e: unknown) {
     const error = e as Error;
     console.error('My-status error:', error);
