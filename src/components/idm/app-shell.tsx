@@ -424,7 +424,7 @@ export function AppShell() {
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={{ duration: prefersReducedMotion ? 0.15 : 0.25 }}
-              className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : 'max-w-[1600px]'} mx-auto`}
+              className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' ? '' : 'max-w-[1600px]'} mx-auto`}
             >
               {renderView()}
             </motion.div>
