@@ -954,3 +954,27 @@ Stage Summary:
 - **Bracket BYE Fixed**: Bye matches now show "BYE" label + amber badge + muted styling instead of confusing "TBD" with "-" scores
 - **Tournament Manager**: Bye matches separated into distinct section with clear "BYE" indicator and Indonesian explanation text
 - All changes lint clean, dev server running
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Optimize IDM League admin panel tournament section for better performance
+
+Work Log:
+- Modified tournament-manager.tsx (7 changes):
+  A) Replaced root motion.div with plain div — removed framer-motion import entirely (motion and AnimatePresence no longer used)
+  B) Replaced tournament list item motion.div with plain div — removed variants={item} reference
+  C) Extracted Step Guide as React.memo component (StepGuide) before main export — takes status: string prop, replaces inline IIFE
+  D) Made Step Guide collapsible — added guideCollapsed state (default false), click-to-toggle title with ChevronDown/ChevronUp icons
+  E) Verified scoreMutation and undoScoreMutation already only invalidate detail query (not tournament list) — no changes needed
+  F) Made tournament create form collapsible — added showCreateForm state (default false), shows "Buat Tournament Baru" button when collapsed, shows full form card when expanded, auto-collapses on successful create
+  G) Simplified Step Wizard on mobile — desktop wizard wrapped in hidden sm:block, added compact 3-column flex row mobile version (sm:hidden) showing prev step ✅, current step icon+label, next step dimmed
+- team-spin-reveal.tsx: Already at target values (STRIP_REPS=3, SPIN_DURATION=1.5, Array(8)) — no changes needed
+- bracket-view.tsx: Already at target value (attempts=[100, 600]) — no changes needed
+- Lint check passes clean
+- Dev server running without errors
+
+Stage Summary:
+- tournament-manager.tsx optimized: removed framer-motion dependency, extracted React.memo StepGuide, collapsible guide + create form, responsive mobile step wizard
+- Score and undo mutations already optimized (only detail invalidation)
+- team-spin-reveal.tsx and bracket-view.tsx already at target performance values

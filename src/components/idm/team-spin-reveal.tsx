@@ -42,8 +42,8 @@ const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'R
 const ITEM_H = 48;
 const VISIBLE_COUNT = 2;
 const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 96px
-const STRIP_REPS = 4;
-const SPIN_DURATION = 2.0; // seconds
+const STRIP_REPS = 3;
+const SPIN_DURATION = 1.5; // seconds
 const SPIN_EASE: [number, number, number, number] = [0.05, 0.7, 0.1, 1.0]; // fast start, slow end
 
 // Fisher-Yates shuffle — unbiased, in-place
@@ -546,7 +546,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                         animate={{ opacity: 0 }}
                         transition={{ duration: 2.5 }}
                       >
-                        {[...Array(16)].map((_, i) => (
+                        {[...Array(8)].map((_, i) => (
                           <motion.div
                             key={i}
                             className="absolute w-1.5 h-1.5 rounded-full"

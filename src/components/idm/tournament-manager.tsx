@@ -1,12 +1,12 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+
 import {
   Plus, Play, Users, Zap, Crown, Loader2, Trash2,
   UserPlus, Check, X, Trophy, Gift, Star, ArrowRight, RefreshCw,
   Heart, MapPin, Pencil, Calendar, ChevronLeft, Undo2, RotateCcw,
-  AlertTriangle, ShieldCheck, ShieldX, Info
+  AlertTriangle, ShieldCheck, ShieldX, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,10 +19,10 @@ import { Label } from '@/components/ui/label';
 import { TierBadge } from './tier-badge';
 import { StatusBadge } from './status-badge';
 import { TeamSpinReveal } from './team-spin-reveal';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { container, item } from '@/lib/animations';
+
 import type { DivisionTheme } from '@/hooks/use-division-theme';
 
 interface TournamentManagerProps {
@@ -62,6 +62,57 @@ const TIER_COLORS: Record<string, { bg: string; bar: string; text: string; icon:
   B: { bg: 'bg-blue-500/10', bar: 'bg-blue-500', text: 'text-blue-500', icon: '🛡️' },
 };
 
+/* ─── Step Guide — extracted as React.memo for performance ─── */
+const StepGuide = memo(function StepGuide({ status }: { status: string }) {
+  const [guideCollapsed, setGuideCollapsed] = useState(false);
+
+  if (status === 'completed') return null;
+
+  const guides: Record<string, { icon: string; title: string; steps: string[]; tip?: string }> = {
+    setup: { icon: '⚙️', title: 'Setup Tournament', steps: ['Tournament sudah dibuat', 'Klik "Buka Registrasi" untuk mulai mendaftarkan pemain'], tip: 'Pastikan season sudah aktif sebelum membuat tournament.' },
+    registration: { icon: '📋', title: 'Fase Registrasi', steps: ['Daftarkan pemain yang akan berpartisipasi', 'Gunakan "Daftarkan Semua" atau daftar satu per satu', 'Setelah cukup pemain, klik "Lanjut ke Persetujuan"'], tip: 'Minimal 3 pemain per tier (S, A, B) untuk membuat 1 tim.' },
+    approval: { icon: '⏳', title: 'Fase Persetujuan', steps: ['Atur tier setiap pemain (S/A/B) sesuai skill level', 'Setujui pemain satu per satu atau sekaligus', 'Pastikan tier S = A = B (jumlah seimbang)', 'Jika tier tidak seimbang, gunakan "Batalkan" untuk mengubah tier', 'Atur prize pool & hadiah', 'Klik "Generate Tim" jika tier sudah seimbang'], tip: 'Tier harus seimbang (S=A=B) untuk bisa generate tim! Gunakan "Batalkan Persetujuan" jika perlu mengubah tier.' },
+    team_generation: { icon: '👥', title: 'Tim Terbentuk', steps: ['Tim sudah dibuat secara random (1S+1A+1B)', 'Cek komposisi tim', 'Klik "Generate Bracket" untuk melanjutkan'], tip: 'Tim dinamai berdasarkan pemain Tier S.' },
+    bracket_generation: { icon: '🏆', title: 'Bracket Siap', steps: ['Bracket pertandingan sudah dibuat', 'Cek jadwal match', 'Klik "Mulai Event!" untuk memulai pertandingan'], tip: 'Format bracket mengikuti pengaturan tournament.' },
+    main_event: { icon: '🎮', title: 'Event Berlangsung', steps: ['Start match yang siap dimainkan', 'Submit skor setelah pertandingan selesai', 'Tunggu semua match selesai', 'Lanjut ke finalisasi'], tip: 'Gunakan "Undo" jika ada kesalahan input skor.' },
+    finalization: { icon: '🏆', title: 'Finalisasi', steps: ['Cek distribusi hadiah', 'Pilih MVP tournament', 'Klik "Finalisasi Tournament" untuk menyelesaikan'], tip: 'Setelah finalisasi, hadiah akan didistribusikan otomatis.' },
+  };
+  const guide = guides[status];
+  if (!guide) return null;
+
+  return (
+    <div className="p-4 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/20">
+      <div
+        className="flex items-center gap-2 cursor-pointer select-none"
+        onClick={() => setGuideCollapsed(c => !c)}
+      >
+        <span className="text-xl">{guide.icon}</span>
+        <h4 className="text-sm font-bold text-idm-gold-warm">{guide.title}</h4>
+        {guideCollapsed
+          ? <ChevronDown className="w-3.5 h-3.5 text-idm-gold-warm/50 ml-auto" />
+          : <ChevronUp className="w-3.5 h-3.5 text-idm-gold-warm/50 ml-auto" />}
+      </div>
+      {!guideCollapsed && (
+        <>
+          <ol className="space-y-1 ml-7 mt-2">
+            {guide.steps.map((s, i) => (
+              <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                <span className="text-idm-gold-warm/50 font-mono text-[10px] mt-0.5">{i + 1}.</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ol>
+          {guide.tip && (
+            <p className="text-[10px] text-idm-gold-warm/60 mt-2 ml-7 flex items-start gap-1">
+              <span>💡</span> <span>{guide.tip}</span>
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+});
+
 export function TournamentManager({ division, dt, stats, setConfirmDialog }: TournamentManagerProps) {
   const qc = useQueryClient();
   const seasonId = stats?.season?.id;
@@ -69,6 +120,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   // State
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [newForm, setNewForm] = useState({
     name: '', weekNumber: '', format: 'single_elimination',
     defaultMatchFormat: 'BO1', prizePool: '', bpm: '', location: 'Online'
@@ -142,7 +194,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membuat tournament'); }
       return r.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Tournament berhasil dibuat!'); setNewForm({ name: '', weekNumber: '', format: 'single_elimination', defaultMatchFormat: 'BO1', prizePool: '', bpm: '128', location: 'Online' }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Tournament berhasil dibuat!'); setNewForm({ name: '', weekNumber: '', format: 'single_elimination', defaultMatchFormat: 'BO1', prizePool: '', bpm: '128', location: 'Online' }); setShowCreateForm(false); },
     onError: (e: Error) => { toast.error(e.message); },
   });
 
@@ -207,7 +259,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       return r.json();
     },
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] });
+      // Only invalidate detail — list doesn't change on team generation
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
       if (data.spinRevealOrder && data.spinRevealOrder.length > 0) {
         setSpinRevealData({ spinRevealOrder: data.spinRevealOrder, teamCount: data.teamCount });
@@ -250,8 +302,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal submit skor'); }
       return r.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Skor berhasil disubmit!'); },
-    onError: (e: Error) => { toast.error(e.message); },
+    onSuccess: () => {
+      // Score doesn't change tournament list — only invalidate detail
+      qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
+      toast.success('Skor berhasil disubmit!');
+    },
   });
 
   const undoScoreMutation = useMutation({
@@ -263,7 +318,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal undo skor'); }
       return r.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Skor berhasil di-undo!'); },
+    onSuccess: () => {
+      // Undo score doesn't change tournament list — only invalidate detail
+      qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
+      toast.success('Skor berhasil di-undo!');
+    },
     onError: (e: Error) => { toast.error(e.message); },
   });
 
@@ -453,14 +512,26 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   }, [pendingApprovals, approvedParticipations, tierOverrides]);
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
+    <div className="space-y-5">
       {/* ===== CREATE TOURNAMENT ===== */}
+      {!showCreateForm ? (
+        <Button className={`${dt.casinoCard} ${dt.casinoGlow} w-full h-12`}
+          onClick={() => setShowCreateForm(true)}>
+          <Plus className={`w-4 h-4 mr-2 ${dt.neonText}`} /> Buat Tournament Baru
+        </Button>
+      ) : (
       <Card className={dt.casinoCard}>
         <div className={dt.casinoBar} />
         <CardContent className="p-4 relative z-10">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Plus className={`w-4 h-4 ${dt.neonText}`} /> Buat Tournament Baru
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Plus className={`w-4 h-4 ${dt.neonText}`} /> Buat Tournament Baru
+            </h3>
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowCreateForm(false)}>
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Input placeholder="Nama Tournament" value={newForm.name} onChange={e => setNewForm(f => ({ ...f, name: e.target.value }))} />
             <Input placeholder="Week #" type="number" value={newForm.weekNumber} onChange={e => setNewForm(f => ({ ...f, weekNumber: e.target.value }))} />
@@ -503,6 +574,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           ) : null}
         </CardContent>
       </Card>
+      )}
 
       {/* ===== TOURNAMENT LIST ===== */}
       <div className="space-y-2">
@@ -510,7 +582,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           <p className="text-xs text-muted-foreground text-center py-4">Belum ada tournament. Buat yang pertama!</p>
         )}
         {tournaments?.map((t: { id: string; name: string; weekNumber: number; status: string; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number; location?: string; scheduledAt?: string; _count?: { teams: number; participations: number; matches: number } }) => (
-          <motion.div key={t.id} variants={item}>
+          <div key={t.id}>
             <Card className={`${dt.casinoCard} ${dt.casinoGlow} cursor-pointer ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''}`}
               onClick={() => setSelectedId(selectedId === t.id ? null : t.id)}>
               <div className={dt.casinoBar} />
@@ -551,7 +623,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -592,8 +664,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               </div>
             </div>
 
-            {/* Step Wizard */}
-            <div className="flex items-stretch gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
+            {/* Step Wizard — Desktop */}
+            <div className="hidden sm:flex items-stretch gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
               {STEPS.map((step, i) => {
                 const isCompleted = i < currentStepIdx;
                 const isCurrent = i === currentStepIdx;
@@ -624,41 +696,30 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               })}
             </div>
 
-            {/* Current Step Guide */}
-            {selected.status !== 'completed' && (() => {
-              const guides: Record<string, { icon: string; title: string; steps: string[]; tip?: string }> = {
-                setup: { icon: '⚙️', title: 'Setup Tournament', steps: ['Tournament sudah dibuat', 'Klik "Buka Registrasi" untuk mulai mendaftarkan pemain'], tip: 'Pastikan season sudah aktif sebelum membuat tournament.' },
-                registration: { icon: '📋', title: 'Fase Registrasi', steps: ['Daftarkan pemain yang akan berpartisipasi', 'Gunakan "Daftarkan Semua" atau daftar satu per satu', 'Setelah cukup pemain, klik "Lanjut ke Persetujuan"'], tip: 'Minimal 3 pemain per tier (S, A, B) untuk membuat 1 tim.' },
-                approval: { icon: '⏳', title: 'Fase Persetujuan', steps: ['Atur tier setiap pemain (S/A/B) sesuai skill level', 'Setujui pemain satu per satu atau sekaligus', 'Pastikan tier S = A = B (jumlah seimbang)', 'Jika tier tidak seimbang, gunakan "Batalkan" untuk mengubah tier', 'Atur prize pool & hadiah', 'Klik "Generate Tim" jika tier sudah seimbang'], tip: 'Tier harus seimbang (S=A=B) untuk bisa generate tim! Gunakan "Batalkan Persetujuan" jika perlu mengubah tier.' },
-                team_generation: { icon: '👥', title: 'Tim Terbentuk', steps: ['Tim sudah dibuat secara random (1S+1A+1B)', 'Cek komposisi tim', 'Klik "Generate Bracket" untuk melanjutkan'], tip: 'Tim dinamai berdasarkan pemain Tier S.' },
-                bracket_generation: { icon: '🏆', title: 'Bracket Siap', steps: ['Bracket pertandingan sudah dibuat', 'Cek jadwal match', 'Klik "Mulai Event!" untuk memulai pertandingan'], tip: 'Format bracket mengikuti pengaturan tournament.' },
-                main_event: { icon: '🎮', title: 'Event Berlangsung', steps: ['Start match yang siap dimainkan', 'Submit skor setelah pertandingan selesai', 'Tunggu semua match selesai', 'Lanjut ke finalisasi'], tip: 'Gunakan "Undo" jika ada kesalahan input skor.' },
-                finalization: { icon: '🏆', title: 'Finalisasi', steps: ['Cek distribusi hadiah', 'Pilih MVP tournament', 'Klik "Finalisasi Tournament" untuk menyelesaikan'], tip: 'Setelah finalisasi, hadiah akan didistribusikan otomatis.' },
-              };
-              const guide = guides[selected.status];
-              if (!guide) return null;
-              return (
-                <div className="p-4 rounded-xl bg-idm-gold-warm/5 border border-idm-gold-warm/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{guide.icon}</span>
-                    <h4 className="text-sm font-bold text-idm-gold-warm">{guide.title}</h4>
+            {/* Step Wizard — Mobile (compact 3-column) */}
+            {currentStepIdx >= 0 && (
+              <div className="flex sm:hidden items-center gap-2 py-2">
+                {currentStepIdx > 0 && (
+                  <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <span className="text-base leading-none">✅</span>
+                    <span className="text-[9px] font-semibold text-green-500">{STEPS[currentStepIdx - 1].label}</span>
                   </div>
-                  <ol className="space-y-1 ml-7">
-                    {guide.steps.map((s, i) => (
-                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="text-idm-gold-warm/50 font-mono text-[10px] mt-0.5">{i + 1}.</span>
-                        <span>{s}</span>
-                      </li>
-                    ))}
-                  </ol>
-                  {guide.tip && (
-                    <p className="text-[10px] text-idm-gold-warm/60 mt-2 ml-7 flex items-start gap-1">
-                      <span>💡</span> <span>{guide.tip}</span>
-                    </p>
-                  )}
+                )}
+                <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40">
+                  <span className="text-base leading-none">{STEPS[currentStepIdx].icon}</span>
+                  <span className="text-[9px] font-semibold text-idm-gold-warm">{STEPS[currentStepIdx].label}</span>
                 </div>
-              );
-            })()}
+                {currentStepIdx < STEPS.length - 1 && (
+                  <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-muted/30 border border-border/10 opacity-50">
+                    <span className="text-base leading-none">{STEPS[currentStepIdx + 1].icon}</span>
+                    <span className="text-[9px] font-semibold text-muted-foreground">{STEPS[currentStepIdx + 1].label}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Current Step Guide */}
+            <StepGuide status={selected.status} />
 
             <Separator />
 
@@ -1846,6 +1907,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           tournamentId={selectedId || ''}
         />
       )}
-    </motion.div>
+    </div>
   );
 }

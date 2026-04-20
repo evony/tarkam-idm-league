@@ -806,7 +806,7 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
   }, [roundsData, dt.color]);
 
   useEffect(() => {
-    const attempts = [50, 200, 500, 1000];
+    const attempts = [100, 600];
     const timers = attempts.map(delay => setTimeout(calculateConnectors, delay));
     const handleResize = () => calculateConnectors();
     window.addEventListener('resize', handleResize);
