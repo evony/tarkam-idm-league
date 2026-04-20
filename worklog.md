@@ -740,3 +740,42 @@ Stage Summary:
 - Key improvements: 5-phase slowdown, always-visible close button, 3-col grid, filtered cycling names, round indicators, auto-play toggle
 - Unused TeamRevealSpin component deleted
 - All changes backward compatible (same props interface)
+---
+Task ID: 4
+Agent: Main Agent
+Task: Spin Animation UX Improvement v2 — Slot machine roller, desktop inline layout, Play button behavior
+
+Work Log:
+- Rewrote team-spin-reveal.tsx with 3 major improvements:
+  1. SLOT MACHINE ROLLER EFFECT: Names visually scroll vertically like a real slot machine
+     - Uses Framer Motion translateY animation on a long strip of names
+     - Strip = 7 repetitions of available players (slight rotation per rep for variety)
+     - Custom easing curve [0.05, 0.7, 0.1, 1.0] — fast start, gradual slowdown
+     - Duration: 3.5 seconds (was ~6-8s with interval-based approach)
+     - Target player lands in center of viewport at end of animation
+     - Gradient fade masks on top/bottom, center highlight border
+     - Replaces old interval-based text swapping (names appeared static)
+  2. DESKTOP INLINE LAYOUT: Spin renders as a card section within admin panel, not overlay
+     - Mobile: fixed overlay with dark background (same as before)
+     - Desktop (lg+): static card with casino bar, border, rounded corners, bg-card
+     - Responsive CSS: fixed lg:static, bg-black/85 lg:bg-transparent, etc.
+     - Tournament detail card hidden when spin is active (!spinRevealData condition)
+  3. PLAY BUTTON BEHAVIOR: Always visible, disabled during spin
+     - Disabled state: gray bg, "Mengacak..." text, cursor-not-allowed
+     - Enabled state: green gradient, "Acak!" text
+     - Disabled during isSpinning || showReveal
+     - Re-enables after reveal completes and next step is ready
+- Fixed hoisting issue: advanceToNextStep referenced startSpin before declaration
+  - Solution: startSpinRef pattern — ref updated via useEffect, accessed in callbacks
+- Updated tournament-manager.tsx:
+  - Changed `{selected && (` to `{selected && !spinRevealData && (`
+  - Tournament detail hidden when spin active (both mobile overlay and desktop inline)
+- Lint clean, page loads HTTP 200
+
+Stage Summary:
+- Slot machine roller: names visually scroll down through viewport (not static text swap)
+- Desktop: spin appears as inline card section replacing tournament detail
+- Mobile: spin appears as overlay (unchanged behavior)
+- Play button: visible always, disabled during spin, re-enabled after selection
+- Spin duration: ~3.5 seconds (was too long before)
+- All responsive styling with lg: prefix for desktop

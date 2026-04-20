@@ -556,7 +556,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       </div>
 
       {/* ===== SELECTED TOURNAMENT DETAIL ===== */}
-      {selected && (
+      {/* On desktop: hidden when spin is active (spin replaces it inline) */}
+      {/* On mobile: hidden when spin is active (spin overlay covers it) */}
+      {selected && !spinRevealData && (
         <Card className={`${dt.casinoCard} border-idm-gold-warm/20`}>
           <div className={dt.casinoBar} />
           <CardContent className="p-4 relative z-10 space-y-4">
