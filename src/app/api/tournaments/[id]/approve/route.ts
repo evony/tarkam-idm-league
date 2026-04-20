@@ -20,6 +20,14 @@ export async function POST(
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
+  // Cannot modify approvals if tournament is past approval phase
+  if (!['registration', 'approval'].includes(tournament.status)) {
+    return NextResponse.json(
+      { error: 'Cannot modify approvals — tournament is past the approval phase' },
+      { status: 400 }
+    );
+  }
+
   // Support both single and bulk approval
   const items: { playerId: string; tier?: string; approve: boolean }[] = [];
   if (approvals && Array.isArray(approvals)) {
@@ -89,5 +97,86 @@ export async function POST(
     errorCount: errors.length,
     results,
     errors,
+  });
+}
+
+/**
+ * PUT — Unapprove / Rollback approval
+ * Reverts approved/assigned/rejected players back to "registered" status
+ * so admin can fix tier balance
+ */
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
+  const { id } = await params;
+  const body = await request.json();
+  const { playerId, playerIds, unapproveAll } = body;
+
+  const tournament = await db.tournament.findUnique({ where: { id } });
+  if (!tournament) {
+    return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
+  }
+
+  // Can only unapprove during approval phase
+  if (!['registration', 'approval'].includes(tournament.status)) {
+    return NextResponse.json(
+      { error: 'Cannot unapprove — tournament is past the approval phase' },
+      { status: 400 }
+    );
+  }
+
+  // Determine which players to unapprove
+  let targetPlayerIds: string[] = [];
+
+  if (unapproveAll) {
+    // Unapprove ALL approved/assigned/rejected players
+    const participations = await db.participation.findMany({
+      where: {
+        tournamentId: id,
+        status: { in: ['approved', 'assigned', 'rejected'] },
+      },
+      select: { playerId: true },
+    });
+    targetPlayerIds = participations.map(p => p.playerId);
+  } else if (playerIds && Array.isArray(playerIds)) {
+    targetPlayerIds = playerIds;
+  } else if (playerId) {
+    targetPlayerIds = [playerId];
+  } else {
+    return NextResponse.json(
+      { error: 'playerId, playerIds, or unapproveAll required' },
+      { status: 400 }
+    );
+  }
+
+  if (targetPlayerIds.length === 0) {
+    return NextResponse.json({ unapproved: 0, message: 'No players to unapprove' });
+  }
+
+  // Revert status to "registered" and clear tierOverride
+  const result = await db.participation.updateMany({
+    where: {
+      tournamentId: id,
+      playerId: { in: targetPlayerIds },
+      status: { in: ['approved', 'assigned', 'rejected'] },
+    },
+    data: {
+      status: 'registered',
+      tierOverride: null,
+    },
+  });
+
+  // Ensure tournament stays in approval phase
+  if (tournament.status === 'registration') {
+    await db.tournament.update({ where: { id }, data: { status: 'approval' } });
+  }
+
+  return NextResponse.json({
+    unapproved: result.count,
+    message: `${result.count} player berhasil dikembalikan ke status terdaftar`,
   });
 }

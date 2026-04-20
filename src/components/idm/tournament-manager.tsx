@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import {
   Plus, Play, Users, Zap, Crown, Loader2, Trash2,
   UserPlus, Check, X, Trophy, Gift, Star, ArrowRight, RefreshCw,
-  Heart, MapPin, Pencil, Calendar, ChevronLeft, Undo2
+  Heart, MapPin, Pencil, Calendar, ChevronLeft, Undo2, RotateCcw,
+  AlertTriangle, ShieldCheck, ShieldX, Info
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,10 +56,15 @@ const BRACKET_LABELS: Record<string, string> = {
   group: 'Group Stage',
 };
 
+const TIER_COLORS: Record<string, { bg: string; bar: string; text: string; icon: string }> = {
+  S: { bg: 'bg-red-500/10', bar: 'bg-red-500', text: 'text-red-500', icon: '🔥' },
+  A: { bg: 'bg-yellow-500/10', bar: 'bg-yellow-500', text: 'text-yellow-500', icon: '⚡' },
+  B: { bg: 'bg-blue-500/10', bar: 'bg-blue-500', text: 'text-blue-500', icon: '🛡️' },
+};
+
 export function TournamentManager({ division, dt, stats, setConfirmDialog }: TournamentManagerProps) {
   const qc = useQueryClient();
   const seasonId = stats?.season?.id;
-  // IDM League is unified — use the season's division ('liga') for tournament creation
   const seasonDivision = stats?.season?.division || 'liga';
 
   // State
@@ -94,7 +100,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     teamCount: number;
   } | null>(null);
 
-  // Queries — fetch tournaments by seasonId (unified league, not by division)
+  // Queries
   const { data: tournaments } = useQuery({
     queryKey: ['admin-tournaments', seasonId],
     queryFn: async () => {
@@ -116,14 +122,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     queryFn: async () => { const r = await fetch(`/api/players?division=${division}`); return r.json(); },
   });
 
-  // Fetch approved donations (sawer) for this tournament
   const { data: tournamentDonations } = useQuery({
     queryKey: ['admin-tournament-donations', selectedId],
     queryFn: async () => {
       if (!selectedId) return { total: { amount: 0, count: 0 }, donations: [] };
       const r = await fetch(`/api/donations?status=approved&limit=100`);
-      const data = await r.json();
-      return data;
+      return r.json();
     },
     enabled: !!selectedId,
   });
@@ -179,6 +183,23 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Player disetujui!'); },
   });
 
+  // Unapprove mutation — rollback approval to "registered"
+  const unapproveMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[]; unapproveAll?: boolean } }) => {
+      const r = await fetch(`/api/tournaments/${id}/approve`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membatalkan persetujuan'); }
+      return r.json();
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
+      toast.success(data.message || 'Persetujuan berhasil dibatalkan!');
+    },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
+
   const generateTeamsMutation = useMutation({
     mutationFn: async (id: string) => {
       const r = await fetch(`/api/tournaments/${id}/generate-teams`, { method: 'POST' });
@@ -188,7 +209,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] });
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
-      // If spinRevealOrder is available, trigger spin animation instead of just a toast
       if (data.spinRevealOrder && data.spinRevealOrder.length > 0) {
         setSpinRevealData({ spinRevealOrder: data.spinRevealOrder, teamCount: data.teamCount });
       } else {
@@ -234,7 +254,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onError: (e: Error) => { toast.error(e.message); },
   });
 
-  // Bug #7 fix: Undo score mutation
   const undoScoreMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
       const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
@@ -270,7 +289,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); setSelectedId(null); toast.success('Tournament dihapus'); },
   });
 
-  // Edit tournament handler
   const openEditDialog = (t: { id: string; name: string; weekNumber: number; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number | null; location?: string | null; scheduledAt?: string | null }) => {
     setEditForm({
       id: t.id,
@@ -317,7 +335,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const pendingApprovals = useMemo(() => (selected?.participations || []).filter((p: { status: string }) => p.status === 'registered'), [selected?.participations]);
   const approvedParticipations = useMemo(() => (selected?.participations || []).filter((p: { status: string }) => ['approved', 'assigned'].includes(p.status)), [selected?.participations]);
 
-  // Tier distribution for approval phase
+  // Tier distribution — counts from BOTH pending (with tierOverride preview) AND already approved
   const tierDist = useMemo(() => {
     const dist = { S: 0, A: 0, B: 0 };
     for (const p of pendingApprovals) {
@@ -349,7 +367,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       .reduce((sum: number, d: { amount: number }) => sum + d.amount, 0);
   }, [tournamentDonations, selectedId, seasonId]);
 
-  // Reference prize pool (display only, not forced)
   const referencePrizePool = useMemo(() => {
     return (approvedParticipations.length * 20000) + approvedSawer;
   }, [approvedParticipations.length, approvedSawer]);
@@ -365,7 +382,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     return grouped;
   })();
 
-  // Helpers
   const nextMatch = (() => {
     if (!selected?.matches) return null;
     return selected.matches.find((m: { status: string; team1Id: string | null; team2Id: string | null }) =>
@@ -379,7 +395,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     return team?.name || 'TBD';
   };
 
-  // Reset approval step when selectedId changes (adjusting state during render is intentional)
+  // Reset state when selectedId changes
   const [prevSelectedId, setPrevSelectedId] = useState<string | null>(selectedId);
   if (prevSelectedId !== selectedId) {
     setPrevSelectedId(selectedId);
@@ -389,7 +405,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     setManualPrizePool('');
   }
 
-  // Initialize prizes and prize pool from selected tournament (once per tournament)
+  // Initialize prizes and prize pool from selected tournament
   const [prizesInitializedFor, setPrizesInitializedFor] = useState<string | null>(null);
   if (selected?.id && selected.id !== prizesInitializedFor) {
     setPrizesInitializedFor(selected.id);
@@ -409,11 +425,28 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     }
   }
 
-  // Handle spin reveal completion
   const handleSpinComplete = useCallback(() => {
     setSpinRevealData(null);
     toast.success('Tim berhasil di-generate! 🎉');
   }, []);
+
+  // Check if bulk approve would create tier imbalance
+  const wouldBulkApproveBreakBalance = useMemo(() => {
+    if (pendingApprovals.length === 0) return false;
+    // Simulate: what would tierDist look like if we approve all pending?
+    const simDist = { S: 0, A: 0, B: 0 };
+    // All pending get their tierOverride or current tier
+    for (const p of pendingApprovals) {
+      const t = tierOverrides[p.playerId] || p.player?.tier || 'B';
+      simDist[t as keyof typeof simDist]++;
+    }
+    // Add existing approved
+    for (const p of approvedParticipations) {
+      const t = p.tierOverride || p.player?.tier || 'B';
+      simDist[t as keyof typeof simDist]++;
+    }
+    return !(simDist.S > 0 && simDist.S === simDist.A && simDist.A === simDist.B);
+  }, [pendingApprovals, approvedParticipations, tierOverrides]);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
@@ -553,7 +586,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               </div>
             </div>
 
-            {/* Step Wizard — Visual Progress */}
+            {/* Step Wizard */}
             <div className="flex items-stretch gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
               {STEPS.map((step, i) => {
                 const isCompleted = i < currentStepIdx;
@@ -585,12 +618,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               })}
             </div>
 
-            {/* Current Step Guide — Prominent card explaining what to do */}
+            {/* Current Step Guide */}
             {selected.status !== 'completed' && (() => {
               const guides: Record<string, { icon: string; title: string; steps: string[]; tip?: string }> = {
                 setup: { icon: '⚙️', title: 'Setup Tournament', steps: ['Tournament sudah dibuat', 'Klik "Buka Registrasi" untuk mulai mendaftarkan pemain'], tip: 'Pastikan season sudah aktif sebelum membuat tournament.' },
                 registration: { icon: '📋', title: 'Fase Registrasi', steps: ['Daftarkan pemain yang akan berpartisipasi', 'Gunakan "Daftarkan Semua" atau daftar satu per satu', 'Setelah cukup pemain, klik "Lanjut ke Persetujuan"'], tip: 'Minimal 3 pemain per tier (S, A, B) untuk membuat 1 tim.' },
-                approval: { icon: '⏳', title: 'Fase Persetujuan', steps: ['Atur tier setiap pemain (S/A/B) sesuai skill level', 'Setujui pemain satu per satu atau sekaligus', 'Pastikan tier S = A = B (jumlah seimbang)', 'Atur prize pool & hadiah', 'Klik "Generate Tim" jika tier sudah seimbang'], tip: 'Tier harus seimbang (S=A=B) untuk bisa generate tim!' },
+                approval: { icon: '⏳', title: 'Fase Persetujuan', steps: ['Atur tier setiap pemain (S/A/B) sesuai skill level', 'Setujui pemain satu per satu atau sekaligus', 'Pastikan tier S = A = B (jumlah seimbang)', 'Jika tier tidak seimbang, gunakan "Batalkan" untuk mengubah tier', 'Atur prize pool & hadiah', 'Klik "Generate Tim" jika tier sudah seimbang'], tip: 'Tier harus seimbang (S=A=B) untuk bisa generate tim! Gunakan "Batalkan Persetujuan" jika perlu mengubah tier.' },
                 team_generation: { icon: '👥', title: 'Tim Terbentuk', steps: ['Tim sudah dibuat secara random (1S+1A+1B)', 'Cek komposisi tim', 'Klik "Generate Bracket" untuk melanjutkan'], tip: 'Tim dinamai berdasarkan pemain Tier S.' },
                 bracket_generation: { icon: '🏆', title: 'Bracket Siap', steps: ['Bracket pertandingan sudah dibuat', 'Cek jadwal match', 'Klik "Mulai Event!" untuk memulai pertandingan'], tip: 'Format bracket mengikuti pengaturan tournament.' },
                 main_event: { icon: '🎮', title: 'Event Berlangsung', steps: ['Start match yang siap dimainkan', 'Submit skor setelah pertandingan selesai', 'Tunggu semua match selesai', 'Lanjut ke finalisasi'], tip: 'Gunakan "Undo" jika ada kesalahan input skor.' },
@@ -641,7 +674,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                 {selected.status === 'registration' && (
                   <>
-                    {/* Bulk register */}
                     <div className="flex items-center gap-3">
                       <Button size="default" variant="outline" className="text-xs h-9 px-4"
                         disabled={unregistered.length === 0 || registerMutation.isPending}
@@ -661,10 +693,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </span>
                     </div>
 
-                    {/* Search */}
                     <Input placeholder="🔍 Cari player..." value={searchPlayer} onChange={e => setSearchPlayer(e.target.value)} className="h-9 text-xs" />
 
-                    {/* Available players */}
                     <div className="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar">
                       {filteredUnregistered.slice(0, 20).map((p: { id: string; gamertag: string; name: string; tier: string; points: number }) => (
                         <div key={p.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50">
@@ -681,7 +711,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       ))}
                     </div>
 
-                    {/* Already registered */}
                     {selected.participations?.length > 0 && (
                       <div>
                         <p className="text-[10px] text-muted-foreground mb-1">Terdaftar ({selected.participations.length}):</p>
@@ -695,11 +724,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
                     )}
 
-                    {/* Advance to approval */}
                     {selected.participations?.length > 0 && (
                       <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4"
                         onClick={() => updateMutation.mutate({ id: selected.id, data: { status: 'approval' } })}>
-                        <ArrowRight className="w-4 h-4 mr-1.5" /> Lanjut ke Persetujuan
+                        <ArrowRight className="w-4 h-4 mr-1.5" /> Lanjut ke Persetujuan ({selected.participations.length} pemain)
                       </Button>
                     )}
                   </>
@@ -707,13 +735,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               </div>
             )}
 
-            {/* ===== APPROVAL PHASE ===== */}
+            {/* ===== APPROVAL PHASE — REDESIGNED ===== */}
             {selected.status === 'approval' && (
-              <div className="space-y-4">
-                {/* Step indicator — bigger and more visual */}
+              <div className="space-y-5">
+                {/* Step indicator — bigger and clearer */}
                 <div className="flex items-center gap-3">
                   <button
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all
                       ${approvalStep === 'approve'
                         ? 'bg-yellow-500/15 text-yellow-500 border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.1)]'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
@@ -722,7 +750,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </button>
                   <ArrowRight className="w-4 h-4 text-muted-foreground/30" />
                   <button
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all
                       ${approvalStep === 'prize'
                         ? 'bg-idm-gold-warm/15 text-idm-gold-warm border-2 border-idm-gold-warm/30 shadow-[0_0_10px_rgba(255,183,77,0.1)]'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
@@ -730,173 +758,260 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     <span className="text-base">💰</span> Hadiah
                   </button>
                   {approvedParticipations.length > 0 && (
-                    <Badge className="text-xs border-0 bg-green-500/10 text-green-500 ml-auto px-3 py-1">✅ {approvedParticipations.length} disetujui</Badge>
+                    <Badge className="text-xs border-0 bg-green-500/10 text-green-500 ml-auto px-3 py-1.5">✅ {approvedParticipations.length} disetujui</Badge>
                   )}
                 </div>
 
                 {/* ===== STEP 1: APPROVE PARTICIPANTS ===== */}
                 {approvalStep === 'approve' && (
                   <>
-                    <p className="text-sm font-semibold text-yellow-500 flex items-center gap-1.5">⏳ Fase Persetujuan — Set Tier & Setujui Pemain</p>
-                    <p className="text-xs text-muted-foreground">Atur tier setiap pemain (S/A/B), lalu setujui. Tier harus seimbang untuk generate tim.</p>
+                    <p className="text-base font-semibold text-yellow-500 flex items-center gap-2">⏳ Fase Persetujuan — Set Tier & Setujui Pemain</p>
+                    <p className="text-sm text-muted-foreground">Atur tier setiap pemain (S/A/B), lalu setujui. Tier harus seimbang (S=A=B) untuk generate tim.</p>
 
-                    {/* Tier Balance Status — Prominent Card */}
-                    <div className={`p-4 rounded-xl border-2 transition-all
+                    {/* ===== TIER BALANCE STATUS — BIG & PROMINENT ===== */}
+                    <div className={`p-5 rounded-xl border-2 transition-all
                       ${isTierBalanced
-                        ? 'bg-green-500/5 border-green-500/20'
-                        : 'bg-red-500/5 border-red-500/20'}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-semibold flex items-center gap-1.5">
-                          {isTierBalanced ? '✅ Tier Seimbang' : '⚠️ Tier Tidak Seimbang'}
+                        ? 'bg-green-500/5 border-green-500/30'
+                        : 'bg-red-500/5 border-red-500/30'}`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-base font-bold flex items-center gap-2">
+                          {isTierBalanced ? (
+                            <><ShieldCheck className="w-5 h-5 text-green-500" /> Tier Seimbang!</>
+                          ) : (
+                            <><AlertTriangle className="w-5 h-5 text-red-500" /> Tier Tidak Seimbang</>
+                          )}
                         </p>
                         {isTierBalanced ? (
-                          <Badge className="text-xs border-0 bg-green-500/15 text-green-500">🎯 {tierDist.S} tim bisa dibuat</Badge>
+                          <Badge className="text-sm border-0 bg-green-500/15 text-green-500 px-3 py-1.5">🎯 {tierDist.S} tim bisa dibuat</Badge>
                         ) : (
-                          <Badge className="text-xs border-0 bg-red-500/15 text-red-500">🚫 Generate Tim dinonaktifkan</Badge>
+                          <Badge className="text-sm border-0 bg-red-500/15 text-red-500 px-3 py-1.5">🚫 Generate Tim dinonaktifkan</Badge>
                         )}
                       </div>
 
-                      {/* Visual progress bars for each tier */}
-                      <div className="space-y-2.5">
+                      {/* Visual tier bars */}
+                      <div className="grid grid-cols-3 gap-4 mb-4">
                         {(['S', 'A', 'B'] as const).map(tier => {
                           const count = tierDist[tier];
                           const maxCount = Math.max(tierDist.S, tierDist.A, tierDist.B, 1);
                           const pct = Math.round((count / maxCount) * 100);
-                          const tierColors: Record<string, string> = { S: 'bg-red-500', A: 'bg-yellow-500', B: 'bg-blue-500' };
-                          const tierBgs: Record<string, string> = { S: 'bg-red-500/10', A: 'bg-yellow-500/10', B: 'bg-blue-500/10' };
-                          const tierTexts: Record<string, string> = { S: 'text-red-500', A: 'text-yellow-500', B: 'text-blue-500' };
+                          const tc = TIER_COLORS[tier];
                           const deficit = tierMaxCount - count;
                           return (
-                            <div key={tier}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className={`text-xs font-semibold flex items-center gap-1.5 ${tierTexts[tier]}`}>
-                                  <span className={`inline-block w-2 h-2 rounded-full ${tierColors[tier]}`} />
-                                  Tier {tier}
-                                  {isTierBalanced && <span className="text-green-500 text-[10px]">✓</span>}
+                            <div key={tier} className={`p-3 rounded-xl ${tc.bg} border border-current/10`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`text-sm font-bold flex items-center gap-1.5 ${tc.text}`}>
+                                  <span className="text-lg">{tc.icon}</span> Tier {tier}
                                 </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {count} pemain
-                                  {!isTierBalanced && deficit > 0 && <span className="text-red-400/70 ml-1">(kurang {deficit})</span>}
-                                </span>
+                                <span className={`text-2xl font-black ${tc.text}`}>{count}</span>
                               </div>
-                              <div className={`h-3 rounded-full ${tierBgs[tier]} overflow-hidden`}>
-                                <div
-                                  className={`h-full rounded-full ${tierColors[tier]} transition-all duration-500`}
-                                  style={{ width: `${pct}%` }}
-                                />
+                              <div className={`h-2.5 rounded-full ${tc.bg} overflow-hidden`}>
+                                <div className={`h-full rounded-full ${tc.bar} transition-all duration-500`} style={{ width: `${pct}%` }} />
                               </div>
+                              {!isTierBalanced && deficit > 0 && (
+                                <p className="text-[11px] text-red-400 mt-1.5 font-medium">Kurang {deficit} pemain</p>
+                              )}
+                              {isTierBalanced && (
+                                <p className="text-[11px] text-green-500 mt-1.5 font-medium">✓ Seimbang</p>
+                              )}
                             </div>
                           );
                         })}
                       </div>
 
                       {!isTierBalanced && (
-                        <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                          <p className="text-xs text-red-400 font-medium flex items-center gap-1.5">
-                            <span>🚫</span> Tier harus seimbang (S = A = B) untuk generate tim
+                        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                          <p className="text-sm text-red-400 font-bold flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" /> Tier harus seimbang (S = A = B) untuk generate tim
                           </p>
-                          <p className="text-[10px] text-red-400/70 mt-1">
+                          <p className="text-xs text-red-400/70 mt-1">
                             Butuh tambahan: {tierMaxCount - tierDist.S}S, {tierMaxCount - tierDist.A}A, {tierMaxCount - tierDist.B}B
-                            — atau ubah tier pemain yang sudah ada agar seimbang
+                            — atau ubah tier pemain yang sudah ada, atau batalkan persetujuan yang salah tier
                           </p>
                         </div>
                       )}
 
                       {isTierBalanced && (
-                        <div className="mt-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                          <p className="text-xs text-green-500 font-medium flex items-center gap-1.5">
-                            <span>🎯</span> Siap generate {tierDist.S} tim! Setiap tim = 1S + 1A + 1B
+                        <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                          <p className="text-sm text-green-500 font-bold flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4" /> Siap generate {tierDist.S} tim! Setiap tim = 1S + 1A + 1B
                           </p>
                         </div>
                       )}
                     </div>
 
-                    {/* Pending approvals with tier override */}
-                    <div className="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar">
-                      {pendingApprovals.length === 0 && (
-                        <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20 text-center">
-                          <p className="text-xs text-green-500 font-medium">✅ Semua pemain sudah disetujui!</p>
-                        </div>
-                      )}
-                      {pendingApprovals.map((p: { id: string; playerId: string; player: { id: string; gamertag: string; tier: string; points: number } }) => (
-                        <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                          <div className="flex items-center gap-2">
-                            <TierBadge tier={tierOverrides[p.playerId] || p.player.tier} />
-                            <span className="text-sm font-medium">{p.player.gamertag}</span>
-                            <span className="text-xs text-muted-foreground">({p.player.tier}) {p.player.points}pts</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Select value={tierOverrides[p.playerId] || p.player.tier}
-                              onValueChange={v => setTierOverrides(prev => ({ ...prev, [p.playerId]: v }))}>
-                              <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="S">S</SelectItem>
-                                <SelectItem value="A">A</SelectItem>
-                                <SelectItem value="B">B</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs text-green-500 hover:text-green-400"
-                              onClick={() => approveMutation.mutate({
-                                id: selected.id,
-                                data: { playerId: p.playerId, tier: tierOverrides[p.playerId] || p.player.tier, approve: true }
+                    {/* ===== ALREADY APPROVED PLAYERS (with unapprove) ===== */}
+                    {approvedParticipations.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-green-500 flex items-center gap-1.5">
+                            ✅ Disetujui ({approvedParticipations.length})
+                          </p>
+                          <div className="flex gap-2">
+                            {/* Unapprove All button */}
+                            <Button size="sm" variant="outline"
+                              className="text-xs h-8 text-orange-500 border-orange-500/30 hover:bg-orange-500/10"
+                              disabled={unapproveMutation.isPending}
+                              onClick={() => setConfirmDialog({
+                                open: true,
+                                title: 'Batalkan Semua Persetujuan?',
+                                description: `Semua ${approvedParticipations.length} pemain yang sudah disetujui akan dikembalikan ke status "Terdaftar". Tier override juga akan dihapus. Ini memungkinkan Anda mengatur ulang tier untuk menyeimbangkan.`,
+                                onConfirm: () => unapproveMutation.mutate({ id: selected.id, data: { unapproveAll: true } })
                               })}>
-                              <Check className="w-3.5 h-3.5" />
+                              {unapproveMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
+                              Batalkan Semua
                             </Button>
                           </div>
                         </div>
-                      ))}
+
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar">
+                          {approvedParticipations.map((p: { id: string; playerId: string; tierOverride?: string | null; player: { id: string; gamertag: string; tier: string; points: number } }) => {
+                            const effectiveTier = p.tierOverride || p.player?.tier || 'B';
+                            const tc = TIER_COLORS[effectiveTier] || TIER_COLORS.B;
+                            return (
+                              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-sm">{tc.icon}</span>
+                                  <TierBadge tier={effectiveTier} />
+                                  <span className="text-sm font-medium">{p.player?.gamertag}</span>
+                                  {p.tierOverride && p.tierOverride !== p.player?.tier && (
+                                    <span className="text-[10px] text-muted-foreground">(asal: {p.player?.tier})</span>
+                                  )}
+                                  <span className="text-xs text-muted-foreground">{p.player?.points}pts</span>
+                                </div>
+                                <Button size="sm" variant="ghost"
+                                  className="h-7 text-xs text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
+                                  disabled={unapproveMutation.isPending}
+                                  onClick={() => setConfirmDialog({
+                                    open: true,
+                                    title: 'Batalkan Persetujuan?',
+                                    description: `${p.player?.gamertag} akan dikembalikan ke status "Terdaftar". Anda bisa mengatur ulang tier-nya.`,
+                                    onConfirm: () => unapproveMutation.mutate({ id: selected.id, data: { playerId: p.playerId } })
+                                  })}>
+                                  <RotateCcw className="w-3 h-3 mr-1" /> Batalkan
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    {/* ===== PENDING APPROVALS (with tier override) ===== */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-yellow-500 flex items-center gap-1.5">
+                        ⏳ Menunggu Persetujuan ({pendingApprovals.length})
+                      </p>
+
+                      {pendingApprovals.length === 0 ? (
+                        <div className="p-5 rounded-lg bg-green-500/5 border border-green-500/20 text-center">
+                          <p className="text-sm text-green-500 font-medium">✅ Semua pemain sudah disetujui!</p>
+                          {!isTierBalanced && (
+                            <p className="text-xs text-orange-400 mt-2">
+                              ⚠️ Tapi tier belum seimbang. Gunakan <strong>"Batalkan"</strong> di pemain yang salah tier, ubah tier-nya, lalu setujui lagi.
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar">
+                          {pendingApprovals.map((p: { id: string; playerId: string; player: { id: string; gamertag: string; tier: string; points: number } }) => {
+                            const effectiveTier = tierOverrides[p.playerId] || p.player.tier;
+                            const tc = TIER_COLORS[effectiveTier] || TIER_COLORS.B;
+                            return (
+                              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-sm">{tc.icon}</span>
+                                  <TierBadge tier={effectiveTier} />
+                                  <span className="text-sm font-medium">{p.player.gamertag}</span>
+                                  <span className="text-xs text-muted-foreground">({p.player.tier}) {p.player.points}pts</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Select value={tierOverrides[p.playerId] || p.player.tier}
+                                    onValueChange={v => setTierOverrides(prev => ({ ...prev, [p.playerId]: v }))}>
+                                    <SelectTrigger className="w-16 h-8 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="S">🔥 S</SelectItem>
+                                      <SelectItem value="A">⚡ A</SelectItem>
+                                      <SelectItem value="B">🛡️ B</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button size="sm" variant="ghost" className="h-8 text-xs text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                                    onClick={() => approveMutation.mutate({
+                                      id: selected.id,
+                                      data: { playerId: p.playerId, tier: tierOverrides[p.playerId] || p.player.tier, approve: true }
+                                    })}>
+                                    <Check className="w-4 h-4 mr-1" /> Setujui
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Bulk approve */}
+                    {/* ===== BULK APPROVE — with tier balance warning ===== */}
                     {pendingApprovals.length > 0 && (
-                      <div className="space-y-2">
-                        <Button size="default" variant="outline" className="text-xs h-9 px-4"
-                          disabled={approveMutation.isPending}
-                          onClick={() => approveMutation.mutate({
-                            id: selected.id,
-                            data: {
-                              approvals: pendingApprovals.map((p: { playerId: string; player: { tier: string } }) => ({
-                                playerId: p.playerId,
-                                tier: tierOverrides[p.playerId] || p.player.tier,
-                                approve: true
-                              }))
-                            }
-                          })}>
-                          {approveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Check className="w-4 h-4 mr-1.5" />}
-                          Setujui Semua ({pendingApprovals.length})
-                        </Button>
-                        {!isTierBalanced && (
-                          <p className="text-[10px] text-yellow-500">⚠️ Menyetujui semua pemain belum menjamin tier seimbang. Pastikan S=A=B sebelum generate tim.</p>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Button size="default" variant="outline" className="text-sm h-10 px-5"
+                            disabled={approveMutation.isPending}
+                            onClick={() => {
+                              if (wouldBulkApproveBreakBalance) {
+                                setConfirmDialog({
+                                  open: true,
+                                  title: '⚠️ Tier Akan Tidak Seimbang!',
+                                  description: `Jika Anda menyetujui semua pemain sekarang, tier tidak akan seimbang (S≠A≠B). Anda tidak bisa generate tim sampai tier seimbang. Lanjutkan? (Anda bisa batalkan persetujuan nanti)`,
+                                  onConfirm: () => approveMutation.mutate({
+                                    id: selected.id,
+                                    data: {
+                                      approvals: pendingApprovals.map((p: { playerId: string; player: { tier: string } }) => ({
+                                        playerId: p.playerId,
+                                        tier: tierOverrides[p.playerId] || p.player.tier,
+                                        approve: true
+                                      }))
+                                    }
+                                  })
+                                });
+                              } else {
+                                approveMutation.mutate({
+                                  id: selected.id,
+                                  data: {
+                                    approvals: pendingApprovals.map((p: { playerId: string; player: { tier: string } }) => ({
+                                      playerId: p.playerId,
+                                      tier: tierOverrides[p.playerId] || p.player.tier,
+                                      approve: true
+                                    }))
+                                  }
+                                });
+                              }
+                            }}>
+                            {approveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Check className="w-4 h-4 mr-1.5" />}
+                            Setujui Semua ({pendingApprovals.length})
+                          </Button>
+                        </div>
+
+                        {wouldBulkApproveBreakBalance && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                            <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
+                            <p className="text-xs text-yellow-500 font-medium">
+                              Menyetujui semua pemain akan menyebabkan tier tidak seimbang. Sebaiknya atur tier dulu sebelum approve, atau approve satu per satu per tier.
+                            </p>
+                          </div>
                         )}
                       </div>
                     )}
 
-                    {/* Next step button — always available when at least 1 approved */}
+                    {/* ===== GENERATE TIM — only when tier balanced ===== */}
                     {approvedParticipations.length > 0 && (
-                      <div className="space-y-1.5">
-                        <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4"
-                          onClick={() => setApprovalStep('prize')}>
-                          Lanjut ke Hadiah →
-                        </Button>
-                        {!isTierBalanced && (
-                          <p className="text-[10px] text-yellow-500/80">💡 Anda bisa lanjut ke hadiah sambil menunggu tier seimbang.</p>
-                        )}
-                      </div>
-                    )}
-                    {pendingApprovals.length > 0 && approvedParticipations.length > 0 && (
-                      <p className="text-xs text-muted-foreground">💡 Masih ada peserta yang belum disetujui, tapi Anda sudah bisa lanjut ke pembagian hadiah.</p>
-                    )}
-
-                    {/* Generate Tim — DISABLED when tier not balanced */}
-                    {approvedParticipations.length > 0 && (
-                      <div className="space-y-2">
-                        <Button size="default" className={`text-sm h-9 px-4 ${isTierBalanced ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-muted/50 text-muted-foreground cursor-not-allowed'}`}
+                      <div className="space-y-3 pt-2 border-t border-border/20">
+                        <Button size="lg" className={`text-base h-12 px-6 w-full sm:w-auto ${isTierBalanced ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-muted/50 text-muted-foreground cursor-not-allowed'}`}
                           disabled={!isTierBalanced || generateTeamsMutation.isPending}
                           onClick={() => setConfirmDialog({
                             open: true, title: 'Generate Tim?',
-                            description: `${approvedParticipations.length} player akan dibagi menjadi tim (1S+1A+1B). Total harus habis dibagi 3.`,
+                            description: `${approvedParticipations.length} player akan dibagi menjadi ${tierDist.S} tim (1S+1A+1B).`,
                             onConfirm: async () => {
-                              // Save prize pool if set
                               const pool = parseInt(manualPrizePool) || 0;
                               if (pool > 0 || (wantsManualPrize && prizes.some(p => p.prizeAmount > 0))) {
                                 await fetch(`/api/tournaments/${selected.id}`, {
@@ -914,14 +1029,35 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               generateTeamsMutation.mutate(selected.id);
                             }
                           })}>
-                          {generateTeamsMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Users className="w-4 h-4 mr-1.5" />}
-                          Generate Tim
+                          {generateTeamsMutation.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Users className="w-5 h-5 mr-2" />}
+                          Generate Tim ({tierDist.S} tim)
                         </Button>
                         {!isTierBalanced && (
-                          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-                            <span className="text-sm">🚫</span>
-                            <p className="text-xs text-red-400 font-medium">Tier harus seimbang (S=A=B) untuk generate tim. Butuh lebih banyak pemain di tier yang kurang.</p>
+                          <div className="flex items-center gap-2 p-4 rounded-lg bg-red-500/5 border border-red-500/20">
+                            <ShieldX className="w-5 h-5 text-red-500 shrink-0" />
+                            <div>
+                              <p className="text-sm text-red-400 font-bold">Tier harus seimbang (S=A=B) untuk generate tim</p>
+                              <p className="text-xs text-red-400/70 mt-0.5">
+                                Butuh: S={tierDist.S}, A={tierDist.A}, B={tierDist.B} → Kurang {tierMaxCount - tierDist.S}S, {tierMaxCount - tierDist.A}A, {tierMaxCount - tierDist.B}B
+                              </p>
+                              <p className="text-xs text-orange-400/80 mt-1">
+                                💡 Tips: Batalkan persetujuan pemain di tier yang kelebihan, ubah tier-nya, lalu setujui lagi.
+                              </p>
+                            </div>
                           </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Next step to prize */}
+                    {approvedParticipations.length > 0 && (
+                      <div className="space-y-1.5">
+                        <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4"
+                          onClick={() => setApprovalStep('prize')}>
+                          Lanjut ke Hadiah →
+                        </Button>
+                        {!isTierBalanced && (
+                          <p className="text-[10px] text-yellow-500/80">💡 Anda bisa lanjut ke hadiah sambil menunggu tier seimbang.</p>
                         )}
                       </div>
                     )}
@@ -931,13 +1067,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {/* ===== STEP 2: PRIZE DISTRIBUTION ===== */}
                 {approvalStep === 'prize' && (
                   <>
-                    <p className="text-sm font-semibold text-idm-gold-warm flex items-center gap-1.5">💰 Pembagian Hadiah</p>
-                    <p className="text-xs text-muted-foreground">Atur prize pool dan pembagian hadiah untuk pemenang.</p>
+                    <p className="text-base font-semibold text-idm-gold-warm flex items-center gap-2">💰 Pembagian Hadiah</p>
+                    <p className="text-sm text-muted-foreground">Atur prize pool dan pembagian hadiah untuk pemenang.</p>
 
-                    {/* Reference Prize Pool Info (display only) */}
-                    <div className="p-3 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
-                      <p className="text-[10px] font-semibold text-idm-gold-warm mb-1.5">📋 Info Prize Pool (Referensi)</p>
-                      <div className="space-y-0.5 text-[10px]">
+                    {/* Reference Prize Pool Info */}
+                    <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
+                      <p className="text-xs font-semibold text-idm-gold-warm mb-2">📋 Info Prize Pool (Referensi)</p>
+                      <div className="space-y-1 text-xs">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">├─ Dari Pendaftaran:</span>
                           <span>{approvedParticipations.length} × Rp 20.000 = {formatCurrency(approvedParticipations.length * 20000)}</span>
@@ -957,23 +1093,23 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     {/* Manual Prize Pool Input */}
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-semibold">💰 Total Prize Pool</Label>
+                      <Label className="text-xs font-semibold">💰 Total Prize Pool</Label>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground">Rp</span>
+                        <span className="text-xs text-muted-foreground">Rp</span>
                         <Input
                           type="number"
                           placeholder={String(referencePrizePool)}
                           value={manualPrizePool}
                           onChange={e => setManualPrizePool(e.target.value)}
-                          className="h-7 text-[10px] flex-1"
+                          className="h-8 text-xs flex-1"
                         />
                         {manualPrizePool && parseInt(manualPrizePool) !== referencePrizePool && (
-                          <span className={`text-[9px] font-medium ${parseInt(manualPrizePool) > referencePrizePool ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className={`text-[10px] font-medium ${parseInt(manualPrizePool) > referencePrizePool ? 'text-green-500' : 'text-red-500'}`}>
                             {parseInt(manualPrizePool) > referencePrizePool ? '+' : ''}{formatCurrency(parseInt(manualPrizePool) - referencePrizePool)} dari referensi
                           </span>
                         )}
                       </div>
-                      <p className="text-[9px] text-muted-foreground">💡 Isi sesuai kebutuhan. Jika kosong, menggunakan nilai referensi ({formatCurrency(referencePrizePool)}).</p>
+                      <p className="text-[10px] text-muted-foreground">💡 Isi sesuai kebutuhan. Jika kosong, menggunakan nilai referensi ({formatCurrency(referencePrizePool)}).</p>
                     </div>
 
                     {/* Manual prize distribution toggle */}
@@ -988,12 +1124,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         }}
                         className="rounded border-muted-foreground/30"
                       />
-                      <label htmlFor="manualPrize" className="text-[10px] font-medium cursor-pointer">
+                      <label htmlFor="manualPrize" className="text-xs font-medium cursor-pointer">
                         ☑️ Saya ingin atur pembagian hadiah manual
                       </label>
                     </div>
 
-                    {/* Prize inputs (only when manual config is toggled) */}
+                    {/* Prize inputs */}
                     {showPrizeConfig && wantsManualPrize && (
                       <div className="space-y-2 pt-2 border-t border-border/20">
                         <p className="text-[10px] text-muted-foreground">
@@ -1043,17 +1179,16 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
                     )}
 
-                    {/* Generate Tim — DISABLED when tier not balanced */}
+                    {/* Generate Tim — from prize step too */}
                     {approvedParticipations.length > 0 && (
-                      <div className="space-y-2">
-                        <Button size="default" className={`text-sm h-9 px-4 ${isTierBalanced ? 'bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black' : 'bg-muted/50 text-muted-foreground cursor-not-allowed'}`}
+                      <div className="space-y-2 pt-2 border-t border-border/20">
+                        <Button size="lg" className={`text-base h-12 px-6 w-full sm:w-auto ${isTierBalanced ? 'bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black' : 'bg-muted/50 text-muted-foreground cursor-not-allowed'}`}
                           disabled={!isTierBalanced || generateTeamsMutation.isPending}
                           onClick={() => setConfirmDialog({
                             open: true, title: 'Generate Tim?',
-                            description: `${approvedParticipations.length} player akan dibagi menjadi tim (1S+1A+1B). Total harus habis dibagi 3. Hadiah akan disimpan.`,
+                            description: `${approvedParticipations.length} player akan dibagi menjadi ${tierDist.S} tim (1S+1A+1B). Hadiah akan disimpan.`,
                             onConfirm: async () => {
                               const pool = parseInt(manualPrizePool) || referencePrizePool;
-                              // Save prizes and prize pool
                               await fetch(`/api/tournaments/${selected.id}`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1068,19 +1203,18 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               generateTeamsMutation.mutate(selected.id);
                             }
                           })}>
-                          {generateTeamsMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Users className="w-4 h-4 mr-1.5" />}
-                          Generate Tim
+                          {generateTeamsMutation.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Users className="w-5 h-5 mr-2" />}
+                          Generate Tim ({tierDist.S} tim)
                         </Button>
                         {!isTierBalanced && (
                           <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-                            <span className="text-sm">🚫</span>
-                            <p className="text-xs text-red-400 font-medium">Tier harus seimbang (S=A=B) untuk generate tim.</p>
+                            <ShieldX className="w-4 h-4 text-red-500 shrink-0" />
+                            <p className="text-xs text-red-400 font-medium">Tier harus seimbang (S=A=B) untuk generate tim. Kembali ke tab Persetujuan untuk memperbaiki.</p>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Back to approval step */}
                     <Button size="default" variant="ghost" className="text-xs h-9"
                       onClick={() => setApprovalStep('approve')}>
                       <ChevronLeft className="w-4 h-4 mr-1.5" /> Kembali ke Persetujuan
@@ -1094,9 +1228,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             {(selected.status === 'team_generation' || (selected.status === 'approval' && selected.teams?.length > 0)) && selected.teams?.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-green-500 flex items-center gap-1.5">✅ Tim ({selected.teams.length})</p>
+                  <p className="text-base font-semibold text-green-500 flex items-center gap-2">✅ Tim ({selected.teams.length})</p>
                   {selected.status === 'team_generation' && (
-                    <Button size="sm" variant="outline" className="text-[10px] h-7"
+                    <Button size="sm" variant="outline" className="text-xs h-8"
                       disabled={generateTeamsMutation.isPending}
                       onClick={() => setConfirmDialog({
                         open: true, title: 'Re-generate Tim?',
@@ -1109,14 +1243,14 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {selected.teams.map((t: { id: string; name: string; power: number; isWinner: boolean; rank: number | null; teamPlayers: { player: { gamertag: string; tier: string; points: number } }[] }) => (
-                    <div key={t.id} className={`p-2.5 rounded-lg text-xs ${t.isWinner ? 'bg-idm-gold-warm/5 border border-idm-gold-warm/20' : t.rank ? 'bg-muted/50 border border-border/30' : 'bg-muted/30'}`}>
-                      <div className="flex items-center justify-between mb-1.5">
+                    <div key={t.id} className={`p-3 rounded-lg text-sm ${t.isWinner ? 'bg-idm-gold-warm/5 border border-idm-gold-warm/20' : t.rank ? 'bg-muted/50 border border-border/30' : 'bg-muted/30'}`}>
+                      <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">{t.name} {t.isWinner && '👑'} {t.rank === 2 && '🥈'} {t.rank === 3 && '🥉'}</span>
                         <span className={dt.neonText}>⚡ {t.power}</span>
                       </div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string } }) => (
-                          <span key={tp.player.gamertag} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted/50">
+                          <span key={tp.player.gamertag} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted/50 text-xs">
                             <TierBadge tier={tp.player.tier}  /> {tp.player.gamertag}
                           </span>
                         ))}
@@ -1125,7 +1259,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   ))}
                 </div>
 
-                {/* Advance to bracket */}
                 {selected.status === 'team_generation' && (
                   <Button size="default" className="text-sm h-9 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black px-4"
                     onClick={() => setConfirmDialog({
@@ -1151,7 +1284,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     {showPrizeConfig ? 'Sembunyikan' : 'Edit Hadiah'}
                   </Button>
                 </div>
-                {/* Reference pool display + current prize pool */}
                 <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20 text-[10px]">
                   <p className="font-semibold text-idm-gold-warm mb-1">📋 Info Prize Pool (Referensi)</p>
                   <div className="flex justify-between"><span>Dari Pendaftaran:</span><span>{approvedParticipations.length} × Rp 20.000 = {formatCurrency(approvedParticipations.length * 20000)}</span></div>
@@ -1166,7 +1298,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 </div>
                 {showPrizeConfig && (
                   <div className="space-y-2 pt-2 border-t border-border/20">
-                    {/* Manual Prize Pool Input */}
                     <div className="space-y-1.5">
                       <Label className="text-[10px] font-semibold">💰 Total Prize Pool</Label>
                       <div className="flex items-center gap-2">
@@ -1187,7 +1318,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       <p className="text-[9px] text-muted-foreground">💡 Isi sesuai kebutuhan. Jika kosong, menggunakan nilai referensi ({formatCurrency(referencePrizePool)}).</p>
                     </div>
 
-                    {/* Manual prize distribution toggle */}
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -1254,7 +1384,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             Simpan Hadiah
                           </Button>
                         </div>
-                        {/* Prize Distribution Summary */}
                         {(() => {
                           const totalUsed = prizes.reduce((sum, p) => sum + p.prizeAmount, 0);
                           const effectivePool = parseInt(manualPrizePool) || referencePrizePool;
@@ -1303,14 +1432,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   )}
                 </div>
 
-                {/* Next match indicator */}
                 {nextMatch && selected.status === 'main_event' && (
                   <div className="p-2 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
                     <p className="text-[10px] text-idm-gold-warm font-semibold">▶️ Match Selanjutnya: {getTeamName(nextMatch.team1Id)} vs {getTeamName(nextMatch.team2Id)}</p>
                   </div>
                 )}
 
-                {/* Matches by bracket */}
                 {Object.entries(matchesByBracket).map(([bracket, matches]) => (
                   <div key={bracket}>
                     <p className="text-[10px] font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS[bracket] || bracket}</p>
@@ -1341,7 +1468,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             {m.winner && <span className="text-idm-gold-warm font-semibold">👑 {m.winner.name}</span>}
                           </div>
 
-                          {/* Team names */}
                           <div className="flex items-center gap-2">
                             <div className={`flex-1 ${m.winnerId === m.team1Id ? 'font-bold text-idm-gold-warm' : ''}`}>
                               {getTeamName(m.team1Id)}
@@ -1358,7 +1484,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                           {m.mvpPlayer && <p className="text-[9px] text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
 
-                          {/* Undo button for completed matches (Bug #7) */}
+                          {/* Undo button for completed matches */}
                           {selected.status === 'main_event' && m.status === 'completed' && m.team1Id && m.team2Id && (
                             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
                               <Button size="sm" variant="outline" className="text-[10px] h-6 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
@@ -1419,7 +1545,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </div>
                 ))}
 
-                {/* Completed matches count */}
                 <p className="text-[10px] text-muted-foreground text-center">
                   {selected.matches.filter((m: { status: string }) => m.status === 'completed').length} / {selected.matches.length} match selesai
                 </p>
@@ -1429,14 +1554,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             {/* ===== FINALIZATION ===== */}
             {selected.status === 'finalization' && (
               <div className="space-y-4">
-                <p className="text-sm font-semibold text-idm-gold-warm flex items-center gap-1.5">🏆 Fase Finalisasi — Pilih MVP & Konfirmasi</p>
+                <p className="text-base font-semibold text-idm-gold-warm flex items-center gap-2">🏆 Fase Finalisasi — Pilih MVP & Konfirmasi</p>
 
-                {/* Prize Summary (from approval phase) */}
                 <div className="space-y-2">
-                  <p className="text-[10px] text-muted-foreground">Pembagian Hadiah (dari fase persetujuan):</p>
+                  <p className="text-xs text-muted-foreground">Pembagian Hadiah (dari fase persetujuan):</p>
                   {selected.prizes?.length > 0 ? (
                     selected.prizes.map((p: { id: string; label: string; prizeAmount: number; pointsPerPlayer: number; recipientCount: number }) => (
-                      <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 text-[10px]">
+                      <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 text-xs">
                         <span className="font-medium">{p.label}</span>
                         <span className="text-idm-gold-warm">
                           {formatCurrency(p.prizeAmount)} → {p.pointsPerPlayer} pts{p.recipientCount > 1 ? `/org × ${p.recipientCount}` : ''}
@@ -1444,15 +1568,14 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
                     ))
                   ) : (
-                    <p className="text-[10px] text-yellow-500">⚠️ Belum ada pembagian hadiah. Anda masih bisa finalisasi, hadiah bisa ditambahkan nanti.</p>
+                    <p className="text-xs text-yellow-500">⚠️ Belum ada pembagian hadiah. Anda masih bisa finalisasi, hadiah bisa ditambahkan nanti.</p>
                   )}
                 </div>
 
-                {/* MVP Selection */}
                 <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground">Pilih MVP Tournament</p>
+                  <p className="text-xs text-muted-foreground">Pilih MVP Tournament</p>
                   <Select value={selectedMvp} onValueChange={setSelectedMvp}>
-                    <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Pilih MVP..." /></SelectTrigger>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Pilih MVP..." /></SelectTrigger>
                     <SelectContent>
                       {selected.participations?.map((p: { playerId: string; pointsEarned: number; player: { id: string; gamertag: string } }) => (
                         <SelectItem key={p.playerId} value={p.playerId}>
@@ -1463,7 +1586,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </Select>
                 </div>
 
-                {/* Finalize button */}
                 <Button size="default" className="text-sm h-10 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black w-full px-4"
                   disabled={finalizeMutation.isPending}
                   onClick={() => setConfirmDialog({
@@ -1483,9 +1605,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             {/* ===== COMPLETED ===== */}
             {selected.status === 'completed' && (
               <div className="space-y-4">
-                <p className="text-sm font-semibold text-green-500 flex items-center gap-1.5">🎉 Tournament Selesai!</p>
+                <p className="text-base font-semibold text-green-500 flex items-center gap-2">🎉 Tournament Selesai!</p>
 
-                {/* Champion / Runner-up / 3rd place */}
                 {selected.teams?.filter((t: { rank: number | null }) => t.rank).sort((a: { rank: number }, b: { rank: number }) => (a.rank || 99) - (b.rank || 99)).map((t: { id: string; name: string; rank: number | null; isWinner: boolean; teamPlayers: { player: { gamertag: string; tier: string } }[] }) => (
                   <div key={t.id} className={`p-3 rounded-lg border ${t.rank === 1 ? 'bg-idm-gold-warm/5 border-idm-gold-warm/20' : t.rank === 2 ? 'bg-gray-500/5 border-gray-500/20' : 'bg-orange-500/5 border-orange-500/20'}`}>
                     <div className="flex items-center gap-2">
@@ -1504,14 +1625,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </div>
                 ))}
 
-                {/* MVP */}
                 {selected.matches?.map((m: { mvpPlayer: { gamertag: string } | null }) => m.mvpPlayer).filter(Boolean).length > 0 && (
                   <div className="p-2 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
                     <p className="text-[10px] text-idm-gold-warm">⭐ MVP: {selected.matches.find((m: { mvpPlayer: { gamertag: string } | null }) => m.mvpPlayer)?.mvpPlayer?.gamertag}</p>
                   </div>
                 )}
 
-                {/* Prizes */}
                 {selected.prizes?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-[10px] text-muted-foreground">Distribusi Hadiah:</p>
@@ -1524,7 +1643,6 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </div>
                 )}
 
-                {/* Points earned */}
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground">Poin yang Didapat:</p>
                   <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-0.5">
@@ -1541,6 +1659,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           </CardContent>
         </Card>
       )}
+
       {/* ===== EDIT TOURNAMENT DIALOG ===== */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
