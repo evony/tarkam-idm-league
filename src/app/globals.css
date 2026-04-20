@@ -306,9 +306,12 @@
 .custom-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-gutter: stable;
 }
 .custom-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Premium card hover — Gold glow */

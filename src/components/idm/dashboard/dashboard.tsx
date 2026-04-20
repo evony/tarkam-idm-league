@@ -136,9 +136,9 @@ export function Dashboard() {
               <Crown className={`w-4 h-4 ${accentText}`} /> Top Players
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 max-h-96 overflow-y-auto custom-scrollbar">
+          <CardContent className="space-y-1 max-h-96 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
             {data.topPlayers.map((player: any, i: number) => (
-              <div key={player.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <div key={player.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i < 3
                   ? (isMale ? 'bg-amber-500/20 text-amber-400' : 'bg-pink-500/20 text-pink-400')
                   : 'bg-muted text-muted-foreground'
@@ -165,12 +165,12 @@ export function Dashboard() {
               <Trophy className={`w-4 h-4 ${accentText}`} /> Weekly Champions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+          <CardContent className="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
             {data.weeklyChampions.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No completed tournaments yet</p>
             ) : (
               data.weeklyChampions.map((champ: any, i: number) => (
-                <div key={i} className="p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                <div key={i} className="p-3 rounded-lg border border-border hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold">{champ.tournamentName}</span>
                     <Badge variant="outline" className="text-[10px]">Week {champ.weekNumber}</Badge>
