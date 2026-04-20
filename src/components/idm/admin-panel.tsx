@@ -863,15 +863,7 @@ export function AdminPanel() {
                             </Button>
                           )}
                           {!isApproval && (t.participations || []).length > 0 && (
-                            <Button size="sm" className="h-7 text-[10px] bg-yellow-600 hover:bg-yellow-700 text-white px-3"
-                              onClick={() => setConfirmDialog({
-                                open: true,
-                                title: 'Lanjut ke Persetujuan?',
-                                description: `${(t.participations || []).length} pemain terdaftar. Lanjutkan ke fase persetujuan?`,
-                                onConfirm: () => advanceTournament.mutate({ tournamentId: t.id, status: 'approval' })
-                              })}>
-                              <ArrowRight className="w-3 h-3 mr-1" /> Lanjut Persetujuan
-                            </Button>
+                            <p className="text-[10px] text-muted-foreground italic">Buka turnamen untuk kelola peserta ✓/✗</p>
                           )}
                         </div>
 

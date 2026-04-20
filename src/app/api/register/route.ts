@@ -351,6 +351,24 @@ async function findActiveTournament(division: string) {
   return tournament;
 }
 
+// Find the latest tournament in the active season regardless of phase
+// Used for checking if a player already has participation in ANY tournament
+async function findLatestTournament(division: string) {
+  const season = await db.season.findFirst({
+    where: { division, status: 'active' },
+    orderBy: { startDate: 'desc' },
+  });
+
+  if (!season) return null;
+
+  const tournament = await db.tournament.findFirst({
+    where: { seasonId: season.id },
+    orderBy: { weekNumber: 'desc' },
+  });
+
+  return tournament;
+}
+
 // Helper to create participation for a player in an active tournament
 async function createParticipationForTournament(playerId: string, division: string) {
   const activeTournament = await findActiveTournament(division);
@@ -417,13 +435,18 @@ export async function GET(request: Request) {
     },
   });
 
-  // Also fetch active tournament participations for same-tournament duplicate check
+  // Also fetch tournament participations for same-tournament duplicate check
   let activeTournamentParticipations: Array<{ playerId: string; tournamentId: string; status: string }> = [];
   if (division) {
+    // Check both active (accepting registration) and latest (any phase) tournaments
     const activeTournament = await findActiveTournament(division);
-    if (activeTournament) {
+    const latestTournament = await findLatestTournament(division);
+    const tournamentIds: string[] = [];
+    if (activeTournament) tournamentIds.push(activeTournament.id);
+    if (latestTournament && !tournamentIds.includes(latestTournament.id)) tournamentIds.push(latestTournament.id);
+    if (tournamentIds.length > 0) {
       activeTournamentParticipations = await db.participation.findMany({
-        where: { tournamentId: activeTournament.id },
+        where: { tournamentId: { in: tournamentIds } },
         select: { playerId: true, tournamentId: true, status: true },
       });
     }
@@ -620,12 +643,16 @@ export async function POST(request: Request) {
       },
     });
 
-    // Also fetch active tournament participations for same-tournament check
+    // Also fetch tournament participations for same-tournament check
     let activeTournamentParticipations: Array<{ playerId: string; tournamentId: string; status: string }> = [];
-    const preCheckTournament = await findActiveTournament(division);
-    if (preCheckTournament) {
+    const preCheckActive = await findActiveTournament(division);
+    const preCheckLatest = await findLatestTournament(division);
+    const preCheckIds: string[] = [];
+    if (preCheckActive) preCheckIds.push(preCheckActive.id);
+    if (preCheckLatest && !preCheckIds.includes(preCheckLatest.id)) preCheckIds.push(preCheckLatest.id);
+    if (preCheckIds.length > 0) {
       activeTournamentParticipations = await db.participation.findMany({
-        where: { tournamentId: preCheckTournament.id },
+        where: { tournamentId: { in: preCheckIds } },
         select: { playerId: true, tournamentId: true, status: true },
       });
     }

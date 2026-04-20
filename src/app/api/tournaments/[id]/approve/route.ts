@@ -21,7 +21,7 @@ export async function POST(
   }
 
   // Cannot modify approvals if tournament is past approval phase
-  if (!['registration', 'approval'].includes(tournament.status)) {
+  if (!['setup', 'registration', 'approval'].includes(tournament.status)) {
     return NextResponse.json(
       { error: 'Cannot modify approvals — tournament is past the approval phase' },
       { status: 400 }
@@ -78,11 +78,6 @@ export async function POST(
     }
   }
 
-  // Update tournament status to "approval" if in "registration"
-  if (tournament.status === 'registration' && results.length > 0) {
-    await db.tournament.update({ where: { id }, data: { status: 'approval' } });
-  }
-
   // Single approval: return simple response
   if (!approvals && playerId) {
     if (errors.length > 0) {
@@ -122,7 +117,7 @@ export async function PUT(
   }
 
   // Can only unapprove during approval phase
-  if (!['registration', 'approval'].includes(tournament.status)) {
+  if (!['setup', 'registration', 'approval'].includes(tournament.status)) {
     return NextResponse.json(
       { error: 'Cannot unapprove — tournament is past the approval phase' },
       { status: 400 }
@@ -169,11 +164,6 @@ export async function PUT(
       tierOverride: null,
     },
   });
-
-  // Ensure tournament stays in approval phase
-  if (tournament.status === 'registration') {
-    await db.tournament.update({ where: { id }, data: { status: 'approval' } });
-  }
 
   return NextResponse.json({
     unapproved: result.count,

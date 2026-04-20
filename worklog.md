@@ -1025,3 +1025,31 @@ Stage Summary:
 - Player data and tournament participation are properly separated
 - Approved players keep their status when re-registering for a new tournament
 - No new API routes needed — all changes in existing /api/register endpoint
+---
+Task ID: 2
+Agent: main
+Task: Fix both bugs and redesign tournament manager UI
+
+Work Log:
+- Fixed Bug 1: Added `findLatestTournament()` function to register/route.ts that searches tournaments in ANY phase (not just setup/registration)
+- Updated GET and POST handlers to check participation in both active AND latest tournaments, preventing approved players from re-registering in the same tournament
+- Fixed Bug 2: Removed auto-advance from registration→approval in approve/route.ts POST handler
+- Removed auto-advance from registration→approval in approve/route.ts PUT handler
+- Added 'setup' to allowed statuses for approve/unapprove operations
+- Redesigned tournament-manager.tsx: merged registration+approval into single "Manajemen Peserta" view
+  - Added ✓ (approve + tier) and ✗ (reject) buttons per player in registration list
+  - Removed "Lanjut ke Persetujuan" button
+  - Added tier balance dashboard inline in registration phase
+  - Added "Generate Tim" button inline in registration phase
+  - Disabled separate approval phase UI (set condition to `false &&`)
+- Updated admin-panel.tsx: removed "Lanjut Persetujuan" button, replaced with hint text
+- Updated step guide text for registration/approval phases
+- Updated NEXT_ACTION labels for registration/approval statuses
+- Lint passes clean, app responds 200
+
+Stage Summary:
+- Registration + approval phases merged into one "Manajemen Peserta" view
+- Admin can approve/reject players one by one without tournament phase advancing
+- Approved players blocked from re-registering in same tournament (any phase)
+- No more "Lanjut ke Persetujuan" button or auto-advance
+- ✓ = Setujui (approve + tier), ✗ = Tolak (reject) per player
