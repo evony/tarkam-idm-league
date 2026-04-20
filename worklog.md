@@ -1053,3 +1053,65 @@ Stage Summary:
 - Approved players blocked from re-registering in same tournament (any phase)
 - No more "Lanjut ke Persetujuan" button or auto-advance
 - ✓ = Setujui (approve + tier), ✗ = Tolak (reject) per player
+
+---
+Task ID: 1
+Agent: Bug Fix Agent
+Task: Fix Registration API - Bug 1: Duplicate registration when tournament advances to approval phase
+
+Work Log:
+- Root cause: findActiveTournament() only checked ['setup', 'registration'] status, so after admin approves players and tournament moves to 'approval' phase, participation checks returned null — allowing duplicate registrations
+- Fix 1: Updated findActiveTournament() in /src/app/api/register/route.ts to include 'approval' in status filter: `{ in: ['setup', 'registration', 'approval'] }`
+  - This ensures participation checks work during approval phase
+  - Also ensures createParticipationForTournament() can find tournaments in approval phase for "daftar ulang"
+- Fix 2: Updated approve/route.ts to DELETE participation records instead of setting status to 'rejected' when admin rejects a player
+  - Old: `db.participation.update({ data: { status: 'rejected' } })`
+  - New: `db.participation.delete({ where: { id: participation.id } })`
+  - This allows rejected players to re-register for future tournaments without stale 'rejected' records blocking them
+- Fix 3: Updated register DELETE route to include 'approval' in phase check
+  - Old: `tournament.status !== 'registration' && tournament.status !== 'setup'`
+  - New: `!['setup', 'registration', 'approval'].includes(tournament.status)`
+  - Admin can now unregister players during approval phase too
+- All three files modified, lint passes clean, dev server running
+
+Stage Summary:
+- findActiveTournament now includes 'approval' phase — prevents duplicate registration bypass
+- Admin reject now DELETEs participation record instead of setting 'rejected' — allows clean re-registration
+- Unregister (DELETE) now works in approval phase — admin flexibility improved
+- Lint clean, dev server running
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix registration API - Bug 1 (approved players can re-register in same tournament)
+
+Work Log:
+- Changed `findActiveTournament` in register/route.ts to include 'approval' phase: `status: { in: ['setup', 'registration', 'approval'] }`
+- This fixes the core bug where findActiveTournament returned null after tournament advanced to approval phase
+- Also fixes `createParticipationForTournament()` which uses this helper
+
+Stage Summary:
+- Tournament now accepts registrations during setup, registration, AND approval phases
+- Only stops accepting at team_generation phase
+- This prevents approved players from re-registering because participation checks will now find their existing record
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Redesign admin approval UI - per-row ✓/✗ buttons, remove multi-phase auto-advance
+
+Work Log:
+- Changed `approve` API to DELETE participation record when reject (instead of setting status to 'rejected')
+- Changed `register` DELETE API to allow operations during 'approval' phase too
+- Updated activeTournaments query to show tournaments not yet in team_generation
+- Replaced `unregisterFromTournament` mutation with `rejectTournamentParticipation` (approve: false = delete) and `unapproveTournamentParticipation` (PUT = rollback)
+- Replaced entire tournament registration overview UI in Turnamen tab:
+  - Removed multi-phase (registration/approval) distinction
+  - Single combined list showing both approved (with green ✓ + unapprove button) and pending (with ✓/✗ per-row)
+  - "Generate Tim" button always visible when approved players exist
+  - No auto-advance - tournament stays in registration until admin clicks Generate Tim
+
+Stage Summary:
+- Bug 2 fixed: Admin can now approve/reject one-by-one without losing the participant list
+- Per-row ✓ (approve + tier) and ✗ (reject = delete participation) buttons implemented
+- No more multi-phase auto-advance confusion
+- Rejected players have their participation deleted, allowing them to re-register

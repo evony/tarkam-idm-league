@@ -95,8 +95,8 @@ export async function DELETE(
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
-  // Only allow unregister during registration/setup phase
-  if (tournament.status !== 'registration' && tournament.status !== 'setup') {
+  // Only allow unregister during registration/setup/approval phase
+  if (!['setup', 'registration', 'approval'].includes(tournament.status)) {
     return NextResponse.json({ error: 'Cannot unregister — tournament already in progress' }, { status: 400 });
   }
 

@@ -343,7 +343,7 @@ async function findActiveTournament(division: string) {
   const tournament = await db.tournament.findFirst({
     where: {
       seasonId: season.id,
-      status: { in: ['setup', 'registration'] },
+      status: { in: ['setup', 'registration', 'approval'] },
     },
     orderBy: { weekNumber: 'desc' },
   });

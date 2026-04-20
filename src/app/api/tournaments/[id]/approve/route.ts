@@ -70,9 +70,8 @@ export async function POST(
       });
       results.push({ playerId: item.playerId, status: 'approved' });
     } else {
-      await db.participation.update({
+      await db.participation.delete({
         where: { id: participation.id },
-        data: { status: 'rejected' },
       });
       results.push({ playerId: item.playerId, status: 'rejected' });
     }
