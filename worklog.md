@@ -1135,3 +1135,37 @@ Stage Summary:
 - Two access points: (1) from the "Sudah Terdaftar" warning dialog, (2) from the bottom of the registration form
 - Approved list shows gamertag, name, tier badge, and points for each approved participant
 - Lazy-loaded query to avoid unnecessary API calls
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Make Step Wizard flow cards clickable to revert to previous phases (with confirm dialog + API cleanup)
+
+Work Log:
+- Analyzed tournament-manager.tsx Step Wizard (desktop + mobile) — cards were visual-only, not clickable
+- Made desktop Step Wizard completed steps clickable:
+  - Added `isClickable` flag for completed steps
+  - Added cursor-pointer, hover:bg-green-500/20, hover:border-green-500/40, hover:scale-105, active:scale-100 transitions
+  - onClick handler: shows confirmation dialog with context-aware warnings
+  - Warnings for data that will be affected: teams deleted, brackets deleted, prize distribution rolled back
+  - On confirm: calls `updateMutation.mutate({ id, data: { status: step.key, _revert: true } })`
+- Made mobile Step Wizard previous step card clickable:
+  - Same hover effects (active:scale-95)
+  - Same confirmation dialog with warnings
+- Added `_revert` flag handling in PUT /api/tournaments/[id] route:
+  - Detects `_revert: true` in request body
+  - Compares current vs target status using statusOrder array
+  - Cleanup logic based on reversion scope:
+    - Reverting before finalization: rollback player points, delete prizes/achievements
+    - Reverting before bracket_generation: rollback match stats, delete all matches
+    - Reverting before team_generation: delete all teams + team players
+    - Reverting before approval: reset approved participations back to 'registered'
+  - Deletes `_revert` from body before DB update
+- Lint passes clean, dev server running
+
+Stage Summary:
+- Step Wizard cards are now clickable for reverting to previous phases
+- Desktop: any completed step card can be clicked
+- Mobile: previous step card can be clicked
+- Confirmation dialog shows context-aware warnings about data loss
+- API handles cleanup: player points, match stats, teams, brackets, participation statuses all properly rolled back

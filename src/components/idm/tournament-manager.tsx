@@ -784,12 +784,38 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               {STEPS.map((step, i) => {
                 const isCompleted = i < currentStepIdx;
                 const isCurrent = i === currentStepIdx;
+                const isClickable = isCompleted;
                 return (
                   <div key={step.key} className="flex items-center shrink-0">
-                    <div className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[80px] sm:min-w-[96px]
-                      ${isCompleted ? 'bg-green-500/10 border border-green-500/20' :
-                        isCurrent ? 'bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40 shadow-[0_0_12px_rgba(255,183,77,0.15)]' :
-                        'bg-muted/30 border border-border/10 opacity-50'}`}>
+                    <div
+                      className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[80px] sm:min-w-[96px]
+                        ${isClickable ? 'bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 hover:scale-105 active:scale-100' :
+                          isCurrent ? 'bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40 shadow-[0_0_12px_rgba(255,183,77,0.15)]' :
+                          'bg-muted/30 border border-border/10 opacity-50'}`}
+                      onClick={() => {
+                        if (!isClickable || !selected) return;
+                        // Determine what data will be affected
+                        const affected: string[] = [];
+                        if (i < STEPS.findIndex(s => s.key === 'team_generation') && currentStepIdx >= STEPS.findIndex(s => s.key === 'team_generation')) {
+                          affected.push('Tim akan dihapus');
+                        }
+                        if (i < STEPS.findIndex(s => s.key === 'bracket_generation') && currentStepIdx >= STEPS.findIndex(s => s.key === 'bracket_generation')) {
+                          affected.push('Bracket/pertandingan akan dihapus');
+                        }
+                        if (i < STEPS.findIndex(s => s.key === 'finalization') && currentStepIdx >= STEPS.findIndex(s => s.key === 'finalization')) {
+                          affected.push('Distribusi hadiah & poin akan dibatalkan');
+                        }
+                        const warnText = affected.length > 0
+                          ? `\n\n⚠️ Peringatan:\n${affected.map(a => `• ${a}`).join('\n')}`
+                          : '';
+                        setConfirmDialog({
+                          open: true,
+                          title: `Kembali ke "${step.label}"?`,
+                          description: `Tournament akan dikembalikan ke fase "${step.label}".${warnText}`,
+                          onConfirm: () => updateMutation.mutate({ id: selected.id, data: { status: step.key, _revert: true } }),
+                        });
+                      }}
+                    >
                       <span className="text-lg sm:text-xl leading-none">
                         {isCompleted ? '✅' : step.icon}
                       </span>
@@ -815,7 +841,33 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             {currentStepIdx >= 0 && (
               <div className="flex sm:hidden items-center gap-2 py-2">
                 {currentStepIdx > 0 && (
-                  <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <div
+                    className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 active:scale-95 transition-all"
+                    onClick={() => {
+                      if (!selected) return;
+                      const step = STEPS[currentStepIdx - 1];
+                      const affected: string[] = [];
+                      const prevIdx = currentStepIdx - 1;
+                      if (prevIdx < STEPS.findIndex(s => s.key === 'team_generation') && currentStepIdx >= STEPS.findIndex(s => s.key === 'team_generation')) {
+                        affected.push('Tim akan dihapus');
+                      }
+                      if (prevIdx < STEPS.findIndex(s => s.key === 'bracket_generation') && currentStepIdx >= STEPS.findIndex(s => s.key === 'bracket_generation')) {
+                        affected.push('Bracket/pertandingan akan dihapus');
+                      }
+                      if (prevIdx < STEPS.findIndex(s => s.key === 'finalization') && currentStepIdx >= STEPS.findIndex(s => s.key === 'finalization')) {
+                        affected.push('Distribusi hadiah & poin akan dibatalkan');
+                      }
+                      const warnText = affected.length > 0
+                        ? `\n\n⚠️ Peringatan:\n${affected.map(a => `• ${a}`).join('\n')}`
+                        : '';
+                      setConfirmDialog({
+                        open: true,
+                        title: `Kembali ke "${step.label}"?`,
+                        description: `Tournament akan dikembalikan ke fase "${step.label}".${warnText}`,
+                        onConfirm: () => updateMutation.mutate({ id: selected.id, data: { status: step.key, _revert: true } }),
+                      });
+                    }}
+                  >
                     <span className="text-base leading-none">✅</span>
                     <span className="text-[9px] font-semibold text-green-500">{STEPS[currentStepIdx - 1].label}</span>
                   </div>

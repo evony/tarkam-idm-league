@@ -269,6 +269,113 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
   }
 
+  // ─── Handle status reversion (cleanup data from later phases) ───
+  if (body._revert && body.status) {
+    const statusOrder = ['setup', 'registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization', 'completed'];
+    const currentTournament = await db.tournament.findUnique({ where: { id }, select: { status: true } });
+    if (currentTournament) {
+      const currentIdx = statusOrder.indexOf(currentTournament.status);
+      const targetIdx = statusOrder.indexOf(body.status);
+
+      if (targetIdx < currentIdx) {
+        // Reverting — clean up data from phases after the target
+
+        // If reverting before finalization: rollback points, prizes, achievements
+        if (targetIdx < statusOrder.indexOf('finalization') && currentIdx >= statusOrder.indexOf('finalization')) {
+          // Rollback player points from this tournament
+          const pointRecords = await db.playerPoint.findMany({
+            where: { tournamentId: id },
+            select: { playerId: true, amount: true },
+          });
+          const pointsByPlayer = new Map<string, number>();
+          for (const pr of pointRecords) {
+            pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+          }
+          for (const [playerId, totalPoints] of pointsByPlayer) {
+            await db.player.updateMany({
+              where: { id: playerId },
+              data: { points: { decrement: totalPoints } },
+            });
+            await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+          }
+          await db.playerPoint.deleteMany({ where: { tournamentId: id } });
+          await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
+          await db.playerAchievement.deleteMany({ where: { tournamentId: id } });
+        }
+
+        // If reverting before bracket_generation: delete all matches
+        if (targetIdx < statusOrder.indexOf('bracket_generation') && currentIdx >= statusOrder.indexOf('bracket_generation')) {
+          // Rollback match stats first
+          const completedMatches = await db.match.findMany({
+            where: { tournamentId: id, status: 'completed', winnerId: { not: null } },
+            select: {
+              id: true,
+              team1Id: true,
+              team2Id: true,
+              winnerId: true,
+              loserId: true,
+              score1: true,
+              score2: true,
+              team1: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
+              team2: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
+            },
+          });
+
+          const playerStatChanges = new Map<string, { winsDelta: number; matchesDelta: number }>();
+          for (const match of completedMatches) {
+            if (!match.team1 || !match.team2 || !match.winnerId) continue;
+            const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
+            const losingTeam = match.loserId
+              ? (match.team1Id === match.loserId ? match.team1 : match.team2)
+              : (match.team1Id === match.winnerId ? match.team2 : match.team1);
+            if (!losingTeam) continue;
+            for (const tp of winningTeam.teamPlayers) {
+              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+              existing.winsDelta -= 1;
+              existing.matchesDelta -= 1;
+              playerStatChanges.set(tp.playerId, existing);
+            }
+            for (const tp of losingTeam.teamPlayers) {
+              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+              existing.matchesDelta -= 1;
+              playerStatChanges.set(tp.playerId, existing);
+            }
+          }
+          for (const [playerId, changes] of playerStatChanges) {
+            await db.player.update({
+              where: { id: playerId },
+              data: {
+                ...(changes.winsDelta !== 0 && { totalWins: { increment: changes.winsDelta } }),
+                ...(changes.matchesDelta !== 0 && { matches: { increment: changes.matchesDelta } }),
+              },
+            });
+            await db.$executeRaw`UPDATE "Player" SET "totalWins" = GREATEST("totalWins", 0), matches = GREATEST(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+          }
+
+          await db.match.deleteMany({ where: { tournamentId: id } });
+        }
+
+        // If reverting before team_generation: delete all teams
+        if (targetIdx < statusOrder.indexOf('team_generation') && currentIdx >= statusOrder.indexOf('team_generation')) {
+          const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+          for (const t of teams) {
+            await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
+          }
+          await db.team.deleteMany({ where: { tournamentId: id } });
+        }
+
+        // Reset participations back to 'registered' if reverting before approval
+        if (targetIdx < statusOrder.indexOf('approval') && currentIdx >= statusOrder.indexOf('approval')) {
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: { in: ['approved', 'assigned'] } },
+            data: { status: 'registered', tierOverride: null },
+          });
+        }
+      }
+    }
+  }
+  delete body._revert; // Don't store this in DB
+
   // Handle prizes update
   if (body.prizes && Array.isArray(body.prizes)) {
     // Delete existing prizes
