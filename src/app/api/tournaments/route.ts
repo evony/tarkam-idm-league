@@ -21,6 +21,10 @@ export async function GET(request: Request) {
       season: { select: { name: true, number: true } },
       teams: { where: { isWinner: true }, select: { id: true, name: true, isWinner: true } },
       prizes: { orderBy: { position: 'asc' } },
+      participations: {
+        include: { player: { select: { id: true, gamertag: true, name: true, tier: true, points: true, division: true } } },
+        orderBy: { createdAt: 'asc' },
+      },
     },
   });
 
