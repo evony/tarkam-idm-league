@@ -559,7 +559,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                       } else {
                                         // Load existing squad or start fresh
                                         const existingSquad = seasonDetail?.championSquad;
-                                        if (existingSquad && existingSquad.length > 0) {
+                                        if (existingSquad && Array.isArray(existingSquad) && existingSquad.length > 0) {
                                           setSquadSelection(existingSquad);
                                         } else {
                                           setSquadSelection([]);
@@ -575,7 +575,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                 {/* Current squad display */}
                                 {!editingSquad && (() => {
                                   const currentSquad = seasonDetail?.championSquad;
-                                  if (currentSquad && currentSquad.length > 0) {
+                                  if (currentSquad && Array.isArray(currentSquad) && currentSquad.length > 0) {
                                     return (
                                       <div className="flex flex-wrap gap-2">
                                         {currentSquad.map((member, idx) => (
