@@ -113,6 +113,19 @@ const StepGuide = memo(function StepGuide({ status }: { status: string }) {
   );
 });
 
+// Status-based visual styling for tournament cards
+const STATUS_STYLE: Record<string, { border: string; bar: string; bg: string; icon: string }> = {
+  setup:            { border: 'border-muted/40',           bar: 'bg-muted',                     bg: '',                                    icon: '⚙️' },
+  registration:     { border: 'border-green-500/30',       bar: 'bg-green-500',                  bg: 'bg-green-500/5',                      icon: '🟢' },
+  approval:         { border: 'border-yellow-500/30',      bar: 'bg-yellow-500',                 bg: 'bg-yellow-500/5',                     icon: '⏳' },
+  team_generation:  { border: 'border-blue-500/30',        bar: 'bg-blue-500',                   bg: 'bg-blue-500/5',                       icon: '👥' },
+  bracket_generation: { border: 'border-blue-500/30',      bar: 'bg-blue-500',                   bg: 'bg-blue-500/5',                       icon: '🏆' },
+  main_event:       { border: 'border-red-500/40',         bar: 'bg-red-500',                    bg: 'bg-red-500/5',                        icon: '🔴' },
+  scoring:          { border: 'border-yellow-500/30',      bar: 'bg-yellow-500',                 bg: 'bg-yellow-500/5',                     icon: '📊' },
+  finalization:     { border: 'border-purple-500/30',      bar: 'bg-purple-500',                 bg: 'bg-purple-500/5',                     icon: '🏆' },
+  completed:        { border: 'border-idm-gold-warm/30',   bar: 'bg-idm-gold-warm',              bg: 'bg-idm-gold-warm/5',                  icon: '🎉' },
+};
+
 export function TournamentManager({ division, dt, stats, setConfirmDialog }: TournamentManagerProps) {
   const qc = useQueryClient();
   const seasonId = stats?.season?.id;
@@ -581,15 +594,21 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
         {tournaments?.length === 0 && (
           <p className="text-xs text-muted-foreground text-center py-4">Belum ada tournament. Buat yang pertama!</p>
         )}
-        {tournaments?.map((t: { id: string; name: string; weekNumber: number; status: string; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number; location?: string; scheduledAt?: string; _count?: { teams: number; participations: number; matches: number } }) => (
+        {tournaments?.map((t: { id: string; name: string; weekNumber: number; status: string; format: string; defaultMatchFormat: string; prizePool: number; bpm?: number; location?: string; scheduledAt?: string; _count?: { teams: number; participations: number; matches: number } }) => {
+          const ss = STATUS_STYLE[t.status] || STATUS_STYLE.setup;
+          const isLive = t.status === 'main_event';
+          return (
           <div key={t.id}>
-            <Card className={`${dt.casinoCard} ${dt.casinoGlow} cursor-pointer ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''}`}
+            <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-all duration-300 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''} ${isLive ? 'shadow-red-500/10 shadow-md' : dt.casinoGlow}`}
               onClick={() => setSelectedId(selectedId === t.id ? null : t.id)}>
-              <div className={dt.casinoBar} />
+              <div className={`${ss.bar} h-1 transition-colors duration-300`} />
               <CardContent className="p-3 relative z-10">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{t.name}</p>
+                      {isLive && <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" /></span>}
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <StatusBadge status={t.status} />
                       <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{FORMAT_LABELS[t.format] || t.format}</Badge>
@@ -624,7 +643,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               </CardContent>
             </Card>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ===== SELECTED TOURNAMENT DETAIL ===== */}

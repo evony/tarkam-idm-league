@@ -978,3 +978,18 @@ Stage Summary:
 - tournament-manager.tsx optimized: removed framer-motion dependency, extracted React.memo StepGuide, collapsible guide + create form, responsive mobile step wizard
 - Score and undo mutations already optimized (only detail invalidation)
 - team-spin-reveal.tsx and bracket-view.tsx already at target performance values
+---
+Task ID: 1
+Agent: main
+Task: Fix admin panel full width on desktop + tournament card dynamic status
+
+Work Log:
+- Changed app-shell.tsx: max-width for admin view from 1600px to 2200px (wider desktop layout)
+- Added STATUS_STYLE constant to tournament-manager.tsx mapping tournament status to colors
+- Updated tournament card JSX to use status-dependent border, bar, bg colors
+- Added live ping dot indicator for main_event status
+- Cards now visually change as tournament progresses (green border=registration, yellow=approval, blue=teams/bracket, red=live, gold=completed)
+
+Stage Summary:
+- Admin panel now uses max-w-[2200px] on desktop for near-full-width layout
+- Tournament cards dynamically change appearance based on status (border, bar color, bg tint, live indicator)
