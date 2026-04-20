@@ -33,14 +33,21 @@ export async function POST(
     return NextResponse.json({ error: 'Tournament must be in finalization status' }, { status: 400 });
   }
 
-  // Check if prizes exist — warn but don't block
-  if (!tournament.prizes || tournament.prizes.length === 0) {
-    // Prizes are optional — continue without prize distribution
-    // Only block if there are no completed matches at all
-    const completedMatches = tournament.matches.filter(m => m.status === 'completed');
-    if (completedMatches.length === 0) {
-      return NextResponse.json({ error: 'Tournament has no completed matches. Cannot finalize.' }, { status: 400 });
-    }
+  // Check that there are no incomplete matches that have both teams assigned
+  // Matches with null teams (unfilled bracket slots) are OK — they were never playable
+  const playableIncomplete = tournament.matches.filter(
+    m => (m.status === 'pending' || m.status === 'ready' || m.status === 'live') && m.team1Id && m.team2Id
+  );
+  if (playableIncomplete.length > 0) {
+    return NextResponse.json({
+      error: `Masih ada ${playableIncomplete.length} pertandingan yang belum selesai. Semua match harus diselesaikan sebelum finalisasi.`,
+    }, { status: 400 });
+  }
+
+  // Check if there are any completed matches at all
+  const completedMatches = tournament.matches.filter(m => m.status === 'completed');
+  if (completedMatches.length === 0) {
+    return NextResponse.json({ error: 'Tournament belum ada match yang selesai. Tidak bisa finalisasi.' }, { status: 400 });
   }
 
   // ===== DETERMINE TEAM RANKINGS =====

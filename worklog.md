@@ -1195,3 +1195,27 @@ Stage Summary:
 - Finalization no longer requires prizes — can finalize without hadiah ✅
 - Finalization phase now has inline prize editor (✏️ Edit Hadiah button) ✅
 - Both bugs fixed, lint clean
+---
+Task ID: 1
+Agent: Main
+Task: Fix all tournament engine rollback bugs and score/finalization issues
+
+Work Log:
+- Fixed score input: added step="any" attribute and improved disabled logic for 0 values
+- Fixed finalize endpoint: changed incomplete match check to only count matches with both teams assigned (null team matches are unfilled bracket slots)
+- Fixed checkAllMatchesComplete: only counts playable incomplete matches (both teams assigned), also requires at least 1 completed match before auto-advancing to finalization
+- Rewrote PUT endpoint revert logic with comprehensive 6-phase rollback:
+  - PHASE 1: Rollback finalization effects (prize points, MVP totalMvp, team rank/isWinner, participation flags, achievements)
+  - PHASE 2: Rollback match results when reverting before main_event (player stats, club stats, match point audit trail, participation points)
+  - PHASE 3: Delete all matches when reverting before bracket_generation
+  - PHASE 4: Delete all teams when reverting before team_generation
+  - PHASE 5: Reset participations when reverting before approval
+  - PHASE 6: Reset participation pointsEarned when reverting before team_generation
+- Fixed bug where prizePointRecords didn't include 'reason' field needed for prizeEarningsByPlayer calculation
+- Step Wizard already had correct backward-only click handling (isClickable = isCompleted)
+
+Stage Summary:
+- All rollback bugs fixed with comprehensive 6-phase revert system
+- Finalize endpoint now handles edge cases properly (null team matches, no completed matches)
+- Score input now properly supports 0 values
+- checkAllMatchesComplete auto-advancement is smarter about unfilled bracket slots

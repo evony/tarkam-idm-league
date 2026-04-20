@@ -871,11 +871,23 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
 
 // ===== Helper: Check if all matches complete → auto advance =====
 async function checkAllMatchesComplete(tournamentId: string) {
-  const pendingMatches = await db.match.count({
-    where: { tournamentId, status: { in: ['pending', 'ready', 'live'] } },
+  // Only count matches that have both teams assigned as "incomplete"
+  // Matches with null teams are unfilled bracket slots and shouldn't block progression
+  const playableIncomplete = await db.match.count({
+    where: {
+      tournamentId,
+      status: { in: ['pending', 'ready', 'live'] },
+      team1Id: { not: null },
+      team2Id: { not: null },
+    },
   });
 
-  if (pendingMatches === 0) {
+  // Also check if there are any completed matches at all
+  const completedCount = await db.match.count({
+    where: { tournamentId, status: 'completed' },
+  });
+
+  if (playableIncomplete === 0 && completedCount > 0) {
     await db.tournament.update({ where: { id: tournamentId }, data: { status: 'finalization' } });
   } else {
     const tournament = await db.tournament.findUnique({ where: { id: tournamentId } });

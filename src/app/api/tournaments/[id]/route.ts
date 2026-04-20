@@ -272,42 +272,104 @@ export async function PUT(
   // ─── Handle status reversion (cleanup data from later phases) ───
   if (body._revert && body.status) {
     const statusOrder = ['setup', 'registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization', 'completed'];
-    const currentTournament = await db.tournament.findUnique({ where: { id }, select: { status: true } });
+    const currentTournament = await db.tournament.findUnique({
+      where: { id },
+      select: { status: true, division: true, seasonId: true },
+    });
     if (currentTournament) {
       const currentIdx = statusOrder.indexOf(currentTournament.status);
       const targetIdx = statusOrder.indexOf(body.status);
 
       if (targetIdx < currentIdx) {
-        // Reverting — clean up data from phases after the target
-
-        // If reverting before finalization: rollback points, prizes, achievements
+        // ─── PHASE 1: Rollback finalization effects ───
+        // If reverting before finalization (from finalization/completed back to main_event or earlier)
         if (targetIdx < statusOrder.indexOf('finalization') && currentIdx >= statusOrder.indexOf('finalization')) {
-          // Rollback player points from this tournament
-          const pointRecords = await db.playerPoint.findMany({
-            where: { tournamentId: id },
-            select: { playerId: true, amount: true },
+          // 1a. Rollback player points from prizes/achievements
+          const prizePointRecords = await db.playerPoint.findMany({
+            where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } },
+            select: { playerId: true, amount: true, reason: true },
           });
-          const pointsByPlayer = new Map<string, number>();
-          for (const pr of pointRecords) {
-            pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+          const prizePointsByPlayer = new Map<string, number>();
+          for (const pr of prizePointRecords) {
+            prizePointsByPlayer.set(pr.playerId, (prizePointsByPlayer.get(pr.playerId) || 0) + pr.amount);
           }
-          for (const [playerId, totalPoints] of pointsByPlayer) {
+          for (const [playerId, totalPoints] of prizePointsByPlayer) {
             await db.player.updateMany({
               where: { id: playerId },
               data: { points: { decrement: totalPoints } },
             });
             await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
           }
-          await db.playerPoint.deleteMany({ where: { tournamentId: id } });
+          await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
+
+          // 1b. Rollback MVP totalMvp
+          const mvpParticipations = await db.participation.findMany({
+            where: { tournamentId: id, isMvp: true },
+            select: { playerId: true },
+          });
+          for (const mvp of mvpParticipations) {
+            await db.player.update({
+              where: { id: mvp.playerId },
+              data: { totalMvp: { decrement: 1 } },
+            });
+            await db.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+          }
+
+          // 1c. Reset team ranks and isWinner
+          await db.team.updateMany({
+            where: { tournamentId: id },
+            data: { rank: null, isWinner: false },
+          });
+
+          // 1d. Reset participation isWinner, isMvp, and rollback prize pointsEarned
+          // Use prizePointsByPlayer captured BEFORE deletion (step 1a) to calculate participation deductions
+          // Note: prizePointsByPlayer includes tier_upgrade_bonus, so we filter to just prize reasons
+          const prizeEarningsByPlayer = new Map<string, number>();
+          for (const pr of prizePointRecords) {
+            if (['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other'].includes(pr.reason)) {
+              prizeEarningsByPlayer.set(pr.playerId, (prizeEarningsByPlayer.get(pr.playerId) || 0) + pr.amount);
+            }
+          }
+
+          const allParticipations = await db.participation.findMany({
+            where: { tournamentId: id },
+            select: { id: true, playerId: true, pointsEarned: true, isMvp: true, isWinner: true },
+          });
+          for (const part of allParticipations) {
+            const prizePts = prizeEarningsByPlayer.get(part.playerId) || 0;
+            await db.participation.update({
+              where: { id: part.id },
+              data: {
+                isMvp: false,
+                isWinner: false,
+                pointsEarned: Math.max(0, part.pointsEarned - prizePts),
+              },
+            });
+          }
+
+          // 1e. Delete prizes and achievements
           await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
           await db.playerAchievement.deleteMany({ where: { tournamentId: id } });
+
+          // 1f. Reset match MVP references
+          await db.match.updateMany({
+            where: { tournamentId: id, mvpPlayerId: { not: null } },
+            data: { mvpPlayerId: null },
+          });
+
+          // 1g. Reset finalizedAt
+          await db.tournament.update({
+            where: { id },
+            data: { finalizedAt: null, completedAt: null },
+          });
         }
 
-        // If reverting before bracket_generation: delete all matches
-        if (targetIdx < statusOrder.indexOf('bracket_generation') && currentIdx >= statusOrder.indexOf('bracket_generation')) {
-          // Rollback match stats first
+        // ─── PHASE 2: Rollback match results (when reverting before main_event) ───
+        // If reverting to bracket_generation or earlier from main_event/finalization/completed
+        if (targetIdx < statusOrder.indexOf('main_event') && currentIdx >= statusOrder.indexOf('main_event')) {
+          // Get all completed matches for rollback
           const completedMatches = await db.match.findMany({
-            where: { tournamentId: id, status: 'completed', winnerId: { not: null } },
+            where: { tournamentId: id, status: 'completed' },
             select: {
               id: true,
               team1Id: true,
@@ -321,6 +383,25 @@ export async function PUT(
             },
           });
 
+          // 2a. Rollback player match stats using PlayerPoint audit trail
+          const matchPointRecords = await db.playerPoint.findMany({
+            where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } },
+            select: { playerId: true, amount: true },
+          });
+          const matchPointsByPlayer = new Map<string, number>();
+          for (const pr of matchPointRecords) {
+            matchPointsByPlayer.set(pr.playerId, (matchPointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+          }
+          for (const [playerId, totalPoints] of matchPointsByPlayer) {
+            await db.player.updateMany({
+              where: { id: playerId },
+              data: { points: { decrement: totalPoints } },
+            });
+            await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+          }
+          await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+
+          // 2b. Rollback player wins/matches/streak stats
           const playerStatChanges = new Map<string, { winsDelta: number; matchesDelta: number }>();
           for (const match of completedMatches) {
             if (!match.team1 || !match.team2 || !match.winnerId) continue;
@@ -347,15 +428,137 @@ export async function PUT(
               data: {
                 ...(changes.winsDelta !== 0 && { totalWins: { increment: changes.winsDelta } }),
                 ...(changes.matchesDelta !== 0 && { matches: { increment: changes.matchesDelta } }),
+                streak: 0,
               },
             });
             await db.$executeRaw`UPDATE "Player" SET "totalWins" = GREATEST("totalWins", 0), matches = GREATEST(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
           }
 
+          // 2c. Rollback club stats
+          const clubStatChanges = new Map<string, { winsDelta: number; lossesDelta: number; pointsDelta: number; gameDiffDelta: number }>();
+          for (const match of completedMatches) {
+            if (!match.team1 || !match.team2 || !match.winnerId) continue;
+            const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
+            const losingTeam = match.loserId
+              ? (match.team1Id === match.loserId ? match.team1 : match.team2)
+              : (match.team1Id === match.winnerId ? match.team2 : match.team1);
+            if (!losingTeam) continue;
+            const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
+            const allPlayerIds = [
+              ...winningTeam.teamPlayers.map(tp => tp.playerId),
+              ...losingTeam.teamPlayers.map(tp => tp.playerId),
+            ];
+            const memberships = await db.clubMember.findMany({
+              where: {
+                playerId: { in: allPlayerIds },
+                club: { division: currentTournament.division, seasonId: currentTournament.seasonId },
+              },
+              select: { playerId: true, clubId: true },
+            });
+            const winningPlayerIds = new Set(winningTeam.teamPlayers.map(tp => tp.playerId));
+            for (const membership of memberships) {
+              const isWinner = winningPlayerIds.has(membership.playerId);
+              const existing = clubStatChanges.get(membership.clubId) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
+              if (isWinner) {
+                existing.winsDelta -= 1;
+                existing.pointsDelta -= 2;
+                existing.gameDiffDelta -= gameDiff;
+              } else {
+                existing.lossesDelta -= 1;
+                existing.gameDiffDelta += gameDiff;
+              }
+              clubStatChanges.set(membership.clubId, existing);
+            }
+          }
+          for (const [clubId, changes] of clubStatChanges) {
+            await db.club.update({
+              where: { id: clubId },
+              data: {
+                ...(changes.winsDelta !== 0 && { wins: { increment: changes.winsDelta } }),
+                ...(changes.lossesDelta !== 0 && { losses: { increment: changes.lossesDelta } }),
+                ...(changes.pointsDelta !== 0 && { points: { increment: changes.pointsDelta } }),
+                ...(changes.gameDiffDelta !== 0 && { gameDiff: { increment: changes.gameDiffDelta } }),
+              },
+            });
+          }
+
+          // 2d. Reset participation pointsEarned from match points
+          const matchEarningsByPlayer = new Map<string, number>();
+          for (const [playerId, amount] of matchPointsByPlayer) {
+            matchEarningsByPlayer.set(playerId, amount);
+          }
+          const allParts = await db.participation.findMany({
+            where: { tournamentId: id },
+            select: { id: true, playerId: true, pointsEarned: true },
+          });
+          for (const part of allParts) {
+            const matchPts = matchEarningsByPlayer.get(part.playerId) || 0;
+            if (matchPts > 0) {
+              await db.participation.update({
+                where: { id: part.id },
+                data: { pointsEarned: Math.max(0, part.pointsEarned - matchPts) },
+              });
+            }
+          }
+
+          // If reverting to bracket_generation: reset match scores but keep bracket structure
+          if (targetIdx === statusOrder.indexOf('bracket_generation')) {
+            // Reset all matches to their original state
+            await db.match.updateMany({
+              where: { tournamentId: id, status: 'completed' },
+              data: {
+                score1: null,
+                score2: null,
+                status: 'pending',
+                winnerId: null,
+                loserId: null,
+                completedAt: null,
+                mvpPlayerId: null,
+              },
+            });
+            // Mark matches with both teams as 'ready'
+            const matchesWithTeams = await db.match.findMany({
+              where: { tournamentId: id, team1Id: { not: null }, team2Id: { not: null }, status: 'pending' },
+              select: { id: true },
+            });
+            for (const m of matchesWithTeams) {
+              await db.match.update({ where: { id: m.id }, data: { status: 'ready' } });
+            }
+            // Clear team assignments from later rounds (teams advanced from completed matches)
+            const laterMatches = await db.match.findMany({
+              where: { tournamentId: id, status: 'pending', bracket: { in: ['upper', 'lower', 'grand_final'] } },
+              select: { id: true, round: true, bracket: true, groupLabel: true, team1Id: true, team2Id: true },
+            });
+            // Don't clear teams from round 1 upper bracket matches (those are the original bracket)
+            // or group stage matches (those are set at generation time)
+            // Only clear teams from rounds > 1 that were filled by advancement
+            for (const m of laterMatches) {
+              if (m.bracket === 'group') continue; // Group stage teams are set at generation
+              if (m.bracket === 'upper' && m.round === 1) continue; // R1 upper teams are original
+              await db.match.update({
+                where: { id: m.id },
+                data: { team1Id: null, team2Id: null, status: 'pending' },
+              });
+            }
+          }
+        }
+
+        // ─── PHASE 3: Delete all matches (when reverting before bracket_generation) ───
+        if (targetIdx < statusOrder.indexOf('bracket_generation') && currentIdx >= statusOrder.indexOf('bracket_generation')) {
+          // Only do match stat rollback if we didn't already do it in Phase 2
+          // Phase 2 only runs when targetIdx >= main_event index
+          // If we're reverting from main_event+ to before bracket_generation, Phase 2 already ran
+          // But if we're reverting from bracket_generation itself (no matches played), we just need to delete
+
+          // Delete match point records (if any remain)
+          await db.playerPoint.deleteMany({
+            where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } },
+          });
+
           await db.match.deleteMany({ where: { tournamentId: id } });
         }
 
-        // If reverting before team_generation: delete all teams
+        // ─── PHASE 4: Delete all teams (when reverting before team_generation) ───
         if (targetIdx < statusOrder.indexOf('team_generation') && currentIdx >= statusOrder.indexOf('team_generation')) {
           const teams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
           for (const t of teams) {
@@ -364,11 +567,19 @@ export async function PUT(
           await db.team.deleteMany({ where: { tournamentId: id } });
         }
 
-        // Reset participations back to 'registered' if reverting before approval
+        // ─── PHASE 5: Reset participations (when reverting before approval) ───
         if (targetIdx < statusOrder.indexOf('approval') && currentIdx >= statusOrder.indexOf('approval')) {
           await db.participation.updateMany({
             where: { tournamentId: id, status: { in: ['approved', 'assigned'] } },
-            data: { status: 'registered', tierOverride: null },
+            data: { status: 'registered', tierOverride: null, pointsEarned: 0, isMvp: false, isWinner: false },
+          });
+        }
+
+        // ─── PHASE 6: Reset participation pointsEarned to 0 when reverting before team_generation ───
+        if (targetIdx < statusOrder.indexOf('team_generation') && currentIdx >= statusOrder.indexOf('team_generation')) {
+          await db.participation.updateMany({
+            where: { tournamentId: id },
+            data: { pointsEarned: 0, isMvp: false, isWinner: false },
           });
         }
       }

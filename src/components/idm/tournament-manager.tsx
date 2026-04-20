@@ -1970,15 +1970,15 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               )}
                               {m.status === 'live' && (
                                 <>
-                                  <Input type="number" min="0" placeholder={getTeamName(m.team1Id)} className="w-16 h-6 text-[10px]"
+                                  <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-6 text-[10px]"
                                     value={scoreInputs[m.id]?.s1 ?? ''}
                                     onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 ?? '' } }))} />
                                   <span className="text-[10px] text-muted-foreground">vs</span>
-                                  <Input type="number" min="0" placeholder={getTeamName(m.team2Id)} className="w-16 h-6 text-[10px]"
+                                  <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-6 text-[10px]"
                                     value={scoreInputs[m.id]?.s2 ?? ''}
                                     onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 ?? '' } }))} />
                                   <Button size="sm" className="text-[10px] h-6 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
-                                    disabled={scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s1 === undefined || scoreInputs[m.id]?.s2 === '' || scoreInputs[m.id]?.s2 === undefined || scoreMutation.isPending}
+                                    disabled={scoreInputs[m.id]?.s1 == null || scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s2 == null || scoreInputs[m.id]?.s2 === '' || scoreMutation.isPending}
                                     onClick={() => {
                                       const s1 = parseInt(scoreInputs[m.id].s1);
                                       const s2 = parseInt(scoreInputs[m.id].s2);
