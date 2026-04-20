@@ -152,30 +152,26 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                       onError={() => setIframeError(true)}
                     />
 
-                    {/* Fallback overlay when iframe is blocked in sandbox — shows thumbnail + YouTube link */}
+                    {/* Fallback overlay when iframe is blocked — show thumbnail + open YouTube button */}
                     {iframeError && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90">
                         <img
                           src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
                           alt={title ?? 'Video thumbnail'}
-                          className="absolute inset-0 w-full h-full object-cover opacity-40"
+                          className="absolute inset-0 w-full h-full object-cover opacity-30"
                         />
-                        <div className="relative z-10 flex flex-col items-center gap-4">
-                          <div className="w-16 h-16 rounded-full bg-red-600/20 border border-red-500/40 flex items-center justify-center">
-                            <Play className="w-7 h-7 text-red-500 fill-red-500" />
-                          </div>
-                          <p className="text-sm text-white/70 text-center px-4">Video tidak dapat diputar di environment ini</p>
-                          {youtubeWatchUrl && (
-                            <a
-                              href={youtubeWatchUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                              Watch on YouTube
-                            </a>
-                          )}
+                        <div className="relative z-10 flex flex-col items-center gap-5">
+                          <a
+                            href={youtubeWatchUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-col items-center gap-3 group"
+                          >
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-red-600/25 border-2 border-red-500/50 flex items-center justify-center group-hover:bg-red-600/40 group-hover:border-red-500/70 group-hover:scale-110 transition-all duration-300">
+                              <Play className="w-9 h-9 sm:w-11 sm:h-11 text-red-500 fill-red-500 ml-1" />
+                            </div>
+                            <span className="text-base font-bold text-white tracking-wider">Watch on YouTube</span>
+                          </a>
                         </div>
                       </div>
                     )}

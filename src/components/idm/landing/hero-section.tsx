@@ -63,7 +63,7 @@ export function HeroSection({
         {cmsHeroBgVideo ? (() => {
           const ytId = getYouTubeId(cmsHeroBgVideo);
           return ytId ? (
-            /* YouTube: thumbnail + play button (bandwidth friendly) */
+            /* YouTube: thumbnail + big play button (bandwidth friendly) */
             <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
               <img
                 src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
@@ -71,14 +71,19 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
+              {/* Dark overlay to dim the thumbnail */}
+              <div className="absolute inset-0 bg-black/60" />
+              {/* Big play button */}
               {onVideoPlay && (
                 <button
                   onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
-                  className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 backdrop-blur-sm hover:bg-idm-gold-warm/30 transition-colors cursor-pointer"
+                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 cursor-pointer group"
                   aria-label="Play highlight video"
                 >
-                  <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
-                  <span className="text-xs font-bold text-idm-gold-warm">Watch Video</span>
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-idm-gold-warm/20 border-2 border-idm-gold-warm/50 flex items-center justify-center backdrop-blur-sm group-hover:bg-idm-gold-warm/30 group-hover:border-idm-gold-warm/70 group-hover:scale-110 transition-all duration-300">
+                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-idm-gold-warm fill-idm-gold-warm ml-1" />
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-idm-gold-warm tracking-wider uppercase">Watch Video</span>
                 </button>
               )}
             </motion.div>
@@ -95,6 +100,8 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
+              {/* Dark overlay to dim the video */}
+              <div className="absolute inset-0 bg-black/50" />
             </motion.div>
           );
         })() : (
