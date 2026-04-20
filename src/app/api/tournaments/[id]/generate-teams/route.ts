@@ -135,6 +135,15 @@ export async function POST(
     teams.push({ id: team.id, name: teamName, power, playerIds });
   }
 
+  // Build effective tier lookup from participations (respects tierOverride)
+  const participationMap = new Map<string, string>(); // playerId -> effectiveTier
+  for (const p of tournament.participations) {
+    participationMap.set(p.playerId, p.tierOverride || p.player.tier);
+  }
+  const getEffectiveTier = (playerId: string): string => {
+    return participationMap.get(playerId) || 'B';
+  };
+
   // Auto-balance: After initial assignment, try swapping B-tier players between teams if power imbalance > 15%
   if (teams.length >= 2) {
     let improved = true;
@@ -160,10 +169,10 @@ export async function POST(
         const weakest = sorted[sorted.length - 1];
 
         const bPlayerStrongest = strongest.teamPlayers.find(
-          (tp) => tp.player.tier === 'B'
+          (tp) => getEffectiveTier(tp.playerId) === 'B'
         );
         const bPlayerWeakest = weakest.teamPlayers.find(
-          (tp) => tp.player.tier === 'B'
+          (tp) => getEffectiveTier(tp.playerId) === 'B'
         );
 
         if (bPlayerStrongest && bPlayerWeakest) {
@@ -211,7 +220,7 @@ export async function POST(
     });
 
     for (const team of finalTeamsWithPlayers) {
-      const sPlayer = team.teamPlayers.find(tp => tp.player.tier === 'S');
+      const sPlayer = team.teamPlayers.find(tp => getEffectiveTier(tp.playerId) === 'S');
       if (sPlayer) {
         const correctName = `Tim ${sPlayer.player.gamertag}`;
         if (team.name !== correctName) {
@@ -242,8 +251,10 @@ export async function POST(
     orderBy: { name: 'asc' },
   });
 
-  // Build spin reveal data for frontend animation
-  // Spin order: Team 1 S-tier, Team 2 S-tier, ..., Team 1 A-tier, Team 2 A-tier, ..., Team 1 B-tier, ...
+  // Build spin reveal data from FINAL teams (after auto-balance swaps)
+  // This ensures names and player assignments match the bracket exactly
+  // Spin order: All S-tier (team 0..N), then all A-tier, then all B-tier
+
   const spinRevealOrder: {
     teamIndex: number;
     teamName: string;
@@ -252,28 +263,45 @@ export async function POST(
     allPlayersInTier: { id: string; gamertag: string; tier: string; points: number }[];
   }[] = [];
 
+  // Create a consistent index mapping for final teams
+  const teamIndexMap = new Map<string, number>();
+  finalTeams.forEach((team, idx) => {
+    teamIndexMap.set(team.id, idx);
+  });
+
+  // Collect all players per tier from final teams (with correct team assignments)
   for (const tier of ['S', 'A', 'B'] as const) {
-    const tierPlayers = tier === 'S' ? shuffledS : tier === 'A' ? shuffledA : shuffledB;
-    for (let i = 0; i < teamCount; i++) {
-      const team = finalTeams.find(t =>
-        t.teamPlayers.some(tp => tp.playerId === tierPlayers[i].playerId)
-      );
+    // Collect ALL players in this tier across all teams for the spinning animation
+    const allTierPlayers: { id: string; gamertag: string; tier: string; points: number }[] = [];
+    for (const team of finalTeams) {
+      const tp = team.teamPlayers.find(p => getEffectiveTier(p.playerId) === tier);
+      if (tp) {
+        allTierPlayers.push({
+          id: tp.player.id,
+          gamertag: tp.player.gamertag,
+          tier,
+          points: tp.player.points,
+        });
+      }
+    }
+
+    // For each team, add the spin reveal entry for this tier
+    for (const team of finalTeams) {
+      const teamIdx = teamIndexMap.get(team.id) ?? 0;
+      const tierPlayer = team.teamPlayers.find(p => getEffectiveTier(p.playerId) === tier);
+      if (!tierPlayer) continue;
+
       spinRevealOrder.push({
-        teamIndex: i,
-        teamName: team?.name || `Tim ${i + 1}`,
+        teamIndex: teamIdx,
+        teamName: team.name,
         tier,
         player: {
-          id: tierPlayers[i].player.id,
-          gamertag: tierPlayers[i].player.gamertag,
-          tier: tierPlayers[i].effectiveTier,
-          points: tierPlayers[i].player.points,
+          id: tierPlayer.player.id,
+          gamertag: tierPlayer.player.gamertag,
+          tier,
+          points: tierPlayer.player.points,
         },
-        allPlayersInTier: tierPlayers.map(p => ({
-          id: p.player.id,
-          gamertag: p.player.gamertag,
-          tier: p.effectiveTier,
-          points: p.player.points,
-        })),
+        allPlayersInTier: allTierPlayers,
       });
     }
   }
