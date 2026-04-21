@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
@@ -35,7 +34,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { formatCurrency, getAvatarUrl } from '@/lib/utils';
-import { container, item } from '@/lib/animations';
 
 // Player form type
 interface PlayerForm {
@@ -522,7 +520,7 @@ export function AdminPanel() {
   // paymentForm is derived from cmsSettings (no useEffect needed)
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 w-full">
+    <div className="space-y-4 w-full">
       <div className="flex items-center gap-2 mb-2">
         <Shield className={`w-5 h-5 ${dt.neonText}`} />
         <h2 className="text-lg font-bold text-gradient-fury">Panel Admin</h2>
@@ -546,7 +544,7 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-[10px] font-medium transition-all min-h-[44px] justify-center ${
+                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-[10px] font-medium transition-colors duration-150 min-h-[44px] justify-center ${
                   mobileCategory === cat.key
                     ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
                     : 'bg-muted/30 text-muted-foreground border border-transparent'
@@ -575,7 +573,7 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all min-h-[44px] ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors duration-150 min-h-[44px] ${
                     activeTab === tabValue
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
@@ -605,7 +603,7 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-medium transition-colors duration-150 ${
                   mobileCategory === cat.key
                     ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
                     : 'bg-muted/30 text-muted-foreground border border-transparent hover:bg-muted/50 hover:text-foreground'
@@ -634,7 +632,7 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors duration-150 ${
                     activeTab === tabValue
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
@@ -655,7 +653,7 @@ export function AdminPanel() {
 
         {/* ====== PEMAIN TAB ====== */}
         <TabsContent value="pemain">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
+          <div className="space-y-3">
             {/* Pending Registrations */}
             {pendingRegistrations?.length > 0 && (
               <Card className="border-yellow-500/20 bg-yellow-500/5">
@@ -665,8 +663,7 @@ export function AdminPanel() {
                   </h3>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
                     {pendingRegistrations.map((p: { id: string; name: string; gamertag: string; division: string; city: string; phone: string | null; joki: string | null; createdAt: string }, index) => (
-                      <div key={p.id} className="stagger-item p-3 rounded-xl bg-card border border-yellow-500/10"
-                        style={{ animationDelay: `${index * 50}ms` }}
+                      <div key={p.id} className="p-3 rounded-xl bg-card border border-yellow-500/10"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -753,8 +750,7 @@ export function AdminPanel() {
               }, index) => {
                 const avatarSrc = getAvatarUrl(p.gamertag, p.division, p.avatar);
                 return (
-                <div key={p.id} className={`stagger-item flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow}`}
-                  style={{ animationDelay: `${index * 50}ms` }}
+                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow}`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="relative group shrink-0">
@@ -828,12 +824,12 @@ export function AdminPanel() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== TURNAMEN TAB ====== */}
         <TabsContent value="turnamen">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* ── Tournament Registration Overview ── */}
             {activeTournaments?.length > 0 && (
               <div className="space-y-3">
@@ -984,12 +980,12 @@ export function AdminPanel() {
 
             {/* Tournament Manager */}
             <TournamentManager division={storeDivision} dt={dt} stats={stats} setConfirmDialog={setConfirmDialog} />
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== LIGA TAB ====== */}
         <TabsContent value="liga">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* Season Management */}
             <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
 
@@ -1104,12 +1100,12 @@ export function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== KEUANGAN TAB ====== */}
         <TabsContent value="keuangan">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* Pending Donations — Approval Queue */}
             {donations?.donations?.filter((d: { status: string }) => d.status === 'pending').length > 0 && (
               <Card className="border-yellow-500/20 bg-yellow-500/5">
@@ -1119,7 +1115,7 @@ export function AdminPanel() {
                   </h3>
                   <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
                     {donations.donations.filter((d: { status: string }) => d.status === 'pending').map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; createdAt: string }, index) => (
-                      <div key={d.id} className="stagger-item p-3 rounded-xl bg-card border border-yellow-500/10" style={{ animationDelay: `${index * 50}ms` }}>
+                      <div key={d.id} className="p-3 rounded-xl bg-card border border-yellow-500/10">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Gift className="w-4 h-4 text-yellow-500 shrink-0" />
@@ -1186,11 +1182,11 @@ export function AdminPanel() {
                 </h3>
                 <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar">
                   {donations?.donations?.length > 0 ? donations.donations.map((d: { id: string; donorName: string; amount: number; message: string | null; type: string; status: string; createdAt: string }, index) => (
-                    <div key={d.id} className={`stagger-item flex items-center justify-between p-2.5 rounded-lg border ${
+                    <div key={d.id} className={`flex items-center justify-between p-2.5 rounded-lg border ${
                       d.status === 'approved' ? 'bg-card border-green-500/10' :
                       d.status === 'rejected' ? 'bg-card border-red-500/10 opacity-50' :
                       'bg-card border-yellow-500/10'
-                    }`} style={{ animationDelay: `${index * 50}ms` }}>
+                    }`}>
                       <div className="flex items-center gap-2 min-w-0">
                         <Gift className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                         <div className="min-w-0">
@@ -1301,24 +1297,24 @@ export function AdminPanel() {
                 </Button>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== KONTEN TAB ====== */}
         <TabsContent value="konten">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             <AdminSponsorPanel />
             <AdminAchievementPanel />
             <CmsPanel />
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== PENGATURAN TAB ====== */}
         <TabsContent value="pengaturan">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             <AdminSettingsPanel />
             <AdminManagement />
-          </motion.div>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -1352,7 +1348,7 @@ export function AdminPanel() {
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, division: 'male', clubId: '' }))}
-                    className={`flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
+                    className={`flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-colors duration-150 ${
                       formData.division === 'male'
                         ? 'bg-idm-male text-white'
                         : 'text-muted-foreground hover:text-foreground'
@@ -1363,7 +1359,7 @@ export function AdminPanel() {
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, division: 'female', clubId: '' }))}
-                    className={`flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
+                    className={`flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-colors duration-150 ${
                       formData.division === 'female'
                         ? 'bg-idm-female text-white'
                         : 'text-muted-foreground hover:text-foreground'
@@ -1510,6 +1506,6 @@ export function AdminPanel() {
         onSelect={(url) => setPaymentForm(p => ({ ...p, donation_qris_image: url }))}
         uploadFolder="cms/payment"
       />
-    </motion.div>
+    </div>
   );
 }

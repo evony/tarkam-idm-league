@@ -2,7 +2,6 @@
 
 import { useAppStore, type AppView } from '@/lib/store';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Gamepad2, Trophy, Users, Shield,
   Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound,
@@ -73,7 +72,7 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
     <div className="flex items-center bg-muted rounded-full p-0.5 gap-0.5">
       <button
         onClick={() => setDivision('male')}
-        className={`${baseClass} rounded-full font-semibold transition-all duration-300 ${
+        className={`${baseClass} rounded-full font-semibold transition-colors duration-150 ${
           division === 'male'
             ? 'bg-idm-male text-white shadow-md'
             : 'text-muted-foreground hover:text-foreground'
@@ -83,7 +82,7 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
       </button>
       <button
         onClick={() => setDivision('female')}
-        className={`${baseClass} rounded-full font-semibold transition-all duration-300 ${
+        className={`${baseClass} rounded-full font-semibold transition-colors duration-150 ${
           division === 'female'
             ? 'bg-idm-female text-white shadow-md'
             : 'text-muted-foreground hover:text-foreground'
@@ -128,13 +127,13 @@ function DesktopSidebar() {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col border-r border-border/60 ${dt.glassStrong} sticky top-0 h-screen overflow-hidden shadow-lg shadow-black/5 transition-all duration-300 ease-in-out ${
+      className={`hidden lg:flex flex-col border-r border-border/60 ${dt.glassStrong} sticky top-0 h-screen overflow-hidden shadow-lg shadow-black/5 transition-[width] duration-150 ease-in-out ${
         collapsed ? 'w-16' : 'w-72'
       }`}
     >
       {/* Logo + Toggle */}
       <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2.5 px-5'} pt-4 pb-2`}>
-        <div className={`rounded-xl overflow-hidden glow-pulse shrink-0 ${collapsed ? 'w-9 h-9' : 'w-11 h-11 lg:shadow-lg lg:shadow-idm-gold/10'}`}>
+        <div className={`rounded-xl overflow-hidden shrink-0 ${collapsed ? 'w-9 h-9' : 'w-11 h-11 lg:shadow-lg lg:shadow-idm-gold/10'}`}>
           <Image src="/logo1.webp" alt="IDM" width={48} height={48} className="w-full h-full object-cover" />
         </div>
         {!collapsed && (
@@ -153,7 +152,7 @@ function DesktopSidebar() {
           title={collapsed ? 'Buka sidebar' : 'Tutup sidebar'}
         >
           {/* Pulse glow ring */}
-          <span className="absolute inset-0 rounded-lg bg-idm-gold/20 animate-pulse-pointer" />
+          <span className="absolute inset-0 rounded-lg bg-idm-gold/20" />
           {/* Arrow icon */}
           <span className="relative z-10 flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:bg-muted/60 rounded-lg transition-colors">
             {collapsed
@@ -305,12 +304,12 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
         title={label}
         className={`w-full flex items-center justify-center py-2.5 rounded-lg transition-all duration-200 relative ${
           isActive
-            ? `${dt.navActive} glow-pulse`
+            ? `${dt.navActive}`
             : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
         }`}
       >
         <div className={`flex items-center justify-center w-9 h-9 rounded-lg ${iconBg}`}>
-          <Icon className={`w-4 h-4 ${activeGlow ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
+          <Icon className="w-4 h-4" />
         </div>
         {isActive && (
           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
@@ -324,12 +323,12 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
       onClick={onClick}
       className={`w-full flex items-center gap-3 text-sm font-medium transition-all duration-200 rounded-lg ${
         isActive
-          ? `${dt.navActive} glow-pulse border-l-2 ${division === 'male' ? 'border-l-idm-male' : 'border-l-idm-female'}`
+          ? `${dt.navActive} border-l-2 ${division === 'male' ? 'border-l-idm-male' : 'border-l-idm-female'}`
           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
       }`}
     >
       <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${iconBg} shrink-0`}>
-        <Icon className={`w-4 h-4 ${activeGlow ? 'drop-shadow-[0_0_8px_var(--idm-glow)]' : ''}`} />
+        <Icon className="w-4 h-4" />
       </div>
       <span className="py-2.5">{label}</span>
       {isActive && (
@@ -342,8 +341,6 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
 export function AppShell() {
   const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView } = useAppStore();
   const dt = useDivisionTheme();
-  const prefersReducedMotion = useReducedMotion();
-
   // Check session on mount
   useEffect(() => {
     async function checkSession() {
@@ -392,7 +389,7 @@ export function AppShell() {
       {/* Mobile Header — compact with Admin shield in header */}
       <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg overflow-hidden glow-pulse">
+          <div className="w-7 h-7 rounded-lg overflow-hidden">
             <Image src="/logo1.webp" alt="IDM" width={28} height={28} className="w-full h-full object-cover" />
           </div>
           <span className="text-gradient-fury text-sm font-bold">IDM League</span>
@@ -417,18 +414,12 @@ export function AppShell() {
 
         {/* Main Content */}
         <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentView}
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-              transition={{ duration: prefersReducedMotion ? 0.15 : 0.25 }}
-              className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
-            >
-              {renderView()}
-            </motion.div>
-          </AnimatePresence>
+          <div
+            key={currentView}
+            className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
+          >
+            {renderView()}
+          </div>
         </main>
       </div>
 
@@ -441,7 +432,7 @@ export function AppShell() {
               (currentView as AppView) === 'landing' ? dt.text : 'text-muted-foreground'
             }`}
           >
-            <Home className={`w-[18px] h-[18px] ${(currentView as AppView) === 'landing' ? 'drop-shadow-[0_0_6px_var(--idm-glow)]' : ''}`} />
+            <Home className="w-[18px] h-[18px]" />
             <span className="text-[9px] font-medium leading-tight">Home</span>
             {(currentView as AppView) === 'landing' && (
               <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
@@ -458,7 +449,7 @@ export function AppShell() {
                   isActive ? dt.text : 'text-muted-foreground'
                 }`}
               >
-                <Icon className={`w-[18px] h-[18px] ${isActive ? 'drop-shadow-[0_0_6px_var(--idm-glow)]' : ''}`} />
+                <Icon className="w-[18px] h-[18px]" />
                 <span className="text-[9px] font-medium leading-tight">{navItem.label}</span>
                 {isActive && (
                   <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />

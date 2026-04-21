@@ -652,7 +652,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
         <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/30">
           {(['all', 'active', 'completed'] as const).map(f => (
             <button key={f} onClick={() => setTournamentFilter(f)}
-              className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all ${
+              className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors duration-150 ${
                 tournamentFilter === f
                   ? 'bg-background shadow-sm text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -680,7 +680,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           const stepPct = Math.round(((stepIdx + 1) / STEPS.length) * 100);
           return (
           <div key={t.id}>
-            <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-all duration-300 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''} ${isLive ? 'shadow-red-500/10 shadow-md' : dt.casinoGlow}`}
+            <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-colors duration-150 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''} ${isLive ? 'shadow-red-500/10 shadow-md' : dt.casinoGlow}`}
               onClick={() => setSelectedId(selectedId === t.id ? null : t.id)}>
               <div className={`${ss.bar} h-1 transition-colors duration-300`} />
               <CardContent className="p-3 relative z-10">
@@ -731,7 +731,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {/* Mini step progress bar */}
                 <div className="mt-2.5 flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-500 ${ss.bar}`} style={{ width: `${stepPct}%` }} />
+                    <div className={`h-full rounded-full transition-[width,colors] duration-300 ${ss.bar}`} style={{ width: `${stepPct}%` }} />
                   </div>
                   <span className="text-[9px] text-muted-foreground shrink-0">{stepIdx + 1}/{STEPS.length}</span>
                 </div>
@@ -790,7 +790,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     <div
                       className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[80px] sm:min-w-[96px]
                         ${isClickable ? 'bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 hover:scale-105 active:scale-100' :
-                          isCurrent ? 'bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40 shadow-[0_0_12px_rgba(255,183,77,0.15)]' :
+                          isCurrent ? 'bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40' :
                           'bg-muted/30 border border-border/10 opacity-50'}`}
                       onClick={() => {
                         if (!isClickable || !selected) return;
@@ -1042,7 +1042,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     {/* ── SECTION 3: TIER BALANCE DASHBOARD ── */}
                     {(pendingApprovals.length > 0 || approvedParticipations.length > 0) && (
-                      <div className={`p-4 rounded-xl border-2 transition-all
+                      <div className={`p-4 rounded-xl border-2 transition-colors duration-150
                         ${isTierBalanced ? 'bg-green-500/5 border-green-500/30' : 'bg-red-500/5 border-red-500/30'}`}>
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-sm font-bold flex items-center gap-2">
@@ -1075,7 +1075,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                                   <span className={`text-lg font-black ${tc.text}`}>{count}</span>
                                 </div>
                                 <div className={`h-2 rounded-full ${tc.bg} overflow-hidden`}>
-                                  <div className={`h-full rounded-full ${tc.bar} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                                  <div className={`h-full rounded-full ${tc.bar} transition-[width,colors] duration-300`} style={{ width: `${pct}%` }} />
                                 </div>
                                 {!isTierBalanced && deficit > 0 && (
                                   <p className="text-[10px] text-red-400 mt-1 font-medium">Kurang {deficit}</p>
@@ -1185,18 +1185,18 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {/* Step indicator — bigger and clearer */}
                 <div className="flex items-center gap-3">
                   <button
-                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-colors duration-150
                       ${approvalStep === 'approve'
-                        ? 'bg-yellow-500/15 text-yellow-500 border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.1)]'
+                        ? 'bg-yellow-500/15 text-yellow-500 border-2 border-yellow-500/30'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
                     onClick={() => setApprovalStep('approve')}>
                     <span className="text-base">⏳</span> Persetujuan
                   </button>
                   <ArrowRight className="w-4 h-4 text-muted-foreground/30" />
                   <button
-                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-colors duration-150
                       ${approvalStep === 'prize'
-                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm border-2 border-idm-gold-warm/30 shadow-[0_0_10px_rgba(255,183,77,0.1)]'
+                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm border-2 border-idm-gold-warm/30'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
                     onClick={() => setApprovalStep('prize')}>
                     <span className="text-base">💰</span> Hadiah
@@ -1213,7 +1213,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     <p className="text-sm text-muted-foreground">Atur tier setiap pemain (S/A/B), lalu setujui. Tier harus seimbang (S=A=B) untuk generate tim.</p>
 
                     {/* ===== TIER BALANCE STATUS — BIG & PROMINENT ===== */}
-                    <div className={`p-5 rounded-xl border-2 transition-all
+                    <div className={`p-5 rounded-xl border-2 transition-colors duration-150
                       ${isTierBalanced
                         ? 'bg-green-500/5 border-green-500/30'
                         : 'bg-red-500/5 border-red-500/30'}`}>
@@ -1249,7 +1249,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                                 <span className={`text-2xl font-black ${tc.text}`}>{count}</span>
                               </div>
                               <div className={`h-2.5 rounded-full ${tc.bg} overflow-hidden`}>
-                                <div className={`h-full rounded-full ${tc.bar} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                                <div className={`h-full rounded-full ${tc.bar} transition-[width,colors] duration-300`} style={{ width: `${pct}%` }} />
                               </div>
                               {!isTierBalanced && deficit > 0 && (
                                 <p className="text-[11px] text-red-400 mt-1.5 font-medium">Kurang {deficit} pemain</p>
@@ -1941,7 +1941,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             <div className="flex items-center gap-2">
                               <Badge className="text-[8px] border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
                               <Badge className="text-[8px] border-0 bg-muted/50">{m.format}</Badge>
-                              {m.status === 'live' && <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500 animate-pulse">🔴 LIVE</Badge>}
+                              {m.status === 'live' && <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
                               {m.status === 'completed' && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
                               {m.status === 'ready' && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">Siap</Badge>}
                               {m.status === 'pending' && <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}

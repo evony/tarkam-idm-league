@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   Image as ImageIcon, Type, Layout, Save, Plus, Trash2, ChevronDown,
   ChevronUp, Eye, EyeOff, Edit3, X, Loader2, Palette,
@@ -17,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { container, item } from '@/lib/animations';
 import { hexToRgba } from '@/lib/utils';
 import { CloudinaryPicker } from './cloudinary-picker';
 import { Cloud } from 'lucide-react';
@@ -157,8 +155,8 @@ function CardEditor({
   };
 
   return (
-    <motion.div variants={item} className="group">
-      <div className={`p-3 rounded-xl border ${card.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/20 opacity-60'} transition-all`}>
+    <div className="group">
+      <div className={`p-3 rounded-xl border ${card.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/20 opacity-60'} transition-colors duration-150`}>
         {editing ? (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
@@ -258,7 +256,7 @@ function CardEditor({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -303,8 +301,8 @@ function SectionEditor({
   };
 
   return (
-    <motion.div variants={item}>
-      <Card className={`overflow-hidden border transition-all ${section.isActive ? 'border-border/50' : 'border-border/20 opacity-70'}`}>
+    <div>
+      <Card className={`overflow-hidden border transition-colors duration-150 ${section.isActive ? 'border-border/50' : 'border-border/20 opacity-70'}`}>
         {/* Section Header - Clickable to expand */}
         <div
           className="p-3 cursor-pointer hover:bg-muted/30 transition-colors flex items-center gap-3"
@@ -406,7 +404,7 @@ function SectionEditor({
               </div>
 
               {section.cards?.length > 0 ? (
-                <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
+                <div className="space-y-2">
                   {section.cards.map((card) => (
                     <CardEditor
                       key={card.id}
@@ -416,7 +414,7 @@ function SectionEditor({
                       isPending={isPending}
                     />
                   ))}
-                </motion.div>
+                </div>
               ) : (
                 <div className="py-6 text-center border border-dashed border-border/30 rounded-xl">
                   <ImageIcon className="w-6 h-6 text-muted-foreground/20 mx-auto mb-2" />
@@ -427,7 +425,7 @@ function SectionEditor({
           </CardContent>
         )}
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -564,7 +562,7 @@ export function CmsPanel() {
   const isPending = saveSection.isPending || saveCard.isPending || deleteSection.isPending || deleteCard.isPending;
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-idm-gold-warm" />
@@ -591,7 +589,7 @@ export function CmsPanel() {
 
         {/* ====== SETTINGS TAB ====== */}
         <TabsContent value="settings">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {settingsLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
@@ -1110,12 +1108,12 @@ export function CmsPanel() {
                 </Card>
               </>
             )}
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ====== SECTIONS TAB ====== */}
         <TabsContent value="sections">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* Add new section */}
             <Card className="border border-dashed border-idm-gold-warm/30 bg-idm-gold-warm/5">
               <CardContent className="p-4">
@@ -1156,7 +1154,7 @@ export function CmsPanel() {
                 <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
               </div>
             ) : (sections?.length ?? 0) > 0 ? (
-              <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
+              <div className="space-y-2">
                 {sections!.map((section) => (
                   <SectionEditor
                     key={section.id}
@@ -1178,7 +1176,7 @@ export function CmsPanel() {
                     isPending={isPending}
                   />
                 ))}
-              </motion.div>
+              </div>
             ) : (
               <div className="py-12 text-center">
                 <Layout className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
@@ -1188,9 +1186,9 @@ export function CmsPanel() {
                 </Button>
               </div>
             )}
-          </motion.div>
+          </div>
         </TabsContent>
       </Tabs>
-    </motion.div>
+    </div>
   );
 }
