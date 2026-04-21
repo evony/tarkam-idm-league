@@ -74,15 +74,14 @@ export function ChampionsSection({
                 <div className="h-1 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
 
                 <div className="relative z-10 p-6 sm:p-8">
-                  {/* Video Play Button — more visible */}
+                  {/* Video Play Button — bottom-right, compact icon */}
                   {championVideoUrl && onVideoPlay && (
                     <button
                       onClick={() => onVideoPlay(championVideoUrl, 'Champion Showcase')}
-                      className="absolute top-4 right-4 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 hover:bg-idm-gold-warm/30 hover:border-idm-gold-warm/60 transition-all cursor-pointer"
+                      className="absolute bottom-4 right-4 z-20 w-9 h-9 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/30 flex items-center justify-center hover:bg-idm-gold-warm/35 hover:border-idm-gold-warm/50 transition-all cursor-pointer"
                       aria-label="Play champion video"
                     >
-                      <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
-                      <span className="text-xs font-bold text-idm-gold-warm">Champion Video</span>
+                      <Play className="w-3.5 h-3.5 text-idm-gold-warm fill-idm-gold-warm" />
                     </button>
                   )}
                   {/* Header row */}

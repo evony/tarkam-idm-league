@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { type MotionValue } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Shield, Wallet, Swords, Play } from 'lucide-react';
+import { Crown, Users, Shield, Wallet, Swords } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard, stagger, scaleIn, fadeUp } from './shared';
@@ -94,17 +94,7 @@ export function HeroSection({
               </div>
               {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
-              {/* Watch Video button — opens modal with controls */}
-              {onVideoPlay && (
-                <button
-                  onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
-                  className="absolute bottom-24 sm:bottom-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-4 py-3 sm:px-4 sm:py-2 rounded-full bg-idm-gold-warm/15 border border-idm-gold-warm/30 backdrop-blur-sm hover:bg-idm-gold-warm/25 hover:border-idm-gold-warm/50 transition-all cursor-pointer group"
-                  aria-label="Play video with controls"
-                >
-                  <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm fill-idm-gold-warm" />
-                  <span className="text-[10px] sm:text-xs font-semibold text-idm-gold-warm tracking-wider uppercase">Watch Video</span>
-                </button>
-              )}
+              {/* Watch Video button — removed for cleaner hero layout */}
             </motion.div>
           ) : (
             /* Cloudinary / direct video URL — autoplay background */

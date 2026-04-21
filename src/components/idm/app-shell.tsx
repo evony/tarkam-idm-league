@@ -478,24 +478,17 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* ═══ FAB: Daftar (Register) — floating above bottom-right ═══ */}
+      {/* ═══ FAB: Daftar (Register) — circle bottom-left, above bottom nav ═══ */}
       <button
         onClick={() => { hapticTap(); setCurrentView('register'); }}
-        className={`lg:hidden fixed z-50 right-4 shadow-xl rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+        className={`lg:hidden fixed z-50 left-4 bottom-[76px] w-12 h-12 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center ${
           currentView === 'register'
-            ? 'bottom-[88px]'
-            : 'bottom-[80px]'
+            ? 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] ring-2 ring-idm-gold-warm/40'
+            : 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3]'
         }`}
         aria-label="Daftar Turnamen"
       >
-        <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg ${
-          currentView === 'register'
-            ? 'bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-idm-dark ring-2 ring-idm-gold-warm/40'
-            : 'bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
-        }`}>
-          <UserPlus className="w-5 h-5" />
-          <span className="text-sm font-bold">Daftar</span>
-        </div>
+        <span className="text-lg leading-none">📝</span>
       </button>
 
       {/* ═══ Mobile Bottom Nav — 5 items, clean and spacious ═══ */}
