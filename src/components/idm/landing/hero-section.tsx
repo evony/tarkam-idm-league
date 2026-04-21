@@ -74,14 +74,22 @@ export function HeroSection({
     <>
       {/* ========== HERO SECTION — Cinematic Parallax ========== */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Multi-layer Parallax Background — 3 depth layers */}
-        {/* Layer 1: Deep background (slowest) */}
-        {cmsHeroBgVideo ? (() => {
+        {/* Multi-layer Parallax Background */}
+        {/* Layer 1a: Static image fallback — always rendered so there's no blank/flash when video loads */}
+        <motion.div className="absolute inset-0 hidden sm:block" style={{ y: heroY, scale: heroScale }}>
+          <Image src={cmsHeroBgDesktop} alt="" fill priority sizes="100vw" className="object-cover" aria-hidden="true" />
+        </motion.div>
+        <motion.div className="absolute inset-0 sm:hidden" style={{ y: heroY, scale: heroScale }}>
+          <Image src={cmsHeroBgMobile} alt="" fill priority sizes="100vw" className="object-cover object-top" aria-hidden="true" />
+        </motion.div>
+
+        {/* Layer 1b: Video overlay on top of image — only if video URL is set */}
+        {cmsHeroBgVideo && (() => {
           const ytInfo = parseYouTubeUrl(cmsHeroBgVideo);
           const ytId = ytInfo?.id ?? null;
           return ytId ? (
-            /* YouTube autoplay embed as cinematic background (bandwidth goes to YouTube, not Vercel) */
-            <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+            /* YouTube autoplay embed — sits on top of the static image */
+            <motion.div className="absolute inset-0 z-[1]" style={{ y: heroY, scale: heroScale }}>
               <div className="absolute inset-0 w-full h-full overflow-hidden">
                 <iframe
                   src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1${ytInfo?.startTime ? `&start=${ytInfo.startTime}` : ''}`}
@@ -92,13 +100,11 @@ export function HeroSection({
                   title="Hero background video"
                 />
               </div>
-              {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
-              {/* Watch Video button — removed for cleaner hero layout */}
             </motion.div>
           ) : (
-            /* Cloudinary / direct video URL — autoplay background */
-            <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+            /* Cloudinary / direct MP4 video — sits on top of the static image */
+            <motion.div className="absolute inset-0 z-[1]" style={{ y: heroY, scale: heroScale }}>
               <video
                 src={cmsHeroBgVideo}
                 autoPlay
@@ -109,20 +115,10 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
-              {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
             </motion.div>
           );
-        })() : (
-          <>
-            <motion.div className="absolute inset-0 hidden sm:block" style={{ y: heroY, scale: heroScale }}>
-              <Image src={cmsHeroBgDesktop} alt="" fill priority sizes="100vw" className="object-cover" aria-hidden="true" />
-            </motion.div>
-            <motion.div className="absolute inset-0 sm:hidden" style={{ y: heroY, scale: heroScale }}>
-              <Image src={cmsHeroBgMobile} alt="" fill priority sizes="100vw" className="object-cover object-top" aria-hidden="true" />
-            </motion.div>
-          </>
-        )}
+        })()}
 
         {/* Layer 2: Mid-depth gold haze */}
         <motion.div
