@@ -15,7 +15,8 @@ interface LeagueClub {
   name: string;
   logo: string | null;
   bannerImage: string | null;
-  division: string;
+  division?: string;      // single division (legacy, from /api/stats)
+  divisions?: string[];   // multiple divisions (from /api/league, merged clubs)
   wins: number;
   losses: number;
   points: number;
@@ -152,7 +153,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   name: club.name,
                                   logo: club.logo,
                                   bannerImage: club.bannerImage,
-                                  division: club.division,
+                                  division: club.divisions?.join(', ') || club.division || 'male',
                                   wins: club.wins,
                                   losses: club.losses,
                                   points: club.points,
@@ -187,6 +188,20 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   <p className={`text-xs sm:text-sm font-black truncate transition-colors duration-200 ${
                                     isChampion ? 'text-idm-gold-warm' : 'text-white group-hover/club:text-idm-gold-warm'
                                   }`}>{club.name}</p>
+                                  {/* Division badge */}
+                                  <div className="flex items-center justify-center gap-1 mt-0.5">
+                                    {club.divisions ? (
+                                      club.divisions.map(d => (
+                                        <span key={d} className={`text-[8px] font-bold uppercase px-1 py-0 rounded ${
+                                          d === 'male' ? 'bg-[#06b6d4]/15 text-[#22d3ee]' : 'bg-[#a855f7]/15 text-[#c084fc]'
+                                        }`}>{d === 'male' ? '♂' : '♀'}</span>
+                                      ))
+                                    ) : club.division ? (
+                                      <span className={`text-[8px] font-bold uppercase px-1 py-0 rounded ${
+                                        club.division === 'male' ? 'bg-[#06b6d4]/15 text-[#22d3ee]' : 'bg-[#a855f7]/15 text-[#c084fc]'
+                                      }`}>{club.division === 'male' ? '♂' : '♀'}</span>
+                                    ) : null}
+                                  </div>
                                   {isChampion && (
                                     <p className="text-[10px] font-bold text-idm-gold-warm/60 uppercase tracking-wider mt-0.5">S{leagueData!.ligaChampion!.seasonNumber} Champion</p>
                                   )}

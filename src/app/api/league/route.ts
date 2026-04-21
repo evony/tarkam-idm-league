@@ -126,22 +126,14 @@ export async function GET() {
   // Use the latest season as the "current" season reference
   const season = seasons[0];
 
-  // Find the season with clubs for display — fall back to any season that has clubs
-  // This handles the case where the latest season (e.g., Season 2) has no clubs yet,
-  // but a previous season (e.g., Season 1) has clubs and data
-  const seasonWithClubs = await withDbRetry(() => db.season.findFirst({
-    where: {
-      id: { in: seasons.map(s => s.id) },
-      clubs: { some: {} },
-    },
-    orderBy: { number: 'desc' },
-  }));
+  // ── Get clubs from ALL active/completed seasons ──
+  // Liga IDM is a unified competition. Male and Female are separate SEASONS
+  // with separate clubs. We must query clubs from ALL seasons, not just one.
+  const allSeasonIds = seasons.map(s => s.id);
 
-  const activeSeasonId = seasonWithClubs?.id || season.id;
-
-  // All clubs — use the season that actually has clubs
+  // All clubs — from ALL active/completed seasons (both male & female)
   const allClubs = await withDbRetry(() => db.club.findMany({
-    where: { seasonId: activeSeasonId },
+    where: { seasonId: { in: allSeasonIds } },
     orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
     include: {
       _count: { select: { members: true } },
@@ -218,9 +210,9 @@ export async function GET() {
     });
   }
 
-  // All league matches — use activeSeasonId (the season with clubs)
+  // All league matches — from ALL seasons
   const leagueMatches = await withDbRetry(() => db.leagueMatch.findMany({
-    where: { seasonId: activeSeasonId },
+    where: { seasonId: { in: allSeasonIds } },
     orderBy: [{ week: 'asc' }],
     include: {
       club1: true,
@@ -228,9 +220,9 @@ export async function GET() {
     },
   }));
 
-  // All playoff matches
+  // All playoff matches — from ALL seasons
   const playoffMatches = await withDbRetry(() => db.playoffMatch.findMany({
-    where: { seasonId: activeSeasonId },
+    where: { seasonId: { in: allSeasonIds } },
     include: {
       club1: true,
       club2: true,
@@ -258,7 +250,7 @@ export async function GET() {
   const mvpCandidates = await withDbRetry(() => db.participation.findMany({
     where: {
       isMvp: true,
-      tournament: { seasonId: activeSeasonId, status: 'completed' },
+      tournament: { seasonId: { in: allSeasonIds }, status: 'completed' },
     },
     include: { player: true },
     orderBy: { createdAt: 'desc' },
@@ -268,17 +260,32 @@ export async function GET() {
   // Detect pre-season state: clubs exist but no matches played yet
   const isPreSeason = allClubs.length > 0 && leagueMatches.length === 0;
 
-  return NextResponse.json({
-    hasData: true,
-    preSeason: isPreSeason,
-    season: { id: season.id, name: season.name },
-    ligaChampion,
-    clubs: allClubs.map(c => ({
+  // ── Deduplicate clubs across seasons/divisions ──
+  // Some clubs exist in both Male and Female seasons (e.g., MAXIMOUS, EUPHORIC).
+  // For the unified Club grid, merge same-named clubs into ONE entry with
+  // combined members and best stats.
+  const clubMap = new Map<string, {
+    id: string;
+    name: string;
+    logo: string | null;
+    bannerImage: string | null;
+    divisions: string[];
+    wins: number;
+    losses: number;
+    points: number;
+    gameDiff: number;
+    memberCount: number;
+    members: Array<{ id: string; gamertag: string; name: string; division: string; tier: string; points: number; role: string; avatar: string | null }>;
+  }>();
+
+  for (const c of allClubs) {
+    const existing = clubMap.get(c.name);
+    const clubEntry = {
       id: c.id,
       name: c.name,
       logo: c.logo,
       bannerImage: c.bannerImage,
-      division: c.division,
+      divisions: [c.division],
       wins: c.wins,
       losses: c.losses,
       points: c.points,
@@ -287,14 +294,46 @@ export async function GET() {
       members: c.members.map(m => ({
         id: m.player.id,
         gamertag: m.player.gamertag,
-        name: m.player.gamertag, // Use gamertag as display name for profile modal
+        name: m.player.gamertag,
         division: m.player.division,
         tier: m.player.tier,
         points: m.player.points,
         role: m.role,
         avatar: m.player.avatar,
       })),
-    })),
+    };
+
+    if (!existing) {
+      clubMap.set(c.name, clubEntry);
+    } else {
+      // Merge: combine divisions, keep best stats, use logo if available
+      existing.divisions.push(c.division);
+      existing.wins += c.wins;
+      existing.losses += c.losses;
+      existing.points += c.points;
+      existing.gameDiff += c.gameDiff;
+      existing.memberCount += c._count.members;
+      // Use the logo from whichever record has one
+      if (!existing.logo && c.logo) existing.logo = c.logo;
+      if (!existing.bannerImage && c.bannerImage) existing.bannerImage = c.bannerImage;
+      // Merge members (avoid duplicates by player id)
+      const existingMemberIds = new Set(existing.members.map(m => m.id));
+      for (const m of clubEntry.members) {
+        if (!existingMemberIds.has(m.id)) {
+          existing.members.push(m);
+        }
+      }
+    }
+  }
+
+  const dedupedClubs = Array.from(clubMap.values());
+
+  return NextResponse.json({
+    hasData: true,
+    preSeason: isPreSeason,
+    season: { id: season.id, name: season.name },
+    ligaChampion,
+    clubs: dedupedClubs,
     leagueMatches: leagueMatches.map(m => ({
       id: m.id, week: m.week, score1: m.score1, score2: m.score2,
       status: m.status, format: m.format,
