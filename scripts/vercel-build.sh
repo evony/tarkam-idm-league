@@ -27,6 +27,14 @@ if [[ "$DB_URL" == postgresql://* ]] || [[ "$DB_URL" == postgres://* ]]; then
   echo "[vercel-build] ✅ Schema swapped to PostgreSQL"
   echo "[vercel-build] Running prisma generate..."
   npx prisma generate
+
+  echo "[vercel-build] Running prisma db push (ensure schema is synced)..."
+  # db push ensures Neon schema matches our Prisma schema.
+  # --accept-data-loss is NOT used — this is safe and won't delete data.
+  # It only ADDS missing columns/tables, never drops existing data.
+  npx prisma db push --skip-generate 2>&1 || {
+    echo "[vercel-build] ⚠️  prisma db push failed (non-fatal, continuing build)"
+  }
 else
   echo "[vercel-build] 📦 SQLite detected — keeping schema as-is"
 fi

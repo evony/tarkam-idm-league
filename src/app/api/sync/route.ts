@@ -5,25 +5,28 @@ import { NextResponse } from 'next/server';
 /**
  * POST /api/sync
  *
- * One-time sync endpoint to push data from local SQLite to Neon PostgreSQL.
- * Syncs: club logos, player avatars, season champion data.
- *
- * After calling this, all logo/avatar data will be in the production database.
- * Future uploads via admin panel will save directly to Neon — no more sync needed.
+ * Sync endpoint to push data from local SQLite to Neon PostgreSQL.
+ * Syncs: club logos, player avatars, season champion data, banner images.
  *
  * Body format (optional — uses built-in defaults if not provided):
  * {
  *   "clubLogos": [{ "name": "MAXIMOUS", "division": "male", "logo": "https://..." }],
  *   "playerAvatars": [{ "gamertag": "Bambang", "avatar": "https://..." }],
- *   "seasonChampions": [{ "seasonName": "...", "championClubName": "MAXIMOUS" }]
+ *   "seasonChampions": [{ "seasonName": "...", "championClubName": "MAXIMOUS" }],
+ *   "clubBanners": [{ "name": "MAXIMOUS", "division": "male", "bannerImage": "https://..." }]
  * }
+ *
+ * IMPORTANT: This syncs FROM the database the server is connected to.
+ * When called on Vercel (Neon), it updates Neon data with the payload provided.
+ * When called locally (SQLite), it reads SQLite data and can be used to generate a payload.
  */
 export async function POST(request: Request) {
   try {
     let body: {
       clubLogos?: Array<{ name: string; division?: string; logo: string }>;
       playerAvatars?: Array<{ gamertag: string; avatar: string }>;
-      seasonChampions?: Array<{ seasonName: string; championClubName: string }>;
+      seasonChampions?: Array<{ seasonName: string; championClubName: string; championSquad?: string }>;
+      clubBanners?: Array<{ name: string; division?: string; bannerImage: string }>;
     } = {};
 
     try {
@@ -36,6 +39,7 @@ export async function POST(request: Request) {
       clubLogos: { total: 0, updated: 0, details: [] as Array<{ name: string; division: string; count: number }> },
       playerAvatars: { total: 0, updated: 0, details: [] as Array<{ gamertag: string; count: number }> },
       seasonChampions: { total: 0, updated: 0, details: [] as Array<{ seasonName: string; success: boolean }> },
+      clubBanners: { total: 0, updated: 0, details: [] as Array<{ name: string; division: string; count: number }> },
     };
 
     // ── 1. Sync Club Logos ──
@@ -61,7 +65,30 @@ export async function POST(request: Request) {
       if (result.count > 0) results.clubLogos.updated++;
     }
 
-    // ── 2. Sync Player Avatars ──
+    // ── 2. Sync Club Banners ──
+    const clubBanners = body.clubBanners?.length ? body.clubBanners : getDefaultClubBanners();
+    results.clubBanners.total = clubBanners.length;
+
+    for (const clubData of clubBanners) {
+      const where: { name: string; division?: string } = { name: clubData.name };
+      if (clubData.division) {
+        where.division = clubData.division;
+      }
+
+      const result = await withDbRetry(() => db.club.updateMany({
+        where,
+        data: { bannerImage: clubData.bannerImage },
+      }));
+
+      results.clubBanners.details.push({
+        name: clubData.name,
+        division: clubData.division || 'all',
+        count: result.count,
+      });
+      if (result.count > 0) results.clubBanners.updated++;
+    }
+
+    // ── 3. Sync Player Avatars ──
     const playerAvatars = body.playerAvatars?.length ? body.playerAvatars : getDefaultPlayerAvatars();
     results.playerAvatars.total = playerAvatars.length;
 
@@ -78,7 +105,7 @@ export async function POST(request: Request) {
       if (result.count > 0) results.playerAvatars.updated++;
     }
 
-    // ── 3. Sync Season Champion Club ──
+    // ── 4. Sync Season Champion Club ──
     const seasonChampions = body.seasonChampions?.length ? body.seasonChampions : getDefaultSeasonChampions();
     results.seasonChampions.total = seasonChampions.length;
 
@@ -90,9 +117,15 @@ export async function POST(request: Request) {
       }));
 
       if (championClub) {
+        const updateData: { championClubId: string; championSquad?: string } = {
+          championClubId: championClub.id,
+        };
+        if (champData.championSquad) {
+          updateData.championSquad = champData.championSquad;
+        }
         const result = await withDbRetry(() => db.season.updateMany({
           where: { name: champData.seasonName },
-          data: { championClubId: championClub.id },
+          data: updateData,
         }));
         results.seasonChampions.details.push({
           seasonName: champData.seasonName,
@@ -119,37 +152,104 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * GET /api/sync — Export current database data as a sync payload.
+ * This reads from whichever database the server is connected to.
+ * Useful for generating a sync payload from SQLite to push to Neon.
+ */
+export async function GET() {
+  try {
+    const clubs = await withDbRetry(() => db.club.findMany({
+      select: { name: true, division: true, logo: true, bannerImage: true },
+    }));
+
+    const players = await withDbRetry(() => db.player.findMany({
+      where: { avatar: { not: null } },
+      select: { gamertag: true, avatar: true },
+    }));
+
+    const seasons = await withDbRetry(() => db.season.findMany({
+      where: { championClubId: { not: null } },
+      select: { name: true, championClubId: true, championSquad: true, championClub: { select: { name: true } } },
+    }));
+
+    const clubLogos = clubs
+      .filter(c => c.logo)
+      .map(c => ({ name: c.name, division: c.division, logo: c.logo! }));
+
+    const clubBanners = clubs
+      .filter(c => c.bannerImage)
+      .map(c => ({ name: c.name, division: c.division, bannerImage: c.bannerImage! }));
+
+    const playerAvatars = players.map(p => ({ gamertag: p.gamertag, avatar: p.avatar! }));
+
+    const seasonChampions = seasons
+      .filter(s => s.championClub)
+      .map(s => ({
+        seasonName: s.name,
+        championClubName: s.championClub!.name,
+        championSquad: s.championSquad || undefined,
+      }));
+
+    return NextResponse.json({
+      clubLogos,
+      clubBanners,
+      playerAvatars,
+      seasonChampions,
+      _meta: {
+        totalClubs: clubs.length,
+        totalLogos: clubLogos.length,
+        totalBanners: clubBanners.length,
+        totalAvatars: playerAvatars.length,
+        totalChampions: seasonChampions.length,
+      },
+    });
+  } catch (e: unknown) {
+    const error = e as Error;
+    console.error('[/api/sync GET] Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ── Default sync data (from SQLite as of latest dump) ──
+// These are used when no body is provided in the POST request.
+// Keep these updated when logos change in the sandbox.
+
 function getDefaultClubLogos(): Array<{ name: string; division: string; logo: string }> {
   return [
     { name: 'ALQA', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
     { name: 'AVENUE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp' },
     { name: 'CROWN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
-    { name: 'EUPHORIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
-    { name: 'EUPHORIC', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
-    { name: 'GYMSHARK', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
-    { name: 'GYMSHARK', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
-    { name: 'JASMINE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg' },
+    { name: 'EUPHORIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722393/idm/logos/d1jroavrbfs7uwm8mx0t.jpg' },
+    { name: 'GYMSHARK', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1776529296/gymshark_ucdx0m.jpg' },
+    { name: 'JASMINE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png' },
     { name: 'MAXIMOUS', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
+    { name: 'MYSTERY', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png' },
+    { name: 'ORPHIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775992653/logo1_tzieua.png' },
+    { name: 'PARANOID', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
+    { name: 'RESTART', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
+    { name: 'SALVADOR', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg' },
+    { name: 'SECRETS', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775992653/logo1_tzieua.png' },
+    { name: 'SENSEI', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png' },
+    { name: 'SOUTHERN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg' },
+    { name: 'EUPHORIC', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
+    { name: 'GYMSHARK', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
     { name: 'MAXIMOUS', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722447/idm/logos/ewl70fqyehvdhefxq76h.webp' },
-    { name: 'MYSTERY', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722423/idm/logos/gdvdqo4ul8filhyv2zrz.jpg' },
-    { name: 'ORPHIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722393/idm/logos/d1jroavrbfs7uwm8mx0t.jpg' },
-    { name: 'PARANOID', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
     { name: 'PARANOID', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
     { name: 'Plat R', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg' },
     { name: 'PSALM', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722357/idm/logos/agyc2zkbafrvf1kjrc0b.jpg' },
     { name: 'QUEEN', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839657/idm/logos/gzfny3tfdkxircyyxaxu.jpg' },
-    { name: 'RESTART', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg' },
     { name: 'RESTART', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg' },
     { name: 'RNB', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722517/idm/logos/migrego3avfcr0pganyq.jpg' },
-    { name: 'SALVADOR', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722437/idm/logos/ofcqjompuuqcmmqfoziu.webp' },
-    { name: 'SECRETS', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
     { name: 'SECRETS', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
-    { name: 'SENSEI', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839508/idm/logos/r41d6jqucjorjnh1scro.jpg' },
-    { name: 'SOUTHERN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
     { name: 'SOUTHERN', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
     { name: 'TOGETHER', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
     { name: 'YAKUZA', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
   ];
+}
+
+function getDefaultClubBanners(): Array<{ name: string; division: string; bannerImage: string }> {
+  return []; // No banners yet — will be populated when admin uploads banners
 }
 
 function getDefaultPlayerAvatars(): Array<{ gamertag: string; avatar: string }> {
@@ -158,7 +258,7 @@ function getDefaultPlayerAvatars(): Array<{ gamertag: string; avatar: string }> 
   ];
 }
 
-function getDefaultSeasonChampions(): Array<{ seasonName: string; championClubName: string }> {
+function getDefaultSeasonChampions(): Array<{ seasonName: string; championClubName: string; championSquad?: string }> {
   return [
     { seasonName: 'IDM League Season 1 - Male', championClubName: 'MAXIMOUS' },
   ];
