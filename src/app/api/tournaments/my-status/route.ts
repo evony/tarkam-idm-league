@@ -15,20 +15,24 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Step 1: Find the player — search by both name AND gamertag when only name is provided
+    // Step 1: Find the player — always search by both name AND gamertag using OR
+    // Bug fix: Previously, when both name and gamertag params were provided (frontend sends same value),
+    // only gamertag was searched, missing players whose name ≠ gamertag.
+    // Now always use OR search to cover both fields regardless of which params are provided.
     const playerWhere: Record<string, unknown> = {};
-    if (gamertag) {
-      // Explicit gamertag search — use it directly
-      playerWhere.gamertag = { equals: gamertag, mode: 'insensitive' };
-      if (division) playerWhere.division = division;
-      playerWhere.isActive = true;
-    } else if (name) {
-      // Only name provided — search by name OR gamertag (so typing a gamertag in the name field still works)
-      playerWhere.OR = [
-        { name: { equals: name, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
-        { gamertag: { equals: name, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
-      ];
-      // No top-level isActive/division since they're embedded in each OR branch
+    const searchTerms: string[] = [];
+    if (name) searchTerms.push(name);
+    if (gamertag && gamertag !== name) searchTerms.push(gamertag);
+
+    if (searchTerms.length > 0) {
+      const orConditions: Record<string, unknown>[] = [];
+      for (const term of searchTerms) {
+        orConditions.push(
+          { name: { equals: term, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
+          { gamertag: { equals: term, mode: 'insensitive' }, isActive: true, ...(division ? { division } : {}) },
+        );
+      }
+      playerWhere.OR = orConditions;
     }
 
     const player = await db.player.findFirst({

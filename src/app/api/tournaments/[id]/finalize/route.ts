@@ -34,24 +34,37 @@ export async function POST(
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
-  // Auto-advance from main_event to finalization if all playable matches are completed
-  if (tournament.status === 'main_event') {
-    const playableIncomplete = tournament.matches.filter(
-      m => (m.status === 'pending' || m.status === 'ready' || m.status === 'live') && m.team1Id && m.team2Id
-    );
-    const completedMatches = tournament.matches.filter(m => m.status === 'completed');
+  // Auto-advance: Handle various statuses that can lead to finalization
+  // Bug fix: Previously only handled main_event → finalization.
+  // Now also handles bracket_generation (if all matches done) and ensures proper flow.
+  const playableIncomplete = tournament.matches.filter(
+    m => (m.status === 'pending' || m.status === 'ready' || m.status === 'live') && m.team1Id && m.team2Id
+  );
+  const completedMatches = tournament.matches.filter(m => m.status === 'completed');
 
+  if (tournament.status === 'main_event') {
     if (playableIncomplete.length === 0 && completedMatches.length > 0) {
       // All playable matches are done — auto-advance to finalization
       await db.tournament.update({ where: { id }, data: { status: 'finalization' } });
       tournament.status = 'finalization';
     } else if (playableIncomplete.length > 0) {
       return NextResponse.json({
-        error: `Masih ada ${playableIncomplete.length} pertandingan yang belum selesai (${playableIncomplete.map(m => m.status).filter((v, i, a) => a.indexOf(v) === i).join(', ')}). Selesaikan semua match terlebih dahulu, atau lanjutkan ke status finalization setelah semua match selesai.`,
+        error: `Masih ada ${playableIncomplete.length} pertandingan yang belum selesai (${playableIncomplete.map(m => m.status).filter((v, i, a) => a.indexOf(v) === i).join(', ')}). Selesaikan semua match terlebih dahulu.`,
       }, { status: 400 });
     } else {
       return NextResponse.json({
         error: 'Tournament belum ada match yang selesai. Mainkan dan selesaikan pertandingan terlebih dahulu sebelum finalisasi.',
+      }, { status: 400 });
+    }
+  } else if (tournament.status === 'bracket_generation') {
+    // If bracket was just generated and all matches are already done (e.g., auto-completed),
+    // advance through main_event to finalization
+    if (playableIncomplete.length === 0 && completedMatches.length > 0) {
+      await db.tournament.update({ where: { id }, data: { status: 'finalization' } });
+      tournament.status = 'finalization';
+    } else {
+      return NextResponse.json({
+        error: 'Tournament masih dalam fase bracket generation. Mulai event (main_event) dan selesaikan semua match terlebih dahulu.',
       }, { status: 400 });
     }
   }
@@ -60,7 +73,6 @@ export async function POST(
     return NextResponse.json({ 
       error: `Tournament harus dalam status finalization. Status saat ini: ${tournament.status}. ${
         tournament.status === 'team_generation' ? 'Generate bracket terlebih dahulu, lalu mainkan dan selesaikan semua match.' :
-        tournament.status === 'bracket_generation' ? 'Mulai event (main_event) dan selesaikan semua match terlebih dahulu.' :
         tournament.status === 'approval' ? 'Setujui peserta dan generate tim terlebih dahulu.' :
         tournament.status === 'registration' ? 'Buka registrasi dan setujui peserta terlebih dahulu.' :
         tournament.status === 'setup' ? 'Lengkapi setup tournament terlebih dahulu.' :
@@ -70,11 +82,8 @@ export async function POST(
     }, { status: 400 });
   }
 
-  // Check that there are no incomplete matches that have both teams assigned
+  // Re-check incomplete matches after auto-advance (data is from original fetch, should be consistent)
   // Matches with null teams (unfilled bracket slots) are OK — they were never playable
-  const playableIncomplete = tournament.matches.filter(
-    m => (m.status === 'pending' || m.status === 'ready' || m.status === 'live') && m.team1Id && m.team2Id
-  );
   if (playableIncomplete.length > 0) {
     return NextResponse.json({
       error: `Masih ada ${playableIncomplete.length} pertandingan yang belum selesai. Semua match harus diselesaikan sebelum finalisasi.`,
@@ -82,7 +91,6 @@ export async function POST(
   }
 
   // Check if there are any completed matches at all
-  const completedMatches = tournament.matches.filter(m => m.status === 'completed');
   if (completedMatches.length === 0) {
     return NextResponse.json({ error: 'Tournament belum ada match yang selesai. Tidak bisa finalisasi.' }, { status: 400 });
   }

@@ -698,13 +698,18 @@ export async function PUT(
         }
 
         // ─── ORPHANED DATA CLEANUP: Final safety net ───
-        // After all revert phases, check for any remaining data that shouldn't exist at the target status.
-        // This handles cases where a previous partial revert changed the status but left orphaned data,
-        // causing the phase conditions (which check currentIdx) to skip cleanup.
+        // After all revert phases, ALWAYS verify data consistency for the target status.
+        // This handles cases where:
+        // 1. A previous partial revert changed the status but left orphaned data
+        // 2. The phase conditions (which check currentIdx) skipped cleanup due to status mismatch
+        // 3. A failed operation left the tournament in an inconsistent state
+        // We check ACTUAL data existence, not just currentIdx, to be fully defensive.
+
+        // Target before team_generation: No teams or matches should exist
         if (targetIdx < statusOrder.indexOf('team_generation')) {
           const orphanedTeams = await db.team.findMany({ where: { tournamentId: id }, select: { id: true } });
           if (orphanedTeams.length > 0) {
-            console.warn(`Orphaned data cleanup: Found ${orphanedTeams.length} remaining teams after revert phases, cleaning up`);
+            console.warn(`Orphaned data cleanup: Found ${orphanedTeams.length} remaining teams, cleaning up`);
             for (const t of orphanedTeams) {
               await db.teamPlayer.deleteMany({ where: { teamId: t.id } });
             }
@@ -712,23 +717,104 @@ export async function PUT(
           }
           const orphanedMatchCount = await db.match.count({ where: { tournamentId: id } });
           if (orphanedMatchCount > 0) {
-            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches after revert phases, cleaning up`);
+            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches, cleaning up`);
             await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
             await db.match.deleteMany({ where: { tournamentId: id } });
           }
-          // Ensure participations are in correct state for approval
+          // Reset all match-related player points
+          await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+          // Ensure participations are in correct state for approval/registration
           await db.participation.updateMany({
             where: { tournamentId: id, status: 'assigned' },
             data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
           });
+          // Also reset any participation points from matches
+          await db.participation.updateMany({
+            where: { tournamentId: id, status: 'approved' },
+            data: { pointsEarned: 0, isMvp: false, isWinner: false },
+          });
         }
+
+        // Target before bracket_generation: No matches should exist (teams OK)
         if (targetIdx < statusOrder.indexOf('bracket_generation')) {
           const orphanedMatchCount = await db.match.count({ where: { tournamentId: id } });
           if (orphanedMatchCount > 0) {
-            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches after revert phases, cleaning up`);
+            console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches before bracket_generation, cleaning up`);
             await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
             await db.match.deleteMany({ where: { tournamentId: id } });
           }
+        }
+
+        // Target before main_event: Reset match scores and advancement data
+        if (targetIdx < statusOrder.indexOf('main_event')) {
+          // Reset any completed matches back to ready/pending
+          const completedCount = await db.match.count({ where: { tournamentId: id, status: 'completed' } });
+          if (completedCount > 0) {
+            console.warn(`Orphaned data cleanup: Found ${completedCount} completed matches before main_event, resetting`);
+            await db.match.updateMany({
+              where: { tournamentId: id, status: 'completed' },
+              data: { score1: null, score2: null, status: 'pending', winnerId: null, loserId: null, completedAt: null, mvpPlayerId: null },
+            });
+            // Re-mark matches with both teams as 'ready'
+            const readyMatches = await db.match.findMany({
+              where: { tournamentId: id, status: 'pending', team1Id: { not: null }, team2Id: { not: null } },
+              select: { id: true },
+            });
+            for (const m of readyMatches) {
+              await db.match.update({ where: { id: m.id }, data: { status: 'ready' } });
+            }
+          }
+          // Clear teams from later-round matches (advancements)
+          const laterMatches = await db.match.findMany({
+            where: { tournamentId: id, status: 'pending', bracket: { in: ['upper', 'lower', 'grand_final'] } },
+            select: { id: true, round: true, bracket: true },
+          });
+          for (const m of laterMatches) {
+            if (m.bracket === 'group') continue;
+            if (m.bracket === 'upper' && m.round === 1) continue;
+            await db.match.update({ where: { id: m.id }, data: { team1Id: null, team2Id: null, status: 'pending' } });
+          }
+        }
+
+        // Target before finalization: Always clean up prizes/achievements/MVP data
+        if (targetIdx < statusOrder.indexOf('finalization')) {
+          const existingPrizes = await db.tournamentPrize.count({ where: { tournamentId: id } });
+          if (existingPrizes > 0) {
+            console.warn(`Orphaned data cleanup: Found ${existingPrizes} prizes before finalization, cleaning up`);
+            // Rollback prize points before deleting
+            const prizePointRecords = await db.playerPoint.findMany({
+              where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } },
+              select: { playerId: true, amount: true },
+            });
+            const pointsByPlayer = new Map<string, number>();
+            for (const pr of prizePointRecords) {
+              pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
+            }
+            for (const [playerId, totalPoints] of pointsByPlayer) {
+              await db.player.updateMany({ where: { id: playerId }, data: { points: { decrement: totalPoints } } });
+              await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+            }
+            await db.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
+            await db.tournamentPrize.deleteMany({ where: { tournamentId: id } });
+          }
+
+          // Reset team ranks and isWinner
+          await db.team.updateMany({ where: { tournamentId: id, rank: { not: null } }, data: { rank: null, isWinner: false } });
+          await db.team.updateMany({ where: { tournamentId: id, isWinner: true }, data: { isWinner: false } });
+
+          // Reset MVP references
+          const mvpParts = await db.participation.findMany({ where: { tournamentId: id, isMvp: true }, select: { playerId: true } });
+          for (const mvp of mvpParts) {
+            await db.player.update({ where: { id: mvp.playerId }, data: { totalMvp: { decrement: 1 } } });
+            await db.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+          }
+          await db.participation.updateMany({ where: { tournamentId: id, isMvp: true }, data: { isMvp: false } });
+          await db.participation.updateMany({ where: { tournamentId: id, isWinner: true }, data: { isWinner: false } });
+          await db.playerAchievement.deleteMany({ where: { tournamentId: id } });
+          await db.match.updateMany({ where: { tournamentId: id, mvpPlayerId: { not: null } }, data: { mvpPlayerId: null } });
+
+          // Reset finalizedAt/completedAt
+          await db.tournament.update({ where: { id }, data: { finalizedAt: null, completedAt: null } }).catch(() => {});
         }
       } catch (revertError) {
         console.error('Revert phase error:', revertError);
