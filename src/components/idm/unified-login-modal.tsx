@@ -515,22 +515,18 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                         Skin Eksklusif Setiap Minggu!
                       </p>
                     </div>
-                    <div className="space-y-1.5 ml-6">
+                    <div className="space-y-2 ml-6">
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">🥇</span>
-                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-foreground">1</strong></span>
+                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-yellow-400">1</strong> — <strong className="text-yellow-400">Gold Crown</strong></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">⭐</span>
-                        <span className="text-[10px] text-muted-foreground">MVP Mingguan</span>
+                        <span className="text-base leading-none">💎</span>
+                        <span className="text-[10px] text-muted-foreground">MVP — <strong className="text-emerald-400">Emerald Luxury 💵</strong></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">🏟️</span>
-                        <span className="text-[10px] text-muted-foreground">Penyewa Turnamen</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">💛</span>
-                        <span className="text-[10px] text-muted-foreground">Donatur</span>
+                        <span className="text-base leading-none">❤️</span>
+                        <span className="text-[10px] text-muted-foreground">Donatur — <strong className="text-rose-400">Maroon Heart</strong></span>
                       </div>
                     </div>
                   </div>
