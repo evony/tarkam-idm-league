@@ -270,3 +270,33 @@ Stage Summary:
 - React Query cache properly invalidated after logo/banner changes
 - 2-env strategy: `.env` (SQLite local dev) + `.env.production` (PostgreSQL Vercel)
 - For Vercel deploy: change schema to `postgresql` + add `directUrl` + set production env vars
+
+---
+Task ID: 11
+Agent: Sub-agent (Optimize league-view.tsx)
+Task: Optimize league-view.tsx — Replace Framer Motion with CSS animations
+
+Work Log:
+- Identified all 22 `motion.div` occurrences in league-view.tsx (1128 lines)
+- Applied CSS animation replacements per the specified rules:
+  - **Rule 1** (`variants={container} initial="hidden" animate="show"`): 5 containers → plain `<div>` with existing className
+  - **Rule 2** (`variants={item}`): 5 children → `<div>` with `stagger-item-fast stagger-d0` through `stagger-d2`
+  - **Rule 3** (`initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}`): 2 instances → `animate-fade-enter`
+  - **Rule 4** (`initial={{ opacity: 0, y: 8/10 }} animate={{ opacity: 1, y: 0 }}`): 1 instance → `animate-fade-enter-sm` with dynamic `animationDelay`
+  - **Rule 7** (`animate={{ y: [-3,3,-3], opacity: [0.5,1,0.5] }} repeat: Infinity`): 2 instances → `animate-bob-fade`
+  - **Rule 9** (`transition={{ delay: 0.2, type: 'spring' }}`): 2 trophy icons → `animate-fade-enter` with `style={{ animationDelay: '0.2s' }}`
+  - **Champion cards with delay 0.3**: 2 instances → `animate-fade-enter` with `animationDelay: '0.3s'` merged into existing style
+  - **Expanded roster** (`initial={{ height: 0, opacity: 0 }}`): 1 instance → `animate-fade-enter`
+  - **Club preview grid** (dynamic delay `idx * 0.05`): → `animate-fade-enter-sm` with `animationDelay: ${idx * 50}ms`
+- Replaced all `</motion.div>` closing tags with `</div>`
+- Removed `import { motion } from 'framer-motion'` (no longer used)
+- Removed `import { container, item } from '@/lib/animations'` (no longer used)
+- File reduced from 1128 to 1098 lines (30 lines saved from removed multi-line motion props)
+- Verified zero remaining `motion`, `framer`, or `animations` references
+- Build check: no league-view specific errors
+
+Stage Summary:
+- All Framer Motion dependencies removed from league-view.tsx
+- Component now uses pure CSS animations (`animate-fade-enter`, `animate-fade-enter-sm`, `animate-bob-fade`, `stagger-item-fast stagger-d*`)
+- Bundle size reduced — framer-motion no longer imported by this component
+- Visual behavior preserved via equivalent CSS animation classes

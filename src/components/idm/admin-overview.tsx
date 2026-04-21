@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+
 import {
   Users, Trophy, Gift, TrendingUp, Calendar,
   Crown, Flame, Activity, ArrowUpRight, ArrowDownRight, Music
@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { formatCurrency } from '@/lib/utils';
-import { container, item } from '@/lib/animations';
 
 interface AdminOverviewProps {
   division: 'male' | 'female';
@@ -93,13 +92,13 @@ export function AdminOverview({ division }: AdminOverviewProps) {
   ];
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {statsCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <motion.div key={i} variants={item}>
+            <div key={i} className="stagger-item-subtle" style={{ animationDelay: `${i * 30}ms` }}>
               <Card className={`${dt.casinoCard} overflow-hidden`}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
@@ -119,7 +118,7 @@ export function AdminOverview({ division }: AdminOverviewProps) {
                   <p className="text-[10px] text-muted-foreground">{stat.title}</p>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -127,7 +126,7 @@ export function AdminOverview({ division }: AdminOverviewProps) {
       {/* Season Progress & Tier Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Season Progress */}
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d0">
           <Card className={dt.casinoCard}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -159,10 +158,10 @@ export function AdminOverview({ division }: AdminOverviewProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Tier Distribution */}
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d1">
           <Card className={dt.casinoCard}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -197,13 +196,13 @@ export function AdminOverview({ division }: AdminOverviewProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
       {/* Top Players & Recent Champions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Top Players */}
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d2">
           <Card className={dt.casinoCard}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -256,10 +255,10 @@ export function AdminOverview({ division }: AdminOverviewProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Weekly Champions */}
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d3">
           <Card className={dt.casinoCard}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -300,8 +299,8 @@ export function AdminOverview({ division }: AdminOverviewProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

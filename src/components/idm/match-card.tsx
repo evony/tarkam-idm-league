@@ -192,23 +192,19 @@ export function DanceMatchCard({
           {hasScore && (score1! + score2!) > 0 && (
             <div className="mt-3">
               <div className={`h-1.5 rounded-full ${dt.bgSubtle} overflow-hidden flex`}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(score1! / (score1! + score2!)) * 100}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className={`h-full rounded-l-full ${winner1
+                <div
+                  className={`h-full rounded-l-full transition-[width] duration-500 ease-out ${winner1
                     ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`
                     : 'bg-muted-foreground/20'
                   }`}
+                  style={{ width: `${(score1! / (score1! + score2!)) * 100}%` }}
                 />
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(score2! / (score1! + score2!)) * 100}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className={`h-full rounded-r-full ${winner2
+                <div
+                  className={`h-full rounded-r-full transition-[width] duration-500 ease-out ${winner2
                     ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`
                     : 'bg-muted-foreground/20'
                   }`}
+                  style={{ width: `${(score2! / (score1! + score2!)) * 100}%`, opacity: 0.5 }}
                 />
               </div>
             </div>
@@ -217,23 +213,17 @@ export function DanceMatchCard({
 
         {/* ═══ MVP Indicator ═══ */}
         {mvpPlayer && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex items-center justify-center gap-1.5 mx-4 mb-3 p-2 rounded-lg ${dt.bgSubtle} ${dt.borderSubtle} border`}
+          <div
+            className={`stagger-item-subtle flex items-center justify-center gap-1.5 mx-4 mb-3 p-2 rounded-lg ${dt.bgSubtle} ${dt.borderSubtle} border`}
           >
             <Crown className="w-3.5 h-3.5 text-yellow-500" />
             <span className={`text-[10px] font-semibold ${dt.neonText}`}>MVP: {mvpPlayer.gamertag}</span>
-          </motion.div>
+          </div>
         )}
 
         {/* ═══ Expanded Details ═══ */}
         {expanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="mx-4 mb-3"
-          >
+          <div className="mx-4 mb-3">
             <div className={`p-3 rounded-lg ${dt.bgSubtle} ${dt.borderSubtle} border space-y-2`}>
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-muted-foreground">Status</span>
@@ -256,7 +246,7 @@ export function DanceMatchCard({
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Expand indicator */}

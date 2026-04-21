@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Swords, Trophy, Crown, Clock, MapPin, Heart, Users,
   ChevronDown, ChevronUp, Zap, CheckCircle2, XCircle, Play,
@@ -16,16 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-
-/* animation variants */
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.04 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
 
 /* ─── Types ─── */
 interface Teammate {
@@ -229,9 +218,9 @@ export function MyTournamentCard() {
           {searchBar}
           <Card className={`${dt.casinoCard}`}>
             <CardContent className="p-5 relative z-10 text-center">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="inline-block mb-3">
+              <div className="animate-spin-slow inline-block mb-3">
                 <Swords className={`w-8 h-8 ${dt.neonText}`} />
-              </motion.div>
+              </div>
               <p className="text-sm text-muted-foreground">Mencari data turnamen...</p>
             </CardContent>
           </Card>
@@ -510,9 +499,9 @@ export function MyTournamentCard() {
             {data.isChampion && (
               <Card className="border-yellow-500/30 bg-yellow-500/5">
                 <CardContent className="p-4 relative z-10 text-center">
-                  <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="inline-block mb-2">
+                  <div className="animate-pulse-scale inline-block mb-2">
                     <Trophy className="w-10 h-10 text-yellow-500" />
-                  </motion.div>
+                  </div>
                   <h3 className="text-base font-bold text-yellow-500 mb-1">Selamat, Juara!</h3>
                   <p className="text-xs text-muted-foreground">{myTeam.name} memenangkan tournament ini!</p>
                   {tournament.prizePool > 0 && <p className="text-xs text-yellow-500 font-bold mt-1">Hadiah: Rp {tournament.prizePool.toLocaleString('id-ID')}</p>}
@@ -602,9 +591,9 @@ export function MyTournamentCard() {
       {overviewLoading ? (
         <Card className={`${dt.casinoCard}`}>
           <CardContent className="p-4 relative z-10 text-center">
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }} className="inline-block">
+            <div className="animate-spin-slower inline-block">
               <Swords className={`w-6 h-6 ${dt.neonText}`} />
-            </motion.div>
+            </div>
             <p className="text-xs text-muted-foreground mt-2">Memuat info turnamen...</p>
           </CardContent>
         </Card>

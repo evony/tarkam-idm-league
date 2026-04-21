@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+
 import {
   Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp,
 } from 'lucide-react';
@@ -15,8 +15,6 @@ import { SectionCard, MatchRow } from './shared';
 import { Card } from '@/components/ui/card';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { formatCurrency } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { staggerContainerFast, fadeUpItemSubtle, staggerContainerReduced, fadeUpItemReduced } from '@/lib/animations';
 import type { StatsData } from '@/types/stats';
 
 interface OverviewTabProps {
@@ -28,11 +26,7 @@ interface OverviewTabProps {
 
 export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub }: OverviewTabProps) {
   const dt = useDivisionTheme();
-  const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
-  const shouldReduceMotion = prefersReducedMotion || isMobile;
-  const container = shouldReduceMotion ? staggerContainerReduced : staggerContainerFast;
-  const item = shouldReduceMotion ? fadeUpItemReduced : fadeUpItemSubtle;
+
   const [topPlayerTab, setTopPlayerTab] = useState<'top3' | 'champion' | 'mvp'>('top3');
   const [selectedChampionWeek, setSelectedChampionWeek] = useState<number>(1);
   const [selectedMvpWeek, setSelectedMvpWeek] = useState<number>(1);
@@ -40,11 +34,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
   const t = data.activeTournament;
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
 
       {/* ★ Top Players — HERO MOMENT */}
-      <motion.div variants={item}>
-        <Card className={`${dt.casinoCard} ${!isMobile ? 'casino-shimmer' : ''} overflow-hidden relative`}>
+      <div className="stagger-item-subtle stagger-d0">
+        <Card className={`${dt.casinoCard} overflow-hidden relative`}>
           <div className={dt.casinoBar} />
           {/* Desktop: decorative blur orb for premium feel */}
           <div className={`hidden lg:block absolute top-8 right-8 w-32 h-32 rounded-full blur-3xl ${dt.bg} opacity-20 pointer-events-none`} />
@@ -297,11 +291,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
         )}
         </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Recent Results — after hero */}
       {data.recentMatches?.length > 0 ? (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d1">
           <SectionCard title="Hasil Terbaru" icon={Radio} badge="LIVE">
             <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
               {data.recentMatches.slice(0, 6).map(m => (
@@ -317,9 +311,9 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
               ))}
             </div>
           </SectionCard>
-        </motion.div>
+        </div>
       ) : (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d1">
           <SectionCard title="Hasil Terbaru" icon={Radio} badge="LIVE">
             <div className={`p-6 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
               <Music className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
@@ -327,10 +321,10 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
               <p className="text-[10px] text-muted-foreground/80 mt-1">Match yang sudah selesai akan muncul di sini</p>
             </div>
           </SectionCard>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="stagger-item-subtle stagger-d2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <SectionCard title="Donasi & Sawer" icon={Gift} badge="LIVE">
           <div className={`p-3 rounded-xl ${dt.bgSubtle} ${dt.border} mb-3`}>
             <p className="text-xs text-muted-foreground mb-1">Total Prize Pool</p>
@@ -389,11 +383,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
             </div>
           </div>
         </SectionCard>
-      </motion.div>
+      </div>
 
       {/* Featured Match — DanceMatchCard style */}
       {t?.matches?.filter(m => m.status === 'completed').length ? (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d3">
           <div className="flex items-center gap-2 mb-3">
             <div className={`w-7 h-7 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Music className={`w-3.5 h-3.5 ${dt.neonText}`} />
@@ -413,8 +407,8 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
               mvpPlayer={m.mvpPlayer}
             />
           ))}
-        </motion.div>
+        </div>
       ) : null}
-    </motion.div>
+    </div>
   );
 }

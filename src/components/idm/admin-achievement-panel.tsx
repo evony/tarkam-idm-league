@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+
 import {
   Award, Plus, Pencil, Trash2, Users, Loader2, X, Star, Zap
 } from 'lucide-react';
@@ -17,7 +17,6 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { container, item } from '@/lib/animations';
 
 interface Achievement {
   id: string;
@@ -202,7 +201,7 @@ export function AdminAchievementPanel() {
   }, {});
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1">
@@ -246,10 +245,10 @@ export function AdminAchievementPanel() {
         </div>
       ) : (
         <div className="space-y-4">
-          {Object.entries(groupedAchievements).map(([category, catAchievements]) => {
+          {Object.entries(groupedAchievements).map(([category, catAchievements], i) => {
             const CatIcon = categoryIcons[category] || Award;
             return (
-              <motion.div key={category} variants={item}>
+              <div key={category} className="stagger-item-subtle" style={{ animationDelay: `${i * 30}ms` }}>
                 <Card className={dt.casinoCard}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2 capitalize">
@@ -343,7 +342,7 @@ export function AdminAchievementPanel() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
 
@@ -584,6 +583,6 @@ export function AdminAchievementPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </div>
   );
 }

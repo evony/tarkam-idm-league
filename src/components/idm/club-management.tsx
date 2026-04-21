@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   Shield, Plus, X, Loader2, Crown, UserPlus, UserMinus,
   Edit3, Trash2, Check, ChevronDown, ChevronUp, Users, Search, Camera
@@ -14,7 +14,7 @@ import { TierBadge } from './tier-badge';
 import { CloudinaryPicker } from './cloudinary-picker';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { container, item } from '@/lib/animations';
+// animations import removed — using CSS stagger-item classes
 import Image from 'next/image';
 import type { DivisionTheme } from '@/hooks/use-division-theme';
 
@@ -297,7 +297,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
   }
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
 
       {/* ===== CREATE CLUB ===== */}
       <Card className={dt.casinoCard}>
@@ -337,7 +337,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
             const isEditing = editingClub === club.id;
 
             return (
-              <motion.div key={club.id} variants={item}>
+              <div key={club.id} className="stagger-item" style={{ animationDelay: `${clubs.indexOf(club) * 30}ms` }}>
                 <Card className={`${dt.casinoCard} ${dt.casinoGlow}`}>
                   <div className={dt.casinoBar} />
                   <CardContent className="p-0 relative z-10">
@@ -440,12 +440,8 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                     {/* ===== EXPANDED: MEMBERS ===== */}
                     <AnimatePresence>
                       {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
+                        <div
+                          className="overflow-hidden stagger-item-subtle"
                         >
                           <div className="border-t border-border/20 px-3 py-3 space-y-3">
                             {detailLoading ? (
@@ -478,11 +474,8 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                 {/* Add Member Panel */}
                                 <AnimatePresence>
                                   {showAddMember === club.id && (
-                                    <motion.div
-                                      initial={{ height: 0, opacity: 0 }}
-                                      animate={{ height: 'auto', opacity: 1 }}
-                                      exit={{ height: 0, opacity: 0 }}
-                                      className="overflow-hidden"
+                                    <div
+                                      className="overflow-hidden stagger-item-subtle"
                                     >
                                       <div className="p-3 rounded-lg bg-muted/30 border border-border/20 space-y-2">
                                         <div className="flex items-center gap-2">
@@ -521,7 +514,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                           ))}
                                         </div>
                                       </div>
-                                    </motion.div>
+                                    </div>
                                   )}
                                 </AnimatePresence>
 
@@ -598,12 +591,12 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                               </>
                             )}
                           </div>
-                        </motion.div>
+                        </div>
                       )}
                     </AnimatePresence>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -624,6 +617,6 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
         onSelect={handleBannerSelect}
         uploadFolder="club-banners"
       />
-    </motion.div>
+    </div>
   );
 }

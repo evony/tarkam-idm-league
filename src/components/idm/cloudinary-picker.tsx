@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed — using CSS stagger-item classes
 import {
   Dialog,
   DialogContent,
@@ -358,18 +358,15 @@ export function CloudinaryPicker({ open, onClose, onSelect, currentImage, upload
                 </div>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 p-1">
-                  <AnimatePresence>
-                    {filteredImages.map((img: CloudinaryImage) => (
-                      <motion.div
+                    {filteredImages.map((img: CloudinaryImage, i: number) => (
+                      <div
                         key={img.public_id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                        className={`stagger-item-fast relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
                           selectedImage?.public_id === img.public_id
                             ? 'border-primary ring-2 ring-primary/30'
                             : 'border-transparent hover:border-primary/50'
                         }`}
+                        style={{ animationDelay: `${i * 20}ms` }}
                         onClick={() => setSelectedImage(img)}
                       >
                         <img
@@ -388,10 +385,9 @@ export function CloudinaryPicker({ open, onClose, onSelect, currentImage, upload
                           <p className="text-[9px] text-white truncate">{img.public_id.split('/').pop()}</p>
                           <p className="text-[8px] text-white/70">{img.width}x{img.height}</p>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
-                  </AnimatePresence>
-                </div>
+                  </div>
               )}
             </div>
           </TabsContent>
@@ -496,11 +492,7 @@ export function CloudinaryPicker({ open, onClose, onSelect, currentImage, upload
 
               {/* Upload Button */}
               {uploadPreview && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-end"
-                >
+                <div className="flex justify-end stagger-item-subtle">
                   <Button
                     onClick={handleUpload}
                     disabled={isUploading}
@@ -518,7 +510,7 @@ export function CloudinaryPicker({ open, onClose, onSelect, currentImage, upload
                       </>
                     )}
                   </Button>
-                </motion.div>
+                </div>
               )}
             </div>
           </TabsContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+
 import {
   Settings, Database, RefreshCw, Trash2, Download, Upload,
   Shield, Clock, AlertTriangle, Loader2, Check, X
@@ -16,7 +16,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { container, item } from '@/lib/animations';
 
 interface ActivityLog {
   id: string;
@@ -151,9 +150,9 @@ export function AdminSettingsPanel() {
   ];
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* Admin Info */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d0">
         <Card className={dt.casinoCard}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -179,10 +178,10 @@ export function AdminSettingsPanel() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Data Management */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d1">
         <Card className={dt.casinoCard}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -277,10 +276,10 @@ export function AdminSettingsPanel() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Settings */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d2">
         <Card className={dt.casinoCard}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -312,10 +311,10 @@ export function AdminSettingsPanel() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Activity Log */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d3">
         <Card className={dt.casinoCard}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -346,7 +345,7 @@ export function AdminSettingsPanel() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+
 import {
   Users, Music, Calendar, Trophy, Gamepad2,
 } from 'lucide-react';
@@ -10,8 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { BracketView } from '../bracket-view';
 import { SectionCard, MatchRow } from './shared';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { staggerContainerFast, fadeUpItemSubtle, staggerContainerReduced, fadeUpItemReduced } from '@/lib/animations';
 import type { StatsData } from '@/types/stats';
 
 interface MatchesTabProps {
@@ -24,20 +22,16 @@ interface MatchesTabProps {
 
 export function MatchesTab({ data, recentMatches, upcomingMatches, matchesByWeek, upcomingByWeek }: MatchesTabProps) {
   const dt = useDivisionTheme();
-  const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
-  const shouldReduceMotion = prefersReducedMotion || isMobile;
-  const container = shouldReduceMotion ? staggerContainerReduced : staggerContainerFast;
-  const item = shouldReduceMotion ? fadeUpItemReduced : fadeUpItemSubtle;
+
   const [bracketType, setBracketType] = useState<string>('single_elimination');
 
   const t = data.activeTournament;
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
 
       {/* Bracket View — with type selector */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d0">
         <Card className={`${dt.casinoCard} overflow-hidden`}>
           <div className={dt.casinoBar} />
           <div className="relative z-10">
@@ -97,11 +91,11 @@ export function MatchesTab({ data, recentMatches, upcomingMatches, matchesByWeek
             </div>
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Completed Matches — grouped by week (Toornament match list style) */}
       {Object.keys(matchesByWeek).length > 0 && (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d1">
           <SectionCard title="Hasil Match" icon={Trophy} badge={`${data.recentMatches?.length || 0} Match`}>
             <div className="space-y-5">
               {Object.entries(matchesByWeek)
@@ -132,12 +126,12 @@ export function MatchesTab({ data, recentMatches, upcomingMatches, matchesByWeek
                 ))}
             </div>
           </SectionCard>
-        </motion.div>
+        </div>
       )}
 
       {/* Upcoming Matches — grouped by week */}
       {Object.keys(upcomingByWeek).length > 0 && (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d2">
           <SectionCard title="Akan Datang" icon={Calendar} badge="JADWAL">
             <div className="space-y-5">
               {Object.entries(upcomingByWeek)
@@ -167,17 +161,17 @@ export function MatchesTab({ data, recentMatches, upcomingMatches, matchesByWeek
                 ))}
             </div>
           </SectionCard>
-        </motion.div>
+        </div>
       )}
 
       {Object.keys(matchesByWeek).length === 0 && Object.keys(upcomingByWeek).length === 0 && (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d3">
           <div className={`p-8 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
             <Gamepad2 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Belum ada match</p>
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }

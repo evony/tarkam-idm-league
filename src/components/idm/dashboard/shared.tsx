@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
 import { Shield, Flame } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -187,21 +186,12 @@ export const ParticipantRow = React.memo(function ParticipantRow({ player, rank,
 }) {
   const dt = useDivisionTheme();
   const division = useAppStore(s => s.division);
-  const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
-  const shouldReduceMotion = prefersReducedMotion || isMobile;
   const avatarSrc = getAvatarUrl(player.gamertag, division, player.avatar);
 
-  // On mobile/reduced motion, use plain div to avoid animation jank
-  const Wrapper = shouldReduceMotion ? 'div' : motion.div;
-  const motionProps = shouldReduceMotion
-    ? {}
-    : { whileHover: { x: 2 } };
-
+  // CSS-only hover — no Framer Motion for better performance
   return (
-    <Wrapper
-      {...motionProps}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border border-transparent ${dt.hoverBorder} ${dt.hoverBgSubtle}`}
+    <div
+      className={`interactive-scale flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border border-transparent ${dt.hoverBorder} ${dt.hoverBgSubtle}`}
       onClick={onClick}
     >
       {/* Rank */}
@@ -245,6 +235,6 @@ export const ParticipantRow = React.memo(function ParticipantRow({ player, rank,
         <span className="text-red-500 font-medium">{player.matches - player.totalWins}L</span>
         {player.streak > 1 && <span className="text-orange-400 flex items-center gap-0.5"><Flame className="w-3 h-3" />{player.streak}</span>}
       </div>
-    </Wrapper>
+    </div>
   );
 })

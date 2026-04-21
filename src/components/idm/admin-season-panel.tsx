@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+/* framer-motion removed — CSS animations */
 import Image from 'next/image';
 import {
   Calendar, Crown, Trophy, Plus, Loader2, Check, X, Edit3,
@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { getAvatarUrl } from '@/lib/utils';
-import { container, item } from '@/lib/animations';
+/* container/item removed — CSS stagger */
 import type { DivisionTheme } from '@/hooks/use-division-theme';
 
 interface AdminSeasonPanelProps {
@@ -247,7 +247,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
   }
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
 
       {/* ===== CREATE SEASON ===== */}
       <Card className={dt.casinoCard}>
@@ -319,14 +319,14 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
         </div>
       ) : (
         <div className="space-y-2">
-          {seasons.map((season) => {
+          {seasons.map((season, idx) => {
             const isExpanded = expandedSeason === season.id;
             const isChampionEditing = editingChampion === season.id;
             const isStatusEditing = editingStatus === season.id;
             const championClub = isExpanded ? (seasonDetail?.championClub || season.championClub) : season.championClub;
 
             return (
-              <motion.div key={season.id} variants={item}>
+              <div key={season.id} className="stagger-item-subtle" style={{ animationDelay: `${idx * 30}ms` }}>
                 <Card className={`${dt.casinoCard} ${dt.casinoGlow}`}>
                   <div className={dt.casinoBar} />
                   <CardContent className="p-0 relative z-10">
@@ -817,7 +817,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                     )}
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -836,7 +836,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </div>
   );
 }
 

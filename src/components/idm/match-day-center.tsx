@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
-import { motion, AnimatePresence } from 'framer-motion';
+// Note: motion.div removed — replaced with CSS animations
 import {
   Trophy, Crown, Radio, Clock, Flame, Zap,
   Users, TrendingUp, Star, ChevronRight,
@@ -25,7 +25,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
-import { staggerContainerSlow as container, fadeUpItemSlow as item } from '@/lib/animations';
+// container/item removed — replaced with CSS stagger-item classes
 
 interface PredictionState {
   matchId: string;
@@ -88,13 +88,11 @@ function PredictionBar({ team1Votes, team2Votes, userVote, onVote, team1Name, te
           }`}
         >
           {userVote === 'team1' && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} flex items-center justify-center`}
+            <div
+              className={`stagger-item-subtle absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} flex items-center justify-center`}
             >
               <CheckCircle2 className="w-3 h-3 text-white" />
-            </motion.div>
+            </div>
           )}
           <div className={`w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-xs font-bold mb-1.5 ${
             userVote === 'team1'
@@ -118,13 +116,11 @@ function PredictionBar({ team1Votes, team2Votes, userVote, onVote, team1Name, te
           }`}
         >
           {userVote === 'team2' && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} flex items-center justify-center`}
+            <div
+              className={`stagger-item-subtle absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} flex items-center justify-center`}
             >
               <CheckCircle2 className="w-3 h-3 text-white" />
-            </motion.div>
+            </div>
           )}
           <div className={`w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-xs font-bold mb-1.5 ${
             userVote === 'team2'
@@ -143,18 +139,13 @@ function PredictionBar({ team1Votes, team2Votes, userVote, onVote, team1Name, te
       {/* Visual Bar */}
       {totalVotes > 0 ? (
         <div className={`h-2 rounded-full ${dt.bgSubtle} overflow-hidden flex`}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${team1Percent}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+          <div
             className={`h-full rounded-l-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
+            style={{ width: `${team1Percent}%`, transition: 'width 0.8s ease-out' }}
           />
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${team2Percent}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+          <div
             className={`h-full rounded-r-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
-            style={{ opacity: 0.5 }}
+            style={{ width: `${team2Percent}%`, opacity: 0.5, transition: 'width 0.8s ease-out' }}
           />
         </div>
       ) : (
@@ -204,11 +195,9 @@ function TimelineEvent({ event, idx }: { event: MatchEvent; idx: number }) {
   const teamColor = event.team === 'team1' ? dt.neonText : event.team === 'team2' ? 'text-purple-400' : 'text-muted-foreground';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: idx * 0.1 }}
-      className="flex items-start gap-3"
+    <div
+      className="stagger-item flex items-start gap-3"
+      style={{ animationDelay: `${idx * 50}ms` }}
     >
       <div className="flex flex-col items-center shrink-0">
         <div className={`w-7 h-7 rounded-full ${dt.bgSubtle} border ${dt.borderSubtle} flex items-center justify-center`}>
@@ -225,7 +214,7 @@ function TimelineEvent({ event, idx }: { event: MatchEvent; idx: number }) {
           <p className="text-[9px] text-muted-foreground mt-0.5 ml-10">{event.player}</p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -506,10 +495,10 @@ export function MatchDayCenter() {
   })() : null;
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
+    <div className="space-y-5">
 
       {/* ═══════ HERO: Featured Match Banner ═══════ */}
-      <motion.div variants={item}>
+      <div className="stagger-item-subtle stagger-d0">
         <Card className={`${dt.casinoCard} ${dt.casinoGlow} casino-shimmer overflow-hidden`}>
           <div className={dt.casinoBar} />
           <div className="relative">
@@ -569,16 +558,15 @@ export function MatchDayCenter() {
                 <div className="flex items-center gap-4 lg:gap-8">
                   {/* Team 1 */}
                   <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? '' : 'opacity-80'}`}>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className={`w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
+                    <div
+                      className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
                         selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2!
                           ? `bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
                           : `${dt.iconBg} ${dt.text}`
                       }`}
                     >
                       {(selectedMatch.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
-                    </motion.div>
+                    </div>
                     <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? dt.neonText : ''}`}>
                       {selectedMatch.team1?.name || 'TBD'}
                     </p>
@@ -593,15 +581,13 @@ export function MatchDayCenter() {
                   <div className="flex flex-col items-center shrink-0">
                     {selectedMatch.score1 !== null && selectedMatch.score2 !== null ? (
                       <div className="flex items-center gap-3 lg:gap-5">
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={`text-4xl lg:text-6xl font-black tabular-nums ${
+                        <span
+                          className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${
                             selectedMatch.score1 > selectedMatch.score2 ? dt.neonGradient : 'text-foreground/30'
                           }`}
                         >
                           {selectedMatch.score1}
-                        </motion.span>
+                        </span>
                         <div className="flex flex-col items-center">
                           <div className={`w-10 h-10 lg:w-14 lg:h-14 rounded-full ${dt.bgSubtle} ${dt.border} border flex items-center justify-center`}>
                             <Star className={`w-5 h-5 lg:w-7 lg:h-7 ${dt.neonText}`} />
@@ -610,54 +596,47 @@ export function MatchDayCenter() {
                             {selectedMatch.status === 'completed' ? 'Final' : 'BO3'}
                           </span>
                         </div>
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={`text-4xl lg:text-6xl font-black tabular-nums ${
+                        <span
+                          className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${
                             selectedMatch.score2 > selectedMatch.score1 ? dt.neonGradient : 'text-foreground/30'
                           }`}
                         >
                           {selectedMatch.score2}
-                        </motion.span>
+                        </span>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
-                        <motion.div
-                          animate={{ scale: [1, 1.1, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className={`w-16 h-16 lg:w-24 lg:h-24 rounded-full ${dt.bgSubtle} ${dt.border} border-2 flex items-center justify-center`}
+                        <div
+                          className={`animate-pulse-scale w-16 h-16 lg:w-24 lg:h-24 rounded-full ${dt.bgSubtle} ${dt.border} border-2 flex items-center justify-center`}
                         >
                           <span className={`text-xl lg:text-3xl font-black ${dt.neonGradient}`}>VS</span>
-                        </motion.div>
+                        </div>
                         <span className="text-[10px] text-muted-foreground mt-2 font-semibold">Segera Dimulai</span>
                       </div>
                     )}
 
                     {/* MVP */}
                     {selectedMatch.mvpPlayer && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg ${dt.bgSubtle} ${dt.border} border`}
+                      <div
+                        className={`stagger-item-subtle flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg ${dt.bgSubtle} ${dt.border} border`}
                       >
                         <Crown className="w-3.5 h-3.5 text-yellow-500" />
                         <span className="text-[10px] font-semibold text-yellow-500">MVP: {selectedMatch.mvpPlayer.gamertag}</span>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
 
                   {/* Team 2 */}
                   <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? '' : 'opacity-80'}`}>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className={`w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
+                    <div
+                      className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
                         selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1!
                           ? `bg-gradient-to-br ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
                           : `${dt.iconBg} ${dt.text}`
                       }`}
                     >
                       {(selectedMatch.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
-                    </motion.div>
+                    </div>
                     <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? dt.neonText : ''}`}>
                       {selectedMatch.team2?.name || 'TBD'}
                     </p>
@@ -674,22 +653,17 @@ export function MatchDayCenter() {
               {selectedMatch && selectedMatch.score1 !== null && selectedMatch.score2 !== null && (selectedMatch.score1 + selectedMatch.score2) > 0 && (
                 <div className="mt-4">
                   <div className={`h-2 rounded-full ${dt.bgSubtle} overflow-hidden flex`}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(selectedMatch.score1 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%` }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                    <div
                       className={`h-full rounded-l-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
+                      style={{ width: `${(selectedMatch.score1 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, transition: 'width 0.8s ease-out' }}
                     />
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(selectedMatch.score2 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%` }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                    <div
                       className={`h-full rounded-r-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
-                      style={{ opacity: 0.5 }}
+                      style={{ width: `${(selectedMatch.score2 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, opacity: 0.5, transition: 'width 0.8s ease-out' }}
                     />
                   </div>
                 </div>
-              )}
+              )}}
 
               {/* Match Meta */}
               {t && (
@@ -702,7 +676,7 @@ export function MatchDayCenter() {
             </div>
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* ═══════ TABS: Prediction / H2H / Timeline / Results ═══════ */}
       <Tabs defaultValue="prediction" className="w-full">
@@ -728,10 +702,10 @@ export function MatchDayCenter() {
 
         {/* ═══ PREDICTION TAB ═══ */}
         <TabsContent value="prediction" className="mt-4 space-y-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* Featured Match Prediction */}
             {selectedMatch && predState && (
-              <motion.div variants={item}>
+              <div className="stagger-item-subtle stagger-d0">
                 <PredictionBar
                   team1Votes={predState.team1Votes}
                   team2Votes={predState.team2Votes}
@@ -740,11 +714,11 @@ export function MatchDayCenter() {
                   team1Name={selectedMatch.team1?.name || 'TBD'}
                   team2Name={selectedMatch.team2?.name || 'TBD'}
                 />
-              </motion.div>
+              </div>
             )}
 
             {/* All Match Predictions */}
-            <motion.div variants={item}>
+            <div className="stagger-item-subtle stagger-d1">
               <SectionCard title="Semua Prediksi Match" icon={BarChart3} badge={`${tournamentMatches.length} match`}>
                 <div className="space-y-3">
                   {tournamentMatches.map((m) => {
@@ -803,10 +777,10 @@ export function MatchDayCenter() {
                   })}
                 </div>
               </SectionCard>
-            </motion.div>
+            </div>
 
             {/* Community Insight */}
-            <motion.div variants={item}>
+            <div className="stagger-item-subtle stagger-d2">
               <SectionCard title="Insight Komunitas" icon={Eye} badge="Trending">
                 <div className="grid grid-cols-2 gap-3">
                   <div className={`p-3 rounded-xl ${dt.bgSubtle} ${dt.border} border text-center`}>
@@ -823,16 +797,14 @@ export function MatchDayCenter() {
                   </div>
                 </div>
               </SectionCard>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </TabsContent>
-
-        {/* ═══ HEAD TO HEAD TAB ═══ */}
         <TabsContent value="h2h" className="mt-4 space-y-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {selectedMatch && team1Stats && team2Stats && (
               <>
-                <motion.div variants={item}>
+                <div className="stagger-item-fast stagger-d0">
                   <SectionCard title="Statistik H2H" icon={Users} badge="Statistik">
                     {/* Team Headers */}
                     <div className="flex items-center gap-3 mb-4">
@@ -875,10 +847,10 @@ export function MatchDayCenter() {
                       <p className="text-[10px] text-muted-foreground text-center mt-3 italic">Belum ada data match — statistik akan muncul setelah organizer submit hasil</p>
                     )}
                   </SectionCard>
-                </motion.div>
+                </div>
 
                 {/* Win Probability — calculated from actual stats, not hardcoded */}
-                <motion.div variants={item}>
+                <div className="stagger-item-fast stagger-d1">
                   <SectionCard title="Peluang Menang" icon={TrendingUp} badge="Berdasarkan Statistik">
                     <div className={`p-4 rounded-xl ${dt.bgSubtle} ${dt.border} border`}>
                       {team1Stats.hasData || team2Stats.hasData ? (() => {
@@ -895,18 +867,13 @@ export function MatchDayCenter() {
                               <span className="text-xs font-semibold">{selectedMatch.team2?.name || 'TBD'}</span>
                             </div>
                             <div className={`h-3 rounded-full ${dt.bg} overflow-hidden flex`}>
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${t1Prob}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
-                                className={`h-full rounded-l-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
+                              <div
+                                className={`animate-fade-enter-sm h-full rounded-l-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
+                                style={{ width: `${t1Prob}%` }}
                               />
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${t2Prob}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
-                                className={`h-full rounded-r-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
-                                style={{ opacity: 0.5 }}
+                              <div
+                                className={`animate-fade-enter-sm h-full rounded-r-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
+                                style={{ width: `${t2Prob}%`, opacity: 0.5 }}
                               />
                             </div>
                             <div className="flex items-center justify-between mt-1.5">
@@ -924,16 +891,16 @@ export function MatchDayCenter() {
                       )}
                     </div>
                   </SectionCard>
-                </motion.div>
+                </div>
               </>
             )}
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ═══ TIMELINE TAB ═══ */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
-            <motion.div variants={item}>
+          <div className="space-y-4">
+            <div className="stagger-item-fast stagger-d0">
               <SectionCard title="Lini Masa Match" icon={Activity} badge={selectedMatch ? `${matchEvents.length} event` : '0 event'}>
                 {matchEvents.length > 0 ? (
                   <div className="space-y-0">
@@ -948,10 +915,10 @@ export function MatchDayCenter() {
                   </div>
                 )}
               </SectionCard>
-            </motion.div>
+            </div>
 
             {/* Key Moments — derived from actual match data, not hardcoded */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d1">
               <SectionCard title="Momen Kunci" icon={Star} badge="Sorotan">
                 {selectedMatch ? (() => {
                   // Build key moments from actual match data
@@ -1047,10 +1014,9 @@ export function MatchDayCenter() {
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {moments.map((moment, idx) => (
-                        <motion.div
+                        <div
                           key={idx}
-                          whileHover={{ scale: 1.02 }}
-                          className={`flex items-start gap-3 p-3 rounded-xl ${dt.bgSubtle} ${dt.borderSubtle} border cursor-pointer transition-all ${dt.hoverBorder}`}
+                          className={`hover-scale-sm flex items-start gap-3 p-3 rounded-xl ${dt.bgSubtle} ${dt.borderSubtle} border cursor-pointer transition-all ${dt.hoverBorder}`}
                         >
                           <div className={`w-8 h-8 rounded-lg ${dt.bgSubtle} flex items-center justify-center shrink-0`}>
                             <moment.icon className={`w-4 h-4 ${moment.color}`} />
@@ -1062,7 +1028,7 @@ export function MatchDayCenter() {
                             </div>
                             <p className="text-[10px] text-muted-foreground mt-0.5">{moment.desc}</p>
                           </div>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   );

@@ -274,15 +274,11 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
             <div className="absolute bottom-0 inset-x-0 z-10 p-4">
               {/* S-tier animated glow ring around name */}
               {isSTier && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
+                <div
+                  className="absolute inset-0 pointer-events-none animate-pulse"
                   style={{
                     background: 'radial-gradient(ellipse at 50% 80%, rgba(239, 68, 68, 0.08) 0%, transparent 50%)',
                   }}
-                  animate={{
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
               )}
 
@@ -358,15 +354,13 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                 <span className={`font-black ${dt.text}`}>{winRate}%</span>
               </div>
               <div className={`h-2.5 rounded-full ${dt.bgSubtle} overflow-hidden`}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${winRate}%` }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className={`h-full rounded-full ${
+                <div
+                  className={`h-full rounded-full transition-[width] duration-700 ease-out ${
                     winRate >= 60
                       ? `bg-gradient-to-r ${playerDivision === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`
                       : winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
+                  style={{ width: `${winRate}%` }}
                 />
               </div>
             </div>

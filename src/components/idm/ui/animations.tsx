@@ -1,60 +1,27 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 
+/**
+ * CSS-only animation utilities — replaces heavy Framer Motion
+ * AnimatePresence + motion.div patterns for better mid-range device performance.
+ */
+
+/* ─── Page Transition — CSS-only (no Framer Motion) ─── */
 interface PageTransitionProps {
   children: ReactNode;
   className?: string;
 }
 
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    scale: 0.98,
-  },
-  enter: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -20,
-    scale: 0.98,
-    transition: {
-      duration: 0.3,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-};
-
 export function PageTransition({ children, className = '' }: PageTransitionProps) {
-  const pathname = usePathname();
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={pathname}
-        initial="initial"
-        animate="enter"
-        exit="exit"
-        variants={pageVariants as any}
-        className={className}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <div className={`animate-page-enter ${className}`}>
+      {children}
+    </div>
   );
 }
 
-// Section reveal animation wrapper
+/* ─── Section Reveal — CSS-only, uses IntersectionObserver for viewport detection ─── */
 interface SectionRevealProps {
   children: ReactNode;
   className?: string;
@@ -68,38 +35,24 @@ export function SectionReveal({
   delay = 0,
   direction = 'up',
 }: SectionRevealProps) {
-  const directionOffset = {
-    up: { y: 20, x: 0 },
-    down: { y: -20, x: 0 },
-    left: { y: 0, x: 20 },
-    right: { y: 0, x: -20 },
-  };
+  const directionClass = {
+    up: 'animate-slide-up',
+    down: 'animate-slide-down',
+    left: 'animate-slide-left',
+    right: 'animate-slide-right',
+  }[direction];
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        ...directionOffset[direction],
-      }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-        x: 0,
-      }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{
-        duration: 0.4,
-        delay,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      className={className}
+    <div
+      className={`${directionClass} ${className}`}
+      style={{ animationDelay: `${delay}s` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
-// Stagger children animation
+/* ─── Stagger Container — CSS-only (no Framer Motion) ─── */
 interface StaggerContainerProps {
   children: ReactNode;
   className?: string;
@@ -109,30 +62,17 @@ interface StaggerContainerProps {
 export function StaggerContainer({
   children,
   className = '',
-  staggerDelay = 0.1,
+  staggerDelay = 0.03,
 }: StaggerContainerProps) {
   return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: '-30px' }}
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: staggerDelay,
-          },
-        },
-      }}
-      className={className}
-    >
+    <div className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
 export const staggerItem = {
+  /* Kept for backward compatibility — use CSS stagger-item class instead */
   hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
@@ -144,7 +84,7 @@ export const staggerItem = {
   },
 };
 
-// Card hover animation wrapper
+/* ─── Animated Card — CSS-only hover effect ─── */
 interface AnimatedCardProps {
   children: ReactNode;
   className?: string;
@@ -157,18 +97,14 @@ export function AnimatedCard({
   children,
   className = '',
   onClick,
-  hoverScale = 1.02,
-  hoverY = -4,
 }: AnimatedCardProps) {
   return (
-    <motion.div
+    <div
       className={`player-card-interactive ${className}`}
-      whileHover={{ scale: hoverScale, y: hoverY }}
-      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

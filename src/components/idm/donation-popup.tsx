@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { X, Gift, Trophy, Music, Crown, Flame } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -92,11 +92,9 @@ export function DonationPopup({ show, message, onClose }: { show: boolean; messa
           </button>
           {/* Auto-dismiss progress bar */}
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary/10 rounded-b-xl overflow-hidden">
-            <motion.div
-              className="h-full bg-primary/40"
-              initial={{ width: '100%' }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.05, ease: 'linear' }}
+            <div
+              className="h-full bg-primary/40 transition-[width] duration-50 ease-linear"
+              style={{ width: `${progress}%` }}
             />
           </div>
         </motion.div>

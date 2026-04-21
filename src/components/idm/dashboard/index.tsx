@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
-import { motion, useReducedMotion } from 'framer-motion';
+/* framer-motion removed — using CSS animations for performance */
 import Image from 'next/image';
 import {
   Heart, MapPin, Users, Trophy, Clock, Flame,
@@ -29,7 +29,6 @@ import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
-import { staggerContainerFast, fadeUpItemSubtle, staggerContainerReduced, fadeUpItemReduced } from '@/lib/animations';
 
 import { NoSeasonState } from './no-season-state';
 import { NoTournamentState } from './no-tournament-state';
@@ -42,12 +41,7 @@ import { DonationModal } from '../donation-modal';
 export function Dashboard() {
   const { division } = useAppStore();
   const dt = useDivisionTheme();
-  const prefersReducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
-  const shouldReduceMotion = prefersReducedMotion || isMobile;
-
-  const container = shouldReduceMotion ? staggerContainerReduced : staggerContainerFast;
-  const item = shouldReduceMotion ? fadeUpItemReduced : fadeUpItemSubtle;
 
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] | null>(null);
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
@@ -158,10 +152,10 @@ export function Dashboard() {
 
   return (
     <>
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-3 sm:space-y-4 lg:space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-8 max-w-7xl mx-auto">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
-      <motion.div variants={item} className={`relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} ${!shouldReduceMotion ? dt.neonPulse : ''} min-h-[120px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
+      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[120px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
         <div className={dt.casinoBar} />
         <div className="absolute inset-0">
           <Image src={division === 'male' ? '/bg-male.jpg' : '/bg-female.jpg'} alt="" fill sizes="100vw" className={`object-cover ${division === 'male' ? 'object-[center_25%]' : ''}`} aria-hidden="true" />
@@ -201,10 +195,10 @@ export function Dashboard() {
             <span className="flex items-center gap-1"><Music className={`w-3 h-3 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ========== COUNTDOWN / STATUS + PRIZE POOL ========== */}
-      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
+      <div className="stagger-item-subtle stagger-d1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
         {t?.scheduledAt && t.status !== 'completed' ? (
           <div className={`flex items-center justify-center rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
             <CountdownTimer targetDate={t.scheduledAt} />
@@ -255,16 +249,12 @@ export function Dashboard() {
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ========== QUICK STATS — Unified Casino Pills ========== */}
-      <motion.div variants={item} className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-5">
+      <div className="stagger-item-subtle stagger-d2 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-5">
         {stats.map((stat, i) => (
-          <motion.div
-            key={i}
-            {...(!shouldReduceMotion ? { whileHover: { scale: 1.03, y: -2 } } : {})}
-            className="group"
-          >
+          <div key={i} className="interactive-scale group">
             <div className={`casino-pill ${dt.casinoGlow} lg:shadow-md`}>
               <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shrink-0`}>
                 <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
@@ -274,16 +264,14 @@ export function Dashboard() {
                 <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* ========== LIVE MATCH BANNER ========== */}
       {t?.matches?.some(m => m.status === 'live' || m.status === 'main_event') && (
-        <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -8, scale: shouldReduceMotion ? 1 : 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className={`relative rounded-xl overflow-hidden border-2 border-red-500/30 ${dt.casinoCard} p-3 lg:p-4`}
+        <div
+          className={`stagger-item-subtle stagger-d3 relative rounded-xl overflow-hidden border-2 border-red-500/30 ${dt.casinoCard} p-3 lg:p-4`}
         >
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-500 via-red-400 to-red-500 animate-pulse" />
           <div className="flex items-center gap-3">
@@ -301,7 +289,7 @@ export function Dashboard() {
               <p className="text-[10px] text-muted-foreground">Week {t.weekNumber} — Match sedang berlangsung</p>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* ========== SUB-NAVIGATION TABS — Toornament underline style ========== */}
@@ -360,14 +348,14 @@ export function Dashboard() {
 
         {/* ═══════════════ PARTICIPANTS TAB — Tournament Poster Grid ═══════════════ */}
         <TabsContent value="participants" className="mt-3 sm:mt-4 lg:mt-6">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-3 sm:space-y-4">
-            <motion.div variants={item}>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="stagger-item-subtle">
               <ParticipantGrid
                 players={data.topPlayers || []}
                 onPlayerClick={(player) => setSelectedPlayer(player)}
               />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </TabsContent>
 
 
@@ -388,7 +376,7 @@ export function Dashboard() {
         defaultType="weekly"
         cmsSettings={cms || {}}
       />
-    </motion.div>
+    </div>
     </>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   Trophy, Calendar, Crown, Shield, Users, Flame,
   Swords, Star, Zap, ChevronRight, TrendingUp, BarChart3, Info
@@ -13,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TierBadge } from './tier-badge';
 import { ClubProfile } from './club-profile';
 import { useState } from 'react';
-import { container, item } from '@/lib/animations';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { getAvatarUrl } from '@/lib/utils';
 
@@ -93,32 +91,24 @@ export function LeagueView() {
     const isNoClubs = data?.reason === 'no_clubs';
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        >
+      <div className="animate-fade-enter">
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.1) 0%, transparent 50%)' }} />
           <div className="relative p-8 sm:p-12 z-10">
             <div className="flex flex-col items-center text-center">
               {/* Animated icon */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
-                className="relative mb-6"
+              <div
+                className="animate-fade-enter relative mb-6"
+                style={{ animationDelay: '0.2s' }}
               >
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-idm-gold-warm/20 to-idm-gold-warm/5 border border-idm-gold-warm/20 flex items-center justify-center">
                   <Trophy className="w-8 h-8 text-idm-gold-warm" />
                 </div>
-                <motion.div
-                  animate={{ y: [-3, 3, -3], opacity: [0.5, 1, 0.5] }}
-                  transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-idm-gold-warm opacity-70"
+                <div
+                  className="animate-bob-fade absolute -top-1 -right-1 w-3 h-3 rounded-full bg-idm-gold-warm opacity-70"
                 />
-              </motion.div>
+              </div>
 
               {/* Season name badge if available */}
               {isNoClubs && data.season && (
@@ -174,12 +164,9 @@ export function LeagueView() {
 
         {/* Season Champion Card — shown even when current season has no clubs */}
         {data.ligaChampion && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
+          <div
+            className="animate-fade-enter mt-4 rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
+            style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
           >
             <div className="h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
             <div className="relative p-4 sm:p-5 z-10">
@@ -223,9 +210,9 @@ export function LeagueView() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     );
   }
 
@@ -240,12 +227,7 @@ export function LeagueView() {
     const clubsFemale = clubs.filter(c => c.members.some(m => m.division === 'female')).length;
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="space-y-4"
-      >
+      <div className="animate-fade-enter space-y-4">
         {/* Hero Banner - Pre-Season */}
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -253,21 +235,17 @@ export function LeagueView() {
           <div className="relative p-6 sm:p-8 z-10">
             <div className="flex flex-col items-center text-center">
               {/* Animated Trophy */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
-                className="relative mb-5"
+              <div
+                className="animate-fade-enter relative mb-5"
+                style={{ animationDelay: '0.2s' }}
               >
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-idm-gold-warm/20 to-idm-gold-warm/5 border border-idm-gold-warm/20 flex items-center justify-center" style={{ boxShadow: '0 0 40px rgba(212,168,83,0.15)' }}>
                   <Trophy className="w-9 h-9 text-idm-gold-warm" />
                 </div>
-                <motion.div
-                  animate={{ y: [-4, 4, -4], opacity: [0.4, 1, 0.4] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-idm-gold-warm/80"
+                <div
+                  className="animate-bob-fade absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-idm-gold-warm/80"
                 />
-              </motion.div>
+              </div>
 
               {/* Season Badge */}
               <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-idm-gold-warm/20 font-bold uppercase tracking-wider mb-3">
@@ -323,12 +301,9 @@ export function LeagueView() {
 
         {/* Season 1 Champion Card */}
         {data.ligaChampion && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
+          <div
+            className="animate-fade-enter rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
+            style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
           >
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
             <div className="h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
@@ -373,7 +348,7 @@ export function LeagueView() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Club Preview Grid */}
@@ -387,12 +362,10 @@ export function LeagueView() {
             {clubs.map((club, idx) => {
               const clubFemale = club.members.filter(m => m.division === 'female').length;
               return (
-                <motion.div
+                <div
                   key={club.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/10 transition-colors cursor-pointer"
+                  className="animate-fade-enter-sm p-3 rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/10 transition-colors cursor-pointer"
+                  style={{ animationDelay: `${idx * 50}ms` }}
                   onClick={() => setSelectedClub(club)}
                 >
                   <div className="flex items-center gap-2.5 mb-2">
@@ -412,7 +385,7 @@ export function LeagueView() {
                       )}
                     </span>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -460,16 +433,16 @@ export function LeagueView() {
             rank={clubs.findIndex(c => c.id === selectedClub.id) + 1}
           />
         )}
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <>
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
 
       {/* ═══ HERO BANNER — Liga IDM ═══ */}
-      <motion.div variants={item}>
+      <div className="stagger-item-fast stagger-d0">
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
           {/* Decorative grid */}
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -553,11 +526,11 @@ export function LeagueView() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ═══ LIVE INDICATOR ═══ */}
       {stats.liveMatches > 0 && (
-        <motion.div variants={item}>
+        <div className="stagger-item-fast stagger-d1">
           <div className="relative rounded-xl overflow-hidden border border-red-500/20 bg-gradient-to-r from-red-500/5 via-red-500/10 to-red-500/5 p-3">
             <div className="flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
@@ -565,7 +538,7 @@ export function LeagueView() {
               <ChevronRight className="w-4 h-4 text-red-500 ml-auto" />
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       <Tabs defaultValue="standings" className="w-full">
@@ -578,7 +551,7 @@ export function LeagueView() {
 
         {/* ═══ STANDINGS ═══ */}
         <TabsContent value="standings" className="mt-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
+          <div className="space-y-2">
             {clubs.map((club, idx) => {
               const isChampion = data.ligaChampion?.id === club.id;
               const isTop4 = idx < 4;
@@ -645,10 +618,8 @@ export function LeagueView() {
 
                     {/* Expanded: Team Roster */}
                     {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        className="border-t border-border/30"
+                      <div
+                        className="animate-fade-enter border-t border-border/30"
                       >
                         <div className="px-4 py-3 space-y-2">
                           {/* Roster header */}
@@ -737,7 +708,7 @@ export function LeagueView() {
                             Lihat Profil Club →
                           </button>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -750,12 +721,12 @@ export function LeagueView() {
                 <p className="text-sm text-muted-foreground">Belum ada club terdaftar di liga</p>
               </div>
             )}
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ═══ SCHEDULE ═══ */}
         <TabsContent value="schedule" className="mt-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {weeks.length === 0 && (
               <div className="text-center py-12">
                 <Calendar className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
@@ -857,14 +828,14 @@ export function LeagueView() {
                 </div>
               );
             })}
-          </motion.div>
+          </div>
         </TabsContent>
 
         {/* ═══ STATISTICS ═══ */}
         <TabsContent value="stats" className="mt-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* MVP Race */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d0">
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -915,10 +886,10 @@ export function LeagueView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Top Performers */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d1">
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -957,10 +928,10 @@ export function LeagueView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Club Power Rankings */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d2">
               <Card style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.1)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -1000,13 +971,13 @@ export function LeagueView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ═══ PLAYOFF ═══ */}
         <TabsContent value="playoff" className="mt-4">
-          <motion.div variants={container} initial="hidden" animate="show">
+          <div>
             <Card className="overflow-hidden" style={{ background: 'rgba(20,17,10,0.6)', borderColor: 'rgba(212,168,83,0.15)' }}>
               <CardContent className="p-0">
                 <div className="px-4 py-3 border-b border-border/30" style={{ background: 'rgba(212,168,83,0.05)' }}>
@@ -1096,10 +1067,10 @@ export function LeagueView() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </TabsContent>
       </Tabs>
-    </motion.div>
+    </div>
 
     {/* Club Profile Modal */}
     {selectedClub && (

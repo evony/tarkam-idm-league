@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Users, Shield, Calendar, Zap, Gamepad2, Gift, Award,
@@ -47,12 +46,7 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="space-y-5"
-    >
+    <div className="stagger-item space-y-5">
       {/* Season Banner — shows that season IS active */}
       <div className={`relative rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[220px]`}>
         <div className={dt.casinoBar} />
@@ -90,32 +84,23 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
         <div className={dt.casinoBar} />
         <div className="p-6 sm:p-8">
           <div className="flex flex-col items-center text-center">
-            {/* Animated waiting illustration */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: 'spring' }}
-              className="relative mb-6"
-            >
+            {/* Animated waiting illustration — CSS-only */}
+            <div className="stagger-item stagger-d0 relative mb-6">
               <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${division === 'male' ? 'from-idm-male/20 to-idm-male-light/10' : 'from-idm-female/20 to-idm-female-light/10'} ${dt.border} flex items-center justify-center`}>
                 <Calendar className={`w-8 h-8 ${dt.neonText}`} />
               </div>
-              {/* Pulsing dot */}
-              <motion.div
-                animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`}
-              />
-            </motion.div>
+              {/* Pulsing dot — CSS live-dot */}
+              <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full live-dot ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+            </div>
 
-            <h3 className={`text-xl font-bold ${dt.neonGradient} mb-2`}>Turnamen Belum Dimulai</h3>
-            <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
+            <h3 className={`stagger-item stagger-d1 text-xl font-bold ${dt.neonGradient} mb-2`}>Turnamen Belum Dimulai</h3>
+            <p className="stagger-item stagger-d2 text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
               Season sudah aktif, tapi turnamen belum dibuat oleh admin.
               Nantikan info selanjutnya — pendaftaran dan jadwal pertandingan akan segera diumumkan.
             </p>
 
             {/* What's happening now */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
+            <div className="stagger-item stagger-d3 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
               {/* Players count */}
               <div className={`p-4 rounded-xl ${dt.bgSubtle} ${dt.border} text-left`}>
                 <div className="flex items-center gap-2 mb-2">
@@ -142,7 +127,7 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
             </div>
 
             {/* Season progress preview */}
-            <div className={`w-full max-w-md mt-4 p-4 rounded-xl ${dt.bgSubtle} ${dt.border}`}>
+            <div className={`stagger-item stagger-d4 w-full max-w-md mt-4 p-4 rounded-xl ${dt.bgSubtle} ${dt.border}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold">Progress Season</span>
                 <span className={`text-xs font-bold ${dt.neonText}`}>{data.seasonProgress?.percentage || 0}%</span>
@@ -191,12 +176,10 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
                 onClick: () => setDonationOpen(true),
               },
             ].map((item, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className={`p-4 rounded-xl ${dt.bgSubtle} ${dt.border} ${dt.hoverBorder} transition-colors cursor-pointer group`}
+                className={`stagger-item p-4 rounded-xl ${dt.bgSubtle} ${dt.border} ${dt.hoverBorder} transition-colors cursor-pointer group`}
+                style={{ animationDelay: `${i * 80}ms` }}
                 onClick={item.onClick}
               >
                 <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${division === 'male' ? 'from-idm-male/20 to-idm-male-light/10' : 'from-idm-female/20 to-idm-female-light/10'} ${dt.borderSubtle} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
@@ -205,7 +188,7 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
                 <p className="text-xs font-bold mb-1">{item.title}</p>
                 <p className="text-[10px] text-muted-foreground leading-relaxed mb-2">{item.desc}</p>
                 <span className={`text-[10px] font-semibold ${dt.neonText} group-hover:underline`}>{item.action} →</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -283,6 +266,6 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
         defaultType="weekly"
         cmsSettings={cms || {}}
       />
-    </motion.div>
+    </div>
   );
 }

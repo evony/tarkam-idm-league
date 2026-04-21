@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+
 import Image from 'next/image';
 import {
   Users, Shield, Award, Flame, ChevronDown, ChevronUp,
@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/table';
 import { TierBadge } from '../tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
-import { staggerContainerFast, fadeUpItemSubtle, staggerContainerReduced, fadeUpItemReduced } from '@/lib/animations';
+
 import type { StatsData } from '@/types/stats';
 
 interface StandingsTabProps {
@@ -26,11 +25,7 @@ interface StandingsTabProps {
 
 export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: StandingsTabProps) {
   const dt = useDivisionTheme();
-  const prefersReducedMotion = useReducedMotion();
-  const isMobile = useIsMobile();
-  const shouldReduceMotion = prefersReducedMotion || isMobile;
-  const container = shouldReduceMotion ? staggerContainerReduced : staggerContainerFast;
-  const item = shouldReduceMotion ? fadeUpItemReduced : fadeUpItemSubtle;
+
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
@@ -41,7 +36,7 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
   const displayedClubs = showAllClubs ? clubs : clubs.slice(0, 6);
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
 
       {/* Toornament-style sub-tabs for Players/Clubs */}
       <div className={`flex items-center gap-1 p-1 rounded-lg ${dt.bgSubtle} ${dt.border} w-fit`}>
@@ -61,7 +56,7 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
 
       {/* Player Leaderboard — Toornament clean table */}
       {leaderboardSort === 'players' && (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d0">
           <Card className={`${dt.casinoCard} overflow-hidden`}>
             <div className={dt.casinoBar} />
             {/* Header bar */}
@@ -157,12 +152,12 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
               </div>
             )}
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Club Standings — Toornament clean table */}
       {leaderboardSort === 'clubs' && (
-        <motion.div variants={item}>
+        <div className="stagger-item-subtle stagger-d1">
           <Card className={`${dt.casinoCard} overflow-hidden`}>
             <div className={dt.casinoBar} />
             <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
@@ -255,8 +250,8 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
               </div>
             )}
           </Card>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }

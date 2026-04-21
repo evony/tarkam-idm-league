@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed — using CSS stagger-item classes instead
 import {
   UserPlus, X, Loader2, MapPin, Phone, Users, Music, CheckCircle2, AlertTriangle, Ban, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
-import { container, item } from '@/lib/animations';
+// animations import removed — using CSS stagger-item classes
 
 interface SimilarPlayer {
   id: string;
@@ -267,40 +267,30 @@ export function RegistrationForm() {
   const divisionEmoji = division === 'male' ? '🕺' : '💃';
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="max-w-lg mx-auto space-y-4">
+    <div className="max-w-lg mx-auto space-y-4">
       {/* Header */}
-      <motion.div variants={item} className="text-center mb-2">
+      <div className="stagger-item stagger-d0 text-center mb-2">
         <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'} mb-3`}>
           <UserPlus className={`w-7 h-7 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
         </div>
         <h2 className="text-xl font-bold text-gradient-fury">Daftar Peserta</h2>
         <p className="text-xs text-muted-foreground mt-1">Isi form berikut untuk mendaftar sebagai peserta IDM League</p>
-      </motion.div>
+      </div>
 
       {/* Success State */}
-      <AnimatePresence>
-        {submitResult && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <Card className={`${
+      {submitResult && (
+        <div className="stagger-item-subtle">
+          <Card className={`${
               submitResult.success
                 ? 'border-green-500/30 bg-green-500/5'
                 : 'border-red-500/30 bg-red-500/5'
             } ${dt.casinoCard}`}>
-              <CardContent className="p-5 text-center relative z-10">
-                {submitResult.success ? (
-                  <>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', bounce: 0.5 }}
-                      className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10 mb-3"
-                    >
-                      <CheckCircle2 className="w-7 h-7 text-green-500" />
-                    </motion.div>
+            <CardContent className="p-5 text-center relative z-10">
+              {submitResult.success ? (
+                <>
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10 mb-3">
+                    <CheckCircle2 className="w-7 h-7 text-green-500" />
+                  </div>
                     <h3 className="text-base font-bold text-green-500 mb-1">Pendaftaran Berhasil!</h3>
                     {submitResult.gamertag && (
                       <p className="text-sm font-medium mb-2">
@@ -332,21 +322,15 @@ export function RegistrationForm() {
                     </Button>
                   </>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </CardContent>
+        </Card>
+        </div>
+      )}
 
       {/* Warning Dialog */}
-      <AnimatePresence>
-        {warningState?.show && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <Card className={`${
+      {warningState?.show && (
+        <div className="stagger-item-subtle">
+          <Card className={`${
               warningState.isBlocked
                 ? warningState.alreadyInTournament
                   ? 'border-blue-500/50 bg-blue-500/5'
@@ -595,21 +579,14 @@ export function RegistrationForm() {
                   )}
                 </div>
               </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </Card>
+        </div>
+      )}
 
       {/* Approved Participants List */}
-      <AnimatePresence>
-        {showApprovedList && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Card className="border-blue-500/20 bg-blue-500/5">
+      {showApprovedList && (
+        <div className="stagger-item-subtle">
+          <Card className="border-blue-500/20 bg-blue-500/5">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold flex items-center gap-2 text-blue-400">
@@ -649,14 +626,13 @@ export function RegistrationForm() {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </Card>
+        </div>
+      )}
 
       {/* Registration Form */}
       {!submitResult && !warningState?.show && (
-        <motion.div variants={item}>
+        <div className="stagger-item stagger-d1">
           <Card className={`${dt.casinoCard}`}>
             <div className={dt.casinoBar} />
             <CardContent className="p-5 relative z-10 space-y-4">
@@ -815,8 +791,8 @@ export function RegistrationForm() {
               </button>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }

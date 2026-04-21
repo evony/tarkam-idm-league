@@ -63,6 +63,25 @@ const config: Config & { safelist?: string[] } = {
                         lg: 'var(--radius)',
                         md: 'calc(var(--radius) - 4px)',
                         sm: 'calc(var(--radius) - 6px)'
+                },
+                keyframes: {
+                        'spin-slow': {
+                                from: { transform: 'rotate(0deg)' },
+                                to: { transform: 'rotate(360deg)' },
+                        },
+                        'spin-slower': {
+                                from: { transform: 'rotate(0deg)' },
+                                to: { transform: 'rotate(360deg)' },
+                        },
+                        'pulse-scale': {
+                                '0%, 100%': { transform: 'scale(1)' },
+                                '50%': { transform: 'scale(1.2)' },
+                        },
+                },
+                animation: {
+                        'spin-slow': 'spin-slow 1s linear infinite',
+                        'spin-slower': 'spin-slower 1.5s linear infinite',
+                        'pulse-scale': 'pulse-scale 2s ease-in-out infinite',
                 }
         }
   },

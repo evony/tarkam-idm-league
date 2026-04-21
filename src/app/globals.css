@@ -137,11 +137,184 @@
   }
 }
 
+/* Faster stagger for dense dashboards */
+.stagger-item-fast {
+  animation: stagger-fade-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Subtle stagger with smaller offset */
+.stagger-item-subtle {
+  animation: stagger-fade-subtle 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger delay utilities — apply via className */
+.stagger-d0 { animation-delay: 0ms; }
+.stagger-d1 { animation-delay: 30ms; }
+.stagger-d2 { animation-delay: 60ms; }
+.stagger-d3 { animation-delay: 90ms; }
+.stagger-d4 { animation-delay: 120ms; }
+.stagger-d5 { animation-delay: 150ms; }
+.stagger-d6 { animation-delay: 180ms; }
+.stagger-d7 { animation-delay: 210ms; }
+.stagger-d8 { animation-delay: 240ms; }
+.stagger-d9 { animation-delay: 270ms; }
+.stagger-d10 { animation-delay: 300ms; }
+
+/* ============================================
+   CSS ANIMATIONS — Replace Framer Motion patterns
+   GPU-accelerated, no JS overhead on mid-range devices
+   ============================================ */
+
+/* Fade + slide up entry — replaces motion.div initial/animate */
+@keyframes fade-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-enter {
+  animation: fade-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Fade + slide up entry (subtle, short distance) */
+@keyframes fade-enter-sm {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-enter-sm {
+  animation: fade-enter-sm 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slow spin — replaces motion.div animate={{ rotate: 360 }} repeat:Infinity */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 1s linear infinite;
+  contain: layout style;
+}
+.animate-spin-slower {
+  animation: spin-slow 1.5s linear infinite;
+  contain: layout style;
+}
+
+/* Pulse scale — replaces motion.div animate={{ scale: [1, 1.2, 1] }} repeat:Infinity */
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Float subtle — replaces motion.div animate={{ y: [0, -3, 0] }} repeat:Infinity */
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-float-subtle {
+  animation: float-subtle 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Float medium — replaces motion.div animate={{ y: [0, -6, 0] }} repeat:Infinity */
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float-medium {
+  animation: float-medium 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Bob with opacity — replaces motion.div animate={{ y: [-3, 3, -3], opacity: [0.5, 1, 0.5] }} */
+@keyframes bob-fade {
+  0%, 100% { transform: translateY(-3px); opacity: 0.5; }
+  50% { transform: translateY(3px); opacity: 1; }
+}
+.animate-bob-fade {
+  animation: bob-fade 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Hover scale — replaces motion.div whileHover={{ scale: 1.05 }} */
+.hover-scale-sm {
+  transition: transform 0.2s ease;
+}
+.hover-scale-sm:hover {
+  transform: scale(1.03);
+}
+.hover-scale-sm:active {
+  transform: scale(0.97);
+}
+
+.hover-scale-md {
+  transition: transform 0.2s ease;
+}
+.hover-scale-md:hover {
+  transform: scale(1.05);
+}
+.hover-scale-md:active {
+  transform: scale(0.97);
+}
+
+/* Tap scale — replaces motion.div whileTap={{ scale: 0.97 }} */
+.tap-scale:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* Disable infinite animations for reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-spin-slower,
+  .animate-pulse-scale,
+  .animate-float-subtle,
+  .animate-float-medium,
+  .animate-bob-fade {
+    animation: none;
+  }
+}
+
+/* Progress bar fill — animates from width:0 to inline target width */
+@keyframes progress-fill {
+  from { width: 0; }
+}
+.progress-fill-animate {
+  animation: progress-fill 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.progress-fill-animate-fast {
+  animation: progress-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.progress-fill-animate-sm {
+  animation: progress-fill 0.6s ease-out both;
+}
+
+/* Achievement badge glow pulse — replaces Framer Motion infinite animation */
+@keyframes badge-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+}
+.badge-glow-animate {
+  animation: badge-glow-pulse 2s ease-in-out infinite;
+}
+
 /* Stagger delay — apply via style={{ animationDelay: `${i * 50}ms` }} */
 @keyframes stagger-fade-up {
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stagger-fade-subtle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -213,7 +386,7 @@
   box-shadow: 0 0 20px rgba(124, 45, 18, 0.4), 0 0 60px rgba(124, 45, 18, 0.15);
 }
 
-/* Pulse glow animation — Gold */
+/* Pulse glow animation — Gold (OPTIMIZED: static by default, animation only on .glow-pulse-active) */
 @keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 20px var(--idm-glow), 0 0 40px rgba(184, 134, 11, 0.05);
@@ -223,13 +396,20 @@
   }
 }
 
+/* Static glow — no animation, same visual effect as glow-pulse midpoint */
 .glow-pulse {
+  box-shadow: 0 0 20px var(--idm-glow), 0 0 40px rgba(184, 134, 11, 0.05);
+  contain: layout style;
+}
+
+/* Active glow animation — use ONLY for truly special elements */
+.glow-pulse-active {
   animation: glow-pulse 3s ease-in-out infinite;
   contain: layout style;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glow-pulse {
+  .glow-pulse-active {
     animation: none;
     box-shadow: 0 0 20px var(--idm-glow), 0 0 40px rgba(184, 134, 11, 0.05);
   }

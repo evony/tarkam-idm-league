@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
 import { motion } from 'framer-motion';
+// Note: motion.div kept for floating dot animation (animate={{ repeat: Infinity }})
 import {
   Music, Users, Crown, Trophy, ChevronRight, Calendar, MapPin, Heart,
   Swords, Clock, Zap, Gift
@@ -15,7 +16,7 @@ import { DonationModal } from './donation-modal';
 import { useState } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { formatCurrency } from '@/lib/utils';
-import { container, item } from '@/lib/animations';
+// container/item removed — replaced with CSS stagger-item classes
 
 interface Tournament {
   id: string; name: string; weekNumber: number; division: string; status: string;
@@ -74,24 +75,21 @@ export function TournamentView() {
     const hasTournaments = tournaments && tournaments.length > 0;
 
     return (
-      <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+      <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Music className={`w-5 h-5 ${dt.neonText}`} />
           <h2 className="text-lg font-bold text-gradient-fury">Tournament Mingguan</h2>
         </div>
 
         {!hasTournaments ? (
-          <motion.div variants={item}>
+          <div className="stagger-item-subtle">
             <div className={`rounded-2xl ${dt.casinoCard} overflow-hidden`}>
               <div className={dt.casinoBar} />
               <div className="p-8 sm:p-12">
                 <div className="flex flex-col items-center text-center">
                   {/* Animated icon */}
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.2, type: 'spring' }}
-                    className="relative mb-6"
+                  <div
+                    className="stagger-item-subtle relative mb-6"
                   >
                     <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${division === 'male' ? 'from-idm-male/20 to-idm-male-light/10' : 'from-idm-female/20 to-idm-female-light/10'} ${dt.border} flex items-center justify-center`}>
                       <Trophy className={`w-8 h-8 ${dt.neonText}`} />
@@ -127,7 +125,7 @@ export function TournamentView() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tournaments.map((t, index) => {
@@ -224,13 +222,13 @@ export function TournamentView() {
           })}
         </div>
         )}
-      </motion.div>
+      </div>
     );
   }
 
   // Tournament Detail View — Read-only
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       <button onClick={() => setSelectedId(null)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
         ← Kembali ke tournament
       </button>
@@ -238,7 +236,7 @@ export function TournamentView() {
       {selected && (
         <>
           {/* Header — Info only, no action buttons */}
-          <motion.div variants={item}>
+          <div className="stagger-item-subtle stagger-d0">
             <Card className={`${dt.casinoCard} ${dt.cornerAccent} overflow-hidden`}>
               <div className={dt.casinoBar} />
               <CardContent className="p-0 relative z-10">
@@ -267,11 +265,11 @@ export function TournamentView() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Registered Players — Read-only list */}
-            <motion.div variants={item}>
+            <div className="stagger-item-subtle stagger-d1">
               <Card className={`${dt.casinoCard} h-full`}>
                 <div className={dt.casinoBar} />
                 <CardContent className="p-0 relative z-10">
@@ -306,10 +304,10 @@ export function TournamentView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Teams — Read-only list */}
-            <motion.div variants={item}>
+            <div className="stagger-item-subtle stagger-d2">
               <Card className={`${dt.casinoCard} h-full`}>
                 <div className={dt.casinoBar} />
                 <CardContent className="p-0 relative z-10">
@@ -347,12 +345,12 @@ export function TournamentView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
 
           {/* Hasil Pertandingan — Simple match results list */}
           {selected.matches?.length > 0 && (
-            <motion.div variants={item}>
+            <div className="stagger-item-subtle stagger-d3">
               <Card className={`${dt.casinoCard} overflow-hidden`}>
                 <div className={dt.casinoBar} />
                 <CardContent className="p-0 relative z-10">
@@ -432,8 +430,8 @@ export function TournamentView() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
+            </div>
+          )
         </>
       )}
 
@@ -444,6 +442,6 @@ export function TournamentView() {
         defaultType="weekly"
         cmsSettings={cms || {}}
       />
-    </motion.div>
+    </div>
   );
 }

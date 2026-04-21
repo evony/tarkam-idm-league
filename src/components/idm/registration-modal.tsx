@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   UserPlus, X, Loader2, MapPin, Phone, Users, Music, CheckCircle2, AlertTriangle, Ban, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
@@ -321,24 +321,13 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
 
               <CardContent className="p-5 space-y-4">
                 {/* Success State */}
-                <AnimatePresence>
-                  {submitResult && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="text-center py-6"
-                    >
-                      {submitResult.success ? (
-                        <>
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', bounce: 0.5 }}
-                            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4"
-                          >
-                            <CheckCircle2 className="w-8 h-8 text-green-500" />
-                          </motion.div>
+                {submitResult && (
+                  <div className="stagger-item-subtle text-center py-6">
+                    {submitResult.success ? (
+                      <>
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
+                          <CheckCircle2 className="w-8 h-8 text-green-500" />
+                        </div>
                           <h3 className="text-lg font-bold text-green-500 mb-2">Pendaftaran Berhasil!</h3>
                           {submitResult.gamertag && (
                             <p className="text-base font-medium mb-2">
@@ -366,18 +355,12 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           </Button>
                         </>
                       )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  </div>
+                )}
 
                 {/* Warning Dialog */}
-                <AnimatePresence>
-                  {warningState?.show && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="p-4 rounded-xl border"
+                {warningState?.show && (
+                  <div className="stagger-item-subtle p-4 rounded-xl border"
                       style={{
                         borderColor: warningState.isBlocked
                           ? warningState.alreadyInTournament
@@ -634,9 +617,8 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           </Button>
                         )}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  </div>
+                )
 
                 {/* Registration Form */}
                 {!submitResult && !warningState?.show && (

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Gift, Heart, Sparkles, Wallet,
   Loader2, CheckCircle2, X, Copy, Check, Phone
@@ -248,26 +248,17 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
         {/* Header with animated gradient */}
         <div className={`relative h-28 bg-gradient-to-br ${config.gradient} overflow-hidden`}>
           <div className="absolute inset-0 bg-black/20" />
-          {/* Animated sparkles */}
-          <motion.div
-            className="absolute inset-0"
-            animate={{
-              background: [
-                'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-              ],
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          {/* Animated sparkles — CSS animation instead of framer-motion */}
+          <div
+            className="absolute inset-0 animate-[shimmer_4s_ease-in-out_infinite]"
+            style={{ background: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)' }}
           />
           <div className="relative z-10 flex items-center gap-3 p-5 h-full">
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+            <div
+              className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center animate-[wiggle_3s_ease-in-out_infinite]"
             >
               <TypeIcon className="w-6 h-6 text-white" />
-            </motion.div>
+            </div>
             <div>
               <h2 className="text-lg font-black text-white drop-shadow-sm">{config.title}</h2>
               <p className="text-[11px] text-white/80 max-w-[220px]">{config.subtitle}</p>
@@ -277,25 +268,15 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
         <div className="p-5 space-y-4">
           {/* ========== SUCCESS STATE WITH PAYMENT INFO ========== */}
-          <AnimatePresence>
-            {submitResult && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
+          {submitResult && (
+            <div className="stagger-item-subtle">
                 {submitResult.success ? (
                   <div className="space-y-4">
                     {/* Success Header */}
                     <div className="text-center pt-2">
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', bounce: 0.5 }}
-                        className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/10 mb-3"
-                      >
+                      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/10 mb-3">
                         <CheckCircle2 className="w-8 h-8 text-green-500" />
-                      </motion.div>
+                      </div>
                       <h3 className="text-lg font-bold text-green-500 mb-1">Terima Kasih! 🎉</h3>
                       <p className="text-sm text-muted-foreground mb-0.5">{donorName} — {formatCurrency(finalAmount)}</p>
                       <p className="text-xs text-muted-foreground/70">{submitResult.message}</p>
@@ -331,12 +312,9 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
                         {/* Payment Display — QR or Phone Number */}
                         {activePM && (
-                          <motion.div
+                          <div
                             key={activePM.key}
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="flex flex-col items-center"
+                            className="stagger-item-subtle flex flex-col items-center"
                           >
                             {activePM.mode === 'qr' ? (
                               /* QR Code Display (QRIS) */
@@ -382,8 +360,8 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                                 </div>
                               </>
                             )}
-                          </motion.div>
-                        )}
+                          </div>
+                        )
 
                         {/* Holder Name */}
                         {paymentHolder && (
@@ -442,17 +420,12 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                     </Button>
                   </div>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )
 
           {/* ========== FORM ========== */}
           {!submitResult && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
+            <div className="stagger-item space-y-4">
               {/* Type Toggle — hidden when hideSawer is true (landing page donation) */}
               {!hideSawer && (
                 <div>
@@ -605,8 +578,8 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                   : '✨ Donasi membantu mendanai liga season berikutnya'
                 }
               </p>
-            </motion.div>
-          )}
+            </div>
+          )
         </div>
       </DialogContent>
     </Dialog>

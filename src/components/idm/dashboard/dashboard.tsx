@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
-import { motion } from 'framer-motion';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Crown, Star, Swords, TrendingUp, Users, Zap } from 'lucide-react';
@@ -40,10 +40,8 @@ export function Dashboard() {
   return (
     <div className="space-y-5">
       {/* ── Hero Banner — Clean & Punchy ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-2xl overflow-hidden border border-border"
+      <div
+        className="stagger-item relative rounded-2xl overflow-hidden border border-border"
       >
         {/* Gradient background */}
         <div className={`absolute inset-0 ${isMale
@@ -112,20 +110,18 @@ export function Dashboard() {
                 <span className={`text-[10px] font-bold ${accentText}`}>{progressPct}%</span>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full ${isMale
+                <div
+                  className={`h-full rounded-full transition-[width] duration-700 ease-out ${isMale
                     ? 'bg-gradient-to-r from-amber-500 to-yellow-400'
                     : 'bg-gradient-to-r from-pink-500 to-rose-400'
                   }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPct}%` }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  style={{ width: `${progressPct}%` }}
                 />
               </div>
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* ── Two Column — Top Players + Weekly Champions ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
