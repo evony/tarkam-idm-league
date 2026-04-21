@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   X, Eye, EyeOff, Loader2, Lock, User, Gamepad2,
   ArrowLeft, UserPlus, LogIn, Sparkles, Shield,
-  KeyRound,
+  KeyRound, Eye as ViewIcon,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useAppStore } from '@/lib/store';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { TierBadge } from './tier-badge';
 import { SkinBadgesRow, SkinAvatarFrame, SkinName } from './skin-renderer';
+import { SkinShowcase } from './skin-showcase';
 import { getPrimarySkin } from '@/lib/skin-utils';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -82,6 +83,9 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
   const [cpLoading, setCpLoading] = useState(false);
   const [cpError, setCpError] = useState('');
   const [cpSuccess, setCpSuccess] = useState('');
+
+  // Skin showcase
+  const [showSkinShowcase, setShowSkinShowcase] = useState(false);
 
   const resetPlayerForm = () => {
     setLoginUsername('');
@@ -377,6 +381,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
   const isAdminLoggedIn = adminAuth.isAuthenticated && adminAuth.admin;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
         <DialogTitle className="sr-only">Login IDM League</DialogTitle>
@@ -520,31 +525,39 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                     </button>
                   </div>
 
-                  <div className="mt-4 p-3 rounded-xl bg-gradient-to-br from-idm-gold/5 to-idm-gold/[0.02] border border-idm-gold/20">
-                    <div className="flex items-start gap-2 mb-2.5">
-                      <Sparkles className="w-4 h-4 text-idm-gold shrink-0 mt-0.5" />
-                      <p className="text-[11px] font-semibold text-idm-gold-warm">
-                        Skin Eksklusif Setiap Minggu!
-                      </p>
-                    </div>
-                    <div className="space-y-2 ml-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">🥇</span>
-                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-yellow-400">1</strong> — <strong className="text-yellow-400">Gold Crown</strong> (1 minggu)</span>
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowSkinShowcase(true)}
+                      className="w-full p-3 rounded-xl bg-gradient-to-br from-idm-gold/5 to-idm-gold/[0.02] border border-idm-gold/20 hover:border-idm-gold/40 transition-all group"
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-idm-gold shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                        <p className="text-[11px] font-semibold text-idm-gold-warm">
+                          Skin Eksklusif Setiap Minggu!
+                        </p>
+                        <ViewIcon className="w-3.5 h-3.5 text-idm-gold/50 ml-auto shrink-0 mt-0.5 group-hover:text-idm-gold transition-colors" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">⭐</span>
-                        <span className="text-[10px] text-muted-foreground">MVP — <strong className="text-gray-300">Platinum Star ✨</strong> (1 minggu)</span>
+                      <div className="space-y-1.5 ml-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm leading-none">🥇</span>
+                          <span className="text-[10px] text-muted-foreground">Juara <strong className="text-yellow-400">1</strong> — <strong className="text-yellow-400">Gold Crown</strong> (1 minggu)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm leading-none">⭐</span>
+                          <span className="text-[10px] text-muted-foreground">MVP — <strong className="text-gray-300">Platinum Star ✨</strong> (1 minggu)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm leading-none">💎</span>
+                          <span className="text-[10px] text-muted-foreground">Penyewa — <strong className="text-emerald-400">Emerald Luxury 💵</strong> (1 minggu)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm leading-none">❤️</span>
+                          <span className="text-[10px] text-muted-foreground">Donatur — <strong className="text-rose-400">Maroon Heart</strong> (1 minggu, badge ❤️ permanen!)</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">💎</span>
-                        <span className="text-[10px] text-muted-foreground">Penyewa — <strong className="text-emerald-400">Emerald Luxury 💵</strong> (1 minggu)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">❤️</span>
-                        <span className="text-[10px] text-muted-foreground">Donatur — <strong className="text-rose-400">Maroon Heart</strong> (1 minggu, badge ❤️ permanen!)</span>
-                      </div>
-                    </div>
+                      <p className="text-[9px] text-idm-gold/40 ml-6 mt-2 group-hover:text-idm-gold/60 transition-colors">Tap untuk lihat preview visual →</p>
+                    </button>
                   </div>
                 </div>
               ) : playerMode === 'login' ? (
@@ -1072,5 +1085,9 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
         </div>
       </DialogContent>
     </Dialog>
+
+      {/* Skin Showcase Overlay */}
+      <SkinShowcase open={showSkinShowcase} onClose={() => setShowSkinShowcase(false)} />
+    </>
   );
 }
