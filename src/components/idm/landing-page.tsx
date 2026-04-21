@@ -164,7 +164,7 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden landing-scroll pb-20 sm:pb-0">
+    <div className="min-h-screen bg-background overflow-hidden landing-scroll pb-24 sm:pb-0">
 
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -172,7 +172,7 @@ export function LandingPage() {
           ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
           : 'bg-transparent'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-14 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg overflow-hidden glow-pulse shrink-0">
@@ -220,7 +220,7 @@ export function LandingPage() {
               whileTap={{ scale: 0.95 }}
               onClick={() => enterApp('male')}
               aria-label="Enter Male Division"
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md"
+              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md"
             >
               🕺 Male
             </motion.button>
@@ -228,7 +228,7 @@ export function LandingPage() {
               whileTap={{ scale: 0.95 }}
               onClick={() => enterApp('female')}
               aria-label="Enter Female Division"
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md"
+              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md"
             >
               💃 Female
             </motion.button>
@@ -268,7 +268,7 @@ export function LandingPage() {
                   <span className="absolute inset-0 rounded-lg animate-pulse bg-idm-gold-warm/[0.03] shadow-[0_0_8px_rgba(212,168,83,0.08)]" />
                 )}
                 <item.icon className={`relative z-10 w-5 h-5 ${item.special ? 'drop-shadow-[0_0_4px_rgba(212,168,83,0.3)]' : ''}`} />
-                <span className={`relative z-10 text-[10px] font-medium mt-1 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
+                <span className={`relative z-10 text-[11px] font-medium mt-1 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
                 {isActive && (
                   <motion.div
                     layoutId="bottom-nav-active"

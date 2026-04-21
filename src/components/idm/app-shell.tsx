@@ -67,7 +67,7 @@ const actionItems: { id: AppView; label: string; icon: typeof UserPlus }[] = [
 
 function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
   const { division, setDivision } = useAppStore();
-  const baseClass = compact ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1.5 text-xs';
+  const baseClass = compact ? 'px-3 py-2 text-[11px]' : 'px-3 py-1.5 text-xs';
   return (
     <div className="flex items-center bg-muted rounded-full p-0.5 gap-0.5">
       <button
@@ -402,11 +402,11 @@ export function AppShell() {
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
+            className={`h-10 w-10 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
             onClick={() => setCurrentView('admin')}
             title="Admin Panel"
           >
-            <Shield className="w-4 h-4" />
+            <Shield className="w-5 h-5" />
           </Button>
         </div>
       </header>
@@ -436,7 +436,7 @@ export function AppShell() {
             }`}
           >
             <Home className="w-[18px] h-[18px]" />
-            <span className="text-[9px] font-medium leading-tight">Home</span>
+            <span className="text-[10px] font-medium leading-tight">Home</span>
             {(currentView as AppView) === 'landing' && (
               <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
             )}
@@ -453,7 +453,7 @@ export function AppShell() {
                 }`}
               >
                 <Icon className="w-[18px] h-[18px]" />
-                <span className="text-[9px] font-medium leading-tight">{navItem.label}</span>
+                <span className="text-[10px] font-medium leading-tight">{navItem.label}</span>
                 {isActive && (
                   <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
                 )}

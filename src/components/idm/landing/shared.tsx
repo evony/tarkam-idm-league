@@ -46,7 +46,7 @@ export function SectionHeader({ icon: Icon, label, title, subtitle }: {
   subtitle?: string;
 }) {
   return (
-    <motion.div variants={fadeUp} className="text-center mb-14">
+    <motion.div variants={fadeUp} className="text-center mb-10 sm:mb-14">
       <div className="flex items-center justify-center gap-3 mb-4">
         <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-idm-gold-warm" />
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5">
@@ -80,8 +80,8 @@ export function StatCard({ icon: Icon, value, label, delay }: {
         <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 flex items-center justify-center group-hover:scale-110 transition-transform">
           <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-idm-gold-warm" />
         </div>
-        <p className="text-sm sm:text-2xl font-black text-gradient-fury">{value}</p>
-        <p className="text-[9px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 uppercase tracking-wider">{label}</p>
+        <p className="text-lg sm:text-2xl font-black text-gradient-fury">{value}</p>
+        <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 uppercase tracking-wider">{label}</p>
       </div>
     </motion.div>
   );

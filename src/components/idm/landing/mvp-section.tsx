@@ -29,7 +29,7 @@ export function MvpSection({
   return (
     <>
       {/* ========== MVP ARENA — Dramatic Split Hero Cards ========== */}
-      <section id="mvp" role="region" aria-label="MVP Arena" className="py-24 px-4 relative overflow-hidden">
+      <section id="mvp" role="region" aria-label="MVP Arena" className="py-16 sm:py-24 px-4 relative overflow-hidden">
         {/* Background — Dark theater with spotlight cone */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-[#0a0806]/50 to-background" />
         {/* Spotlight cone from top center */}
@@ -58,7 +58,7 @@ export function MvpSection({
                 {(() => {
                   const mvp = maleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
-                    <div className="relative rounded-2xl overflow-hidden min-h-[520px] champion-gold-frame border border-[#06b6d4]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
+                    <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[520px] champion-gold-frame border border-[#06b6d4]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
                       {/* Subtle radial glow */}
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.08), transparent 60%)' }} />
                       {/* Dashed avatar placeholder */}
@@ -78,7 +78,7 @@ export function MvpSection({
                   );
                   return (
                     <div
-                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#06b6d4]/15 hover:border-[#06b6d4]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
+                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[380px] sm:min-h-[520px] border border-[#06b6d4]/15 hover:border-[#06b6d4]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
                       style={{ boxShadow: '0 0 40px rgba(6,182,212,0.08)' }}
                       role="button"
                       tabIndex={0}
@@ -128,19 +128,19 @@ export function MvpSection({
                         <div className="mvp-stats-panel flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
                           <div>
                             <p className="text-2xl font-black text-[#22d3ee]">{mvp.points}</p>
-                            <p className="text-[9px] text-[#67e8f9]/50 uppercase font-semibold">Points</p>
+                            <p className="text-[10px] text-[#67e8f9]/50 uppercase font-semibold">Points</p>
                           </div>
                           <div className="w-px h-8 bg-white/10" />
                           <div>
                             <p className="text-2xl font-black text-green-400">{mvp.totalWins}</p>
-                            <p className="text-[9px] text-green-400/50 uppercase font-semibold">Wins</p>
+                            <p className="text-[10px] text-green-400/50 uppercase font-semibold">Wins</p>
                           </div>
                           {mvp.streak > 0 && (
                             <>
                               <div className="w-px h-8 bg-white/10" />
                               <div>
                                 <p className="text-2xl font-black text-orange-400 flex items-center gap-1.5"><Flame className="w-6 h-6 drop-shadow-[0_0_6px_rgba(251,146,60,0.5)]" />{mvp.streak}</p>
-                                <p className="text-[9px] text-orange-400/50 uppercase font-semibold">Streak</p>
+                                <p className="text-[10px] text-orange-400/50 uppercase font-semibold">Streak</p>
                               </div>
                             </>
                           )}
@@ -156,7 +156,7 @@ export function MvpSection({
                 {(() => {
                   const mvp = femaleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
-                    <div className="relative rounded-2xl overflow-hidden min-h-[520px] champion-gold-frame border border-[#a855f7]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
+                    <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[520px] champion-gold-frame border border-[#a855f7]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
                       {/* Subtle radial glow */}
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.08), transparent 60%)' }} />
                       {/* Dashed avatar placeholder */}
@@ -176,7 +176,7 @@ export function MvpSection({
                   );
                   return (
                     <div
-                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#a855f7]/15 hover:border-[#a855f7]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
+                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[380px] sm:min-h-[520px] border border-[#a855f7]/15 hover:border-[#a855f7]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
                       style={{ boxShadow: '0 0 40px rgba(168,85,247,0.08)' }}
                       role="button"
                       tabIndex={0}
@@ -226,19 +226,19 @@ export function MvpSection({
                         <div className="mvp-stats-panel flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
                           <div>
                             <p className="text-2xl font-black text-[#c084fc]">{mvp.points}</p>
-                            <p className="text-[9px] text-[#e9d5ff]/50 uppercase font-semibold">Points</p>
+                            <p className="text-[10px] text-[#e9d5ff]/50 uppercase font-semibold">Points</p>
                           </div>
                           <div className="w-px h-8 bg-white/10" />
                           <div>
                             <p className="text-2xl font-black text-green-400">{mvp.totalWins}</p>
-                            <p className="text-[9px] text-green-400/50 uppercase font-semibold">Wins</p>
+                            <p className="text-[10px] text-green-400/50 uppercase font-semibold">Wins</p>
                           </div>
                           {mvp.streak > 0 && (
                             <>
                               <div className="w-px h-8 bg-white/10" />
                               <div>
                                 <p className="text-2xl font-black text-orange-400 flex items-center gap-1.5"><Flame className="w-6 h-6 drop-shadow-[0_0_6px_rgba(251,146,60,0.5)]" />{mvp.streak}</p>
-                                <p className="text-[9px] text-orange-400/50 uppercase font-semibold">Streak</p>
+                                <p className="text-[10px] text-orange-400/50 uppercase font-semibold">Streak</p>
                               </div>
                             </>
                           )}

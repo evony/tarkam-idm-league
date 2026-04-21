@@ -93,8 +93,8 @@ export function ChampionsSection({
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[9px] border border-idm-gold-warm/25 font-bold uppercase tracking-wider">Liga IDM</Badge>
-                          <Badge className="bg-yellow-500/15 text-yellow-400 text-[9px] border border-yellow-500/25 font-bold">SEASON {leagueData.ligaChampion.seasonNumber} CHAMPION</Badge>
+                          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] border border-idm-gold-warm/25 font-bold uppercase tracking-wider">Liga IDM</Badge>
+                          <Badge className="bg-yellow-500/15 text-yellow-400 text-[10px] border border-yellow-500/25 font-bold">SEASON {leagueData.ligaChampion.seasonNumber} CHAMPION</Badge>
                         </div>
                         <h3 className="text-lg sm:text-xl font-black mt-1" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                           Liga IDM Season {leagueData.ligaChampion.seasonNumber}
@@ -174,8 +174,8 @@ export function ChampionsSection({
                               )}
                             </div>
                             {/* Gamertag label below avatar */}
-                            <p className="text-[9px] font-bold mt-1 truncate max-w-[64px] text-center text-white/80">{member.gamertag}</p>
-                            <p className="text-[8px] font-medium capitalize" style={{ color: member.division === 'male' ? '#22d3ee' : '#c084fc' }}>{member.division}</p>
+                            <p className="text-[10px] font-bold mt-1 truncate max-w-[64px] text-center text-white/80">{member.gamertag}</p>
+                            <p className="text-[10px] font-medium capitalize" style={{ color: member.division === 'male' ? '#22d3ee' : '#c084fc' }}>{member.division}</p>
                           </div>
                         ))}
                         {leagueData.ligaChampion.members.length > 5 && (
@@ -183,7 +183,7 @@ export function ChampionsSection({
                             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-sm font-bold border-2 border-dashed border-white/10 bg-white/5 text-muted-foreground">
                               +{leagueData.ligaChampion.members.length - 5}
                             </div>
-                            <p className="text-[9px] text-muted-foreground mt-1">lainnya</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">lainnya</p>
                           </div>
                         )}
                       </div>
@@ -195,7 +195,7 @@ export function ChampionsSection({
                     <div className="h-px flex-1 bg-gradient-to-r from-idm-gold-warm/20 to-transparent" />
                     <div className="flex items-center gap-1.5 text-idm-gold-warm/40">
                       <Trophy className="w-3 h-3" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest">Liga IDM Champion</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Liga IDM Champion</span>
                       <Trophy className="w-3 h-3" />
                     </div>
                     <div className="h-px flex-1 bg-gradient-to-l from-idm-gold-warm/20 to-transparent" />
@@ -379,12 +379,12 @@ export function ChampionsSection({
                                       <p className="text-xs sm:text-sm font-black text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{player.gamertag}</p>
                                       <div className="flex items-center gap-1.5 mt-0.5">
                                         <TierBadge tier={player.tier} />
-                                        {pIdx === 0 && <span className="text-[8px] font-bold px-1 py-0.5 rounded" style={{ color: accentLight, backgroundColor: hexToRgba(accent, 0x25) }}>CPT</span>}
+                                        {pIdx === 0 && <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ color: accentLight, backgroundColor: hexToRgba(accent, 0x25) }}>CPT</span>}
                                       </div>
                                       <div className="flex items-center gap-1.5 mt-0.5">
-                                        <span className="text-[9px] font-bold" style={{ color: accentFaint }}>{player.points}pts</span>
-                                        <span className="text-[9px] font-bold text-green-400">{player.totalWins}W</span>
-                                        <span className="text-[9px] font-bold text-orange-400 flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" />{player.streak}</span>
+                                        <span className="text-[10px] font-bold" style={{ color: accentFaint }}>{player.points}pts</span>
+                                        <span className="text-[10px] font-bold text-green-400">{player.totalWins}W</span>
+                                        <span className="text-[10px] font-bold text-orange-400 flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" />{player.streak}</span>
                                       </div>
                                     </div>
                                   </div>

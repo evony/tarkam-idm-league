@@ -18,7 +18,7 @@ interface TournamentHubProps {
 
 export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, onEnterApp, onVideoPlay }: TournamentHubProps) {
   return (
-    <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Arena battle with bilateral division glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
       {/* Subtle diagonal line pattern — arena bracket feel */}
@@ -60,8 +60,8 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge className="bg-cyan-500/10 text-cyan-400 text-[9px] border-cyan-500/20 font-bold uppercase tracking-wider">Setiap Minggu</Badge>
-                      <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0">AKTIF</Badge>
+                      <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-cyan-500/20 font-bold uppercase tracking-wider">Setiap Minggu</Badge>
+                      <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">AKTIF</Badge>
                     </div>
                     <h3 className="text-xl font-bold text-cyan-400">Weekly Male</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Bracket elimination — 1 tim, 3 pemain</p>
@@ -77,15 +77,15 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 <div className="grid grid-cols-3 gap-3 mb-5">
                   <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/10 text-center">
                     <p className="text-lg font-bold text-cyan-400">{maleData?.seasonProgress?.completedWeeks || 0}</p>
-                    <p className="text-[9px] text-muted-foreground">Weekly Selesai</p>
+                    <p className="text-[10px] text-muted-foreground">Weekly Selesai</p>
                   </div>
                   <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/10 text-center">
                     <p className="text-lg font-bold text-cyan-400">{maleData?.totalPlayers || 0}</p>
-                    <p className="text-[9px] text-muted-foreground">Peserta</p>
+                    <p className="text-[10px] text-muted-foreground">Peserta</p>
                   </div>
                   <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/10 text-center">
                     <p className="text-lg font-bold text-cyan-400">{formatCurrency(maleData?.totalPrizePool || 0)}</p>
-                    <p className="text-[9px] text-muted-foreground">Prize Pool</p>
+                    <p className="text-[10px] text-muted-foreground">Prize Pool</p>
                   </div>
                 </div>
 
@@ -101,7 +101,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 </div>
 
                 {/* CTA */}
-                <button onClick={() => onEnterApp('male')} className="mt-5 w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('male')} className="mt-5 w-full py-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-colors cursor-pointer">
                   Masuk Male Division →
                 </button>
               </div>
@@ -136,8 +136,8 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge className="bg-purple-500/10 text-purple-400 text-[9px] border-purple-500/20 font-bold uppercase tracking-wider">Setiap Minggu</Badge>
-                      <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0">AKTIF</Badge>
+                      <Badge className="bg-purple-500/10 text-purple-400 text-[10px] border-purple-500/20 font-bold uppercase tracking-wider">Setiap Minggu</Badge>
+                      <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">AKTIF</Badge>
                     </div>
                     <h3 className="text-xl font-bold text-purple-400">Weekly Female</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Bracket elimination — 1 tim, 3 pemain</p>
@@ -153,15 +153,15 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 <div className="grid grid-cols-3 gap-3 mb-5">
                   <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 text-center">
                     <p className="text-lg font-bold text-purple-400">{femaleData?.seasonProgress?.completedWeeks || 0}</p>
-                    <p className="text-[9px] text-muted-foreground">Weekly Selesai</p>
+                    <p className="text-[10px] text-muted-foreground">Weekly Selesai</p>
                   </div>
                   <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 text-center">
                     <p className="text-lg font-bold text-purple-400">{femaleData?.totalPlayers || 0}</p>
-                    <p className="text-[9px] text-muted-foreground">Peserta</p>
+                    <p className="text-[10px] text-muted-foreground">Peserta</p>
                   </div>
                   <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 text-center">
                     <p className="text-lg font-bold text-purple-400">{formatCurrency(femaleData?.totalPrizePool || 0)}</p>
-                    <p className="text-[9px] text-muted-foreground">Prize Pool</p>
+                    <p className="text-[10px] text-muted-foreground">Prize Pool</p>
                   </div>
                 </div>
 
@@ -177,7 +177,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 </div>
 
                 {/* CTA */}
-                <button onClick={() => onEnterApp('female')} className="mt-5 w-full py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
+                <button onClick={() => onEnterApp('female')} className="mt-5 w-full py-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-semibold hover:bg-purple-500/20 transition-colors cursor-pointer">
                   Masuk Female Division →
                 </button>
               </div>

@@ -52,7 +52,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
   const accentLineColors = ['via-cyan-500/50', 'via-idm-gold-warm', 'via-purple-500/50'];
 
   return (
-    <section id="about" role="region" aria-label="Cerita Kami" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="about" role="region" aria-label="Cerita Kami" className="relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Warm narrative glow with subtle vertical line pattern */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
       {/* Subtle vertical line pattern — like pages of a book (story section) */}
@@ -156,7 +156,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
           <div className="h-px flex-1 bg-gradient-to-r from-idm-gold-warm/15 to-transparent" />
           <div className="flex items-center gap-1.5 text-idm-gold-warm/30">
             <Heart className="w-3 h-3" />
-            <span className="text-[9px] font-bold uppercase tracking-widest">{bottomTagline}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{bottomTagline}</span>
             <Heart className="w-3 h-3" />
           </div>
           <div className="h-px flex-1 bg-gradient-to-l from-idm-gold-warm/15 to-transparent" />

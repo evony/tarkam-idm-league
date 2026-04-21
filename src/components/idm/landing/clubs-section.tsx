@@ -84,7 +84,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                       <ClubLogoImage clubName={leagueData.ligaChampion.name} dbLogo={leagueData.ligaChampion.logo} alt={leagueData.ligaChampion.name} width={20} height={20} className="w-5 h-5 rounded object-cover" />
                     )}
                     <span className="text-xs font-black text-white">{leagueData.ligaChampion.name}</span>
-                    <span className="text-[9px] text-muted-foreground/60">•</span>
+                    <span className="text-[10px] text-muted-foreground/60">•</span>
                     <span className="text-[10px] text-muted-foreground/60">{leagueData?.stats?.totalClubs || 0} club bertanding</span>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                     isChampion ? 'text-idm-gold-warm' : 'text-white group-hover/club:text-idm-gold-warm'
                                   }`}>{club.name}</p>
                                   {isChampion && (
-                                    <p className="text-[8px] font-bold text-idm-gold-warm/60 uppercase tracking-wider mt-0.5">S{leagueData!.ligaChampion!.seasonNumber} Champion</p>
+                                    <p className="text-[10px] font-bold text-idm-gold-warm/60 uppercase tracking-wider mt-0.5">S{leagueData!.ligaChampion!.seasonNumber} Champion</p>
                                   )}
                                   <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
                                     <span className="font-black text-[#e8d5a3]">{club.points} PTS</span>
@@ -256,7 +256,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   </div>
                                   <div className="relative px-2 pb-2.5 pt-1">
                                     <p className="text-xs font-black text-white truncate group-hover/player:text-[#22d3ee] transition-colors duration-200">{player.gamertag}</p>
-                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-[9px]">
+                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px]">
                                       <TierBadge tier={player.tier} />
                                       <span className="font-black text-[#22d3ee]">{player.points}</span>
                                       <span className="text-green-400">{player.totalWins}W</span>
@@ -320,7 +320,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   </div>
                                   <div className="relative px-2 pb-2.5 pt-1">
                                     <p className="text-xs font-black text-white truncate group-hover/player:text-[#c084fc] transition-colors duration-200">{player.gamertag}</p>
-                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-[9px]">
+                                    <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px]">
                                       <TierBadge tier={player.tier} />
                                       <span className="font-black text-[#c084fc]">{player.points}</span>
                                       <span className="text-green-400">{player.totalWins}W</span>

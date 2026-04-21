@@ -80,7 +80,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
 
   return (<>
       {/* ========== LIGA IDM — THE DREAM ========== */}
-      <section id="dream" className="relative py-28 px-4 overflow-hidden">
+      <section id="dream" className="relative py-16 sm:py-28 px-4 overflow-hidden">
         {/* Background — clean gradient without image */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 50%), radial-gradient(ellipse at 20% 70%, rgba(6,182,212,0.03) 0%, transparent 40%), radial-gradient(ellipse at 80% 70%, rgba(168,85,247,0.03) 0%, transparent 40%)' }} />
@@ -107,7 +107,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-idm-gold-warm/50" />
             </div>
           </div>
-          <h2 className="stagger-item-fast stagger-d1 text-5xl sm:text-7xl font-black text-gradient-champion leading-none">
+          <h2 className="stagger-item-fast stagger-d1 text-4xl sm:text-7xl font-black text-gradient-champion leading-none">
             The Dream
           </h2>
           <p className="stagger-item-fast stagger-d2 text-sm text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed">
@@ -145,7 +145,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               <div key={s.label} className={`perspective-card rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06]`}>
                 <s.icon className="w-4 h-4 text-idm-gold-warm mx-auto mb-2" />
                 <p className="text-lg sm:text-2xl font-black text-white truncate">{s.value}</p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1">{s.label}</p>
+                <p className="text-[10px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1">{s.label}</p>
               </div>
             ))}
           </div>
@@ -155,22 +155,22 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
             <div className="stagger-item-fast mt-8" style={{ animationDelay: '240ms' }}>
               <div className="rounded-2xl border border-idm-gold-warm/20 bg-idm-gold-warm/[0.04] p-5 sm:p-6 text-center">
                 <p className="text-xs text-idm-gold-warm/70 font-bold uppercase tracking-widest mb-4">{cmsSettings.countdown_label}</p>
-                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-3">
                   {[
                     { value: countdown.days, label: 'Hari' },
                     { value: countdown.hours, label: 'Jam' },
                     { value: countdown.minutes, label: 'Menit' },
                     { value: countdown.seconds, label: 'Detik' },
                   ].map((unit, i) => (
-                    <div key={unit.label} className="flex items-center gap-2 sm:gap-3">
+                    <div key={unit.label} className="flex items-center gap-1.5 sm:gap-3">
                       <div className="flex flex-col items-center">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
-                          <span className="text-xl sm:text-2xl font-black text-idm-gold-warm tabular-nums">{String(unit.value).padStart(2, '0')}</span>
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
+                          <span className="text-lg sm:text-2xl font-black text-idm-gold-warm tabular-nums">{String(unit.value).padStart(2, '0')}</span>
                         </div>
-                        <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider mt-1">{unit.label}</span>
+                        <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mt-1">{unit.label}</span>
                       </div>
                       {i < 3 && (
-                        <span className="text-idm-gold-warm/40 font-bold text-lg sm:text-xl mb-4">:</span>
+                        <span className="text-idm-gold-warm/40 font-bold text-base sm:text-xl mb-4">:</span>
                       )}
                     </div>
                   ))}
@@ -185,7 +185,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Flame className="w-4 h-4 text-idm-gold-warm" />
                 <h4 className="text-sm font-bold text-idm-gold-warm">Liga IDM Season {nextSeason}</h4>
-                <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">Menunggu</Badge>
+                <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0">Menunggu</Badge>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
                 {dreamSeasonNextText}
@@ -194,7 +194,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           </div>
 
           <div className="stagger-item-fast mt-8" style={{ animationDelay: '360ms' }}>
-            <button onClick={() => openDonationModal('season')} className="hover-scale-md px-7 py-3 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-shadow cursor-pointer">
+            <button onClick={() => openDonationModal('season')} className="hover-scale-md px-7 py-4 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-shadow cursor-pointer">
               <Gift className="w-4 h-4 inline mr-2" />Dukung Liga IDM Season {nextSeason}
             </button>
           </div>
@@ -202,7 +202,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
       </section>
 
       {/* ========== CTA — Premium Glass Reveal ========== */}
-      <section className="relative py-24 px-4 overflow-hidden">
+      <section className="relative py-16 sm:py-24 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <Image src="/bg-section.jpg" alt="" fill sizes="100vw" className="object-cover opacity-10" aria-hidden="true" />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 50%)' }} />
@@ -229,7 +229,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           <h2 className="stagger-item-fast stagger-d0 text-3xl sm:text-5xl font-black text-gradient-champion mb-3">
             {cmsSections.cta?.title || 'Punya Skill? Buktikan.'}
           </h2>
-          <p className="stagger-item-fast stagger-d1 text-xs text-muted-foreground mb-8">
+          <p className="stagger-item-fast stagger-d1 text-sm text-muted-foreground mb-8">
             {cmsSections.cta?.description || 'Daftar sekarang dan tunjukkan siapa dancer terbaik.'}
           </p>
           <div className="stagger-item-fast stagger-d2 flex flex-col sm:flex-row items-center justify-center gap-3">

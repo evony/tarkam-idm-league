@@ -98,7 +98,7 @@ export function HeroSection({
               {onVideoPlay && (
                 <button
                   onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
-                  className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-idm-gold-warm/15 border border-idm-gold-warm/30 backdrop-blur-sm hover:bg-idm-gold-warm/25 hover:border-idm-gold-warm/50 transition-all cursor-pointer group"
+                  className="absolute bottom-24 sm:bottom-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-4 py-3 sm:px-4 sm:py-2 rounded-full bg-idm-gold-warm/15 border border-idm-gold-warm/30 backdrop-blur-sm hover:bg-idm-gold-warm/25 hover:border-idm-gold-warm/50 transition-all cursor-pointer group"
                   aria-label="Play video with controls"
                 >
                   <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm fill-idm-gold-warm" />
@@ -281,7 +281,7 @@ export function HeroSection({
                     </span>
                     <div className="flex items-center justify-center gap-2 mt-1 sm:mt-1.5">
                       <div className="h-px flex-1 bg-idm-gold-warm/30" />
-                      <span className="text-[8px] sm:text-[9px] text-idm-gold-warm/50 tracking-widest">GABUNG IDM LEAGUE</span>
+                      <span className="text-[10px] sm:text-[10px] text-idm-gold-warm/50 tracking-widest">GABUNG IDM LEAGUE</span>
                       <div className="h-px flex-1 bg-idm-gold-warm/30" />
                     </div>
                   </div>
@@ -306,7 +306,7 @@ export function HeroSection({
 
         {/* Scroll Indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+          className="absolute bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-10"
           aria-hidden="true"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
