@@ -138,3 +138,40 @@ Stage Summary:
 - `.casino-card` no longer has backdrop-filter — eliminates click-blocking browser bug risk
 - CSS file is 737 lines shorter with no duplicate definitions — easier to maintain
 - Rollback operations are now transactionally safe — partial failures don't leave inconsistent data
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Continue remaining improvements — Priority 1-3 (session continuation after disconnect)
+
+Work Log:
+- **Priority 1 (HIGH)**: Removed `backdrop-filter: blur()` from ALL card classes (9 total)
+  - `.card-premium` (line 648) — was used in app-shell.tsx
+  - `.card-gold` (line 702) — not used but latent risk
+  - `.card-champion` (line 757) — not used but latent risk
+  - `.card-gold-male` (line 1875) — referenced in use-division-theme.ts
+  - `.card-gold-female` (line 1925) — referenced in use-division-theme.ts
+  - `.card-champion-male` (line 1975) — referenced in use-division-theme.ts
+  - `.card-champion-female` (line 2029) — referenced in use-division-theme.ts
+  - `.glass-card` (line 2693) — not used in components
+  - `.glass-premium` (line 2724) — not used in components
+  - Each replaced with NOTE comment explaining why backdrop-filter was removed
+  - Kept `.glass` / `.glass-strong` (sidebar utility, no interactive elements)
+  - Kept `.stream-overlay-sponsor` and `.mvp-badge-premium` (decorative, no interactive elements)
+- **Priority 2 (MEDIUM)**: Fixed all duplicate CSS definitions
+  - Removed duplicate `.section-reveal` (animation-only at line 1314, kept scroll-triggered version at 2869)
+  - Removed duplicate `.page-transition-*` set (lines 3367-3383, kept first set at 2837-2857)
+  - Fixed `@keyframes slide-in-right` conflict — renamed second definition to `slide-in-right-offset` (translateX(60px) vs translateX(100%))
+  - Fixed `@keyframes gold-shimmer` conflict — renamed second definition to `gold-shimmer-sweep` (background-position center vs 0)
+  - Verified zero remaining duplicate class definitions or keyframes
+- **Priority 3 (LOW)**: Improved rollback data consistency in route.ts
+  - Wrapped final `db.tournament.update` in `db.$transaction` for atomicity
+  - Added consistency check before status commit: verifies no orphaned teams/matches remain at target status
+  - Added `body._reverted = true` flag to signal the consistency check when a revert was performed
+  - Orphaned data cleanup now runs as part of the same transaction as the status update
+  - If consistency check finds orphans, they are cleaned up before the status change is committed
+
+Stage Summary:
+- All 9 card classes with `backdrop-filter` are now safe from click-blocking browser bug
+- Zero duplicate CSS definitions remain — all keyframes and classes are unique
+- Rollback logic now has transaction-protected status update with consistency verification

@@ -645,8 +645,7 @@ html {
 .card-premium {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -699,8 +698,7 @@ html {
 .card-gold {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -754,8 +752,7 @@ html {
 .card-champion {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -1314,10 +1311,6 @@ html {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.section-reveal {
-  animation: reveal-up 0.8s ease-out forwards;
-}
-
 /* ============================================
    17. ADVANCED PARALLAX & SCROLL FX
    ============================================ */
@@ -1348,7 +1341,7 @@ html {
   to { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes slide-in-right {
+@keyframes slide-in-right-offset {
   from { opacity: 0; transform: translateX(60px); }
   to { opacity: 1; transform: translateX(0); }
 }
@@ -1358,7 +1351,7 @@ html {
 }
 
 .animate-slide-right {
-  animation: slide-in-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-in-right-offset 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Rotate-in */
@@ -1872,8 +1865,7 @@ html {
 .card-gold-male {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -1922,8 +1914,7 @@ html {
 .card-gold-female {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -1972,8 +1963,7 @@ html {
 .card-champion-male {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -2026,8 +2016,7 @@ html {
 .card-champion-female {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -2690,8 +2679,7 @@ html {
     rgba(255, 255, 255, 0.05) 0%,
     rgba(255, 255, 255, 0.02) 100%
   );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.12),
@@ -2721,8 +2709,7 @@ html {
     rgba(255, 255, 255, 0.02) 50%,
     rgba(212, 168, 83, 0.04) 100%
   );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter removed — known browser bug that blocks clicks on interactive elements */
   border: 1px solid rgba(212, 168, 83, 0.12);
   box-shadow: 
     0 4px 24px rgba(0, 0, 0, 0.1),
@@ -3293,7 +3280,7 @@ a:focus-visible,
 /* ============================================
    PREMIUM GOLD SHIMMER — Skeleton Loading
    ============================================ */
-@keyframes gold-shimmer {
+@keyframes gold-shimmer-sweep {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
@@ -3306,7 +3293,7 @@ a:focus-visible,
     rgba(212, 168, 83, 0.05) 75%
   );
   background-size: 200% 100%;
-  animation: gold-shimmer 2s ease-in-out infinite;
+  animation: gold-shimmer-sweep 2s ease-in-out infinite;
 }
 
 /* ============================================
@@ -3371,22 +3358,4 @@ html {
   border: 2px solid rgba(212, 168, 83, 0.2);
   border-radius: 50%;
   animation: empty-ring-pulse 3s ease-out infinite;
-}
-
-/* Page transition fade */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(8px);
-}
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 400ms ease, transform 400ms ease;
-}
-.page-transition-exit {
-  opacity: 1;
-}
-.page-transition-exit-active {
-  opacity: 0;
-  transition: opacity 200ms ease;
 }

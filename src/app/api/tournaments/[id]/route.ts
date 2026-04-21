@@ -949,6 +949,7 @@ export async function PUT(
       }
       } // closes if (targetIdx < currentIdx)
     } // closes if (currentTournament)
+    body._reverted = true; // Flag for final consistency check before status commit
   } // closes if (body._revert && body.status)
   delete body._revert; // Don't store this in DB
 
@@ -977,20 +978,60 @@ export async function PUT(
     }
   }
 
-  const tournament = await db.tournament.update({
-    where: { id },
-    data: {
-      ...(body.status && { status: body.status }),
-      ...(body.name && { name: body.name }),
-      ...(body.weekNumber !== undefined && { weekNumber: body.weekNumber }),
-      ...(body.format && { format: body.format }),
-      ...(body.defaultMatchFormat && { defaultMatchFormat: body.defaultMatchFormat }),
-      ...(body.prizePool !== undefined && { prizePool: body.prizePool }),
-      ...(body.location !== undefined && { location: body.location }),
-      ...(body.bpm !== undefined && { bpm: body.bpm }),
-      ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
-      ...(body.status === 'completed' && { completedAt: new Date() }),
-    },
+  // ─── Final update: wrap in transaction for atomicity ───
+  // If a revert was performed, verify consistency before committing the status change.
+  // This prevents the status from updating if orphaned data remains from a failed revert.
+  const tournament = await db.$transaction(async (tx) => {
+    // If we just reverted, do a quick consistency check on the target status
+    if (body._reverted === true && body.status) {
+      const statusOrder = ['setup', 'registration', 'approval', 'team_generation', 'bracket_generation', 'main_event', 'finalization', 'completed'];
+      const targetIdx = statusOrder.indexOf(body.status);
+
+      if (targetIdx < statusOrder.indexOf('team_generation')) {
+        const orphanedTeams = await tx.team.count({ where: { tournamentId: id } });
+        const orphanedMatches = await tx.match.count({ where: { tournamentId: id } });
+        if (orphanedTeams > 0 || orphanedMatches > 0) {
+          // Attempt cleanup of any remaining orphaned data before status change
+          if (orphanedMatches > 0) {
+            await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+            await tx.match.deleteMany({ where: { tournamentId: id } });
+          }
+          if (orphanedTeams > 0) {
+            const teams = await tx.team.findMany({ where: { tournamentId: id }, select: { id: true } });
+            for (const t of teams) {
+              await tx.teamPlayer.deleteMany({ where: { teamId: t.id } });
+            }
+            await tx.team.deleteMany({ where: { tournamentId: id } });
+          }
+          await tx.participation.updateMany({
+            where: { tournamentId: id, status: 'assigned' },
+            data: { status: 'approved', pointsEarned: 0, isMvp: false, isWinner: false },
+          });
+        }
+      } else if (targetIdx < statusOrder.indexOf('bracket_generation')) {
+        const orphanedMatches = await tx.match.count({ where: { tournamentId: id } });
+        if (orphanedMatches > 0) {
+          await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
+          await tx.match.deleteMany({ where: { tournamentId: id } });
+        }
+      }
+    }
+
+    return tx.tournament.update({
+      where: { id },
+      data: {
+        ...(body.status && { status: body.status }),
+        ...(body.name && { name: body.name }),
+        ...(body.weekNumber !== undefined && { weekNumber: body.weekNumber }),
+        ...(body.format && { format: body.format }),
+        ...(body.defaultMatchFormat && { defaultMatchFormat: body.defaultMatchFormat }),
+        ...(body.prizePool !== undefined && { prizePool: body.prizePool }),
+        ...(body.location !== undefined && { location: body.location }),
+        ...(body.bpm !== undefined && { bpm: body.bpm }),
+        ...(body.scheduledAt !== undefined && { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }),
+        ...(body.status === 'completed' && { completedAt: new Date() }),
+      },
+    });
   });
 
   return NextResponse.json(tournament);
