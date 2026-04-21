@@ -218,6 +218,11 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
+      // CRITICAL: Invalidate landing page league data so logo updates show on landing
+      qc.invalidateQueries({ queryKey: ['league-landing'] });
+      // Also invalidate the /api/league cache used by other components
+      qc.invalidateQueries({ queryKey: ['league'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
       toast.success('Logo club diperbarui!');
       setLogoClubId(null);
     },
@@ -248,6 +253,10 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
+      // CRITICAL: Invalidate landing page league data so banner updates show on landing
+      qc.invalidateQueries({ queryKey: ['league-landing'] });
+      qc.invalidateQueries({ queryKey: ['league'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
       toast.success('Banner club diperbarui!');
       setBannerClubId(null);
     },

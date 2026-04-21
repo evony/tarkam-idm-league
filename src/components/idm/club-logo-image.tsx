@@ -19,6 +19,9 @@ interface ClubLogoImageProps {
 /**
  * Club logo image component that auto-handles unoptimized for data URI placeholders.
  * Next.js Image optimizer can't process SVG data URIs, so we skip optimization for those.
+ *
+ * Cache busting: When dbLogo changes (new Cloudinary URL), React re-renders with a new src.
+ * Cloudinary URLs are unique per public_id + version, so stale cache is not an issue.
  */
 export function ClubLogoImage({
   clubName,

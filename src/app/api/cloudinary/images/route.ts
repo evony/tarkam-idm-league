@@ -4,22 +4,27 @@ const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const API_KEY = process.env.CLOUDINARY_API_KEY;
 const API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
+/**
+ * GET /api/cloudinary/images
+ *
+ * Lists images from Cloudinary.
+ * Requires CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET env vars.
+ */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const nextCursor = searchParams.get('next_cursor');
     const maxResults = searchParams.get('max_results') || '50';
     const prefix = searchParams.get('prefix') || '';
-    const type = searchParams.get('type') || 'upload'; // upload, facebook, twitter, etc.
+    const type = searchParams.get('type') || 'upload';
 
     if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
-      return NextResponse.json({ error: 'Cloudinary not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'Cloudinary not configured — set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env' }, { status: 500 });
     }
 
     // Build URL for Cloudinary Admin API
     const url = new URL(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/resources/image`);
 
-    // Add query parameters
     url.searchParams.append('max_results', maxResults);
     url.searchParams.append('type', type);
     if (nextCursor) {
@@ -67,7 +72,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Get folders list
+/**
+ * POST /api/cloudinary/images — Get folders list from Cloudinary
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
