@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard } from './shared';
 import { formatCurrency } from '@/lib/utils';
-import { useParallax, useSectionParallax } from '@/hooks/use-parallax';
+import { useHeroParallax } from '@/hooks/use-parallax';
 import type { StatsData } from '@/types/stats';
 
 /**
@@ -64,20 +64,32 @@ export function HeroSection({
   cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
   nextSeason, maleData, particles, onRegister, onVideoPlay
 }: HeroSectionProps) {
-  /* ── Multi-layer parallax for depth illusion ──
-   * Layer 0 (BG):  moves slowest  → speed 0.3, max 150px  (deepest)
-   * Layer 1 (Mid):  moves medium  → uses useSectionParallax speed 0.06
-   * Content stays fixed (z-10, no parallax) → creates maximum depth contrast
+  /* ── Cinematic Hero Parallax ──
+   * Replaces Framer Motion's useScroll + useTransform
+   * 
+   * 3 layers with different parallax transforms:
+   * 1. BG: translateY (slow) + scale (slight zoom in) → deepest, moves slowest
+   * 2. Mid: translateY (medium) → overlays, gradients
+   * 3. Content: translateY (UPWARD) + opacity fade → foreground, moves fastest
+   *
+   * This creates the "museum exhibit" depth illusion that's
+   * visible and dramatic like the Vercel deployment.
    */
-  const bgParallaxRef = useParallax<HTMLDivElement>({ speed: 0.3, maxOffset: 150 });
-  const midLayerRef = useSectionParallax<HTMLDivElement>({ speed: 0.06 });
+  const { bgRef, midRef, contentRef } = useHeroParallax({
+    sectionRef: heroRef,
+    bgSpeed: 0.4,         // BG moves at 40% of scroll (slow, deep)
+    bgScaleRange: 0.08,   // BG scales from 1.0 to 1.08 (subtle zoom in)
+    midSpeed: 0.2,         // Mid-layer moves at 20%
+    contentSpeed: -0.12,   // Content rises at 12% (negative = upward)
+    contentFade: 0.4,      // Content fades to 60% opacity
+  });
 
   return (
     <>
       {/* ========== HERO SECTION — Cinematic with Multi-Layer Parallax ========== */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* ── Layer 0: Deep Background — parallax: slowest drift ── */}
-        <div ref={bgParallaxRef} className="parallax-bg absolute inset-0 will-change-transform" style={{ zIndex: 0 }}>
+        {/* ── Layer 0: Deep Background — parallax: slow drift + scale zoom ── */}
+        <div ref={bgRef} className="parallax-bg absolute inset-0 will-change-transform" style={{ zIndex: 0 }}>
         {cmsHeroBgVideo ? (() => {
           const ytInfo = parseYouTubeUrl(cmsHeroBgVideo);
           const ytId = ytInfo?.id ?? null;
@@ -132,8 +144,8 @@ export function HeroSection({
         )}
         </div>{/* end parallax-bg layer 0 */}
 
-        {/* ── Layer 1: Mid-depth — parallax: medium drift (gold haze, grid, gradients) ── */}
-        <div ref={midLayerRef} className="parallax-layer absolute inset-0 z-[1] will-change-transform pointer-events-none">
+        {/* ── Layer 1: Mid-depth — parallax: medium drift (overlays, gradients) ── */}
+        <div ref={midRef} className="parallax-layer absolute inset-0 z-[1] will-change-transform pointer-events-none">
           {/* Gold haze */}
           <div
             className="absolute inset-0"
@@ -151,11 +163,11 @@ export function HeroSection({
           }} />
         </div>
 
-        {/* Ambient Orbit Light — stays with content layer (no parallax) */}
+        {/* Ambient Orbit Light — stays with section (no parallax) */}
         <div className="ambient-light z-[1]" style={{ top: '30%', left: '20%' }} />
         <div className="ambient-light z-[1]" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
 
-        {/* Floating Particles — slight parallax (inherits from section) */}
+        {/* Floating Particles — stays with section */}
         <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden" aria-hidden="true">
           {particles.map((p) => (
             <div
@@ -173,8 +185,8 @@ export function HeroSection({
           ))}
         </div>
 
-        {/* Hero Content — stays fixed, no parallax (creates depth contrast) */}
-        <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto w-full">
+        {/* ── Layer 2: Hero Content — parallax: rises UP + fades out ── */}
+        <div ref={contentRef} className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto w-full will-change-transform">
           {/* Decorative top accent line */}
           <div className="animate-fade-enter mb-6">
             <div className="flex items-center justify-center gap-3">
@@ -282,7 +294,7 @@ export function HeroSection({
           </div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator — stays with section */}
         <div
           className="animate-fade-enter absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
           aria-hidden="true"

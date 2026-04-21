@@ -2,38 +2,24 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 
+/* ============================================================
+   PARALLAX HOOKS — Pure JS, rAF-driven, no Framer Motion
+   
+   Design philosophy:
+   - useParallax: Simple translateY on any element (BG, decorative)
+   - useSectionParallax: Viewport-center-relative offset for sections
+   - useHeroParallax: Full cinematic parallax with scale + opacity + translateY
+     (replaces Framer Motion's useScroll + useTransform)
+   ============================================================ */
+
 /**
- * Lightweight parallax hook — scroll-driven translateY
- * Uses requestAnimationFrame for smooth 60fps updates
- * No Framer Motion dependency — pure vanilla JS
- *
- * Supports BOTH window scrolling AND container-based scrolling.
- * For container scrolling (e.g. dashboard main content), pass a scrollContainerRef.
- *
- * Inspired by museum-style parallax: background moves slower than scroll
- *
- * @param speed - Parallax speed factor (0-1). 0.3 = bg moves at 30% of scroll speed
- * @param maxOffset - Maximum translateY in pixels (cap to prevent over-movement)
- * @param enabled - Toggle parallax on/off (useful for reduced motion)
- * @param scrollContainerRef - Optional ref to a scroll container element.
- *   When provided, reads scrollTop from this container instead of window.scrollY.
- *   Critical for dashboard where main content scrolls inside <main> not the window.
- *
- * @example
- * // Window scrolling (landing page)
- * const bgRef = useParallax({ speed: 0.3, maxOffset: 150 });
- * return <div ref={bgRef} className="parallax-bg absolute inset-0">...</div>;
- *
- * @example
- * // Container scrolling (dashboard)
- * const containerRef = useRef<HTMLElement>(null);
- * const bgRef = useParallax({ speed: 0.2, maxOffset: 80, scrollContainerRef: containerRef });
+ * Simple parallax hook — scroll-driven translateY
+ * Works with both window scroll and container scroll.
  */
 interface ParallaxOptions {
   speed?: number;
   maxOffset?: number;
   enabled?: boolean;
-  /** Ref to scroll container — when provided, reads scrollTop from this instead of window */
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
@@ -49,23 +35,18 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(
     const el = ref.current;
     if (!el || !enabled) return;
 
-    // Support both window scroll and container scroll
     const scrollY = scrollContainerRef?.current
       ? scrollContainerRef.current.scrollTop
       : window.scrollY;
 
-    // Calculate translateY: scroll * speed, capped at maxOffset
     const translateY = Math.min(scrollY * speed, maxOffset);
-
     el.style.transform = `translate3d(0, ${translateY}px, 0)`;
     ticking.current = false;
   }, [speed, maxOffset, enabled, scrollContainerRef]);
 
   useEffect(() => {
     if (!enabled) {
-      if (ref.current) {
-        ref.current.style.transform = '';
-      }
+      if (ref.current) ref.current.style.transform = '';
       return;
     }
 
@@ -76,10 +57,7 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(
       }
     };
 
-    // Initial update
     updateTransform();
-
-    // Listen to either container or window scroll
     const container = scrollContainerRef?.current;
     if (container) {
       container.addEventListener('scroll', onScroll, { passive: true });
@@ -88,14 +66,9 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(
     }
 
     return () => {
-      if (container) {
-        container.removeEventListener('scroll', onScroll);
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
+      if (container) container.removeEventListener('scroll', onScroll);
+      else window.removeEventListener('scroll', onScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
     };
   }, [enabled, updateTransform, scrollContainerRef]);
 
@@ -103,14 +76,8 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(
 }
 
 /**
- * Section parallax hook — applies subtle offset to section backgrounds
- * based on how far the section is from viewport center
- *
- * Works with BOTH window scroll and container scroll.
- *
- * @param speed - Movement speed (typically 0.05-0.12 for subtlety)
- * @param enabled - Toggle
- * @param scrollContainerRef - Optional scroll container ref
+ * Section parallax hook — viewport-center-relative offset
+ * Element drifts slightly as it passes through viewport center.
  */
 export function useSectionParallax<T extends HTMLElement = HTMLDivElement>(
   options: { speed?: number; enabled?: boolean; scrollContainerRef?: React.RefObject<HTMLElement | null> } = {}
@@ -128,8 +95,6 @@ export function useSectionParallax<T extends HTMLElement = HTMLDivElement>(
     const viewportCenter = window.innerHeight / 2;
     const elementCenter = rect.top + rect.height / 2;
     const distanceFromCenter = elementCenter - viewportCenter;
-
-    // Translate based on distance from viewport center
     const translateY = distanceFromCenter * speed * -1;
 
     el.style.transform = `translate3d(0, ${translateY}px, 0)`;
@@ -150,7 +115,6 @@ export function useSectionParallax<T extends HTMLElement = HTMLDivElement>(
     };
 
     updateTransform();
-
     const container = scrollContainerRef?.current;
     if (container) {
       container.addEventListener('scroll', onScroll, { passive: true });
@@ -159,11 +123,8 @@ export function useSectionParallax<T extends HTMLElement = HTMLDivElement>(
     }
 
     return () => {
-      if (container) {
-        container.removeEventListener('scroll', onScroll);
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
+      if (container) container.removeEventListener('scroll', onScroll);
+      else window.removeEventListener('scroll', onScroll);
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
   }, [enabled, updateTransform, scrollContainerRef]);
@@ -172,13 +133,136 @@ export function useSectionParallax<T extends HTMLElement = HTMLDivElement>(
 }
 
 /**
- * Multi-layer parallax hook — applies different speeds to different layers
- * Creates depth illusion like museum exhibits
+ * ═══════════════════════════════════════════════════════════
+ * HERO PARALLAX — Cinematic multi-transform parallax
+ * Replaces Framer Motion's useScroll + useTransform
+ * ═══════════════════════════════════════════════════════════
  *
- * @param layers - Array of { speed, maxOffset } for each layer
- * @param enabled - Toggle
- * @param scrollContainerRef - Optional scroll container ref
- * @returns Array of refs — one per layer
+ * Drives 3 separate elements with different parallax transforms:
+ * 1. Background: translateY (slow) + scale (slight zoom in as you scroll)
+ * 2. Mid-layer: translateY (medium speed)
+ * 3. Content: translateY (upward, faster) + opacity (fade out)
+ *
+ * This creates the classic "museum exhibit" depth illusion where:
+ * - Deep BG stays behind, slowly drifting and zooming
+ * - Mid elements (gradients, overlays) move at medium speed
+ * - Foreground content (text, buttons) moves fastest and fades
+ *
+ * @example
+ * const { bgRef, midRef, contentRef } = useHeroParallax();
+ * return (
+ *   <section ref={sectionRef}>
+ *     <div ref={bgRef}>background image</div>
+ *     <div ref={midRef}>gradients & overlays</div>
+ *     <div ref={contentRef}>text & buttons</div>
+ *   </section>
+ * );
+ */
+interface HeroParallaxOptions {
+  /** Whether parallax is enabled (default: true) */
+  enabled?: boolean;
+  /** Ref to the hero section element — used to calculate scroll progress within the section */
+  sectionRef: React.RefObject<HTMLElement | null>;
+  /** BG translateY speed (default: 0.4 = BG moves at 40% of scroll) */
+  bgSpeed?: number;
+  /** BG scale range (default: 0.04 = scales from 1.0 to 1.04 as you scroll) */
+  bgScaleRange?: number;
+  /** Mid-layer translateY speed (default: 0.2) */
+  midSpeed?: number;
+  /** Content translateY speed — negative = moves UP (default: -0.15 = content rises at 15%) */
+  contentSpeed?: number;
+  /** Content opacity: how much to fade when section is fully scrolled past (default: 0.3 = fades to 70%) */
+  contentFade?: number;
+}
+
+export function useHeroParallax(options: HeroParallaxOptions) {
+  const {
+    enabled = true,
+    sectionRef,
+    bgSpeed = 0.4,
+    bgScaleRange = 0.04,
+    midSpeed = 0.2,
+    contentSpeed = -0.15,
+    contentFade = 0.3,
+  } = options;
+
+  const bgRef = useRef<HTMLDivElement>(null);
+  const midRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number>(0);
+  const ticking = useRef(false);
+
+  const updateTransforms = useCallback(() => {
+    if (!enabled) return;
+
+    const section = sectionRef.current;
+    if (!section) return;
+
+    // Calculate scroll progress relative to the section (0 = top of section at viewport top, 1 = section fully scrolled past)
+    const rect = section.getBoundingClientRect();
+    const sectionHeight = rect.height;
+    // When section top is at viewport top: progress = 0
+    // When section bottom is at viewport top: progress = 1
+    const rawProgress = -rect.top / sectionHeight;
+    const progress = Math.max(0, Math.min(1, rawProgress));
+
+    // Apply BG transform: translateY + scale
+    const bgEl = bgRef.current;
+    if (bgEl) {
+      const bgY = progress * sectionHeight * bgSpeed;
+      const bgScale = 1 + progress * bgScaleRange;
+      bgEl.style.transform = `translate3d(0, ${bgY}px, 0) scale(${bgScale})`;
+    }
+
+    // Apply mid-layer transform: translateY
+    const midEl = midRef.current;
+    if (midEl) {
+      const midY = progress * sectionHeight * midSpeed;
+      midEl.style.transform = `translate3d(0, ${midY}px, 0)`;
+    }
+
+    // Apply content transform: translateY (upward) + opacity fade
+    const contentEl = contentRef.current;
+    if (contentEl) {
+      const contentY = progress * sectionHeight * contentSpeed;
+      const opacity = 1 - progress * contentFade;
+      contentEl.style.transform = `translate3d(0, ${contentY}px, 0)`;
+      contentEl.style.opacity = `${Math.max(0, opacity)}`;
+    }
+
+    ticking.current = false;
+  }, [enabled, sectionRef, bgSpeed, bgScaleRange, midSpeed, contentSpeed, contentFade]);
+
+  useEffect(() => {
+    if (!enabled) {
+      // Reset all transforms
+      if (bgRef.current) { bgRef.current.style.transform = ''; bgRef.current.style.opacity = ''; }
+      if (midRef.current) { midRef.current.style.transform = ''; }
+      if (contentRef.current) { contentRef.current.style.transform = ''; contentRef.current.style.opacity = ''; }
+      return;
+    }
+
+    const onScroll = () => {
+      if (!ticking.current) {
+        ticking.current = true;
+        rafId.current = requestAnimationFrame(updateTransforms);
+      }
+    };
+
+    updateTransforms();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [enabled, updateTransforms]);
+
+  return { bgRef, midRef, contentRef };
+}
+
+/**
+ * Multi-layer parallax hook — different speeds for different layers
  */
 export function useMultiLayerParallax<T extends HTMLElement = HTMLDivElement>(
   layers: Array<{ speed: number; maxOffset: number }>,
@@ -189,7 +273,6 @@ export function useMultiLayerParallax<T extends HTMLElement = HTMLDivElement>(
   const rafId = useRef<number>(0);
   const ticking = useRef(false);
 
-  // Initialize refs for each layer
   if (refs.current.length !== layers.length) {
     refs.current = layers.map(() => ({ current: null }));
   }
@@ -225,7 +308,6 @@ export function useMultiLayerParallax<T extends HTMLElement = HTMLDivElement>(
     };
 
     updateTransforms();
-
     const container = scrollContainerRef?.current;
     if (container) {
       container.addEventListener('scroll', onScroll, { passive: true });
@@ -234,11 +316,8 @@ export function useMultiLayerParallax<T extends HTMLElement = HTMLDivElement>(
     }
 
     return () => {
-      if (container) {
-        container.removeEventListener('scroll', onScroll);
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
+      if (container) container.removeEventListener('scroll', onScroll);
+      else window.removeEventListener('scroll', onScroll);
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
   }, [enabled, updateTransforms, scrollContainerRef]);

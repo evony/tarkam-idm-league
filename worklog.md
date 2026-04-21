@@ -772,3 +772,27 @@ Stage Summary:
 - Container scroll support: useParallax/useSectionParallax hooks accept scrollContainerRef
 - Performance: pure CSS transforms + rAF throttling, no framer-motion, translate3d for GPU
 - All effects are subtle ("tipis") but noticeable — inspired by museum-style parallax from reference site
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Fix parallax not visible — implement cinematic hero parallax matching Vercel deployment
+
+Work Log:
+- Diagnosed root cause: previous CSS-based parallax only had translateY, missing scale+opacity+content parallax that Framer Motion version on Vercel had
+- User confirmed: Vercel deployment (tazosview.vercel.app) has good parallax, sandbox has none visible
+- Created useHeroParallax hook: 3-layer cinematic parallax with scale+opacity
+  - Layer 0 (BG): translateY (40% speed) + scale (1.0 → 1.08 zoom)
+  - Layer 1 (Mid): translateY (20% speed) — overlays, gradients
+  - Layer 2 (Content): translateY (-12% upward) + opacity fade (1.0 → 0.6)
+- Applied useHeroParallax to hero-section.tsx replacing simple useParallax
+- Browser tested: At scrollY=800, BG moves 270px + scale 1.08, content rises -81px + fades to 0.6 opacity
+- Effect is now DRAMATIC and similar to Vercel's Framer Motion parallax
+- Lint: clean, no errors
+
+Stage Summary:
+- Hero parallax now has 3 independent layers with different transforms (not just translateY)
+- BG zooms in (scale 1.08) + drifts down, creating "camera dolly" effect
+- Content rises upward + fades out, creating foreground/background depth separation
+- This matches the Framer Motion parallax that was visible on the Vercel deployment
+- Dashboard parallax (container-based) still works via useParallax with scrollContainerRef
