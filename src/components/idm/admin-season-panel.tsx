@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 /* framer-motion removed — CSS animations */
 import Image from 'next/image';
 import {
@@ -129,6 +130,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
       qc.invalidateQueries({ queryKey: ['stats', division] });
       qc.invalidateQueries({ queryKey: ['league'] });
       qc.invalidateQueries({ queryKey: ['league-landing'] });
+      broadcastInvalidation('league-landing', 'league', 'stats');
       toast.success('Season berhasil dibuat!');
       setNewSeasonForm({ name: '', number: '', division: 'liga', startDate: '', endDate: '' });
     },
@@ -151,6 +153,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
       qc.invalidateQueries({ queryKey: ['stats', division] });
       qc.invalidateQueries({ queryKey: ['league'] });
       qc.invalidateQueries({ queryKey: ['league-landing'] });
+      broadcastInvalidation('league-landing', 'league', 'stats');
       toast.success('Season berhasil diperbarui!');
       setEditingChampion(null);
       setEditingStatus(null);
@@ -171,6 +174,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
       qc.invalidateQueries({ queryKey: ['stats', division] });
       qc.invalidateQueries({ queryKey: ['league'] });
       qc.invalidateQueries({ queryKey: ['league-landing'] });
+      broadcastInvalidation('league-landing', 'league', 'stats');
       setExpandedSeason(null);
       toast.success('Season berhasil dihapus!');
     },

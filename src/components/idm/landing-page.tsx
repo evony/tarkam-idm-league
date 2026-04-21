@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
@@ -63,6 +64,9 @@ export function LandingPage() {
     setDonationModalOpen(true);
   }, []);
 
+  /* Cross-tab cache sync — invalidates when admin updates logo/banner in another tab */
+  useCrossTabInvalidation();
+
   /* Parallax Refs — simplified for mobile performance */
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -88,18 +92,19 @@ export function LandingPage() {
   const { data: cmsData } = useQuery({
     queryKey: ['cms-content'],
     queryFn: async () => { const res = await fetch('/api/cms/content'); if (!res.ok) return { settings: {}, sections: {} }; return res.json(); },
-    staleTime: 30000,
+    staleTime: 10000,
   });
 
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string }; ligaChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
     queryKey: ['league-landing'],
     queryFn: async () => { const res = await fetch('/api/league'); if (!res.ok) throw new Error('League API failed'); return res.json(); },
-    staleTime: 30000, // Reduced from 60s — refresh faster for Neon cold start recovery
+    staleTime: 5000, // 5s — fast refresh for admin logo/banner updates
     gcTime: 300000, // Keep cached data for 5 minutes
     retry: 3, // Retry 3 times for Neon cold start
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
     refetchOnWindowFocus: true, // Refetch when user comes back to tab
     refetchOnReconnect: true, // Refetch when network reconnects
+    refetchInterval: 60000, // Poll every 60s as safety net for cross-tab updates
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;
