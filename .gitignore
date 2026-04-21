@@ -50,5 +50,9 @@ test
 prompt
 
 server.log
+
+# Guardian process files
+.guardian/
+
 # Skills directory
 /skills/

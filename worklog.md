@@ -207,3 +207,38 @@ Stage Summary:
 - Double-fork guardian auto-restarts server on crash
 - Process-level error guards prevent unhandled errors from crashing the server
 - For Vercel/Neon deployment: change schema provider back to `postgresql` and set DATABASE_URL to Neon connection string
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Fix persistent server crash with double-fork technique
+
+Work Log:
+- **Diagnosed the crash**: Server was silently dying ~15-20s after starting with `bun run dev`
+  - No error in logs — process just disappeared
+  - Root cause: `bun run dev` starts `next dev` as a child of the shell session. When the shell session ends (Bash tool timeout), SIGHUP propagates to ALL child processes, killing the Next.js server
+  - This is a sandbox/container environment issue — shell sessions are ephemeral
+- **Implemented double-fork technique**:
+  1. Created `scripts/dev-double-fork.sh` — simple launcher that forks twice to detach the server from the shell tree
+     - Parent → forks child → child forks grandchild (server) → child exits
+     - Grandchild becomes orphan, adopted by PID 1 (init), fully detached
+     - Server survives shell disconnects, SIGHUP, and session changes
+  2. Created `scripts/dev-guardian.sh` — full guardian with monitoring + auto-restart
+     - Same double-fork for the server process
+     - Health check every 10s (kill -0 + HTTP curl)
+     - Auto-restart on crash (up to 10 attempts with 3s delay)
+     - `stop` and `status` subcommands
+     - Ignores SIGHUP to survive shell disconnects
+  3. Updated `package.json` scripts:
+     - `dev` → `bash scripts/dev-double-fork.sh` (was `next dev -p 3000 2>&1 | tee dev.log`)
+     - `dev:guardian` → `bash scripts/dev-guardian.sh`
+     - `dev:guardian:stop` → `bash scripts/dev-guardian.sh stop`
+     - `dev:guardian:status` → `bash scripts/dev-guardian.sh status`
+- **Fixed bug**: `is_server_alive()` was checking `ps -o comm= | grep "node"` but Next.js reports as `MainThread`, not `node`. Changed to `kill -0` only.
+- **Verified stability**: Server ran for 3+ minutes continuously with HTTP 200 responses (previously died in 15-20s)
+
+Stage Summary:
+- Server no longer crashes — double-fork detaches it from the shell session tree
+- `bun run dev` now uses double-fork by default
+- Guardian mode available for auto-restart on crash (`bun run dev:guardian`)
+- All PID files stored in `.guardian/` directory for process management

@@ -1,222 +1,327 @@
 #!/usr/bin/env bash
-# ═══════════════════════════════════════════════════════════════════════
-# dev-guardian.sh — Next.js dev server supervisor using DOUBLE-FORK
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  IDM League — Double-Fork Guardian Process
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #
-# Architecture:
-#   Guardian (this script) ──fork──► Monitor child
-#     Monitor child ──fork──► Server process (Next.js)
-#       Server process becomes child of PID 1 (init/tini)
+#  WHY DOUBLE-FORK?
+#  In a sandbox/container environment, background processes started with
+#  simple `&` are children of the current shell. When the shell session
+#  ends (e.g., the terminal tool finishes), SIGHUP propagates to all
+#  children, killing the Next.js dev server.
 #
-# Why double-fork?
-#   1. Fork #1 (guardian → monitor): Guardian can restart monitor if it dies
-#   2. Fork #2 (monitor → server): Server detaches from monitor's process group
-#      - If server crashes, monitor detects it and can restart
-#      - Server is immune to terminal SIGHUP (detached from session)
-#      - Monitor can kill server cleanly without orphaned processes
-#   3. Guardian never dies from server crashes — always can re-spawn monitor
+#  The double-fork technique solves this:
+#    1. Parent forks a child
+#    2. Child forks a grandchild (the actual server)
+#    3. Child exits → grandchild becomes orphan adopted by PID 1 (init)
+#    4. Grandchild is now fully detached from any shell session
+#    5. Guardian monitors grandchild and auto-restarts if it crashes
 #
-# Features:
-#   - Auto-restart on crash with exponential backoff
-#   - Crash rate limiting (stops after N crashes in T seconds)
-#   - Graceful shutdown on SIGTERM/SIGINT
-#   - Port conflict detection and cleanup
-#   - Health check polling
-# ═══════════════════════════════════════════════════════════════════════
+#  USAGE:
+#    bun run dev:guardian        # Start with auto-restart
+#    bun run dev:guardian:stop   # Stop the guardian and server
+#    bun run dev:guardian:status # Check status
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-set -uo pipefail
+set -euo pipefail
 
+# ─── Configuration ─────────────────────────────────────────────────────
 PORT=3000
-MAX_RESTARTS=10
-BASE_DELAY=3
-MAX_DELAY=30
-CRASH_WINDOW=60
-CRASH_COUNT=0
-CRASH_WINDOW_START=$(date +%s)
-PROJECT_DIR="/home/z/my-project"
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PID_DIR="$PROJECT_DIR/.guardian"
+SERVER_PID_FILE="$PID_DIR/server.pid"
+GUARDIAN_PID_FILE="$PID_DIR/guardian.pid"
 LOG_FILE="$PROJECT_DIR/dev.log"
-HEALTH_URL="http://localhost:$PORT/"
-MONITOR_PID=""
-SERVER_PID=""
+GUARDIAN_LOG="$PID_DIR/guardian.log"
+MAX_RESTARTS=10
+RESTART_DELAY=3
+HEALTH_CHECK_INTERVAL=10
 
-# ─── Colors ───
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-DIM='\033[2m'
-NC='\033[0m'
+# ─── Helper Functions ──────────────────────────────────────────────────
+log()  { echo "[$(date '+%H:%M:%S')] [guardian] $1" >> "$GUARDIAN_LOG"; echo "[guardian] $1"; }
+warn() { echo "[$(date '+%H:%M:%S')] [guardian] WARNING: $1" >> "$GUARDIAN_LOG"; echo "[guardian] $1"; }
+err()  { echo "[$(date '+%H:%M:%S')] [guardian] ERROR: $1" >> "$GUARDIAN_LOG"; echo "[guardian] $1"; }
+ok()   { echo "[$(date '+%H:%M:%S')] [guardian] $1" >> "$GUARDIAN_LOG"; echo "[guardian] $1"; }
 
-log()  { echo -e "${CYAN}[guardian]${NC} $*"; }
-warn() { echo -e "${YELLOW}[guardian]${NC} $*"; }
-err()  { echo -e "${RED}[guardian]${NC} $*" >&2; }
-ok()   { echo -e "${GREEN}[guardian]${NC} $*"; }
-dim()  { echo -e "${DIM}[guardian]${NC} $*"; }
+# ─── Start Server with Double-Fork ─────────────────────────────────────
+start_server() {
+  log "Starting Next.js dev server on port $PORT (double-fork)..."
 
-# ─── Kill any existing server on the port ───
-kill_existing() {
-  local pids
-  pids=$(lsof -ti :$PORT 2>/dev/null || true)
-  if [ -n "$pids" ]; then
-    warn "Port $PORT already in use by PID(s): $pids"
-    log "Killing existing process(es)..."
-    echo "$pids" | xargs kill -TERM 2>/dev/null || true
-    sleep 2
-    pids=$(lsof -ti :$PORT 2>/dev/null || true)
-    if [ -n "$pids" ]; then
-      echo "$pids" | xargs kill -9 2>/dev/null || true
-      sleep 1
+  # Clean stale PID file
+  rm -f "$SERVER_PID_FILE"
+
+  # Double-fork: spawn a detached process that is NOT our child
+  # This prevents the server from receiving SIGHUP when any parent shell exits
+  (
+    # First fork: this subshell will fork again and exit
+    (
+      # Second fork: this is the actual server process
+      # It becomes an orphan adopted by PID 1 (init)
+      exec node "$PROJECT_DIR/node_modules/.bin/next" dev -p "$PORT" \
+        >> "$LOG_FILE" 2>&1
+    ) &
+    # Capture the grandchild PID before the child exits
+    echo $! > "$SERVER_PID_FILE"
+    # First child exits immediately — grandchild is now an orphan
+    exit 0
+  ) &
+
+  # Wait briefly for the PID file to be written
+  local wait_count=0
+  while [ ! -f "$SERVER_PID_FILE" ] && [ $wait_count -lt 15 ]; do
+    sleep 0.5
+    wait_count=$((wait_count + 1))
+  done
+
+  if [ ! -f "$SERVER_PID_FILE" ]; then
+    err "Failed to capture server PID"
+    return 1
+  fi
+
+  local pid
+  pid=$(cat "$SERVER_PID_FILE")
+
+  # Wait for the server to start responding
+  local ready=0
+  for i in $(seq 1 30); do
+    if ! kill -0 "$pid" 2>/dev/null; then
+      err "Server process died during startup!"
+      return 1
     fi
-    ok "Port $PORT cleared"
+    # Check if the server is responding to HTTP requests
+    if curl -s -o /dev/null --max-time 3 "http://localhost:$PORT/" 2>/dev/null; then
+      ready=1
+      break
+    fi
+    sleep 1
+  done
+
+  if [ $ready -eq 1 ]; then
+    ok "Server started (PID $pid, port $PORT)"
+    return 0
+  else
+    warn "Server process alive but not responding yet (PID $pid) — may still be compiling"
+    return 0
   fi
 }
 
-# ─── Cleanup on exit ───
-cleanup() {
-  log "Shutting down..."
-  # Kill monitor if running
-  if [ -n "$MONITOR_PID" ] && kill -0 "$MONITOR_PID" 2>/dev/null; then
-    log "Sending SIGTERM to monitor (PID $MONITOR_PID)..."
-    kill -TERM "$MONITOR_PID" 2>/dev/null || true
-    # Wait for monitor to clean up server
-    for i in $(seq 1 20); do
-      if ! kill -0 "$MONITOR_PID" 2>/dev/null; then break; fi
-      sleep 0.5
-    done
-    if kill -0 "$MONITOR_PID" 2>/dev/null; then
-      kill -9 "$MONITOR_PID" 2>/dev/null || true
-    fi
+# ─── Health Check ──────────────────────────────────────────────────────
+is_server_alive() {
+  if [ ! -f "$SERVER_PID_FILE" ]; then
+    return 1
   fi
-  # Kill any remaining server on port
-  kill_existing
-  ok "Goodbye!"
+
+  local pid
+  pid=$(cat "$SERVER_PID_FILE" 2>/dev/null || echo "")
+
+  if [ -z "$pid" ]; then
+    return 1
+  fi
+
+  # Use kill -0 only — it's sufficient to check if a process exists
+  # Note: Next.js reports as "MainThread" or "next-server", not "node"
+  if ! kill -0 "$pid" 2>/dev/null; then
+    return 1
+  fi
+
+  return 0
+}
+
+# ─── Stop Command ──────────────────────────────────────────────────────
+stop_guardian() {
+  # Stop the guardian
+  if [ -f "$GUARDIAN_PID_FILE" ]; then
+    local gpid
+    gpid=$(cat "$GUARDIAN_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$gpid" ] && kill -0 "$gpid" 2>/dev/null; then
+      log "Stopping guardian (PID $gpid)..."
+      kill "$gpid" 2>/dev/null || true
+      sleep 1
+      # Force kill if still alive
+      kill -9 "$gpid" 2>/dev/null || true
+    fi
+    rm -f "$GUARDIAN_PID_FILE"
+  fi
+
+  # Stop the server
+  if [ -f "$SERVER_PID_FILE" ]; then
+    local pid
+    pid=$(cat "$SERVER_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+      log "Stopping server (PID $pid)..."
+      kill "$pid" 2>/dev/null || true
+      sleep 2
+      # Force kill if still alive
+      if kill -0 "$pid" 2>/dev/null; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
+    fi
+    rm -f "$SERVER_PID_FILE"
+  fi
+
+  # Also kill anything on port 3000 as a safety net
+  local port_pid
+  port_pid=$(lsof -ti :$PORT 2>/dev/null || true)
+  if [ -n "$port_pid" ]; then
+    log "Killing orphan on port $PORT: $port_pid"
+    kill $port_pid 2>/dev/null || true
+  fi
+
+  echo "[guardian] Everything stopped"
   exit 0
 }
 
-trap cleanup SIGTERM SIGINT SIGQUIT
+# ─── Status Command ────────────────────────────────────────────────────
+show_status() {
+  echo ""
+  echo "━━━ IDM League Guardian Status ━━━"
 
-# ─── Monitor function (runs as Fork #1 child) ───
-# This function spawns the actual server (Fork #2) and watches it.
-run_monitor() {
-  local restart_count=0
-
-  # Monitor's own cleanup
-  monitor_cleanup() {
-    if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
-      kill -TERM "$SERVER_PID" 2>/dev/null || true
-      for i in $(seq 1 10); do
-        if ! kill -0 "$SERVER_PID" 2>/dev/null; then break; fi
-        sleep 0.5
-      done
-      if kill -0 "$SERVER_PID" 2>/dev/null; then
-        kill -9 "$SERVER_PID" 2>/dev/null || true
-      fi
+  # Guardian status
+  if [ -f "$GUARDIAN_PID_FILE" ]; then
+    local gpid
+    gpid=$(cat "$GUARDIAN_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$gpid" ] && kill -0 "$gpid" 2>/dev/null; then
+      echo "  Guardian: RUNNING (PID $gpid)"
+    else
+      echo "  Guardian: DEAD (stale PID file)"
     fi
-    exit 0
-  }
-  trap monitor_cleanup SIGTERM SIGINT SIGQUIT
+  else
+    echo "  Guardian: NOT RUNNING"
+  fi
 
-  while true; do
-    cd "$PROJECT_DIR"
-    > "$LOG_FILE"
-
-    # ─── FORK #2: Spawn the actual Next.js server ───
-    # Use setsid to create new session (fully detached from terminal)
-    # This is the "second fork" — the server runs in its own session
-    log "Starting Next.js dev server (fork #2)..."
-    setsid bun run dev >> "$LOG_FILE" 2>&1 &
-    SERVER_PID=$!
-
-    log "Server PID: $SERVER_PID, monitoring..."
-
-    # Wait for server to be ready (up to 60s)
-    local attempt=0
-    while [ $attempt -lt 60 ]; do
-      if ! kill -0 "$SERVER_PID" 2>/dev/null; then
-        break
+  # Server status
+  if [ -f "$SERVER_PID_FILE" ]; then
+    local pid
+    pid=$(cat "$SERVER_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+      local rss
+      rss=$(ps -o rss= -p "$pid" 2>/dev/null | tr -d ' ' || echo "?")
+      if [ "$rss" != "?" ] && [ -n "$rss" ]; then
+        echo "  Server:  RUNNING (PID $pid, $((rss/1024))MB, port $PORT)"
+      else
+        echo "  Server:  RUNNING (PID $pid, port $PORT)"
       fi
-      if curl -sf -o /dev/null "$HEALTH_URL" 2>/dev/null; then
-        ok "Server is ready! $HEALTH_URL"
-        break
-      fi
-      attempt=$((attempt + 1))
-      sleep 1
-    done
+    else
+      echo "  Server:  DEAD (stale PID file)"
+    fi
+  else
+    echo "  Server:  NOT RUNNING"
+  fi
 
-    # Wait for server process to exit
-    while kill -0 "$SERVER_PID" 2>/dev/null; do
-      sleep 2
-    done
+  # Quick HTTP check
+  if curl -s -o /dev/null --max-time 3 "http://localhost:$PORT/" 2>/dev/null; then
+    echo "  HTTP:    OK (200)"
+  else
+    echo "  HTTP:    NOT RESPONDING"
+  fi
 
-    wait "$SERVER_PID" 2>/dev/null
-    local exit_code=$?
-    err "Server exited with code $exit_code (restart #$((restart_count + 1)))"
-
-    # Show last lines of log for debugging
-    dim "Last log lines:"
-    tail -5 "$LOG_FILE" 2>/dev/null | while IFS= read -r line; do dim "  $line"; done
-
-    restart_count=$((restart_count + 1))
-
-    # Exponential backoff: 3s, 6s, 12s, 24s, 30s max
-    local delay=$(( BASE_DELAY * (2 ** (restart_count - 1)) ))
-    if [ $delay -gt $MAX_DELAY ]; then delay=$MAX_DELAY; fi
-
-    warn "Restarting in ${delay}s..."
-    sleep $delay
-
-    # Kill any lingering process on port before restart
-    kill_existing
-  done
+  echo ""
 }
 
-# ─── Main guardian loop ───
+# ─── Main Guardian Loop ────────────────────────────────────────────────
 main() {
-  ok "╔══════════════════════════════════════════════╗"
-  ok "║  IDM League Dev Guardian v2.0 (double-fork)  ║"
-  ok "╚══════════════════════════════════════════════╝"
-  log "Port: $PORT | Max restarts: $MAX_RESTARTS/${CRASH_WINDOW}s"
-  echo ""
+  # Handle command line arguments
+  case "${1:-}" in
+    stop)   stop_guardian ;;
+    status) show_status; exit 0 ;;
+  esac
 
-  kill_existing
-
-  while true; do
-    # ─── FORK #1: Spawn monitor as child process ───
-    log "Spawning monitor process (fork #1)..."
-    run_monitor &
-    MONITOR_PID=$!
-
-    # Wait for monitor to exit
-    while kill -0 "$MONITOR_PID" 2>/dev/null; do
-      sleep 2
-    done
-
-    wait "$MONITOR_PID" 2>/dev/null
-    local exit_code=$?
-    err "Monitor exited with code $exit_code"
-
-    # ─── Crash rate limiting ───
-    local now=$(date +%s)
-    local elapsed=$((now - CRASH_WINDOW_START))
-
-    if [ $elapsed -gt $CRASH_WINDOW ]; then
-      CRASH_COUNT=1
-      CRASH_WINDOW_START=$now
-    else
-      CRASH_COUNT=$((CRASH_COUNT + 1))
-    fi
-
-    if [ $CRASH_COUNT -ge $MAX_RESTARTS ]; then
-      err "Too many crashes ($CRASH_COUNT in ${elapsed}s). Stopping guardian."
-      err "Check $LOG_FILE for errors."
+  # Prevent running multiple guardians
+  if [ -f "$GUARDIAN_PID_FILE" ]; then
+    local existing_pid
+    existing_pid=$(cat "$GUARDIAN_PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$existing_pid" ] && kill -0 "$existing_pid" 2>/dev/null; then
+      err "Guardian already running (PID $existing_pid)"
+      err "Run 'bun run dev:guardian:stop' first, or 'bun run dev:guardian:status'"
       exit 1
     fi
+    rm -f "$GUARDIAN_PID_FILE"
+  fi
 
-    warn "Re-spawning monitor in ${BASE_DELAY}s... (crash $CRASH_COUNT/$MAX_RESTARTS in window)"
-    sleep $BASE_DELAY
+  # Create PID directory
+  mkdir -p "$PID_DIR"
 
-    # Clean up any leftover server on port
-    kill_existing
+  # Initialize guardian log
+  > "$GUARDIAN_LOG"
+
+  # Kill any existing server on our port
+  local existing
+  existing=$(lsof -ti :$PORT 2>/dev/null || true)
+  if [ -n "$existing" ]; then
+    warn "Port $PORT is in use — killing existing process..."
+    kill $existing 2>/dev/null || true
+    sleep 2
+  fi
+
+  # ─── SELF-DETACH: Make this guardian script itself survive shell exits ───
+  # We write our PID to the file FIRST, then the rest of the script runs
+  # even if the parent shell dies (because we trap signals and the double-fork
+  # server is already detached).
+  echo $$ > "$GUARDIAN_PID_FILE"
+
+  # Register signal handlers — keep the guardian alive
+  trap 'log "Received signal — shutting down"; stop_guardian' SIGINT SIGTERM SIGQUIT
+  trap '' SIGHUP  # Ignore SIGHUP (shell disconnect)
+
+  log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  log "  IDM League — Double-Fork Guardian"
+  log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  log "Guardian PID: $$"
+  log "Project: $PROJECT_DIR"
+  log "Port: $PORT"
+  log "Max restarts: $MAX_RESTARTS"
+  log ""
+
+  # Start the server
+  restart_count=0
+
+  if ! start_server; then
+    err "Failed to start server on first attempt!"
+    exit 1
+  fi
+
+  # ─── Guardian Watch Loop ────────────────────────────────────────────
+  log "Guardian is watching... (Ctrl+C to stop)"
+  log ""
+
+  while true; do
+    sleep "$HEALTH_CHECK_INTERVAL"
+
+    if is_server_alive; then
+      # Server is alive — periodic HTTP health check
+      if ! curl -s -o /dev/null --max-time 5 "http://localhost:$PORT/" 2>/dev/null; then
+        warn "Server alive but not responding to HTTP — may be compiling..."
+      fi
+    else
+      # Server is dead!
+      err "Server process DIED!"
+      restart_count=$((restart_count + 1))
+
+      if [ $restart_count -gt $MAX_RESTARTS ]; then
+        err "Max restarts ($MAX_RESTARTS) exceeded. Giving up."
+        err "Check $LOG_FILE for error details."
+        exit 1
+      fi
+
+      warn "Restart attempt $restart_count/$MAX_RESTARTS in ${RESTART_DELAY}s..."
+      sleep "$RESTART_DELAY"
+
+      # Kill anything on the port
+      local existing
+      existing=$(lsof -ti :$PORT 2>/dev/null || true)
+      if [ -n "$existing" ]; then
+        warn "Killing orphan on port $PORT..."
+        kill $existing 2>/dev/null || true
+        sleep 2
+      fi
+
+      if start_server; then
+        ok "Server restarted! (attempt $restart_count)"
+      else
+        err "Restart failed — will retry on next check cycle"
+      fi
+    fi
   done
 }
 
-main
+main "$@"
