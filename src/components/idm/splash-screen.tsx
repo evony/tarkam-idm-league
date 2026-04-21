@@ -4,22 +4,29 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 const SPLASH_AUDIO_URL = 'https://res.cloudinary.com/dagoryri5/video/upload/v1776797566/tangtangtang_anf1yc.mp3';
 
-/* Audio duration from Cloudinary: ~4.3s. We use 4.1s so the audio finishes fully. */
-const SPLASH_ENTER_DURATION = 4100;
+/* Audio duration from Cloudinary: ~5.06s. We use 5.0s so the audio finishes fully. */
+const SPLASH_ENTER_DURATION = 5000;
 
 /*
  * Simulated beat pattern — matches "tang tang tang" rhythm.
  * Each beat: [time_ms, intensity(0-1)]
- * These approximate the 3 prominent hits in the audio.
+ * Analyzed from the actual audio waveform using RMS peak detection.
+ * 3 groups of 3-4 hits each, matching the tang-tang-tang structure.
  */
 const BEAT_PATTERN = [
-  { time: 200,  intensity: 1.0 },
-  { time: 800,  intensity: 0.85 },
-  { time: 1400, intensity: 0.9 },
-  { time: 2000, intensity: 0.7 },
-  { time: 2500, intensity: 0.95 },
-  { time: 3200, intensity: 0.6 },
-  { time: 3700, intensity: 0.45 },
+  // Group 1: Opening hits
+  { time: 170,  intensity: 0.95 },
+  { time: 670,  intensity: 1.0 },
+  { time: 1150, intensity: 0.86 },
+  { time: 1580, intensity: 0.85 },
+  // Group 2: Middle section
+  { time: 2140, intensity: 0.92 },
+  { time: 2640, intensity: 1.0 },
+  { time: 3120, intensity: 0.93 },
+  // Group 3: Closing hits
+  { time: 3530, intensity: 0.85 },
+  { time: 4100, intensity: 0.94 },
+  { time: 4610, intensity: 1.0 },
 ];
 const BEAT_HIT_DURATION = 180; // ms each beat visual lasts
 
