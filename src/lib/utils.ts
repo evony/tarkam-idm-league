@@ -105,3 +105,15 @@ export function hexToRgba(hex: string, alpha: number): string {
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
 }
+
+/**
+ * Normalize club to a display string regardless of input format.
+ * The /api/players/search endpoint returns club as {id, name, logo},
+ * while /api/stats returns club as a string. This helper ensures
+ * consistent string rendering across all components.
+ */
+export function clubToString(club: string | { id: string; name: string; logo?: string | null } | null | undefined): string {
+  if (!club) return '';
+  if (typeof club === 'string') return club;
+  return club.name || '';
+}

@@ -28,7 +28,7 @@ import { ShareButton } from '../ui/share-button';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { formatCurrency, getAvatarUrl } from '@/lib/utils';
+import { formatCurrency, getAvatarUrl, clubToString } from '@/lib/utils';
 import { TierBadge } from '../tier-badge';
 import type { StatsData } from '@/types/stats';
 
@@ -49,9 +49,15 @@ export function Dashboard() {
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] | null>(null);
 
   // Track recently viewed players
-  const handleSelectPlayer = (player: StatsData['topPlayers'][0]) => {
-    addRecentlyViewed(player);
-    setSelectedPlayer(player);
+  const handleSelectPlayer = (player: any) => {
+    // Normalize club to string before setting state & saving
+    // (search API returns {id, name, logo} but we need string)
+    const normalizedPlayer = {
+      ...player,
+      club: clubToString(player.club) || undefined,
+    };
+    addRecentlyViewed(normalizedPlayer);
+    setSelectedPlayer(normalizedPlayer);
     setRecentPlayers(getRecentlyViewed());
   };
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
@@ -327,7 +333,7 @@ export function Dashboard() {
                         <TierBadge tier={player.tier} />
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {player.club ? <>{player.club} · </> : ''}{player.points} pts · {player.totalWins}W
+                        {clubToString(player.club as any) ? <>{clubToString(player.club as any)} · </> : ''}{player.points} pts · {player.totalWins}W
                       </p>
                     </div>
                     <ChevronRight className={`w-3.5 h-3.5 ${dt.neonText} shrink-0 opacity-40 group-hover:opacity-80 transition-opacity`} />

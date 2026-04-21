@@ -12,7 +12,7 @@ import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
 import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { getAvatarUrl, hashString } from '@/lib/utils';
+import { getAvatarUrl, hashString, clubToString } from '@/lib/utils';
 import { AchievementList } from './achievement-badge';
 
 interface PlayerProfileProps {
@@ -28,7 +28,7 @@ interface PlayerProfileProps {
     streak: number;
     maxStreak: number;
     matches: number;
-    club?: string;
+    club?: string | { id: string; name: string; logo?: string | null } | null;
     division?: string;
     city?: string;
   };
@@ -299,10 +299,10 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                     </Badge>
                   )}
                 </div>
-                {player.club && (
+                {clubToString(player.club) && (
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <Shield className={`w-3.5 h-3.5 ${dt.text}`} />
-                    <span className={`text-xs ${dt.text} font-medium drop-shadow-sm`}>{player.club}</span>
+                    <span className={`text-xs ${dt.text} font-medium drop-shadow-sm`}>{clubToString(player.club)}</span>
                   </div>
                 )}
               </div>

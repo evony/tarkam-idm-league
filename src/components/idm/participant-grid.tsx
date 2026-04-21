@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
+import { clubToString } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 
 /* ─── Player interface ─── */
@@ -118,10 +119,10 @@ function ParticipantCard({ player, rank, onClick }: {
           </p>
 
           {/* Club name with Shield icon */}
-          {player.club && (
+          {clubToString(player.club as any) && (
             <div className="flex items-center justify-center gap-1 mt-1">
               <Shield className={`w-3 h-3 ${dt.text}`} />
-              <span className={`text-[10px] ${dt.text} font-medium truncate`}>{player.club}</span>
+              <span className={`text-[10px] ${dt.text} font-medium truncate`}>{clubToString(player.club as any)}</span>
             </div>
           )}
         </div>
@@ -213,10 +214,10 @@ function ParticipantTableRow({ player, rank, onClick }: {
           {player.streak > 2 && <Flame className="w-3 h-3 text-orange-400 shrink-0" />}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
-          {player.club && (
+          {clubToString(player.club as any) && (
             <span className="text-[9px] text-muted-foreground truncate flex items-center gap-0.5">
               <Shield className="w-2.5 h-2.5" />
-              {player.club}
+              {clubToString(player.club as any)}
             </span>
           )}
           <TierBadge tier={player.tier} />
@@ -268,7 +269,7 @@ export function ParticipantGrid({ players, onPlayerClick }: ParticipantGridProps
     let result = searchQuery
       ? players.filter(p =>
           p.gamertag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (p.club && p.club.toLowerCase().includes(searchQuery.toLowerCase()))
+          (clubToString(p.club as any) && clubToString(p.club as any).toLowerCase().includes(searchQuery.toLowerCase()))
         )
       : players;
 

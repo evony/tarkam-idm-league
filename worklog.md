@@ -1342,3 +1342,32 @@ Stage Summary:
 - "Profil Saya" card provides persistent one-click access to last viewed player profile
 - All navigation labels are now in everyday Indonesian — less confusing for non-technical users
 - localStorage-based player memory survives page refreshes and session changes
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Fix runtime error "Objects are not valid as React child" when club is {id, name, logo} object
+
+Work Log:
+- Diagnosed root cause: `/api/players/search` returns `club` as `{id, name, logo}` object, but components render `{player.club}` as JSX text — React throws "Objects are not valid as a React child"
+- Created shared `clubToString()` utility in `src/lib/utils.ts` to normalize club regardless of input format
+- Updated `PlayerProfile` component interface to accept both string and object club types
+- Updated `handleSelectPlayer` in dashboard to normalize club to string before setting state
+- Applied `clubToString()` to ALL components that render `player.club`:
+  - `player-profile.tsx` (club display in hero banner)
+  - `player-card.tsx` (club display on cards)
+  - `participant-grid.tsx` (3 locations — card, row, search filter)
+  - `ranking-panel.tsx` (club in ranking row)
+  - `dashboard/shared.tsx` (ParticipantRow club display)
+  - `dashboard/standings-tab.tsx` (leaderboard table club)
+  - `dashboard/no-tournament-state.tsx` (player list club)
+  - `dashboard/dashboard.tsx` (legacy dashboard club display)
+  - `dashboard/index.tsx` (Terakhir Dilihat section)
+- Also fixed JSX syntax error: missing `)` closing bracket in player-profile.tsx
+- Verified lint passes with zero errors
+
+Stage Summary:
+- Runtime error fixed — all components now safely handle club as string OR object
+- `clubToString()` shared utility prevents future rendering errors from data type inconsistency
+- Normalization happens at both the handler level (before state) and render level (defensive)
+- "Terakhir Dilihat" (Recently Viewed) feature was already fully implemented in previous session

@@ -9,7 +9,7 @@ import { TierBadge } from '../tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppStore } from '@/lib/store';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, clubToString } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 /* ─── CasinoHeaderCard — kept but used only for hero area ─── */
@@ -213,10 +213,10 @@ export const ParticipantRow = React.memo(function ParticipantRow({ player, rank,
       {/* Name & Club */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold truncate">{player.gamertag}</p>
-        {player.club && (
+        {clubToString(player.club as any) && (
           <p className="text-[9px] text-muted-foreground truncate flex items-center gap-0.5">
             <Shield className="w-2.5 h-2.5" />
-            {player.club}
+            {clubToString(player.club as any)}
           </p>
         )}
       </div>

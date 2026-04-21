@@ -12,6 +12,7 @@ import { TierBadge } from './tier-badge';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { DivisionTheme } from '@/hooks/use-division-theme';
+import { clubToString } from '@/lib/utils';
 
 interface RankingPanelProps {
   division: string;
@@ -297,7 +298,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
                     <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
                       {p.streak > 1 && <span className="text-orange-400 flex items-center gap-0.5"><Flame className="w-3 h-3" />{p.streak}</span>}
                       <span>{p.matches} match</span>
-                      {p.club && <span>• {p.club}</span>}
+                      {clubToString(p.club as any) && <span>• {clubToString(p.club as any)}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

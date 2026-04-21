@@ -6,6 +6,7 @@ import { useAppStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Crown, Star, Swords, TrendingUp, Users, Zap } from 'lucide-react';
+import { clubToString } from '@/lib/utils';
 
 export function Dashboard() {
   const { division } = useAppStore();
@@ -143,7 +144,7 @@ export function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{player.gamertag}</p>
-                  <p className="text-[10px] text-muted-foreground">{player.club || 'No Club'} · Tier {player.tier}</p>
+                  <p className="text-[10px] text-muted-foreground">{clubToString(player.club) || 'No Club'} · Tier {player.tier}</p>
                 </div>
                 <div className="text-right">
                   <div className={`text-sm font-bold ${accentText}`}>{player.points}</div>

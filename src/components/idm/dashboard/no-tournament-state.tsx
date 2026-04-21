@@ -13,7 +13,7 @@ import { DonationModal } from '../donation-modal';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { useQuery } from '@tanstack/react-query';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, clubToString } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 interface NoTournamentStateProps {
@@ -232,10 +232,10 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold truncate">{p.gamertag}</p>
-                    {p.club && (
+                    {clubToString(p.club as any) && (
                       <p className="text-[9px] text-muted-foreground truncate flex items-center gap-0.5">
                         <Shield className="w-2.5 h-2.5" />
-                        {p.club}
+                        {clubToString(p.club as any)}
                       </p>
                     )}
                   </div>

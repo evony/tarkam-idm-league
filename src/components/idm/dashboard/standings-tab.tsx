@@ -15,6 +15,7 @@ import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { PlayerSearch } from '../player-search';
 import { useAppStore } from '@/lib/store';
+import { clubToString } from '@/lib/utils';
 
 import type { StatsData } from '@/types/stats';
 
@@ -122,7 +123,7 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                               </div>
                               <div className="min-w-0">
                                 <p className="text-xs font-medium truncate">{p.gamertag}</p>
-                                {p.club && <p className="text-[9px] text-muted-foreground truncate">{p.club}</p>}
+                                {clubToString(p.club as any) && <p className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</p>}
                               </div>
                             </div>
                           </TableCell>

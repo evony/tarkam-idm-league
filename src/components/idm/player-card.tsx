@@ -5,7 +5,7 @@ import { Crown, Flame } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, clubToString } from '@/lib/utils';
 
 interface PlayerCardProps {
   gamertag: string;
@@ -17,7 +17,7 @@ interface PlayerCardProps {
   streak: number;
   rank?: number;
   isMvp?: boolean;
-  club?: string;
+  club?: string | { id: string; name: string; logo?: string | null } | null;
   onClick?: () => void;
 }
 
@@ -99,7 +99,7 @@ export function PlayerCard({
         {/* Tier + Club */}
         <div className="flex items-center gap-1.5 mt-0.5">
           <TierBadge tier={tier} />
-          {club && <span className="text-[9px] text-white/50 truncate">{club}</span>}
+          {clubToString(club as any) && <span className="text-[9px] text-white/50 truncate">{clubToString(club as any)}</span>}
         </div>
 
         {/* Stats row */}
