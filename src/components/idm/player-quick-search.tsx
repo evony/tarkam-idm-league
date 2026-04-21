@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Search, X, Loader2, Shield, User, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, X, Loader2, Shield, Clock, Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { getAvatarUrl } from '@/lib/utils';
@@ -25,8 +25,22 @@ interface SearchResultPlayer {
   rank: number;
 }
 
-/** localStorage key for "last viewed player" quick access */
-const LAST_PLAYER_KEY = 'idm-last-player';
+export interface RecentlyViewedPlayer {
+  id: string;
+  gamertag: string;
+  tier: string;
+  points: number;
+  totalWins: number;
+  totalMvp: number;
+  avatar?: string | null;
+  club?: string;
+  division?: string;
+  viewedAt: number;
+}
+
+/** localStorage keys */
+const RECENTLY_VIEWED_KEY = 'idm-recently-viewed';
+const MAX_RECENT = 3;
 
 // Normalize club to always be a string (name), regardless of input format
 function normalizeClub(club: string | { id: string; name: string; logo?: string | null } | null | undefined): string | undefined {
@@ -35,9 +49,14 @@ function normalizeClub(club: string | { id: string; name: string; logo?: string 
   return club.name || undefined;
 }
 
-export function saveLastViewedPlayer(player: { id: string; gamertag: string; tier: string; points: number; totalWins: number; totalMvp: number; avatar?: string | null; club?: string | { id: string; name: string; logo?: string | null } | null; division?: string }) {
+/** Add a player to the recently viewed list (max 3, most recent first) */
+export function addRecentlyViewed(player: { id: string; gamertag: string; tier: string; points: number; totalWins: number; totalMvp: number; avatar?: string | null; club?: string | { id: string; name: string; logo?: string | null } | null; division?: string }) {
   try {
-    localStorage.setItem(LAST_PLAYER_KEY, JSON.stringify({
+    const list = getRecentlyViewed();
+    // Remove if already exists (will be re-added at top)
+    const filtered = list.filter(p => p.id !== player.id);
+    // Add to front
+    filtered.unshift({
       id: player.id,
       gamertag: player.gamertag,
       tier: player.tier,
@@ -47,34 +66,48 @@ export function saveLastViewedPlayer(player: { id: string; gamertag: string; tie
       avatar: player.avatar,
       club: normalizeClub(player.club),
       division: player.division,
-      savedAt: Date.now(),
-    }));
+      viewedAt: Date.now(),
+    });
+    // Keep only MAX_RECENT
+    const trimmed = filtered.slice(0, MAX_RECENT);
+    localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(trimmed));
   } catch { /* ignore */ }
 }
 
-export function getLastViewedPlayer(): {
-  id: string; gamertag: string; tier: string; points: number;
-  totalWins: number; totalMvp: number; avatar?: string | null;
-  club?: string; division?: string; savedAt: number;
-} | null {
+/** Get the recently viewed players list */
+export function getRecentlyViewed(): RecentlyViewedPlayer[] {
   try {
-    const raw = localStorage.getItem(LAST_PLAYER_KEY);
-    if (!raw) return null;
+    const raw = localStorage.getItem(RECENTLY_VIEWED_KEY);
+    if (!raw) return [];
     const data = JSON.parse(raw);
-    // Expire after 7 days
-    if (Date.now() - data.savedAt > 7 * 24 * 60 * 60 * 1000) {
-      localStorage.removeItem(LAST_PLAYER_KEY);
-      return null;
+    if (!Array.isArray(data)) return [];
+    // Expire entries older than 7 days & normalize clubs
+    const now = Date.now();
+    const valid = data.filter((p: RecentlyViewedPlayer) => {
+      if (now - p.viewedAt > 7 * 24 * 60 * 60 * 1000) return false;
+      // Normalize club
+      if (p.club && typeof p.club !== 'string') {
+        (p as any).club = normalizeClub(p.club);
+      }
+      return true;
+    });
+    // Save cleaned list
+    if (valid.length !== data.length) {
+      localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(valid));
     }
-    // Normalize club: if it's an object, extract name; if it's not a string, remove it
-    if (data.club && typeof data.club !== 'string') {
-      data.club = normalizeClub(data.club);
-    }
-    return data;
+    return valid;
   } catch {
-    localStorage.removeItem(LAST_PLAYER_KEY);
-    return null;
+    localStorage.removeItem(RECENTLY_VIEWED_KEY);
+    return [];
   }
+}
+
+/** Clear a specific player from recently viewed */
+export function removeFromRecentlyViewed(playerId: string) {
+  try {
+    const list = getRecentlyViewed().filter(p => p.id !== playerId);
+    localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(list));
+  } catch { /* ignore */ }
 }
 
 export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
@@ -89,27 +122,16 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // "My Profile" quick access from localStorage
-  const [lastPlayer, setLastPlayer] = useState<ReturnType<typeof getLastViewedPlayer>>(null);
+  // Recently viewed players
+  const [recentPlayers, setRecentPlayers] = useState<RecentlyViewedPlayer[]>([]);
   useEffect(() => {
-    setLastPlayer(getLastViewedPlayer());
+    setRecentPlayers(getRecentlyViewed());
   }, []);
 
-  // Refresh last player when a player is selected
+  // Handle selecting a player from search results
   const handleSelect = useCallback((player: SearchResultPlayer) => {
-    saveLastViewedPlayer(player);
-    setLastPlayer({
-      id: player.id,
-      gamertag: player.gamertag,
-      tier: player.tier,
-      points: player.points,
-      totalWins: player.totalWins,
-      totalMvp: player.totalMvp,
-      avatar: player.avatar,
-      club: player.club?.name,
-      division: player.division,
-      savedAt: Date.now(),
-    });
+    addRecentlyViewed(player);
+    setRecentPlayers(getRecentlyViewed());
     onSelectPlayer(player);
     setQuery('');
     setResults([]);
@@ -117,11 +139,13 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
     inputRef.current?.blur();
   }, [onSelectPlayer]);
 
-  const handleMyProfile = useCallback(() => {
-    if (lastPlayer) {
-      onSelectPlayer(lastPlayer);
-    }
-  }, [lastPlayer, onSelectPlayer]);
+  // Handle selecting a recently viewed player
+  const handleRecentSelect = useCallback((player: RecentlyViewedPlayer) => {
+    onSelectPlayer(player);
+    // Re-add to front (bumps viewedAt)
+    addRecentlyViewed(player);
+    setRecentPlayers(getRecentlyViewed());
+  }, [onSelectPlayer]);
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -174,7 +198,7 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
-  const showDropdown = focused && (query.length > 0 || lastPlayer);
+  const showDropdown = focused && (query.length > 0 || recentPlayers.length > 0);
   const hasResults = results.length > 0;
 
   return (
@@ -194,7 +218,7 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
             value={query}
             onChange={handleInputChange}
             onFocus={() => setFocused(true)}
-            placeholder="Cari nama kamu di sini..."
+            placeholder="Cari nama pemain di sini..."
             className="flex-1 bg-transparent text-sm sm:text-base font-medium placeholder:text-muted-foreground/50 focus:outline-none min-w-0"
           />
 
@@ -210,11 +234,11 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
             </button>
           ) : null}
 
-          {/* "Cari Saya" label */}
+          {/* "Cari" label */}
           {!query && !focused && (
             <div className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${dt.bg} text-[10px] font-bold ${dt.text} shrink-0`}>
               <Sparkles className="w-3 h-3" />
-              Cari Saya
+              Cari Pemain
             </div>
           )}
         </div>
@@ -223,41 +247,80 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
       {/* Dropdown Results */}
       {showDropdown && (
         <div className={`absolute z-50 left-0 right-0 mt-1.5 rounded-xl ${dt.casinoCard} border ${dt.border} shadow-xl shadow-black/20 overflow-hidden`}>
-          {/* Last viewed player quick access */}
-          {lastPlayer && !query && (
-            <button
-              onClick={handleMyProfile}
-              className={`w-full flex items-center gap-3 px-3 sm:px-4 py-3 text-left transition-colors hover:bg-muted/30 ${dt.hoverBgSubtle}`}
-            >
-              <div className={`w-10 h-10 rounded-lg ${dt.bg} flex items-center justify-center shrink-0`}>
-                <User className={`w-5 h-5 ${dt.neonText}`} />
+          {/* Recently viewed section */}
+          {recentPlayers.length > 0 && !query && (
+            <div>
+              <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 ${dt.bgSubtle}`}>
+                <Clock className={`w-3.5 h-3.5 ${dt.neonText}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Terakhir Dilihat</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold">Profil Saya</p>
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
-                  <span className="font-medium">{lastPlayer.gamertag}</span>
-                  <TierBadge tier={lastPlayer.tier} />
-                  {lastPlayer.club && (
-                    <>
-                      <Shield className="w-2.5 h-2.5 shrink-0" />
-                      <span className="truncate">{lastPlayer.club}</span>
-                    </>
-                  )}
-                </p>
+              <div className="py-1">
+                {recentPlayers.map((player) => {
+                  const avatarSrc = getAvatarUrl(player.gamertag, division, player.avatar);
+                  return (
+                    <button
+                      key={player.id}
+                      onClick={() => handleRecentSelect(player)}
+                      className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 text-left transition-colors hover:bg-muted/30 ${dt.hoverBgSubtle}`}
+                    >
+                      {/* Avatar */}
+                      <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/20">
+                        <Image
+                          src={avatarSrc}
+                          alt={player.gamertag}
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold truncate">{player.gamertag}</span>
+                          <TierBadge tier={player.tier} />
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {player.club && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
+                              <Shield className="w-2.5 h-2.5 shrink-0" />
+                              {player.club}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Quick stats */}
+                      <div className="text-right shrink-0">
+                        <p className={`text-xs font-bold ${dt.neonText}`}>{player.points} pts</p>
+                        <p className="text-[9px] text-muted-foreground">
+                          {player.totalWins}W {player.totalMvp > 0 ? `· ${player.totalMvp} MVP` : ''}
+                        </p>
+                      </div>
+                      <ChevronRight className={`w-3.5 h-3.5 ${dt.neonText} shrink-0 opacity-50`} />
+                    </button>
+                  );
+                })}
               </div>
-              <ArrowRight className={`w-4 h-4 ${dt.neonText} shrink-0`} />
-            </button>
+            </div>
           )}
 
-          {/* Divider between quick access and results */}
-          {lastPlayer && !query && (
+          {/* Divider */}
+          {recentPlayers.length > 0 && !query && (
             <div className={`h-px ${dt.borderSubtle}`} />
           )}
 
-          {/* Prompt when no query */}
-          {!query && (
-            <div className="px-3 sm:px-4 py-3">
-              <p className="text-xs text-muted-foreground">Ketik nama kamu untuk mencari posisi di klasemen</p>
+          {/* Prompt when no query and no recent */}
+          {!query && recentPlayers.length === 0 && (
+            <div className="px-3 sm:px-4 py-4 text-center">
+              <Search className="w-6 h-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Ketik nama untuk mencari pemain</p>
+            </div>
+          )}
+
+          {/* Prompt when no query but has recent (small hint) */}
+          {!query && recentPlayers.length > 0 && (
+            <div className="px-3 sm:px-4 py-2">
+              <p className="text-[10px] text-muted-foreground/60 text-center">Ketik nama untuk mencari pemain lain</p>
             </div>
           )}
 
@@ -277,7 +340,7 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
             </div>
           )}
 
-          {/* Results */}
+          {/* Search Results */}
           {hasResults && !loading && (
             <div className="max-h-72 overflow-y-auto custom-scrollbar py-1">
               {results.map((player) => {

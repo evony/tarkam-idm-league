@@ -7,7 +7,7 @@ import Image from 'next/image';
 import {
   Heart, MapPin, Users, Trophy, Clock, Flame,
   Shield, Music,
-  Gamepad2, Wallet, Target, Gift,
+  Gamepad2, Wallet, Target, Gift, ChevronRight,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -38,7 +38,7 @@ import { OverviewTab } from './overview-tab';
 import { StandingsTab } from './standings-tab';
 import { MatchesTab } from './matches-tab';
 import { DonationModal } from '../donation-modal';
-import { PlayerQuickSearch, saveLastViewedPlayer, getLastViewedPlayer } from '../player-quick-search';
+import { PlayerQuickSearch, addRecentlyViewed, getRecentlyViewed, type RecentlyViewedPlayer } from '../player-quick-search';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -48,21 +48,20 @@ export function Dashboard() {
 
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] | null>(null);
 
-  // Wrap setSelectedPlayer to also save to "My Profile" localStorage
+  // Track recently viewed players
   const handleSelectPlayer = (player: StatsData['topPlayers'][0]) => {
-    saveLastViewedPlayer(player);
+    addRecentlyViewed(player);
     setSelectedPlayer(player);
-    setMyPlayer(player);
+    setRecentPlayers(getRecentlyViewed());
   };
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
   const [donationOpen, setDonationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // "My Profile" — remember last viewed player for quick access
-  const [myPlayer, setMyPlayer] = useState<ReturnType<typeof getLastViewedPlayer>>(null);
+  // Recently viewed players (up to 3)
+  const [recentPlayers, setRecentPlayers] = useState<RecentlyViewedPlayer[]>([]);
   useEffect(() => {
-    const saved = getLastViewedPlayer();
-    if (saved) setMyPlayer(saved);
+    setRecentPlayers(getRecentlyViewed());
   }, []);
 
   const { data, isLoading } = useQuery<StatsData>({
@@ -295,36 +294,48 @@ export function Dashboard() {
         <PlayerQuickSearch onSelectPlayer={handleSelectPlayer} />
       </div>
 
-      {/* ========== PROFIL SAYA — Quick Access Card ========== */}
-      {myPlayer && (
+      {/* ========== TERAKHIR DILIHAT — Recently Viewed Players ========== */}
+      {recentPlayers.length > 0 && (
         <div className="stagger-item-subtle stagger-d4">
-          <button
-            onClick={() => handleSelectPlayer(myPlayer as any)}
-            className={`w-full flex items-center gap-3 p-3 sm:p-4 rounded-xl ${dt.casinoCard} border ${dt.border} hover:shadow-md transition-shadow cursor-pointer group text-left`}
-          >
-            <div className={`w-11 h-11 rounded-xl ${dt.bg} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
-              <Image
-                src={getAvatarUrl(myPlayer.gamertag, division, myPlayer.avatar)}
-                alt={myPlayer.gamertag}
-                width={44}
-                height={44}
-                className="w-full h-full rounded-xl object-cover"
-                unoptimized
-              />
+          <div className={`rounded-xl ${dt.casinoCard} border ${dt.border} overflow-hidden`}>
+            <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 ${dt.bgSubtle} border-b ${dt.borderSubtle}`}>
+              <Clock className={`w-3.5 h-3.5 ${dt.neonText}`} />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Terakhir Dilihat</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold truncate">{myPlayer.gamertag}</span>
-                <TierBadge tier={myPlayer.tier} />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {myPlayer.club ? <>{myPlayer.club} · </> : ''}{myPlayer.points} pts · {myPlayer.totalWins}W
-              </p>
+            <div className="divide-y divide-border/30">
+              {recentPlayers.map((player) => {
+                const avatarSrc = getAvatarUrl(player.gamertag, division, player.avatar);
+                return (
+                  <button
+                    key={player.id}
+                    onClick={() => handleSelectPlayer(player as any)}
+                    className="w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 text-left transition-colors hover:bg-muted/30 cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/20 group-hover:scale-105 transition-transform">
+                      <Image
+                        src={avatarSrc}
+                        alt={player.gamertag}
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold truncate">{player.gamertag}</span>
+                        <TierBadge tier={player.tier} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {player.club ? <>{player.club} · </> : ''}{player.points} pts · {player.totalWins}W
+                      </p>
+                    </div>
+                    <ChevronRight className={`w-3.5 h-3.5 ${dt.neonText} shrink-0 opacity-40 group-hover:opacity-80 transition-opacity`} />
+                  </button>
+                );
+              })}
             </div>
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${dt.bg} text-[10px] font-bold ${dt.text} shrink-0 group-hover:scale-105 transition-transform`}>
-              👤 Profil Saya
-            </div>
-          </button>
+          </div>
         </div>
       )}
 
