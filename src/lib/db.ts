@@ -1,6 +1,6 @@
 // ─── Database Client ───
-// Local dev uses SQLite (file:...), Vercel production uses Neon (postgresql://).
-// The Prisma schema provider matches the DATABASE_URL environment variable.
+// Neon PostgreSQL with connection pooling for both dev and production.
+// Uses DATABASE_URL (pooled) for queries and DIRECT_DATABASE_URL for migrations.
 
 import { PrismaClient } from '@prisma/client'
 

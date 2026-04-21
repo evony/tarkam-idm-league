@@ -242,3 +242,31 @@ Stage Summary:
 - `bun run dev` now uses double-fork by default
 - Guardian mode available for auto-restart on crash (`bun run dev:guardian`)
 - All PID files stored in `.guardian/` directory for process management
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Fix club logo upload not updating on landing page
+
+Work Log:
+- **Root cause analysis**: 3 bugs causing logos not to update on landing page:
+  1. `/api/cloudinary/upload` route DIDN'T EXIST — returned 404 when CloudinaryPicker tried to upload
+  2. React Query cache not invalidated — `updateLogo` in `club-management.tsx` only invalidated admin query keys, NOT `league-landing` used by landing page
+  3. Club logos were NULL in database — no Cloudinary URLs stored in DB
+- **Bug 1 Fix**: Created `/api/cloudinary/upload/route.ts` — Cloudinary signed upload with proper signature generation (sha1 hash of sorted params + API secret)
+- **Bug 2 Fix**: Added `qc.invalidateQueries({ queryKey: ['league-landing'] })` + `['league']` + `['stats']` to both `updateLogo` and `updateBanner` mutations in `club-management.tsx`
+- **Bug 3 Fix**: Updated `/api/clubs/update-logos/route.ts` with all 21 club→Cloudinary URL mappings (was only 4), ran the seed to populate all logos
+- **Environment setup**:
+  - Kept `.env` with SQLite for local dev (as user requested — 2 env strategy)
+  - Added Cloudinary env vars (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) to `.env` for local dev image browsing/upload
+  - Created `.env.production` with PostgreSQL + Cloudinary + Pusher + auth URLs for Vercel deployment
+  - Reverted Prisma schema back to `sqlite` provider for local dev
+  - Reverted raw SQL `GREATEST()` back to `MAX()` for SQLite compatibility
+- **Verified**: Cloudinary API works from local (browse + upload), all 15 clubs now have logos in DB, league API returns Cloudinary URLs
+
+Stage Summary:
+- Club logos now update on landing page after admin changes them
+- Cloudinary upload route created — admin can browse/upload images from CloudinaryPicker
+- React Query cache properly invalidated after logo/banner changes
+- 2-env strategy: `.env` (SQLite local dev) + `.env.production` (PostgreSQL Vercel)
+- For Vercel deploy: change schema to `postgresql` + add `directUrl` + set production env vars
