@@ -1,9 +1,11 @@
 // ─── DB Resilience Helpers ───
 // Utilities for gracefully handling database errors in API routes.
-// When DATABASE_URL is misconfigured, db queries reject with a clear error.
-// These helpers catch those errors and return appropriate HTTP responses.
+// Works with both SQLite (local/sandbox) and PostgreSQL/Neon (production).
+// Retry logic adapts to the database provider — SQLite has different
+// transient errors (busy, locked) vs PostgreSQL (timeout, connection reset).
 
 import { NextResponse } from 'next/server';
+import { isSQLite } from './db';
 
 /**
  * Check if an error is a database configuration error
@@ -16,6 +18,8 @@ export function isDbConfigError(error: unknown): boolean {
       msg.includes('Database not configured') ||
       msg.includes('DATABASE_URL') ||
       msg.includes('valid PostgreSQL URL') ||
+      msg.includes('valid SQLite URL') ||
+      msg.includes('SQLite') && msg.includes('open') ||
       error.constructor?.name === 'PrismaClientInitializationError'
     );
   }
@@ -40,12 +44,57 @@ export function handleDbError(error: unknown): NextResponse | never {
 }
 
 /**
- * Retry wrapper for Neon database operations.
- * Neon serverless can have cold starts that cause transient connection errors.
- * This wrapper retries the operation up to `maxRetries` times with exponential backoff.
+ * Check if an error is retryable based on the current database provider.
+ * - PostgreSQL: connection timeouts, resets, cold starts
+ * - SQLite: busy/locked database, file access issues
+ */
+function isRetryableError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+
+  // Common retryable errors for both providers
+  const commonRetryable =
+    msg.includes('P1001') || // Prisma: Can't reach database server
+    msg.includes('P1002') || // Prisma: Database server rejected
+    msg.includes('P1008') || // Prisma: Operations timed out
+    msg.includes('P5012');   // Prisma: Connection pool timeout
+
+  if (commonRetryable) return true;
+
+  if (isSQLite) {
+    // SQLite-specific retryable errors
+    return (
+      msg.includes('busy') ||
+      msg.includes('locked') ||
+      msg.includes('SQLITE_BUSY') ||
+      msg.includes('SQLITE_LOCKED') ||
+      msg.includes('cannot open database') ||
+      msg.includes('unable to open database') ||
+      msg.includes('SQLITE_CANTOPEN') ||
+      msg.includes('disk I/O error') ||
+      msg.includes('SQLITE_IOERR')
+    );
+  }
+
+  // PostgreSQL/Neon-specific retryable errors
+  return (
+    msg.includes('timeout') ||
+    msg.includes('ECONNRESET') ||
+    msg.includes('ECONNREFUSED') ||
+    msg.includes('connection') ||
+    msg.includes('cold start') ||
+    msg.includes('P2024') || // Prisma: Connection pool timeout (Neon)
+    msg.includes('P2026')    // Prisma: Connection error
+  );
+}
+
+/**
+ * Retry wrapper for database operations.
+ * Works with both SQLite and PostgreSQL:
+ * - PostgreSQL/Neon: handles cold starts and transient connection errors
+ * - SQLite: handles busy/locked database and file access issues
  * Also handles DB config errors gracefully (returns 503 instead of crashing).
  */
-export async function withNeonRetry<T>(
+export async function withDbRetry<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
   baseDelay: number = 500
@@ -63,26 +112,21 @@ export async function withNeonRetry<T>(
         throw error;
       }
 
-      // Check if it's a retryable error (connection timeout, etc.)
-      const msg = error instanceof Error ? error.message : String(error);
-      const isRetryable =
-        msg.includes('timeout') ||
-        msg.includes('ECONNRESET') ||
-        msg.includes('ECONNREFUSED') ||
-        msg.includes('connection') ||
-        msg.includes('P1001') || // Prisma: Can't reach database server
-        msg.includes('P1002');   // Prisma: Database server rejected
-
-      if (!isRetryable || attempt === maxRetries) {
+      if (!isRetryableError(error) || attempt === maxRetries) {
         throw error;
       }
 
       // Exponential backoff: 500ms, 1000ms, 2000ms...
       const delay = baseDelay * Math.pow(2, attempt);
-      console.warn(`[db-resilience] Retry ${attempt + 1}/${maxRetries} after ${delay}ms: ${msg}`);
+      console.warn(`[db-resilience] Retry ${attempt + 1}/${maxRetries} after ${delay}ms: ${error instanceof Error ? error.message : String(error)}`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
   throw lastError;
 }
+
+/**
+ * @deprecated Use withDbRetry instead. Kept for backward compatibility.
+ */
+export const withNeonRetry = withDbRetry;

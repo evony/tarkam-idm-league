@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { withNeonRetry } from '@/lib/db-resilience';
+import { withDbRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
 
 // Force dynamic rendering — prevent Next.js/Vercel from caching this API response
@@ -10,7 +10,7 @@ export async function GET() {
   try {
   // Get all seasons (active + completed) — League is unified, not per-division
   // Completed seasons still have champion data that must be displayed
-  const seasons = await withNeonRetry(() => db.season.findMany({
+  const seasons = await withDbRetry(() => db.season.findMany({
     where: { status: { in: ['active', 'completed'] } },
     orderBy: { number: 'desc' },
     include: {
@@ -73,7 +73,7 @@ export async function GET() {
   // This handles cross-division squads (e.g., female players in a male club's champion squad)
   if (ligaChampion?.members && ligaChampion.members.some(m => m.avatar === null)) {
     const memberIds = ligaChampion.members.map(m => m.id);
-    const playersWithAvatars = await withNeonRetry(() => db.player.findMany({
+    const playersWithAvatars = await withDbRetry(() => db.player.findMany({
       where: { id: { in: memberIds } },
       select: { id: true, avatar: true },
     }));
@@ -91,7 +91,7 @@ export async function GET() {
   // Find the season with clubs for display — fall back to any season that has clubs
   // This handles the case where the latest season (e.g., Season 2) has no clubs yet,
   // but a previous season (e.g., Season 1) has clubs and data
-  const seasonWithClubs = await withNeonRetry(() => db.season.findFirst({
+  const seasonWithClubs = await withDbRetry(() => db.season.findFirst({
     where: {
       id: { in: seasons.map(s => s.id) },
       clubs: { some: {} },
@@ -102,7 +102,7 @@ export async function GET() {
   const activeSeasonId = seasonWithClubs?.id || season.id;
 
   // All clubs — use the season that actually has clubs
-  const allClubs = await withNeonRetry(() => db.club.findMany({
+  const allClubs = await withDbRetry(() => db.club.findMany({
     where: { seasonId: activeSeasonId },
     orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
     include: {
@@ -126,7 +126,7 @@ export async function GET() {
   }
 
   // All league matches — use activeSeasonId (the season with clubs)
-  const leagueMatches = await withNeonRetry(() => db.leagueMatch.findMany({
+  const leagueMatches = await withDbRetry(() => db.leagueMatch.findMany({
     where: { seasonId: activeSeasonId },
     orderBy: [{ week: 'asc' }],
     include: {
@@ -136,7 +136,7 @@ export async function GET() {
   }));
 
   // All playoff matches
-  const playoffMatches = await withNeonRetry(() => db.playoffMatch.findMany({
+  const playoffMatches = await withDbRetry(() => db.playoffMatch.findMany({
     where: { seasonId: activeSeasonId },
     include: {
       club1: true,
@@ -146,7 +146,7 @@ export async function GET() {
   }));
 
   // Top players across all divisions — show all active players for roster display
-  const topPlayers = await withNeonRetry(() => db.player.findMany({
+  const topPlayers = await withDbRetry(() => db.player.findMany({
     where: { isActive: true },
     orderBy: [{ points: 'desc' }, { totalWins: 'desc' }],
   }));
@@ -162,7 +162,7 @@ export async function GET() {
   const totalWeeks = weeks.length > 0 ? Math.max(...weeks) : 0;
 
   // MVP candidates
-  const mvpCandidates = await withNeonRetry(() => db.participation.findMany({
+  const mvpCandidates = await withDbRetry(() => db.participation.findMany({
     where: {
       isMvp: true,
       tournament: { seasonId: activeSeasonId, status: 'completed' },

@@ -1081,3 +1081,70 @@ Stage Summary:
 - PWA installable with service worker offline caching
 - Improved dark mode contrast, social sharing, and cleaner codebase
 - Lint clean, dev server running
+
+---
+Task ID: 2-a
+Agent: Sub-agent (DB dual-provider support)
+Task: Fix db.ts and db-resilience for SQLite/PostgreSQL dual-database strategy
+
+Work Log:
+- **db.ts**: Rewrote to detect database provider from DATABASE_URL
+  - Added `getDbProvider()` function: `file:` → SQLite, `postgresql://`/`postgres://` → PostgreSQL
+  - Keep-alive ping (every 4 min) now ONLY runs when provider is PostgreSQL (Neon sleeps after 5 min idle)
+  - SQLite mode: no keep-alive interval (local file, no connection to maintain)
+  - Removed all Neon-specific comments and DIRECT_DATABASE_URL references
+  - Exported `isPostgreSQL` and `isSQLite` flags for use by db-resilience
+- **db-resilience.ts**: Made database-agnostic with provider-aware retry logic
+  - Renamed `withNeonRetry` → `withDbRetry` (kept `withNeonRetry` as deprecated alias for backward compat)
+  - Added `isRetryableError()` with provider-specific error detection:
+    - SQLite: SQLITE_BUSY, SQLITE_LOCKED, SQLITE_CANTOPEN, SQLITE_IOERR, busy/locked/cannot open
+    - PostgreSQL: timeout, ECONNRESET, ECONNREFUSED, connection errors, P1001/P1002/P1008/P5012/P2024/P2026
+    - Common: P1001, P1002, P1008, P5012 (Prisma-level errors)
+  - Updated `isDbConfigError()` to also check for SQLite-specific errors
+  - Kept `isDbConfigError()` and `handleDbError()` functions unchanged (503 response pattern)
+- **league/route.ts**: Updated import from `withNeonRetry` to `withDbRetry` (replaced all 6 call sites)
+- Ran `npx prisma generate && npx prisma db push` — SQLite database in sync
+- Restarted dev server and verified all APIs return data:
+  - `/api/league` → hasData: True, clubs: 15
+  - `/api/stats?division=male` → returns full season/player/club data
+  - `/api/feed` → returns activity feed items
+  - `/api/cms/content` → returns CMS settings and sections
+
+Stage Summary:
+- db.ts now auto-detects SQLite vs PostgreSQL from DATABASE_URL
+- Keep-alive only runs for PostgreSQL/Neon (not SQLite)
+- db-resilience.ts handles both SQLite (busy/locked) and PostgreSQL (timeout/connection) transient errors
+- withNeonRetry kept as deprecated alias — no other files need updating
+- All 4 tested API endpoints return 200 with data
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Implement Option B — Dual database (SQLite sandbox / PostgreSQL Vercel) + Fix avatar bug
+
+Work Log:
+- Diagnosed root cause: System env `DATABASE_URL=file:/home/z/my-project/db/custom.db` (SQLite) was being set, overriding .env file's PostgreSQL URL. Prisma schema had `provider = "postgresql"` but got `file:` URL → PrismaClientInitializationError crash
+- Changed prisma/schema.prisma from `provider = "postgresql"` + `directUrl` to `provider = "sqlite"` for local dev compatibility
+- Regenerated Prisma client for SQLite, pushed schema to local SQLite DB
+- Updated src/lib/db.ts with dual-database support:
+  - Added `getDbProvider()` function that detects provider from DATABASE_URL (`file:` → SQLite, `postgresql://` → PostgreSQL)
+  - Keep-alive ping only runs for PostgreSQL/Neon (not needed for local SQLite)
+  - Exported `isPostgreSQL` and `isSQLite` flags
+- Updated src/lib/db-resilience.ts to be database-agnostic:
+  - Added `withDbRetry()` (replaces `withNeonRetry`, kept as deprecated alias)
+  - `isRetryableError()` now detects both SQLite-specific (SQLITE_BUSY, SQLITE_LOCKED) and PostgreSQL-specific errors
+- Updated src/app/api/league/route.ts: Changed `withNeonRetry` → `withDbRetry` imports
+- Created scripts/vercel-build.sh — auto-swaps Prisma schema from SQLite to PostgreSQL during Vercel build:
+  - Detects DATABASE_URL prefix → if PostgreSQL, sed-swaps provider and adds directUrl
+  - Runs `prisma generate` then `next build`
+- Updated package.json build script to use vercel-build.sh
+- Verified all API endpoints return 200: /api/league (15 clubs, logos OK), /api/stats, /api/feed, /api/cms/content
+- Verified avatar merge bug is already fixed (Bambang shows avatar correctly in both sections)
+- Lint passes clean
+
+Stage Summary:
+- Option B implemented: SQLite for sandbox (stable), PostgreSQL for Vercel (auto-swap at build time)
+- All APIs working with local SQLite database
+- Avatar bug resolved — code already queries Player table directly for championSquad member avatars
+- Club logos all showing (15/15 have Cloudinary URLs in local DB)
+- Vercel build script auto-swaps schema provider when deploying
