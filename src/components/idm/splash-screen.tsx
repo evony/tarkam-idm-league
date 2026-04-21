@@ -10,9 +10,9 @@ const SPLASH_ENTER_DURATION = 4100;
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   const [entered, setEntered] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
-  const [beatScale, setBeatScale] = useState(1);
-  const [glowIntensity, setGlowIntensity] = useState(0.2);
+  const [beatIntensity, setBeatIntensity] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -22,34 +22,33 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
     if (!entered || !analyserRef.current) return;
 
     const analyser = analyserRef.current;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-    let prevEnergy = 0;
-    const SMOOTH = 0.3;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    let prevBass = 0;
 
     const tick = () => {
       analyser.getByteFrequencyData(dataArray);
 
-      // Focus on bass frequencies (first ~15 bins) for beat detection
+      // Focus on bass frequencies for beat detection
       let bassSum = 0;
-      const bassEnd = Math.min(15, dataArray.length);
-      for (let i = 0; i < bassEnd; i++) {
+      const bassBins = Math.min(12, bufferLength);
+      for (let i = 0; i < bassBins; i++) {
         bassSum += dataArray[i];
       }
-      const bassAvg = bassSum / bassEnd;
+      const bassAvg = bassSum / bassBins;
 
-      // Detect beat: sudden energy spike
-      const isBeat = bassAvg > prevEnergy * 1.3 && bassAvg > 80;
+      // Beat = sudden energy spike above threshold
+      const isBeat = bassAvg > 60 && bassAvg > prevBass * 1.4;
 
-      // Map bass energy to visual scale (1.0 → 1.15 max)
-      const targetScale = isBeat ? 1 + (bassAvg / 255) * 0.18 : 1;
-      const targetGlow = isBeat ? 0.15 + (bassAvg / 255) * 0.45 : 0.12;
+      if (isBeat) {
+        // Snap to high intensity on beat
+        setBeatIntensity(Math.min(1, bassAvg / 180));
+      } else {
+        // Decay smoothly
+        setBeatIntensity(prev => Math.max(0, prev * 0.82));
+      }
 
-      // Smooth interpolation
-      setBeatScale(prev => prev + (targetScale - prev) * SMOOTH);
-      setGlowIntensity(prev => prev + (targetGlow - prev) * 0.25);
-
-      prevEnergy = bassAvg * 0.7 + prevEnergy * 0.3; // rolling average
+      prevBass = bassAvg * 0.6 + prevBass * 0.4;
 
       animFrameRef.current = requestAnimationFrame(tick);
     };
@@ -65,25 +64,46 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
     if (entered) return;
     setEntered(true);
 
-    // Play opening audio on user click — guaranteed to work (browser autoplay policy)
-    const audio = new Audio(SPLASH_AUDIO_URL);
+    // Create AudioContext on user gesture (required by browsers)
+    let analyserNode: AnalyserNode | null = null;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      ctxRef.current = ctx;
+
+      // Resume if suspended
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.3;
+      analyserNode = analyser;
+      analyserRef.current = analyser;
+    } catch {
+      // Web Audio API not available — beat detection disabled
+    }
+
+    // Play opening audio
+    const audio = new Audio();
+    // CRITICAL: Set crossOrigin BEFORE setting src for CORS access
+    audio.crossOrigin = 'anonymous';
     audio.volume = 0.7;
     audioRef.current = audio;
 
-    // Connect to Web Audio API analyser for beat detection
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const source = ctx.createMediaElementSource(audio);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.4;
-      source.connect(analyser);
-      analyser.connect(ctx.destination);
-      analyserRef.current = analyser;
-    } catch {
-      // Web Audio API not available — logo stays static, no beat sync
+    // Connect to Web Audio API if available
+    if (analyserNode && ctxRef.current) {
+      try {
+        const source = ctxRef.current.createMediaElementSource(audio);
+        source.connect(analyserNode);
+        analyserNode.connect(ctxRef.current.destination);
+      } catch {
+        // Connection failed — audio plays normally without beat detection
+        analyserRef.current = null;
+      }
     }
 
+    audio.src = SPLASH_AUDIO_URL;
     audio.play().catch(() => {});
 
     // Start visual fade-out slightly before audio ends
@@ -98,10 +118,22 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           audioRef.current.pause();
           audioRef.current = null;
         }
+        if (ctxRef.current) {
+          ctxRef.current.close().catch(() => {});
+          ctxRef.current = null;
+        }
         onFinish();
       }, SPLASH_ENTER_DURATION)
     );
   }, [entered, onFinish]);
+
+  // Derived visual values from beat intensity
+  const logoScale = 1 + beatIntensity * 0.14;
+  const glowSize = 20 + beatIntensity * 50;
+  const glowOpacity = 0.12 + beatIntensity * 0.5;
+  const borderOpacity = 0.08 + beatIntensity * 0.45;
+  const textGlow = beatIntensity * 18;
+  const dotSize = 4 + beatIntensity * 10;
 
   return (
     <div
@@ -118,16 +150,16 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       }} />
 
       {/* Audio-reactive background pulse — subtle radial flash on beats */}
-      {entered && (
+      {entered && beatIntensity > 0.05 && (
         <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-150"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse at 50% 45%, rgba(229,190,74,${glowIntensity * 0.3}) 0%, transparent 55%)`,
+            background: `radial-gradient(ellipse at 50% 45%, rgba(229,190,74,${beatIntensity * 0.12}) 0%, transparent 55%)`,
           }}
         />
       )}
 
-      {/* Subtle ambient glow — reduced intensity */}
+      {/* Subtle ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse"
         style={{
@@ -141,30 +173,30 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
         {/* Main Logo — with cinematic reveal + audio-reactive pulse */}
         <div className="mb-8" style={{ animation: 'splash-logo-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both' }}>
           <div
-            className="relative transition-transform duration-100 ease-out"
-            style={{ transform: entered ? `scale(${beatScale})` : undefined }}
+            className="relative"
+            style={{
+              transform: entered ? `scale(${logoScale})` : undefined,
+              transition: 'transform 80ms ease-out',
+            }}
           >
-            {/* Audio-reactive glow ring — intensity follows beat */}
+            {/* Audio-reactive glow ring */}
             <div
-              className="absolute -inset-4 rounded-2xl transition-all duration-100"
+              className="absolute -inset-4 rounded-2xl"
               style={{
-                boxShadow: entered
-                  ? `0 0 ${20 + glowIntensity * 40}px rgba(184,134,11,${0.15 + glowIntensity * 0.5}), 0 0 ${40 + glowIntensity * 60}px rgba(245,158,11,${0.05 + glowIntensity * 0.25})`
-                  : '0 0 20px rgba(184,134,11,0.15), 0 0 40px rgba(245,158,11,0.05)',
+                boxShadow: `0 0 ${glowSize}px rgba(184,134,11,${glowOpacity}), 0 0 ${glowSize * 1.5}px rgba(245,158,11,${glowOpacity * 0.4})`,
+                transition: 'box-shadow 80ms ease-out',
               }}
             />
-            <div
-              className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50"
-              style={{ animation: entered ? undefined : 'splash-logo-float 3s ease-in-out infinite' }}
-            >
+            <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
               <img src="/logo.webp" alt="IDM League" className="w-full h-full object-cover" />
             </div>
-            {/* Audio-reactive rotating border accent */}
+            {/* Audio-reactive border ring */}
             <div
-              className="absolute -inset-1.5 rounded-2xl transition-all duration-150"
+              className="absolute -inset-1.5 rounded-2xl"
               style={{
-                border: `1px solid rgba(212,168,83,${entered ? 0.1 + glowIntensity * 0.4 : 0.05})`,
+                border: `1.5px solid rgba(212,168,83,${borderOpacity})`,
                 animation: 'splash-border-rotate 6s linear infinite',
+                transition: 'border-color 80ms ease-out',
               }}
             />
           </div>
@@ -191,10 +223,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             </span>
           </h1>
           <p
-            className="text-xs sm:text-sm text-white/40 mt-2 tracking-[0.25em] uppercase font-light transition-all duration-100"
+            className="text-xs sm:text-sm text-white/40 mt-2 tracking-[0.25em] uppercase font-light"
             style={{
               animation: 'splash-subtitle-enter 0.6s ease-out 1.4s both',
-              textShadow: entered ? `0 0 ${glowIntensity * 20}px rgba(229,190,74,${glowIntensity * 0.5})` : undefined,
+              textShadow: entered && beatIntensity > 0.1 ? `0 0 ${textGlow}px rgba(229,190,74,${beatIntensity * 0.5})` : undefined,
+              transition: 'text-shadow 80ms ease-out',
             }}
           >
             Idol Meta · Fan Made Edition
@@ -203,18 +236,16 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
         {/* Decorative line divider — pulses with audio */}
         <div
-          className="mt-6 flex items-center gap-3 transition-all duration-100"
-          style={{
-            animation: 'splash-subtitle-enter 0.6s ease-out 1.5s both',
-            opacity: entered ? 0.5 + glowIntensity * 0.5 : undefined,
-          }}
+          className="mt-6 flex items-center gap-3"
+          style={{ animation: 'splash-subtitle-enter 0.6s ease-out 1.5s both' }}
         >
           <div className="h-px w-10 bg-gradient-to-r from-transparent to-idm-gold-warm/30" />
           <div
-            className="rounded-full bg-idm-gold-warm/40 transition-all duration-100"
+            className="rounded-full bg-idm-gold-warm/40"
             style={{
-              width: entered ? `${4 + glowIntensity * 8}px` : '4px',
-              height: entered ? `${4 + glowIntensity * 8}px` : '4px',
+              width: `${dotSize}px`,
+              height: `${dotSize}px`,
+              transition: 'all 80ms ease-out',
             }}
           />
           <div className="h-px w-10 bg-gradient-to-l from-transparent to-idm-gold-warm/30" />
@@ -250,11 +281,12 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
               />
             </div>
             <p
-              className="text-[10px] text-center mt-2 tracking-wider transition-all duration-100"
+              className="text-[10px] text-center mt-2 tracking-wider"
               style={{
                 animation: 'splash-subtitle-enter 0.3s ease-out 0.2s both',
-                color: `rgba(255,255,255,${0.3 + glowIntensity * 0.4})`,
-                textShadow: entered ? `0 0 ${glowIntensity * 12}px rgba(229,190,74,${glowIntensity * 0.4})` : undefined,
+                color: `rgba(255,255,255,${0.3 + beatIntensity * 0.4})`,
+                textShadow: beatIntensity > 0.1 ? `0 0 ${beatIntensity * 14}px rgba(229,190,74,${beatIntensity * 0.4})` : undefined,
+                transition: 'color 80ms ease-out, text-shadow 80ms ease-out',
               }}
             >
               MEMASUKI ARENA
@@ -276,7 +308,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           <div className="flex items-center gap-2">
             <div className="w-4 h-px bg-gradient-to-r from-transparent to-amber-500/40" />
             <div className="w-1 h-1.5 rotate-45 bg-amber-500/50" />
-            <div className="w-4 h-px bg-gradient-to-l from-transparent to-amber-500/40" />
+            <div className="w-4 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
           </div>
           <span className="text-[8px] text-amber-500/20 tracking-widest uppercase">Idol Meta · Fan Made Edition</span>
         </div>
