@@ -21,6 +21,31 @@ interface AdminAuthState {
   admin: AdminUser | null;
 }
 
+interface PlayerAccount {
+  id: string;
+  username: string;
+  skin?: string | null;
+  player: {
+    id: string;
+    gamertag: string;
+    name: string;
+    division: string;
+    tier: string;
+    avatar?: string | null;
+    points: number;
+    totalWins: number;
+    totalMvp: number;
+    matches: number;
+    streak: number;
+    city?: string;
+  };
+}
+
+interface PlayerAuthState {
+  isAuthenticated: boolean;
+  account: PlayerAccount | null;
+}
+
 interface AppState {
   // Navigation
   currentView: AppView;
@@ -58,6 +83,11 @@ interface AppState {
   adminAuth: AdminAuthState;
   setAdminAuth: (auth: AdminAuthState) => void;
   clearAdminAuth: () => void;
+
+  // Player auth
+  playerAuth: PlayerAuthState;
+  setPlayerAuth: (auth: PlayerAuthState) => void;
+  clearPlayerAuth: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -103,4 +133,8 @@ export const useAppStore = create<AppState>((set) => ({
   adminAuth: { isAuthenticated: false, admin: null },
   setAdminAuth: (auth) => set({ adminAuth: auth }),
   clearAdminAuth: () => set({ adminAuth: { isAuthenticated: false, admin: null } }),
+
+  playerAuth: { isAuthenticated: false, account: null },
+  setPlayerAuth: (auth) => set({ playerAuth: auth }),
+  clearPlayerAuth: () => set({ playerAuth: { isAuthenticated: false, account: null } }),
 }));

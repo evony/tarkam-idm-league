@@ -39,10 +39,12 @@ import { StandingsTab } from './standings-tab';
 import { MatchesTab } from './matches-tab';
 import { DonationModal } from '../donation-modal';
 import { PlayerQuickSearch, addRecentlyViewed, getRecentlyViewed, type RecentlyViewedPlayer } from '../player-quick-search';
+import { PlayerAccountModal } from '../player-account-modal';
+import { MyAccountCard } from '../my-account-card';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
-  const { division } = useAppStore();
+  const { division, playerAuth } = useAppStore();
   const dt = useDivisionTheme();
   const isMobile = useIsMobile();
 
@@ -62,6 +64,7 @@ export function Dashboard() {
   };
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
   const [donationOpen, setDonationOpen] = useState(false);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
   // Recently viewed players (up to 3)
@@ -295,10 +298,36 @@ export function Dashboard() {
         ))}
       </div>
 
+      {/* ========== AKUN SAYA — My Account Card (when logged in) ========== */}
+      {playerAuth.isAuthenticated && playerAuth.account && (
+        <div className="stagger-item-subtle stagger-d3">
+          <MyAccountCard onOpenProfile={() => handleSelectPlayer(playerAuth.account!.player as any)} />
+        </div>
+      )}
+
       {/* ========== CARI SAYA — Player Quick Search ========== */}
       <div className="stagger-item-subtle stagger-d3">
         <PlayerQuickSearch onSelectPlayer={handleSelectPlayer} />
       </div>
+
+      {/* ========== MASUK AKUN — Login prompt (when not logged in) ========== */}
+      {!playerAuth.isAuthenticated && (
+        <div className="stagger-item-subtle stagger-d3">
+          <button
+            onClick={() => setAccountModalOpen(true)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${dt.casinoCard} border ${dt.border} transition-colors hover:bg-muted/20 cursor-pointer group`}
+          >
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${division === 'male' ? 'from-idm-male/20 to-idm-male/5' : 'from-idm-female/20 to-idm-female/5'} flex items-center justify-center shrink-0`}>
+              <Gamepad2 className={`w-4 h-4 ${dt.text}`} />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-xs font-semibold">Masuk Akun</p>
+              <p className="text-[10px] text-muted-foreground">Lihat statistik & prestasi kamu</p>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${dt.text} shrink-0 opacity-40 group-hover:opacity-80 transition-opacity`} />
+          </button>
+        </div>
+      )}
 
       {/* ========== TERAKHIR DILIHAT — Recently Viewed Players ========== */}
       {recentPlayers.length > 0 && (
@@ -453,6 +482,12 @@ export function Dashboard() {
         onOpenChange={setDonationOpen}
         defaultType="weekly"
         cmsSettings={cms || {}}
+      />
+
+      {/* Account Modal */}
+      <PlayerAccountModal
+        open={accountModalOpen}
+        onOpenChange={setAccountModalOpen}
       />
     </div>
     </>

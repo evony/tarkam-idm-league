@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Gamepad2, Trophy, Users, Shield,
   Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound,
-  PanelLeftClose, ChevronRight, Download, X
+  PanelLeftClose, ChevronRight, Download, X, UserCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
@@ -22,6 +22,7 @@ import { usePWA } from '@/hooks/use-pwa';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useHaptic, PullToRefresh } from '@/components/idm/ui/mobile-interactions';
+import { PlayerAccountModal } from './player-account-modal';
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
@@ -101,8 +102,8 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
 }
 
 /* ─── Collapsible Desktop Sidebar ─── */
-function DesktopSidebar() {
-  const { currentView, setCurrentView, division, adminAuth, clearAdminAuth, sidebarCollapsed, toggleSidebarCollapsed } = useAppStore();
+function DesktopSidebar({ onOpenAccountModal }: { onOpenAccountModal: () => void }) {
+  const { currentView, setCurrentView, division, adminAuth, clearAdminAuth, sidebarCollapsed, toggleSidebarCollapsed, playerAuth, clearPlayerAuth } = useAppStore();
   const dt = useDivisionTheme();
 
   const { data: leagueSummary } = useQuery<{ seasonNumber: number; status: string; completedWeeks: number; totalWeeks: number; percentage: number }>({
@@ -238,6 +239,44 @@ function DesktopSidebar() {
       {/* Bottom section — only when expanded */}
       {!collapsed && (
         <>
+          {/* Player Account Status */}
+          {playerAuth.isAuthenticated && playerAuth.account && (
+            <div className={`mx-4 p-3 rounded-xl ${division === 'male' ? 'bg-idm-male/5 border border-idm-male/20' : 'bg-idm-female/5 border border-idm-female/20'} mb-2`}>
+              <div className="flex items-center gap-2 mb-2">
+                <UserCircle className={`w-3 h-3 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
+                <span className={`text-[10px] font-semibold ${division === 'male' ? 'text-idm-male' : 'text-idm-female'} uppercase tracking-wider`}>
+                  Akun Saya
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-foreground font-medium truncate">{playerAuth.account.player.gamertag}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" className={`h-6 w-6 p-0 text-muted-foreground ${division === 'male' ? 'hover:text-idm-male hover:bg-idm-male/10' : 'hover:text-idm-female hover:bg-idm-female/10'}`}
+                    onClick={onOpenAccountModal} title="Akun Saya">
+                    <UserCircle className="w-3 h-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                    onClick={async () => { try { await fetch('/api/account/logout', { method: 'POST' }); } catch {} clearPlayerAuth(); toast.success('Berhasil logout'); }} title="Logout">
+                    <LogOut className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Not logged in — show login prompt */}
+          {!playerAuth.isAuthenticated && (
+            <div className="mx-4 mb-2">
+              <button
+                onClick={onOpenAccountModal}
+                className={`w-full flex items-center gap-2 p-2.5 rounded-xl border border-border/50 hover:bg-muted/20 transition-colors cursor-pointer`}
+              >
+                <UserCircle className="w-4 h-4 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground font-medium">Masuk Akun</span>
+              </button>
+            </div>
+          )}
+
           {/* Admin Status / Logout */}
           {adminAuth.isAuthenticated && (
             <div className="mx-4 p-3 rounded-xl bg-idm-gold/5 border border-idm-gold/20 mb-2">
@@ -347,7 +386,7 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
 
 
 export function AppShell() {
-  const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView } = useAppStore();
+  const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView, playerAuth, setPlayerAuth } = useAppStore();
   const dt = useDivisionTheme();
   const { hapticTap } = useHaptic();
   const queryClient = useQueryClient();
@@ -355,6 +394,7 @@ export function AppShell() {
   const { canInstall: _canInstall, promptInstall } = usePWA();
   const [canInstall, setCanInstall] = useState(_canInstall);
   const [dismissed, setDismissed] = useState(false);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
 
   // Sync with PWA hook + localStorage dismissal
   useEffect(() => {
@@ -365,7 +405,7 @@ export function AppShell() {
     }
   }, [_canInstall]);
 
-  // Check session on mount
+  // Check admin session on mount
   useEffect(() => {
     async function checkSession() {
       try {
@@ -380,6 +420,22 @@ export function AppShell() {
     }
     checkSession();
   }, [setAdminAuth]);
+
+  // Check player session on mount
+  useEffect(() => {
+    async function checkPlayerSession() {
+      try {
+        const res = await fetch('/api/account/session');
+        const data = await res.json();
+        if (data.authenticated && data.account) {
+          setPlayerAuth({ isAuthenticated: true, account: data.account });
+        }
+      } catch {
+        // Not authenticated
+      }
+    }
+    checkPlayerSession();
+  }, [setPlayerAuth]);
 
   // Landing page is standalone - no sidebar/header
   if ((currentView as AppView) === 'landing') {
@@ -423,6 +479,15 @@ export function AppShell() {
           <Button
             variant="ghost"
             size="icon"
+            className={`h-10 w-10 ${playerAuth.isAuthenticated ? (division === 'male' ? 'text-idm-male' : 'text-idm-female') : 'text-muted-foreground'}`}
+            onClick={() => { hapticTap(); setAccountModalOpen(true); }}
+            title={playerAuth.isAuthenticated ? `Akun: ${playerAuth.account?.player.gamertag}` : 'Masuk Akun'}
+          >
+            <UserCircle className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             className={`h-10 w-10 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
             onClick={() => { hapticTap(); setCurrentView('admin'); }}
             title="Admin Panel"
@@ -454,7 +519,7 @@ export function AppShell() {
 
       <div className="flex flex-1">
         {/* Desktop Sidebar — Collapsible */}
-        <DesktopSidebar />
+        <DesktopSidebar onOpenAccountModal={() => setAccountModalOpen(true)} />
 
         {/* Main Content */}
         <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
@@ -540,6 +605,12 @@ export function AppShell() {
 
       {/* Notification Stack */}
       <NotificationStack />
+
+      {/* Player Account Modal — accessible from anywhere */}
+      <PlayerAccountModal
+        open={accountModalOpen}
+        onOpenChange={setAccountModalOpen}
+      />
 
       {/* Footer — desktop only, premium subtle style */}
       <footer className="mt-auto py-4 text-center text-xs text-muted-foreground border-t border-border/60 hidden lg:block">

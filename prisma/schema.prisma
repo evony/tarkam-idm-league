@@ -41,6 +41,7 @@ model Player {
   clubMembers    ClubMember[]
   pointRecords   PlayerPoint[]
   achievements   PlayerAchievement[]
+  account        Account?
 
   @@index([division])
   @@index([division, isActive])
@@ -221,6 +222,28 @@ model TournamentPrize {
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@index([tournamentId])
+}
+
+// ============================================
+// IDM LEAGUE - PLAYER ACCOUNT SYSTEM
+// ============================================
+
+model Account {
+  id           String    @id @default(cuid())
+  playerId     String    @unique  // One account per player
+  username     String    @unique  // For login (gamertag-based)
+  passwordHash String
+  email        String?   @unique  // Optional email for recovery
+  phone        String?             // WhatsApp number for recovery
+  skin         String?             // Active skin identifier (for future skin system)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([username])
+  @@index([email])
 }
 
 // ============================================
