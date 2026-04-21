@@ -41,27 +41,23 @@ export async function GET() {
     seasonNumber: championSeason.number,
     // Use manually set championSquad if available (from CMS admin), otherwise use all champion club members
     members: (() => {
-      // Build avatar map from champion club members
-      const avatarMap = new Map<string, string | null>();
-      for (const m of championSeason.championClub.members || []) {
-        avatarMap.set(m.player.id, m.player.avatar);
-      }
-
-      // championSquad is stored as JSON string in SQLite — must parse first
+      // championSquad is stored as JSON string — must parse first
       const rawSquad = championSeason.championSquad;
       const squad: Array<{id: string; gamertag: string; division: string; role: string}> | null =
         rawSquad ? (typeof rawSquad === 'string' ? JSON.parse(rawSquad) : rawSquad as unknown as Array<{id: string; gamertag: string; division: string; role: string}>) : null;
       if (squad && Array.isArray(squad) && squad.length > 0) {
-        // Use championSquad but merge in avatar from club members
+        // Use championSquad — but we need avatars from the Player table
+        // (championClub.members only covers ONE division, but squads can be cross-division)
+        // We'll resolve avatars asynchronously below after this IIFE
         return squad.map(s => ({
           id: s.id,
           gamertag: s.gamertag,
           division: s.division,
           role: s.role,
-          avatar: avatarMap.get(s.id) || null,
+          avatar: null as string | null, // Placeholder — will be filled in below
         }));
       }
-      // Fallback: use all champion club members
+      // Fallback: use all champion club members (avatars already included)
       return championSeason.championClub.members?.map(m => ({
         id: m.player.id,
         gamertag: m.player.gamertag,
@@ -71,6 +67,23 @@ export async function GET() {
       })) || [];
     })()
   } : null;
+
+  // ── Resolve avatars for champion squad members ──
+  // championSquad is stored without avatar, so we query Player table directly
+  // This handles cross-division squads (e.g., female players in a male club's champion squad)
+  if (ligaChampion?.members && ligaChampion.members.some(m => m.avatar === null)) {
+    const memberIds = ligaChampion.members.map(m => m.id);
+    const playersWithAvatars = await withNeonRetry(() => db.player.findMany({
+      where: { id: { in: memberIds } },
+      select: { id: true, avatar: true },
+    }));
+    const avatarLookup = new Map(playersWithAvatars.map(p => [p.id, p.avatar]));
+    for (const member of ligaChampion.members) {
+      if (member.avatar === null) {
+        member.avatar = avatarLookup.get(member.id) || null;
+      }
+    }
+  }
 
   // Use the latest season as the "current" season reference
   const season = seasons[0];

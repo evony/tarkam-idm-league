@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(
   _request: Request,
@@ -110,6 +111,10 @@ export async function PUT(
       updatedResponse.championSquad = null;
     }
   }
+
+  // Invalidate Next.js server cache so landing page shows updated champion data
+  revalidatePath('/');
+  revalidatePath('/api/league');
 
   return NextResponse.json(updatedResponse);
 }

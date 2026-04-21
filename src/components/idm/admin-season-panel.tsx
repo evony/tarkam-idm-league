@@ -644,7 +644,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
                                             toast.error('Maksimal 5 perwakilan squad');
                                             return prev;
                                           }
-                                          return [...prev, { id: player.id, gamertag: player.gamertag, division: player.division, role: prev.length === 0 ? 'captain' : 'member' }];
+                                          return [...prev, { id: player.id, gamertag: player.gamertag, division: player.division, role: prev.length === 0 ? 'captain' : 'member', avatar: player.avatar || null }];
                                         });
                                       }}
                                     />
@@ -850,7 +850,7 @@ function ChampionSquadSelector({
   seasonId: string;
   championClubId: string;
   selectedIds: string[];
-  onToggle: (player: { id: string; gamertag: string; division: string }) => void;
+  onToggle: (player: { id: string; gamertag: string; division: string; avatar?: string | null }) => void;
 }) {
   const [search, setSearch] = useState('');
 
@@ -903,7 +903,7 @@ function ChampionSquadSelector({
                   ? 'border-yellow-500/30 bg-yellow-500/5'
                   : 'border-border/20 bg-card/30 hover:bg-muted/20'
               }`}
-              onClick={() => onToggle({ id: player.id, gamertag: player.gamertag, division: player.division })}
+              onClick={() => onToggle({ id: player.id, gamertag: player.gamertag, division: player.division, avatar: player.avatar })}
             >
               <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
                 <Image
