@@ -386,14 +386,6 @@ export function AppShell() {
     return (
       <>
         <LandingPage />
-        {/* ═══ FAB: Daftar — also visible on landing page ═══ */}
-        <button
-          onClick={() => { hapticTap(); setCurrentView('register'); }}
-          className="lg:hidden fixed z-[60] left-4 bottom-20 w-12 h-12 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3]"
-          aria-label="Daftar Turnamen"
-        >
-          <span className="text-lg leading-none">📝</span>
-        </button>
         <DonationPopup
           show={donationPopup.show}
           message={donationPopup.message}
@@ -486,10 +478,10 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* ═══ FAB: Daftar (Register) — circle bottom-left, above bottom nav ═══ */}
+      {/* ═══ FAB: Daftar (Register) — circle bottom-right, above bottom nav ═══ */}
       <button
         onClick={() => { hapticTap(); setCurrentView('register'); }}
-        className={`lg:hidden fixed z-[60] left-4 bottom-20 w-12 h-12 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center ${
+        className={`lg:hidden fixed z-[60] right-4 bottom-20 w-12 h-12 rounded-full shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center ${
           currentView === 'register'
             ? 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] ring-2 ring-idm-gold-warm/40'
             : 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3]'
