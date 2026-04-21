@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-const SPLASH_AUDIO_URL = 'https://res.cloudinary.com/dagoryri5/video/upload/v1776781508/tangtangtang_opfd7y.mp3';
+const SPLASH_AUDIO_URL = 'https://res.cloudinary.com/dagoryri5/video/upload/v1776797566/tangtangtang_anf1yc.mp3';
 
 /* Audio duration from Cloudinary: ~4.3s. We use 4.1s so the audio finishes fully. */
 const SPLASH_ENTER_DURATION = 4100;
