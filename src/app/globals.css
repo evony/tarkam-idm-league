@@ -153,16 +153,12 @@
    GLASSMORPHISM & PREMIUM EFFECTS
    ============================================ */
 .glass {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 17, 10, 0.95);
   border: 1px solid var(--border);
 }
 
 .glass-strong {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(16, 13, 8, 0.97);
   border: 1px solid var(--border);
 }
 
@@ -229,6 +225,14 @@
 
 .glow-pulse {
   animation: glow-pulse 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-pulse {
+    animation: none;
+    box-shadow: 0 0 20px var(--idm-glow), 0 0 40px rgba(184, 134, 11, 0.05);
+  }
 }
 
 /* Float animation */
@@ -548,8 +552,6 @@ html {
     radial-gradient(ellipse at 20% 50%, rgba(184, 134, 11, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(217, 119, 6, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 80%, rgba(212, 160, 23, 0.06) 0%, transparent 50%);
-  background-size: 200% 200%, 200% 200%, 200% 200%;
-  animation: mesh-fury 12s ease-in-out infinite;
 }
 
 .dark .bg-mesh-fury {
@@ -557,7 +559,6 @@ html {
     radial-gradient(ellipse at 20% 50%, rgba(229, 190, 74, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 80%, rgba(196, 150, 58, 0.05) 0%, transparent 50%);
-  background-size: 200% 200%, 200% 200%, 200% 200%;
 }
 
 @keyframes mesh-dark {
@@ -587,8 +588,6 @@ html {
     radial-gradient(ellipse at 15% 30%, rgba(12, 10, 6, 0.9) 0%, transparent 60%),
     radial-gradient(ellipse at 85% 70%, rgba(184, 134, 11, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(229, 190, 74, 0.05) 0%, transparent 60%);
-  background-size: 200% 200%, 200% 200%, 200% 200%;
-  animation: mesh-dark 15s ease-in-out infinite;
 }
 
 .dark .bg-mesh-dark {
@@ -596,7 +595,6 @@ html {
     radial-gradient(ellipse at 15% 30%, rgba(12, 10, 6, 0.95) 0%, transparent 60%),
     radial-gradient(ellipse at 85% 70%, rgba(184, 134, 11, 0.25) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(229, 190, 74, 0.08) 0%, transparent 60%);
-  background-size: 200% 200%, 200% 200%, 200% 200%;
 }
 
 /* ============================================
@@ -683,7 +681,6 @@ html {
     var(--idm-gold)
   );
   background-size: 200% 200%;
-  animation: gradient-shift 4s ease-in-out infinite;
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);

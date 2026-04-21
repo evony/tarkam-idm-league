@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { Crown, Users, Swords, BookOpen, Trophy } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
@@ -169,7 +169,7 @@ export function LandingPage() {
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+          ? 'bg-[#0c0a06]/95 border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
           : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -204,40 +204,34 @@ export function LandingPage() {
               >
                 {item.label}
                 {activeSection === item.id && (
-                  <motion.div
-                    layoutId="nav-active"
-                    className="absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
+                  <div className="absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full" />
                 )}
               </button>
             ))}
           </div>
 
           {/* Division Switch */}
-          <div className="flex items-center bg-muted/80 backdrop-blur-sm rounded-full p-0.5 gap-0.5 border border-idm-gold-warm/15">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+          <div className="flex items-center bg-muted/80 rounded-full p-0.5 gap-0.5 border border-idm-gold-warm/15">
+            <button
               onClick={() => enterApp('male')}
               aria-label="Enter Male Division"
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md"
+              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md active:scale-95"
             >
               🕺 Male
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={() => enterApp('female')}
               aria-label="Enter Female Division"
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md"
+              className="px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md active:scale-95"
             >
               💃 Female
-            </motion.button>
+            </button>
           </div>
         </div>
       </nav>
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
-      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-idm-gold-warm/10 safe-area-bottom">
+      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0c0a06]/97 border-t border-idm-gold-warm/10 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {[
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
@@ -270,10 +264,8 @@ export function LandingPage() {
                 <item.icon className={`relative z-10 w-5 h-5 ${item.special ? 'drop-shadow-[0_0_4px_rgba(212,168,83,0.3)]' : ''}`} />
                 <span className={`relative z-10 text-[10px] font-medium mt-1 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
                 {isActive && (
-                  <motion.div
-                    layoutId="bottom-nav-active"
-                    className={`absolute -bottom-0.5 rounded-full transition-colors ${item.special ? 'w-10 h-1 bg-idm-gold-warm shadow-[0_0_8px_rgba(212,168,83,0.5)]' : 'w-8 h-0.5 bg-idm-gold-warm'}`}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  <div
+                    className={`absolute -bottom-0.5 rounded-full ${item.special ? 'w-10 h-1 bg-idm-gold-warm shadow-[0_0_8px_rgba(212,168,83,0.5)]' : 'w-8 h-0.5 bg-idm-gold-warm'}`}
                   />
                 )}
               </button>
