@@ -405,6 +405,74 @@
   animation: progress-fill 0.6s ease-out both;
 }
 
+/* ═══ Splash Screen Animations ═══ */
+
+/* Logo reveal — scale up from small with opacity */
+@keyframes splash-logo-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Logo gentle float — subtle up/down breathing */
+@keyframes splash-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Glow breathing — subtle intensity oscillation */
+@keyframes splash-glow-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Rotating border accent — conic gradient spin */
+@keyframes splash-border-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Title entrance — slide up + fade in */
+@keyframes splash-title-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Letter pop — bouncy scale entrance per word */
+@keyframes splash-letter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Subtitle entrance — gentle fade up */
+@keyframes splash-subtitle-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Achievement badge glow pulse — replaces Framer Motion infinite animation */
 @keyframes badge-glow-pulse {
   0%, 100% { transform: scale(1); opacity: 0.3; }
