@@ -262,7 +262,7 @@ export function SkinShowcase({ open, onClose }: SkinShowcaseProps) {
           <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-muted/20 border border-border/20">
             <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-[10px] text-muted-foreground">
-              Skin otomatis diberikan setelah Juara 1 / MVP dipilih oleh admin. Penyewa & Donatur diberikan manual oleh admin. Semua skin berdurasi 1 minggu kecuali badge hati donatur yang permanen.
+              Skin otomatis diberikan setelah Juara 1 / MVP dipilih oleh admin. Penyawer & Donatur diberikan manual oleh admin. Semua skin berdurasi 1 minggu kecuali badge hati donatur yang permanen.
             </p>
           </div>
         </div>
@@ -299,8 +299,8 @@ function HowToGet({ type }: { type: string }) {
       auto: true,
     },
     host: {
-      label: '💎 Penyewa',
-      desc: 'Diberikan manual oleh admin sebagai sponsor/penyewa',
+      label: '💎 Penyawer',
+      desc: 'Diberikan manual oleh admin sebagai sponsor/penyawer',
       auto: false,
     },
     donor: {

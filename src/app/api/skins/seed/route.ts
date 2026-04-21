@@ -29,7 +29,7 @@ const DEFAULT_SKINS = [
   {
     type: 'host',
     displayName: 'Emerald Luxury',
-    description: 'Skin penyelenggara/penyewa tournament — berlaku selama 1 minggu',
+    description: 'Skin penyelenggara/penyawer tournament — berlaku selama 1 minggu',
     icon: '💎',
     colorClass: JSON.stringify(DEFAULT_SKIN_COLORS.host),
     priority: 2,
