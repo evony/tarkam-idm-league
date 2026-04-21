@@ -1,15 +1,64 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
+const SPLASH_AUDIO_URL = 'https://res.cloudinary.com/dagoryri5/video/upload/v1776781508/tangtangtang_opfd7y.mp3';
 
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   const [phase, setPhase] = useState<'enter' | 'hold' | 'exit'>('enter');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Play opening audio — start slightly after mount for browser autoplay policy
+    const audio = new Audio(SPLASH_AUDIO_URL);
+    audio.volume = 0.7;
+    audioRef.current = audio;
+
+    const playPromise = audio.play();
+    if (playPromise) {
+      playPromise.catch(() => {
+        // Autoplay blocked by browser — try again on first user interaction
+        const resume = () => {
+          audio.play().catch(() => {});
+          document.removeEventListener('click', resume);
+          document.removeEventListener('touchstart', resume);
+        };
+        document.addEventListener('click', resume, { once: true });
+        document.addEventListener('touchstart', resume, { once: true });
+      });
+    }
+
     const t1 = setTimeout(() => setPhase('hold'), 600);
     const t2 = setTimeout(() => setPhase('exit'), 3200);
+    // Fade out audio before splash ends
+    const tFade = setTimeout(() => {
+      if (audioRef.current) {
+        const fadeAudio = audioRef.current;
+        const fadeInterval = setInterval(() => {
+          if (fadeAudio.volume > 0.05) {
+            fadeAudio.volume = Math.max(0, fadeAudio.volume - 0.08);
+          } else {
+            fadeAudio.pause();
+            fadeAudio.currentTime = 0;
+            clearInterval(fadeInterval);
+          }
+        }, 50);
+      }
+    }, 3200);
     const t3 = setTimeout(() => onFinish(), 3900);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(tFade);
+      clearTimeout(t3);
+      // Cleanup audio on unmount
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
+    };
   }, [onFinish]);
 
   return (
