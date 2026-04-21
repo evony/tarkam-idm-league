@@ -27,6 +27,7 @@ import { CloudinaryPicker } from './cloudinary-picker';
 import { AdminOverview } from './admin-overview';
 import { AdminSponsorPanel } from './admin-sponsor-panel';
 import { AdminAchievementPanel } from './admin-achievement-panel';
+import { AdminSkinPanel } from './admin-skin-panel';
 import { AdminSettingsPanel } from './admin-settings-panel';
 import { AdminManagement } from './admin-management';
 import { AdminSeasonPanel } from './admin-season-panel';
@@ -1304,6 +1305,7 @@ export function AdminPanel() {
           <div className="space-y-4">
             <AdminSponsorPanel />
             <AdminAchievementPanel />
+            <AdminSkinPanel />
             <CmsPanel />
           </div>
         </TabsContent>

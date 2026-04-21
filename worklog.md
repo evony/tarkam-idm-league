@@ -167,3 +167,109 @@ Stage Summary:
 - Stacking works: all badge icons shown, highest priority determines visual frame
 - Duration system: champion/mvp = weekly, host/donor = permanent
 - Remaining: Admin Panel skin award UI, auto-award logic, display on more player cards
+---
+Task ID: 5
+Agent: skin-admin-agent
+Task: Create AdminSkinPanel component for admin skin management
+
+Work Log:
+- Read worklog.md to understand previous agent work (Tasks 1-3: player accounts, skin API, skin renderers)
+- Studied existing admin-panel.tsx structure (category-based tabs, konten tab contains AdminSponsorPanel, AdminAchievementPanel, CmsPanel)
+- Studied AdminAchievementPanel as reference pattern (useQuery/useMutation, shadcn/ui components, useDivisionTheme, toast)
+- Studied skin-utils.ts (SKIN_TYPES, DEFAULT_SKIN_COLORS, parseBadgeColors) and skin API endpoints (award, revoke, list)
+- Created new API endpoint: GET /api/skins/holders (admin auth required)
+  - Returns all PlayerSkin records with full player info (gamertag, name, division, avatar)
+  - Includes skin details (type, displayName, icon, colorClass, priority, duration)
+  - Tracks isExpired flag for each holder
+  - Returns count and activeCount
+- Modified GET /api/players route to include account relation (select: { id: true })
+  - Required so AdminSkinPanel can determine which players have accounts for skin awarding
+- Created AdminSkinPanel component at /src/components/idm/admin-skin-panel.tsx with 4 sections:
+  1. Skin Catalog Display: Grid of 4 skin cards with icon, displayName, description, color swatch, duration badge, priority indicator, active/inactive status, and quick "Award" button per skin
+  2. Award Skin Dialog: Modal with skin type selector (4 types), player search by gamertag/name, selected player display, reason input (optional), expiry date picker (auto-sets 7 days for weekly skins), and submit button
+  3. Active Skin Holders: Card showing list of players with skins, each entry shows player gamertag + division, skin icon + name, reason, expiry date, revoke button; expired skins shown in collapsible section
+  4. Quick Award Buttons: Each skin card has an "Award" button that opens the dialog pre-filled with that skin type
+- Used skinThemeConfig for per-skin accent colors: gold for champion, silver/platinum for MVP, emerald for host, rose for donor
+- Followed AdminAchievementPanel patterns: useDivisionTheme, useQuery/useMutation, shadcn/ui components, credentials: 'include', toast notifications, confirm dialog for revoke
+- Modified admin-panel.tsx: Added AdminSkinPanel import and rendered it in konten tab after AdminAchievementPanel
+- ESLint: clean (zero errors)
+- Dev server: compiles without issues
+
+Stage Summary:
+- AdminSkinPanel fully implemented with skin catalog, award dialog, holders list, and quick award buttons
+- New API endpoint GET /api/skins/holders for listing all awarded skins with player info
+- Players API now includes account relation for skin award eligibility checking
+- All styling follows project conventions (dark theme, division-themed cards, shadcn/ui)
+- Integrated into admin panel under Sistem → Konten tab
+---
+Task ID: 7
+Agent: skin-display-agent
+Task: Add skin display to player cards and profiles throughout the TazosView IDM League project
+
+Work Log:
+- Fixed club object rendering bug in player-search.tsx and player-quick-search.tsx
+  - player-search.tsx: Replaced `{player.club.name}` with `clubToString(player.club)` to handle both string and object club formats
+  - player-quick-search.tsx: Replaced `{player.club}` and `{player.club.name}` with `clubToString(player.club)` in both recently-viewed and search-results sections
+- Added skin display to PlayerCard component (player-card.tsx)
+  - Added `skins?: PlayerSkinData[]` optional prop
+  - When skins provided: shows SkinBadgesRow overlay at top-right, wraps gamertag with SkinName for gradient text, wraps card with SkinCardBorder for animated border effect
+  - Champion glow border only shown when no primary skin (avoids double border)
+- Added skin display to OverviewTab (overview-tab.tsx)
+  - Derives loggedInPlayerId and loggedInSkins from store
+  - Passes skins prop to PlayerCard only for logged-in player's card
+- Added skin display to StandingsTab (standings-tab.tsx)
+  - Highlights logged-in player's row with gold tint background
+  - Wraps name with SkinName, shows SkinBadgesRow next to name
+- Added skin display to PlayerProfile (player-profile.tsx)
+  - Checks if viewed player is the logged-in player (isMe check)
+  - Shows SkinName gradient on gamertag and SkinBadgesRow next to name in profile header
+- Added skin display to MyTournamentCard (my-tournament-card.tsx)
+  - Compares searched player's gamertag with logged-in gamertag
+  - Shows SkinName + SkinBadgesRow in all 3 player info states: no tournament, no team, full dashboard
+- Verified existing skin display in my-account-card.tsx and unified-login-modal.tsx — both already fully integrated
+
+Stage Summary:
+- 7 files modified with skin display integration
+- Club rendering bug fixed across 2 files (player-search, player-quick-search)
+- Skins visible on: PlayerCard, overview top 3, standings leaderboard, PlayerProfile modal, MyTournamentCard
+- Approach: skins only shown for the logged-in player (Option B) since rankings API doesn't include skin data
+- ESLint: clean (zero errors), Dev server: compiles without issues
+---
+Task ID: 5
+Agent: subagent (full-stack-developer)
+Task: Create AdminSkinPanel component + add to admin panel
+
+Work Log:
+- Created /src/app/api/skins/holders/route.ts — admin-only endpoint listing all PlayerSkin records with player/skin details
+- Created /src/components/idm/admin-skin-panel.tsx with 4 sections:
+  1. Skin Catalog: 4 skin cards with icon, color swatch, duration badge, priority
+  2. Award Skin Dialog: skin type dropdown, player search, reason, expiry date
+  3. Active Skin Holders: list of players with skins, revoke button, expired skins section
+  4. Quick Award: each skin card has Award button that pre-fills dialog
+- Modified admin-panel.tsx: added AdminSkinPanel import and render in "konten" tab
+- Modified /src/app/api/players/route.ts: added account relation for skin award dialog
+
+Stage Summary:
+- Admin can now award/revoke skins from the Sistem > Konten tab
+- 4 skin types available with quick award buttons
+- Player search with account status indicator
+- Expired skins tracked in collapsible section
+
+---
+Task ID: 7
+Agent: subagent (full-stack-developer)
+Task: Add skin display to player cards/profiles + fix club object bug
+
+Work Log:
+- Fixed club object rendering bug in player-search.tsx and player-quick-search.tsx using clubToString()
+- Added skins prop to player-card.tsx with SkinBadgesRow, SkinName, SkinCardBorder
+- Updated overview-tab.tsx to pass skins from store for logged-in player
+- Updated standings-tab.tsx to highlight logged-in player row with SkinName + SkinBadgesRow
+- Updated player-profile.tsx to show skins on own profile (isMe check)
+- Updated my-tournament-card.tsx to show skins for logged-in player across all 3 states
+
+Stage Summary:
+- Club object bug fixed across all components
+- Skins visible on: player cards, standings, profile, my-tournament-card, account card, login modal
+- Currently shows skins only for logged-in player (Option B — others need backend API change)
+- All lint checks pass, dev server compiles successfully

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Search, X, Loader2, Shield, Clock, Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, clubToString } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
 
 interface PlayerQuickSearchProps {
@@ -281,10 +281,10 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
                           <TierBadge tier={player.tier} />
                         </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          {player.club && (
+                          {clubToString(player.club) && (
                             <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
                               <Shield className="w-2.5 h-2.5 shrink-0" />
-                              {player.club}
+                              {clubToString(player.club)}
                             </span>
                           )}
                         </div>
@@ -369,10 +369,10 @@ export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
                         <TierBadge tier={player.tier} />
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        {player.club && (
+                        {clubToString(player.club) && (
                           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
                             <Shield className="w-2.5 h-2.5 shrink-0" />
-                            {player.club.name}
+                            {clubToString(player.club)}
                           </span>
                         )}
                         {player.rank > 0 && (

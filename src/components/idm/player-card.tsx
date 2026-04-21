@@ -3,9 +3,12 @@
 import Image from 'next/image';
 import { Crown, Flame } from 'lucide-react';
 import { TierBadge } from './tier-badge';
+import { SkinBadgesRow, SkinAvatarFrame, SkinName, SkinCardBorder } from './skin-renderer';
+import { getPrimarySkin } from '@/lib/skin-utils';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { getAvatarUrl, clubToString } from '@/lib/utils';
+import type { PlayerSkinData } from '@/lib/store';
 
 interface PlayerCardProps {
   gamertag: string;
@@ -18,26 +21,23 @@ interface PlayerCardProps {
   rank?: number;
   isMvp?: boolean;
   club?: string | { id: string; name: string; logo?: string | null } | null;
+  /** Skins array — only provided for the logged-in player */
+  skins?: PlayerSkinData[];
   onClick?: () => void;
 }
 
 export function PlayerCard({
-  gamertag, avatar, tier, points, totalWins, totalMvp, streak, rank, isMvp, club, onClick
+  gamertag, avatar, tier, points, totalWins, totalMvp, streak, rank, isMvp, club, skins, onClick
 }: PlayerCardProps) {
   const isChampion = rank === 1;
   const isTop3 = rank !== undefined && rank <= 3;
   const dt = useDivisionTheme();
   const division = useAppStore(s => s.division);
   const avatarSrc = getAvatarUrl(gamertag, division, avatar);
+  const primarySkin = skins && skins.length > 0 ? getPrimarySkin(skins) : null;
 
-  return (
-    <div
-      onClick={onClick}
-      className={`perspective-card hover-scale-md relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
-        isChampion ? dt.neonPulse : ''
-      }`}
-      style={{ aspectRatio: '3/4' }}
-    >
+  const cardContent = (
+    <>
       {/* Full avatar card background */}
       <Image src={avatarSrc} alt={gamertag} fill sizes="(max-width: 768px) 33vw, 150px" className="absolute inset-0 object-cover object-top transition-transform duration-500 hover:scale-105" />
 
@@ -82,8 +82,15 @@ export function PlayerCard({
         </div>
       )}
 
+      {/* Skin badges top-right (below rank badge) */}
+      {skins && skins.length > 0 && (
+        <div className="absolute top-9 right-2 z-10">
+          <SkinBadgesRow skins={skins} />
+        </div>
+      )}
+
       {/* Champion glow border */}
-      {isChampion && (
+      {isChampion && !primarySkin && (
         <div
           className="absolute inset-0 rounded-2xl border-2 border-yellow-500/30 animate-pulse"
         />
@@ -92,9 +99,11 @@ export function PlayerCard({
       {/* Bottom info overlay */}
       <div className="absolute bottom-0 inset-x-0 p-3 z-10">
         {/* Gamertag */}
-        <p className={`font-bold text-sm truncate text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] ${
-          isChampion ? 'text-yellow-300' : ''
-        }`}>{gamertag}</p>
+        <SkinName skin={primarySkin}>
+          <p className={`font-bold text-sm truncate text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] ${
+            isChampion ? 'text-yellow-300' : ''
+          }`}>{gamertag}</p>
+        </SkinName>
 
         {/* Tier + Club */}
         <div className="flex items-center gap-1.5 mt-0.5">
@@ -120,6 +129,24 @@ export function PlayerCard({
       <div className={`absolute inset-0 rounded-2xl border transition-all duration-300 ${
         division === 'male' ? 'border-[#06b6d4]/0 hover:border-[#06b6d4]/30' : 'border-[#a855f7]/0 hover:border-[#a855f7]/30'
       }`} />
+    </>
+  );
+
+  return (
+    <div
+      onClick={onClick}
+      className={`perspective-card hover-scale-md relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
+        isChampion ? dt.neonPulse : ''
+      }`}
+      style={{ aspectRatio: '3/4' }}
+    >
+      {primarySkin ? (
+        <SkinCardBorder skin={primarySkin}>
+          {cardContent}
+        </SkinCardBorder>
+      ) : (
+        cardContent
+      )}
     </div>
   );
 }

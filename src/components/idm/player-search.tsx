@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { TierBadge } from './tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { ClubLogoImage } from './club-logo-image';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, clubToString } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
 
 interface PlayerSearchProps {
@@ -197,10 +197,10 @@ export function PlayerSearch({ division, onSelectPlayer, open = false, onOpenCha
                         <TierBadge tier={player.tier} />
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        {player.club ? (
+                        {clubToString(player.club) ? (
                           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
                             <Shield className="w-2.5 h-2.5 shrink-0" />
-                            {player.club.name}
+                            {clubToString(player.club)}
                           </span>
                         ) : null}
                         {player.rank > 0 && (

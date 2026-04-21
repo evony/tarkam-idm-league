@@ -14,6 +14,7 @@ import { DanceMatchCard } from '../match-card';
 import { SectionCard, MatchRow } from './shared';
 import { Card } from '@/components/ui/card';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
+import { useAppStore } from '@/lib/store';
 import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
@@ -26,6 +27,11 @@ interface OverviewTabProps {
 
 export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub }: OverviewTabProps) {
   const dt = useDivisionTheme();
+  const playerAuth = useAppStore(s => s.playerAuth);
+
+  // Get logged-in player's skins for skin display on player cards
+  const loggedInPlayerId = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.player.id : null;
+  const loggedInSkins = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.skins : undefined;
 
   const [topPlayerTab, setTopPlayerTab] = useState<'top3' | 'champion' | 'mvp'>('top3');
   const [selectedChampionWeek, setSelectedChampionWeek] = useState<number>(1);
@@ -111,6 +117,7 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                       rank={idx + 1}
                       isMvp={p.totalMvp > 0 && idx === 0}
                       club={p.club}
+                      skins={p.id === loggedInPlayerId ? loggedInSkins : undefined}
                       onClick={() => setSelectedPlayer(p)}
                     />
                   </div>

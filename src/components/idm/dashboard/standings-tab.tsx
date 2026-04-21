@@ -11,6 +11,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { TierBadge } from '../tier-badge';
+import { SkinBadgesRow, SkinName } from '../skin-renderer';
+import { getPrimarySkin } from '@/lib/skin-utils';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { PlayerSearch } from '../player-search';
@@ -28,6 +30,11 @@ interface StandingsTabProps {
 export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: StandingsTabProps) {
   const dt = useDivisionTheme();
   const division = useAppStore(s => s.division);
+  const playerAuth = useAppStore(s => s.playerAuth);
+
+  // Get logged-in player info for skin display
+  const loggedInPlayerId = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.player.id : null;
+  const loggedInSkins = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.skins : undefined;
 
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [showAllPlayers, setShowAllPlayers] = useState(false);
@@ -98,12 +105,15 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                   <TableBody>
                     {displayedPlayers?.map((p, idx) => {
                       const losses = p.matches - p.totalWins;
+                      const isMe = p.id === loggedInPlayerId;
+                      const mySkins = isMe ? loggedInSkins : undefined;
+                      const primarySkin = mySkins && mySkins.length > 0 ? getPrimarySkin(mySkins) : null;
                       return (
                         <TableRow
                           key={p.id}
                           className={`cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
                             idx < 3 ? `${dt.bgSubtle}` : ''
-                          }`}
+                          } ${isMe ? 'bg-idm-gold/5' : ''}`}
                           onClick={() => setSelectedPlayer(p)}
                         >
                           <TableCell className="text-center">
@@ -122,7 +132,12 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                                 {p.gamertag.slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-xs font-medium truncate">{p.gamertag}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <SkinName skin={primarySkin}>
+                                    <p className="text-xs font-medium truncate">{p.gamertag}</p>
+                                  </SkinName>
+                                  {mySkins && mySkins.length > 0 && <SkinBadgesRow skins={mySkins} />}
+                                </div>
                                 {clubToString(p.club as any) && <p className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</p>}
                               </div>
                             </div>

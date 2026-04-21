@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TierBadge } from './tier-badge';
+import { SkinBadgesRow, SkinName } from './skin-renderer';
+import { getPrimarySkin } from '@/lib/skin-utils';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 
@@ -123,8 +125,12 @@ function StatusBadge({ status, division }: { status: string; division: string })
 
 /* ─── Main Component ─── */
 export function MyTournamentCard() {
-  const { division } = useAppStore();
+  const { division, playerAuth } = useAppStore();
   const dt = useDivisionTheme();
+
+  // Skins: check if searched player is the logged-in player
+  const loggedInGamertag = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.player.gamertag : null;
+  const loggedInSkins = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.skins : undefined;
   const [searchName, setSearchName] = useState('');
   const [submittedName, setSubmittedName] = useState('');
   const [showAllMatches, setShowAllMatches] = useState(false);
@@ -276,7 +282,12 @@ export function MyTournamentCard() {
                   <Users className={`w-5 h-5 ${dt.neonText}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">{data.player.gamertag}</p>
+                  <div className="flex items-center gap-1.5">
+                    <SkinName skin={data.player.gamertag === loggedInGamertag && loggedInSkins?.length ? getPrimarySkin(loggedInSkins) : null}>
+                      <p className="text-sm font-bold">{data.player.gamertag}</p>
+                    </SkinName>
+                    {data.player.gamertag === loggedInGamertag && loggedInSkins && loggedInSkins.length > 0 && <SkinBadgesRow skins={loggedInSkins} />}
+                  </div>
                   <p className="text-[10px] text-muted-foreground">{data.player.name} • {data.player.city}</p>
                 </div>
               </div>
@@ -303,7 +314,12 @@ export function MyTournamentCard() {
                   <Users className={`w-5 h-5 ${dt.neonText}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{data.player.gamertag}</p>
+                  <div className="flex items-center gap-1.5">
+                    <SkinName skin={data.player.gamertag === loggedInGamertag && loggedInSkins?.length ? getPrimarySkin(loggedInSkins) : null}>
+                      <p className="text-sm font-bold truncate">{data.player.gamertag}</p>
+                    </SkinName>
+                    {data.player.gamertag === loggedInGamertag && loggedInSkins && loggedInSkins.length > 0 && <SkinBadgesRow skins={loggedInSkins} />}
+                  </div>
                   <p className="text-[10px] text-muted-foreground">{data.player.name} • {data.player.city}</p>
                 </div>
               </div>
@@ -366,7 +382,12 @@ export function MyTournamentCard() {
                   <Users className={`w-5 h-5 ${dt.neonText}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{data.player.gamertag}</p>
+                  <div className="flex items-center gap-1.5">
+                    <SkinName skin={data.player.gamertag === loggedInGamertag && loggedInSkins?.length ? getPrimarySkin(loggedInSkins) : null}>
+                      <p className="text-sm font-bold truncate">{data.player.gamertag}</p>
+                    </SkinName>
+                    {data.player.gamertag === loggedInGamertag && loggedInSkins && loggedInSkins.length > 0 && <SkinBadgesRow skins={loggedInSkins} />}
+                  </div>
                   <p className="text-[10px] text-muted-foreground">{data.player.name} • {data.player.city}</p>
                 </div>
                 <TierBadge tier={data.player.tier} />
