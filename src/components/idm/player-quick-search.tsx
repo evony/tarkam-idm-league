@@ -28,7 +28,14 @@ interface SearchResultPlayer {
 /** localStorage key for "last viewed player" quick access */
 const LAST_PLAYER_KEY = 'idm-last-player';
 
-export function saveLastViewedPlayer(player: { id: string; gamertag: string; tier: string; points: number; totalWins: number; totalMvp: number; avatar?: string | null; club?: string; division?: string }) {
+// Normalize club to always be a string (name), regardless of input format
+function normalizeClub(club: string | { id: string; name: string; logo?: string | null } | null | undefined): string | undefined {
+  if (!club) return undefined;
+  if (typeof club === 'string') return club || undefined;
+  return club.name || undefined;
+}
+
+export function saveLastViewedPlayer(player: { id: string; gamertag: string; tier: string; points: number; totalWins: number; totalMvp: number; avatar?: string | null; club?: string | { id: string; name: string; logo?: string | null } | null; division?: string }) {
   try {
     localStorage.setItem(LAST_PLAYER_KEY, JSON.stringify({
       id: player.id,
@@ -38,7 +45,7 @@ export function saveLastViewedPlayer(player: { id: string; gamertag: string; tie
       totalWins: player.totalWins,
       totalMvp: player.totalMvp,
       avatar: player.avatar,
-      club: player.club,
+      club: normalizeClub(player.club),
       division: player.division,
       savedAt: Date.now(),
     }));
@@ -59,8 +66,15 @@ export function getLastViewedPlayer(): {
       localStorage.removeItem(LAST_PLAYER_KEY);
       return null;
     }
+    // Normalize club: if it's an object, extract name; if it's not a string, remove it
+    if (data.club && typeof data.club !== 'string') {
+      data.club = normalizeClub(data.club);
+    }
     return data;
-  } catch { return null; }
+  } catch {
+    localStorage.removeItem(LAST_PLAYER_KEY);
+    return null;
+  }
 }
 
 export function PlayerQuickSearch({ onSelectPlayer }: PlayerQuickSearchProps) {
