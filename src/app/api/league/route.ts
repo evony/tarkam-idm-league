@@ -153,6 +153,59 @@ export async function GET() {
     },
   }));
 
+  // ── Fallback logo resolution ──
+  // Clubs are per-season records. A club might not have a logo in the current season
+  // but has one in a previous season. We fall back to the most recent logo for the
+  // same club name across ALL seasons.
+  const clubsNeedingLogo = allClubs.filter(c => !c.logo);
+  if (clubsNeedingLogo.length > 0) {
+    const clubNames = clubsNeedingLogo.map(c => c.name);
+    const fallbackClubs = await withDbRetry(() => db.club.findMany({
+      where: {
+        name: { in: clubNames },
+        logo: { not: null },
+      },
+      select: { name: true, logo: true, seasonId: true },
+    }));
+    // Build lookup: clubName → any non-null logo (just take the first one found)
+    const logoLookup = new Map<string, string>();
+    for (const fb of fallbackClubs) {
+      if (!logoLookup.has(fb.name) && fb.logo) {
+        logoLookup.set(fb.name, fb.logo);
+      }
+    }
+    // Apply fallback logos
+    for (const club of allClubs) {
+      if (!club.logo && logoLookup.has(club.name)) {
+        club.logo = logoLookup.get(club.name)!;
+      }
+    }
+  }
+
+  // ── Fallback bannerImage resolution (same pattern) ──
+  const clubsNeedingBanner = allClubs.filter(c => !c.bannerImage);
+  if (clubsNeedingBanner.length > 0) {
+    const clubNames = clubsNeedingBanner.map(c => c.name);
+    const fallbackClubs = await withDbRetry(() => db.club.findMany({
+      where: {
+        name: { in: clubNames },
+        bannerImage: { not: null },
+      },
+      select: { name: true, bannerImage: true },
+    }));
+    const bannerLookup = new Map<string, string>();
+    for (const fb of fallbackClubs) {
+      if (!bannerLookup.has(fb.name) && fb.bannerImage) {
+        bannerLookup.set(fb.name, fb.bannerImage);
+      }
+    }
+    for (const club of allClubs) {
+      if (!club.bannerImage && bannerLookup.has(club.name)) {
+        club.bannerImage = bannerLookup.get(club.name)!;
+      }
+    }
+  }
+
   // If no clubs exist anywhere, league hasn't started — still return ligaChampion
   if (allClubs.length === 0) {
     return NextResponse.json({

@@ -59,12 +59,34 @@ export async function PUT(
     },
   });
 
+  // ── Sync logo/banner across ALL seasons ──
+  // Clubs are per-season records (@@unique([name, seasonId])).
+  // When admin uploads a new logo for a club, we want it to propagate
+  // to the same-named club in EVERY season so the landing page always
+  // shows the latest logo regardless of which season's clubs are displayed.
+  if (logo !== undefined || bannerImage !== undefined) {
+    const syncData: { logo?: string | null; bannerImage?: string | null } = {};
+    if (logo !== undefined) syncData.logo = logo;
+    if (bannerImage !== undefined) syncData.bannerImage = bannerImage;
+
+    // Update all OTHER club records with the same name (different seasonId)
+    const syncResult = await db.club.updateMany({
+      where: {
+        name: updated.name,
+        id: { not: id }, // Don't re-update the one we just saved
+      },
+      data: syncData,
+    });
+
+    console.log(`[PUT /api/clubs/${id}] Synced logo/banner to ${syncResult.count} other season(s) for club "${updated.name}"`);
+  }
+
   // Invalidate ALL Next.js/Vercel cache layers so landing page shows updated logo/banner
   // 1. revalidatePath — invalidates Full Route Cache and Data Cache for these paths
   revalidatePath('/');
   revalidatePath('/api/league');
   // 2. revalidateTag — more targeted, works with fetch() tags and Vercel CDN
-  revalidateTag('league-data');
+  revalidateTag('league-data', 'layout');
   // 3. Also invalidate stats routes (club logos appear in standings)
   revalidatePath('/api/stats');
 
@@ -99,7 +121,7 @@ export async function DELETE(
   // Invalidate ALL Next.js/Vercel cache layers so landing page updates after club deletion
   revalidatePath('/');
   revalidatePath('/api/league');
-  revalidateTag('league-data');
+  revalidateTag('league-data', 'layout');
   revalidatePath('/api/stats');
 
   return NextResponse.json({ success: true, message: 'Club berhasil dihapus' });

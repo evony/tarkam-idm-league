@@ -148,6 +148,56 @@ export async function GET(request: Request) {
     }),
   ]);
 
+  // ── Fallback logo resolution for clubs ──
+  // Same pattern as /api/league — if a club in the current season has no logo,
+  // fall back to the most recent logo from any season with the same club name.
+  const clubsNeedingLogo = clubs.filter((c: { logo: string | null }) => !c.logo);
+  if (clubsNeedingLogo.length > 0) {
+    const clubNames = clubsNeedingLogo.map((c: { name: string }) => c.name);
+    const fallbackClubs = await db.club.findMany({
+      where: {
+        name: { in: clubNames },
+        logo: { not: null },
+      },
+      select: { name: true, logo: true },
+    });
+    const logoLookup = new Map<string, string>();
+    for (const fb of fallbackClubs) {
+      if (!logoLookup.has(fb.name) && fb.logo) {
+        logoLookup.set(fb.name, fb.logo);
+      }
+    }
+    for (const club of clubs) {
+      if (!club.logo && logoLookup.has(club.name)) {
+        club.logo = logoLookup.get(club.name)!;
+      }
+    }
+  }
+
+  // ── Fallback bannerImage resolution ──
+  const clubsNeedingBanner = clubs.filter((c: { bannerImage: string | null }) => !c.bannerImage);
+  if (clubsNeedingBanner.length > 0) {
+    const clubNames = clubsNeedingBanner.map((c: { name: string }) => c.name);
+    const fallbackClubs = await db.club.findMany({
+      where: {
+        name: { in: clubNames },
+        bannerImage: { not: null },
+      },
+      select: { name: true, bannerImage: true },
+    });
+    const bannerLookup = new Map<string, string>();
+    for (const fb of fallbackClubs) {
+      if (!bannerLookup.has(fb.name) && fb.bannerImage) {
+        bannerLookup.set(fb.name, fb.bannerImage);
+      }
+    }
+    for (const club of clubs) {
+      if (!club.bannerImage && bannerLookup.has(club.name)) {
+        club.bannerImage = bannerLookup.get(club.name)!;
+      }
+    }
+  }
+
   // ── Compute derived values in-memory (no extra DB queries) ──
 
   // Total prize pool — filter weekly donations
