@@ -33,7 +33,7 @@ export function PlayerCard({
   return (
     <div
       onClick={onClick}
-      className={`hover-scale-md relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
+      className={`perspective-card hover-scale-md relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
         isChampion ? dt.neonPulse : ''
       }`}
       style={{ aspectRatio: '3/4' }}

@@ -274,9 +274,72 @@
   .animate-bob-fade,
   .animate-spin-roller,
   .animate-sparkle-explode,
-  .animate-wiggle {
+  .animate-wiggle,
+  .parallax-bg,
+  .parallax-layer,
+  .perspective-card {
     animation: none;
+    transform: none !important;
   }
+}
+
+/* ============================================
+   SUBTLE PARALLAX — Inspired by museum-style scroll
+   GPU-friendly, capped movement, rAF-driven
+   ============================================ */
+
+/* Hero background parallax — moved via JS useParallax hook */
+.parallax-bg {
+  will-change: transform;
+  contain: layout style;
+}
+
+/* Parallax layer — mid-depth decorative elements */
+.parallax-layer {
+  will-change: transform;
+  contain: layout style;
+  transition: none; /* JS drives transform directly */
+}
+
+/* 3D Perspective container — wrap a card to enable 3D tilt */
+.perspective-container {
+  perspective: 1000px;
+}
+
+/* 3D Perspective card — subtle hover tilt */
+.perspective-card {
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.perspective-card:hover {
+  transform: rotateY(4deg) rotateX(2deg);
+}
+
+.perspective-card:active {
+  transform: rotateY(0deg) rotateX(0deg) scale(0.99);
+}
+
+/* Scroll-reveal with parallax offset — elements slide up slightly as they enter view */
+@keyframes reveal-parallax {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal-parallax {
+  animation: reveal-parallax 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Section background parallax offset — very subtle, moves slower than scroll */
+.parallax-section-bg {
+  will-change: transform;
+  contain: layout style;
 }
 
 /* Slot machine roller — translates from Y=0 to CSS custom property target */

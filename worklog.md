@@ -714,3 +714,30 @@ Stage Summary:
 - Slot machine roller uses CSS custom property `--roller-target` for dynamic Y translation with `onAnimationEnd` callback
 - Sparkle particles use CSS custom properties `--sparkle-x`, `--sparkle-y` for dynamic explosion direction
 - Dynamic delays handled via `style={{ animationDelay }}` inline
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Add subtle parallax effects to landing page and dashboard, inspired by Virtual Museum reference site
+
+Work Log:
+- Read reference website (Virtual Museum of World Cultures) to analyze parallax techniques
+- Identified 3 key parallax techniques: hero background parallax (JS scroll-driven translateY), 3D perspective tilt cards, and scroll-reveal with parallax offset
+- Added CSS parallax infrastructure to globals.css: `.parallax-bg`, `.parallax-layer`, `.perspective-container`, `.perspective-card`, `.animate-reveal-parallax`, `.parallax-section-bg`
+- Created `useParallax` hook at `/src/hooks/use-parallax.ts` — lightweight rAF-based scroll listener, no Framer Motion
+- Also created `useSectionParallax` hook for viewport-center-based offset
+- Applied hero background parallax to `hero-section.tsx` — background moves at 15% of scroll speed, capped at 100px
+- Enhanced `AnimatedSection` component with `parallax` prop — adds subtle scroll-driven translateY offset (+/-8px) based on viewport center position
+- Added `parallax` prop to AnimatedSection in: about-section, tournament-hub (both division cards)
+- Added `perspective-card` (3D tilt on hover) to: champion cards, MVP cards, tournament hub division cards, dashboard hero banner, dashboard stat cards, dream section stat cards, player-card, match-card, team-card, hero stat cards
+- Added `perspective-container` wrapper to: champion section divisions, MVP section cards, Liga IDM champion card
+- Added z-index layering in hero section for proper parallax depth (z-0 bg, z-[1] overlays, z-10 content)
+- All changes are performance-friendly: `will-change: transform`, `contain: layout style`, rAF throttling, `prefers-reduced-motion` support
+- Lint passes clean, dev server compiles successfully
+
+Stage Summary:
+- Hero background parallax: background drifts at 15% of scroll speed, capped at 100px — subtle museum-style effect
+- 3D perspective tilt: cards tilt 4deg Y + 2deg X on hover with 0.5s transition — tasteful depth
+- Scroll parallax: AnimatedSection elements offset +/-8px based on viewport position — gentle depth illusion
+- Performance: no Framer Motion, rAF-based, GPU-accelerated transforms, reduced-motion support
+- Applied to both landing page (6 sections) and dashboard (3 key cards)

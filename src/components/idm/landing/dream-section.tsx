@@ -142,7 +142,7 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               { icon: Swords, value: `${matchesPlayed}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]' },
               { icon: Users, value: `${totalParticipants}`, label: 'Peserta Total', accent: 'border-idm-gold-warm/15' },
             ].map((s, i) => (
-              <div key={s.label} className={`rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06] hover:scale-[1.02]`}>
+              <div key={s.label} className={`perspective-card rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06]`}>
                 <s.icon className="w-4 h-4 text-idm-gold-warm mx-auto mb-2" />
                 <p className="text-lg sm:text-2xl font-black text-white truncate">{s.value}</p>
                 <p className="text-[9px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1">{s.label}</p>

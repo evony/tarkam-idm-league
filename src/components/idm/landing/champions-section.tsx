@@ -60,10 +60,10 @@ export function ChampionsSection({
           {/* Liga IDM Champion — Premium Showcase */}
           {leagueData?.ligaChampion && (
             <div
-              className="animate-fade-enter mb-8"
+              className="animate-fade-enter mb-8 perspective-container"
               style={{ animationDelay: '100ms' }}
             >
-              <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/30" style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 25%, #0d0a06 50%, #1a0f05 75%, #0c0a06 100%)' }}>
+              <div className="perspective-card relative rounded-2xl overflow-hidden border border-idm-gold-warm/30" style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 25%, #0d0a06 50%, #1a0f05 75%, #0c0a06 100%)' }}>
                 {/* Gold shimmer overlay */}
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                 {/* Radial gold glow */}
@@ -224,7 +224,7 @@ export function ChampionsSection({
               return (
                 <div
                   key={division}
-                  className="stagger-item-fast"
+                  className="stagger-item-fast perspective-container"
                   style={{ animationDelay: `${divIdx * 100}ms` }}
                 >
                   {(!data || !data.weeklyChampions?.length) ? (
@@ -278,7 +278,7 @@ export function ChampionsSection({
                     const champions = data.weeklyChampions;
                     const selected = champions[champions.length - 1];
                     return (
-                      <Card className="overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
+                      <Card className="perspective-card overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
                         {/* Gold accent line — thicker, more premium */}
                         <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
                         <CardContent className="p-0">

@@ -63,12 +63,12 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
       <div className="ambient-light" style={{ top: '15%', right: '8%', animationDuration: '25s' }} />
 
       <div className="relative z-10 max-w-4xl mx-auto">
-        <AnimatedSection>
+        <AnimatedSection parallax>
           <SectionHeader icon={Heart} label={sectionSubtitle} title={sectionTitle} subtitle={sectionDescription} />
         </AnimatedSection>
 
         {/* Origin Story */}
-        <AnimatedSection variant="fadeUp">
+        <AnimatedSection variant="fadeUp" parallax>
           <div className="relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-6 sm:p-8 mb-8">
             {/* Gold accent line */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />

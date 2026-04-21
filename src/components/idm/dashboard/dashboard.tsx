@@ -41,7 +41,7 @@ export function Dashboard() {
     <div className="space-y-5">
       {/* ── Hero Banner — Clean & Punchy ── */}
       <div
-        className="stagger-item relative rounded-2xl overflow-hidden border border-border"
+        className="stagger-item perspective-card relative rounded-2xl overflow-hidden border border-border"
       >
         {/* Gradient background */}
         <div className={`absolute inset-0 ${isMale
@@ -126,7 +126,7 @@ export function Dashboard() {
       {/* ── Two Column — Top Players + Weekly Champions ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top Players */}
-        <Card>
+        <Card className="perspective-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Crown className={`w-4 h-4 ${accentText}`} /> Top Players
@@ -155,7 +155,7 @@ export function Dashboard() {
         </Card>
 
         {/* Weekly Champions */}
-        <Card>
+        <Card className="perspective-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Trophy className={`w-4 h-4 ${accentText}`} /> Weekly Champions

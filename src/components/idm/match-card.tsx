@@ -79,7 +79,7 @@ export function DanceMatchCard({
   return (
     <div
       onClick={handleClick}
-      className={`hover-scale-md relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
+      className={`perspective-card hover-scale-md relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
         dt.casinoCard
       } ${isLive ? dt.neonPulse : ''} ${dt.casinoGlow} casino-shimmer`}
     >

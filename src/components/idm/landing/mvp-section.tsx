@@ -54,7 +54,7 @@ export function MvpSection({
               ) : (
               <>
               {/* Male MVP — Left DRAMATIC HERO CARD */}
-              <div className="stagger-item-fast" style={{ animationDelay: '0ms' }}>
+              <div className="stagger-item-fast perspective-container" style={{ animationDelay: '0ms' }}>
                 {(() => {
                   const mvp = maleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
@@ -78,7 +78,7 @@ export function MvpSection({
                   );
                   return (
                     <div
-                      className="relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#06b6d4]/15 hover:border-[#06b6d4]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
+                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#06b6d4]/15 hover:border-[#06b6d4]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
                       style={{ boxShadow: '0 0 40px rgba(6,182,212,0.08)' }}
                       role="button"
                       tabIndex={0}
@@ -152,7 +152,7 @@ export function MvpSection({
               </div>
 
               {/* Female MVP — Right DRAMATIC HERO CARD */}
-              <div className="stagger-item-fast" style={{ animationDelay: '60ms' }}>
+              <div className="stagger-item-fast perspective-container" style={{ animationDelay: '60ms' }}>
                 {(() => {
                   const mvp = femaleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
@@ -176,7 +176,7 @@ export function MvpSection({
                   );
                   return (
                     <div
-                      className="relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#a855f7]/15 hover:border-[#a855f7]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
+                      className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group min-h-[520px] border border-[#a855f7]/15 hover:border-[#a855f7]/30 transition-all duration-300 mvp-card-glow champion-gold-frame hover:shadow-[0_0_50px_rgba(212,168,83,0.15)]"
                       style={{ boxShadow: '0 0 40px rgba(168,85,247,0.08)' }}
                       role="button"
                       tabIndex={0}

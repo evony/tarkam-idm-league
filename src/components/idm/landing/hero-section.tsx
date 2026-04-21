@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard } from './shared';
 import { formatCurrency } from '@/lib/utils';
+import { useParallax } from '@/hooks/use-parallax';
 import type { StatsData } from '@/types/stats';
 
 /**
@@ -63,11 +64,15 @@ export function HeroSection({
   cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
   nextSeason, maleData, particles, onRegister, onVideoPlay
 }: HeroSectionProps) {
+  /* Parallax: hero background moves at 15% of scroll speed, capped at 100px */
+  const bgParallaxRef = useParallax<HTMLDivElement>({ speed: 0.15, maxOffset: 100 });
+
   return (
     <>
-      {/* ========== HERO SECTION — Cinematic ========== */}
+      {/* ========== HERO SECTION — Cinematic with Subtle Parallax ========== */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Multi-layer Background — static images (parallax removed for performance) */}
+        {/* Multi-layer Background — parallax: background drifts slower than scroll */}
+        <div ref={bgParallaxRef} className="parallax-bg absolute inset-0" style={{ zIndex: 0 }}>
         {cmsHeroBgVideo ? (() => {
           const ytInfo = parseYouTubeUrl(cmsHeroBgVideo);
           const ytId = ytInfo?.id ?? null;
@@ -125,31 +130,32 @@ export function HeroSection({
             </div>
           </>
         )}
+        </div>{/* end parallax-bg wrapper */}
 
         {/* Layer 2: Mid-depth gold haze */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 z-[1]"
           style={{
             background: 'radial-gradient(ellipse at 50% 60%, rgba(212,168,83,0.08) 0%, transparent 70%)',
           }}
         />
 
-        {/* Gradient Overlay — 2 layers (simplified from 3) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
+        {/* Gradient Overlay — 2 layers */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
 
         {/* Animated Grid Overlay */}
-        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+        <div className="absolute inset-0 z-[1] opacity-[0.02] dark:opacity-[0.04]" style={{
           backgroundImage: `linear-gradient(rgba(212,168,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.3) 1px, transparent 1px)`,
           backgroundSize: '60px 60px',
         }} />
 
         {/* Ambient Orbit Light */}
-        <div className="ambient-light" style={{ top: '30%', left: '20%' }} />
-        <div className="ambient-light" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
+        <div className="ambient-light z-[1]" style={{ top: '30%', left: '20%' }} />
+        <div className="ambient-light z-[1]" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
 
         {/* Floating Particles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden" aria-hidden="true">
           {particles.map((p) => (
             <div
               key={p.id}

@@ -9,11 +9,12 @@ export function useSwipeNavigation() {
   // Users can now scroll freely; bottom nav still provides quick section navigation.
 }
 
-/* ========== Scroll-triggered Section Wrapper ========== */
-export function AnimatedSection({ children, className = '', variant = 'fadeUp' }: {
+/* ========== Scroll-triggered Section Wrapper with Subtle Parallax ========== */
+export function AnimatedSection({ children, className = '', variant = 'fadeUp', parallax = false }: {
   children: ReactNode;
   className?: string;
   variant?: 'fadeUp' | 'fadeLeft' | 'fadeRight' | 'scaleIn';
+  parallax?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -29,15 +30,42 @@ export function AnimatedSection({ children, className = '', variant = 'fadeUp' }
           observer.unobserve(el);
         }
       },
-      { rootMargin: '-80px' }
+      { rootMargin: '-60px' }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
+  // Subtle parallax offset — element drifts slightly based on scroll position
+  useEffect(() => {
+    if (!parallax || !isVisible) return;
+    const el = ref.current;
+    if (!el) return;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          const rect = el.getBoundingClientRect();
+          const viewH = window.innerHeight;
+          // Only apply when element is in viewport
+          if (rect.bottom > 0 && rect.top < viewH) {
+            const centerOffset = (rect.top + rect.height / 2 - viewH / 2) / viewH;
+            el.style.transform = `translateY(${centerOffset * -8}px)`;
+          }
+          ticking = false;
+        });
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [parallax, isVisible]);
+
   // Map variant to CSS animation class
-  const animClass = isVisible ? 'animate-fade-enter' : 'opacity-0';
+  const animClass = isVisible ? (parallax ? 'animate-reveal-parallax' : 'animate-fade-enter') : 'opacity-0';
 
   return (
     <div
@@ -84,7 +112,7 @@ export function StatCard({ icon: Icon, value, label, delay }: {
       className="animate-fade-enter-sm group relative"
       style={{ animationDelay: `${delay * 1000}ms` }}
     >
-      <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl glass border-0 card-shine card-border-glow text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]">
+      <div className="perspective-card relative p-3 sm:p-5 rounded-xl sm:rounded-2xl glass border-0 card-shine card-border-glow text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]">
         <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 flex items-center justify-center group-hover:scale-110 transition-transform">
           <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-idm-gold-warm" />
         </div>

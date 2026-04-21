@@ -26,14 +26,14 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
 
       <div className="relative z-10 max-w-6xl mx-auto">
-        <AnimatedSection>
+        <AnimatedSection parallax>
           <SectionHeader icon={Music} label="Kompetisi" title="Dua Divisi, Satu Arena" subtitle="Weekly Tournament setiap minggu — pilih divisimu dan langsung bertanding" />
         </AnimatedSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* ═══ Weekly Tournament — Male Division ═══ */}
-          <AnimatedSection variant="fadeLeft">
-            <div className="relative group rounded-2xl overflow-hidden border border-cyan-500/20 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
+          <AnimatedSection variant="fadeLeft" parallax>
+            <div className="perspective-card relative group rounded-2xl overflow-hidden border border-cyan-500/20 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(6,182,212,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -108,8 +108,8 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
           </AnimatedSection>
 
           {/* ═══ Weekly Tournament — Female Division ═══ */}
-          <AnimatedSection variant="fadeRight">
-            <div className="relative group rounded-2xl overflow-hidden border border-purple-500/20 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
+          <AnimatedSection variant="fadeRight" parallax>
+            <div className="perspective-card relative group rounded-2xl overflow-hidden border border-purple-500/20 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(168,85,247,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(168,85,247,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />

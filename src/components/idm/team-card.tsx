@@ -14,7 +14,7 @@ interface TeamCardProps {
 export function TeamCard({ name, players, power, isWinner, showPower = true }: TeamCardProps) {
   return (
     <div
-      className={`hover-scale-sm p-3 rounded-xl border transition-all ${
+      className={`perspective-card hover-scale-sm p-3 rounded-xl border transition-all ${
         isWinner
           ? 'bg-yellow-500/5 border-yellow-500/20 glow-gold'
           : 'bg-card border-border/50 hover:border-primary/20'
