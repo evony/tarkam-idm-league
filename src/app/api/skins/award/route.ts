@@ -6,6 +6,9 @@ import { requireAdmin } from '@/lib/api-auth';
  * POST /api/skins/award
  * Award a skin to a player (admin auth required)
  * Body: { accountId, skinType, reason?, expiresAt? }
+ *
+ * Special: Awarding "donor" skin also increments donorBadgeCount on Account
+ * (permanent heart badge persists even after skin expires)
  */
 export async function POST(request: Request) {
   const authResult = await requireAdmin(request);
@@ -52,6 +55,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // If awarding donor skin, increment donorBadgeCount (permanent heart badge)
+    if (skinType === 'donor') {
+      await db.account.update({
+        where: { id: accountId },
+        data: { donorBadgeCount: { increment: 1 } },
+      });
+    }
+
     // Check if the player already has this skin (active, non-expired)
     const existingPlayerSkin = await db.playerSkin.findUnique({
       where: { accountId_skinId: { accountId, skinId: skin.id } },
@@ -79,6 +90,12 @@ export async function POST(request: Request) {
         },
       });
 
+      // Get updated donorBadgeCount
+      const updatedAccount = await db.account.findUnique({
+        where: { id: accountId },
+        select: { donorBadgeCount: true },
+      });
+
       return NextResponse.json({
         success: true,
         message: `Skin "${skin.displayName}" re-awarded ke ${account.player.gamertag}`,
@@ -94,6 +111,7 @@ export async function POST(request: Request) {
           colorClass: JSON.parse(skin.colorClass),
           priority: skin.priority,
           duration: skin.duration,
+          donorBadgeCount: updatedAccount?.donorBadgeCount ?? 0,
         },
       });
     }
@@ -107,6 +125,12 @@ export async function POST(request: Request) {
         reason: reason || null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
+    });
+
+    // Get updated donorBadgeCount
+    const updatedAccount = await db.account.findUnique({
+      where: { id: accountId },
+      select: { donorBadgeCount: true },
     });
 
     return NextResponse.json({
@@ -124,6 +148,7 @@ export async function POST(request: Request) {
         colorClass: JSON.parse(skin.colorClass),
         priority: skin.priority,
         duration: skin.duration,
+        donorBadgeCount: updatedAccount?.donorBadgeCount ?? 0,
       },
     }, { status: 201 });
   } catch (error) {

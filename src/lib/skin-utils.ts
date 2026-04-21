@@ -61,14 +61,14 @@ export const SKIN_TYPES = {
     icon: '💎',
     displayName: 'Emerald Luxury',
     priority: 2,
-    duration: 'permanent',
+    duration: 'weekly',
   },
   donor: {
     type: 'donor',
     icon: '❤️',
     displayName: 'Maroon Heart',
     priority: 1,
-    duration: 'permanent',
+    duration: 'weekly',
   },
 } as const;
 
@@ -232,4 +232,45 @@ export function filterActiveSkins(skins: PlayerSkinWithDetails[]): PlayerSkinWit
  */
 export function getSkinTypeDefinition(type: string): (typeof SKIN_TYPES)[SkinTypeKey] | undefined {
   return SKIN_TYPES[type as SkinTypeKey];
+}
+
+// ============================================
+// DONOR BADGE HELPERS
+// Heart badges persist permanently even after donor skin expires
+// 1-4 donations: small heart badge
+// 5+ donations: bigger heart badge with pulse glow
+// ============================================
+
+/**
+ * Get the donor badge display config based on donation count.
+ * Returns null if count is 0 (no badge to show).
+ */
+export function getDonorBadgeConfig(donorBadgeCount: number): {
+  size: 'sm' | 'lg';
+  hasPulseGlow: boolean;
+  label: string;
+} | null {
+  if (donorBadgeCount <= 0) return null;
+
+  if (donorBadgeCount >= 5) {
+    return {
+      size: 'lg',
+      hasPulseGlow: true,
+      label: `❤️×${donorBadgeCount}`,
+    };
+  }
+
+  return {
+    size: 'sm',
+    hasPulseGlow: false,
+    label: donorBadgeCount === 1 ? '❤️' : `❤️×${donorBadgeCount}`,
+  };
+}
+
+/**
+ * Check if a donor badge should be shown for a player.
+ * This is independent of whether the donor skin is active or expired.
+ */
+export function shouldShowDonorBadge(donorBadgeCount: number): boolean {
+  return donorBadgeCount > 0;
 }

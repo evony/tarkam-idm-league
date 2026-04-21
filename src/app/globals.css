@@ -3751,10 +3751,27 @@ html {
   animation: skin-name-shimmer 3s linear infinite;
 }
 
+/* Donor heart badge pulse glow — 5+ donations get pulsing heart */
+@keyframes donor-heart-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(244,63,94,0.3), 0 0 12px rgba(244,63,94,0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(244,63,94,0.5), 0 0 24px rgba(244,63,94,0.25);
+    transform: scale(1.1);
+  }
+}
+
+.donor-heart-pulse {
+  animation: donor-heart-pulse 1.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skin-glow-animate,
   .skin-border-shimmer::before,
-  .skin-name-animate {
+  .skin-name-animate,
+  .donor-heart-pulse {
     animation: none;
   }
 }

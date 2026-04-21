@@ -30,11 +30,14 @@ interface PlayerSkinData {
   duration: string;
   reason?: string | null;
   expiresAt?: string | null;
+  /** Permanent donor heart badge count (independent of skin expiry) */
+  donorBadgeCount?: number;
 }
 
 interface PlayerAccount {
   id: string;
   username: string;
+  donorBadgeCount?: number;
   skins: PlayerSkinData[];
   player: {
     id: string;

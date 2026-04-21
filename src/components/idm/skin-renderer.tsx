@@ -7,6 +7,7 @@ import {
   parseBadgeColors,
   buildGradient,
   parseColorStops,
+  getDonorBadgeConfig,
 } from '@/lib/skin-utils';
 import type { SkinColors } from '@/lib/skin-utils';
 
@@ -20,6 +21,7 @@ interface SkinBadgeProps {
     icon: string;
     displayName: string;
     colorClass: string;
+    donorBadgeCount?: number;
   };
   size?: 'sm' | 'md' | 'lg';
 }
@@ -31,6 +33,7 @@ interface SkinBadgesRowProps {
     displayName: string;
     colorClass: string;
     priority: number;
+    donorBadgeCount?: number;
   }>;
 }
 
@@ -47,6 +50,41 @@ interface SkinNameProps {
 interface SkinCardBorderProps {
   skin: { type: string; colorClass: string } | null;
   children: React.ReactNode;
+}
+
+// ============================================
+// DonorHeartBadge — Permanent heart badge for donors
+// 1-4 donations: small heart
+// 5+ donations: bigger heart with pulse glow
+// ============================================
+
+function DonorHeartBadge({ donorBadgeCount }: { donorBadgeCount: number }) {
+  const config = getDonorBadgeConfig(donorBadgeCount);
+  if (!config) return null;
+
+  const isBigHeart = config.size === 'lg';
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center justify-center rounded-full',
+        isBigHeart
+          ? 'w-7 h-7 text-sm donor-heart-pulse'
+          : 'w-5 h-5 text-[11px]'
+      )}
+      style={{
+        backgroundColor: 'rgba(244,63,94,0.2)',
+        ...(isBigHeart ? {
+          boxShadow: '0 0 8px rgba(244,63,94,0.4), 0 0 16px rgba(244,63,94,0.2)',
+        } : {}),
+      }}
+      title={`${donorBadgeCount}x donasi${isBigHeart ? ' ★' : ''}`}
+      role="img"
+      aria-label={`Heart Badge: ${donorBadgeCount} donations`}
+    >
+      ❤️
+    </span>
+  );
 }
 
 // ============================================
@@ -108,6 +146,7 @@ export function SkinBadge({ skin, size = 'sm' }: SkinBadgeProps) {
 
 // ============================================
 // SkinBadgesRow — All owned skins as small badges in a row, sorted by priority
+// Includes permanent donor heart badge support
 // ============================================
 
 export function SkinBadgesRow({ skins }: SkinBadgesRowProps) {
@@ -115,9 +154,23 @@ export function SkinBadgesRow({ skins }: SkinBadgesRowProps) {
 
   if (sorted.length === 0) return null;
 
+  // Extract donorBadgeCount from either the donor skin or donor_badge entry
+  let donorBadgeCount = 0;
+  for (const skin of sorted) {
+    if (skin.type === 'donor' && skin.donorBadgeCount) {
+      donorBadgeCount = skin.donorBadgeCount;
+    }
+    if (skin.type === 'donor_badge' && skin.donorBadgeCount) {
+      donorBadgeCount = skin.donorBadgeCount;
+    }
+  }
+
+  // Filter out the virtual donor_badge entry (we render the heart badge separately)
+  const displaySkins = sorted.filter(s => s.type !== 'donor_badge');
+
   return (
     <div className="inline-flex items-center gap-1" role="group" aria-label="Player skins">
-      {sorted.map((skin) => {
+      {displaySkins.map((skin) => {
         const colors = resolveSkinColors(skin);
         const badgeColors = colors ? parseBadgeColors(colors.badge) : null;
         return (
@@ -133,6 +186,8 @@ export function SkinBadgesRow({ skins }: SkinBadgesRowProps) {
           </span>
         );
       })}
+      {/* Permanent donor heart badge — always visible if donorBadgeCount > 0 */}
+      {donorBadgeCount > 0 && <DonorHeartBadge donorBadgeCount={donorBadgeCount} />}
     </div>
   );
 }

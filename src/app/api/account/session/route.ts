@@ -72,21 +72,41 @@ export async function GET(request: NextRequest) {
       orderBy: { skin: { priority: 'desc' } },
     });
 
+    // Build skins array with donorBadgeCount support
+    const skinsData = playerSkins.map(ps => ({
+      type: ps.skin.type,
+      icon: ps.skin.icon,
+      displayName: ps.skin.displayName,
+      colorClass: ps.skin.colorClass,
+      priority: ps.skin.priority,
+      duration: ps.skin.duration,
+      reason: ps.reason,
+      expiresAt: ps.expiresAt?.toISOString() ?? null,
+      donorBadgeCount: ps.skin.type === 'donor' ? account.donorBadgeCount : undefined,
+    }));
+
+    // If player has donor badges but no active donor skin, add virtual donor_badge entry
+    if (account.donorBadgeCount > 0 && !skinsData.some(s => s.type === 'donor')) {
+      skinsData.push({
+        type: 'donor_badge',
+        icon: '❤️',
+        displayName: account.donorBadgeCount >= 5 ? 'Heart Badge ★' : 'Heart Badge',
+        colorClass: '{"frame":"#fb7185","name":"#fb7185|#ef4444|#f472b6","badge":"rgba(244,63,94,0.2)|#fda4af","border":"#f43f5e|#ef4444|#f472b6","glow":"rgba(244,63,94,0.35)"}',
+        priority: 0,
+        duration: 'permanent',
+        reason: `${account.donorBadgeCount}x donasi`,
+        expiresAt: null,
+        donorBadgeCount: account.donorBadgeCount,
+      });
+    }
+
     return NextResponse.json({
       authenticated: true,
       account: {
         id: account.id,
         username: account.username,
-        skins: playerSkins.map(ps => ({
-          type: ps.skin.type,
-          icon: ps.skin.icon,
-          displayName: ps.skin.displayName,
-          colorClass: ps.skin.colorClass,
-          priority: ps.skin.priority,
-          duration: ps.skin.duration,
-          reason: ps.reason,
-          expiresAt: ps.expiresAt?.toISOString() ?? null,
-        })),
+        donorBadgeCount: account.donorBadgeCount,
+        skins: skinsData,
         player: account.player,
       },
     });

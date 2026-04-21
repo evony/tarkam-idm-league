@@ -204,4 +204,6 @@ export interface PlayerSkinInfo {
   duration: string;
   reason?: string | null;
   expiresAt?: string | null;
+  /** Permanent donor heart badge count (independent of skin expiry) */
+  donorBadgeCount?: number;
 }

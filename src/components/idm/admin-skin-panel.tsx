@@ -48,6 +48,7 @@ interface SkinHolder {
   expiresAt: string | null;
   isExpired: boolean;
   createdAt: string;
+  donorBadgeCount?: number;
   player: {
     id: string;
     gamertag: string;
@@ -344,14 +345,17 @@ export function AdminSkinPanel() {
                           </div>
 
                           {/* Duration badge */}
-                          <Badge className={`text-[9px] border-0 ${
-                            skin.duration === 'weekly'
-                              ? 'bg-amber-500/10 text-amber-400'
-                              : 'bg-emerald-500/10 text-emerald-400'
-                          }`}>
+                          <Badge className={`text-[9px] border-0 bg-amber-500/10 text-amber-400`}>
                             <Clock className="w-2.5 h-2.5 mr-0.5" />
-                            {skin.duration === 'weekly' ? 'Weekly' : 'Permanent'}
+                            Weekly
                           </Badge>
+
+                          {/* Donor badge indicator */}
+                          {skin.type === 'donor' && (
+                            <Badge className="text-[9px] border-0 bg-rose-500/10 text-rose-400">
+                              ❤️ Badge permanen
+                            </Badge>
+                          )}
 
                           {/* Priority */}
                           <Badge className="text-[9px] border-0 bg-muted text-muted-foreground">
@@ -448,6 +452,12 @@ export function AdminSkinPanel() {
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                               <span className={theme?.accentText}>{holder.displayName}</span>
+                              {holder.donorBadgeCount !== undefined && holder.donorBadgeCount > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-rose-400">❤️×{holder.donorBadgeCount}{holder.donorBadgeCount >= 5 ? ' ★' : ''}</span>
+                                </>
+                              )}
                               {holder.reason && (
                                 <>
                                   <span>•</span>
@@ -468,9 +478,9 @@ export function AdminSkinPanel() {
                               })}
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1 text-[10px] text-emerald-400">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Permanent
+                            <div className="flex items-center gap-1 text-[10px] text-amber-400">
+                              <Clock className="w-3 h-3" />
+                              Weekly
                             </div>
                           )}
                         </div>
@@ -569,7 +579,7 @@ export function AdminSkinPanel() {
                           <span>{def.icon}</span>
                           <span>{def.displayName}</span>
                           <span className="text-[10px] text-muted-foreground">
-                            ({def.duration === 'weekly' ? 'Weekly' : 'Permanent'}, P{def.priority})
+                            (Weekly, P{def.priority})
                           </span>
                         </span>
                       </SelectItem>
@@ -595,8 +605,13 @@ export function AdminSkinPanel() {
                     <div>
                       <p className={`text-sm font-semibold ${theme.accentText}`}>{skinDef.displayName}</p>
                       <p className="text-[10px] text-muted-foreground">
-                        Priority {skinDef.priority} • {skinDef.duration === 'weekly' ? 'Weekly (7 hari default)' : 'Permanent'}
+                        Priority {skinDef.priority} • Weekly (7 hari)
                       </p>
+                      {skinDef.type === 'donor' && (
+                        <p className="text-[9px] text-rose-400 mt-0.5">
+                          ❤️ Badge hati permanen (+1 donasi count)
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -699,18 +714,14 @@ export function AdminSkinPanel() {
               />
             </div>
 
-            {/* Expiry Date */}
-            {awardForm.skinType && (() => {
-              const skinDef = SKIN_TYPES[awardForm.skinType as keyof typeof SKIN_TYPES];
-              const isWeekly = skinDef?.duration === 'weekly';
-              return isWeekly || awardForm.expiresAt;
-            })() && (
+            {/* Expiry Date — always shown since all skins are weekly */}
+            {awardForm.skinType && (
               <div>
                 <Label className="text-xs text-muted-foreground">
-                  Tanggal Expired {(() => {
-                    const skinDef = SKIN_TYPES[awardForm.skinType as keyof typeof SKIN_TYPES];
-                    return skinDef?.duration === 'weekly' ? '(default: 7 hari)' : '(kosongkan = permanent)';
-                  })()}
+                  Tanggal Expired (default: 7 hari)
+                  {awardForm.skinType === 'donor' && (
+                    <span className="text-rose-400 ml-1">• Badge ❤️ tetap permanen</span>
+                  )}
                 </Label>
                 <Input
                   type="datetime-local"

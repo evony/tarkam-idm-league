@@ -29,6 +29,7 @@ export async function GET(request: Request) {
         account: {
           select: {
             id: true,
+            donorBadgeCount: true,
             player: {
               select: {
                 id: true,
@@ -62,6 +63,7 @@ export async function GET(request: Request) {
         isExpired,
         awardedBy: ps.awardedBy,
         createdAt: ps.createdAt,
+        donorBadgeCount: ps.skin.type === 'donor' ? ps.account.donorBadgeCount : undefined,
         player: {
           id: ps.account.player.id,
           gamertag: ps.account.player.gamertag,

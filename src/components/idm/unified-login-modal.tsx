@@ -530,19 +530,19 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                     <div className="space-y-2 ml-6">
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">🥇</span>
-                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-yellow-400">1</strong> — <strong className="text-yellow-400">Gold Crown</strong></span>
+                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-yellow-400">1</strong> — <strong className="text-yellow-400">Gold Crown</strong> (1 minggu)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">⭐</span>
-                        <span className="text-[10px] text-muted-foreground">MVP — <strong className="text-gray-300">Platinum Star ✨</strong></span>
+                        <span className="text-[10px] text-muted-foreground">MVP — <strong className="text-gray-300">Platinum Star ✨</strong> (1 minggu)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">💎</span>
-                        <span className="text-[10px] text-muted-foreground">Penyewa — <strong className="text-emerald-400">Emerald Luxury 💵</strong></span>
+                        <span className="text-[10px] text-muted-foreground">Penyewa — <strong className="text-emerald-400">Emerald Luxury 💵</strong> (1 minggu)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">❤️</span>
-                        <span className="text-[10px] text-muted-foreground">Donatur — <strong className="text-rose-400">Maroon Heart</strong></span>
+                        <span className="text-[10px] text-muted-foreground">Donatur — <strong className="text-rose-400">Maroon Heart</strong> (1 minggu, badge ❤️ permanen!)</span>
                       </div>
                     </div>
                   </div>

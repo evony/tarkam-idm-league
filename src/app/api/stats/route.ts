@@ -213,9 +213,19 @@ export async function GET(request: Request) {
     },
     include: {
       skin: { select: { type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
-      account: { select: { player: { select: { id: true } } } },
+      account: { select: { player: { select: { id: true } }, donorBadgeCount: true } },
     },
   }) : [];
+
+  // Also fetch donorBadgeCount for ALL players with accounts (even if no active skins)
+  const donorBadgeAccounts = playerIds.length > 0 ? await db.account.findMany({
+    where: { player: { id: { in: playerIds } }, donorBadgeCount: { gt: 0 } },
+    select: { player: { select: { id: true } }, donorBadgeCount: true },
+  }) : [];
+  const donorBadgeMap: Record<string, number> = {};
+  for (const acc of donorBadgeAccounts) {
+    donorBadgeMap[acc.player.id] = acc.donorBadgeCount;
+  }
 
   // Build a map: playerId → skins[]
   const skinMap: Record<string, Array<{
@@ -227,6 +237,7 @@ export async function GET(request: Request) {
     duration: string;
     reason?: string | null;
     expiresAt?: Date | null;
+    donorBadgeCount?: number;
   }>> = {};
 
   for (const ps of activePlayerSkins) {
@@ -241,7 +252,37 @@ export async function GET(request: Request) {
       duration: ps.skin.duration,
       reason: ps.reason,
       expiresAt: ps.expiresAt,
+      donorBadgeCount: ps.account.donorBadgeCount,
     });
+  }
+
+  // For players with donor badges but no active skins, add a virtual entry
+  // so the permanent heart badge can still be rendered
+  for (const [pid, count] of Object.entries(donorBadgeMap)) {
+    if (!skinMap[pid]) {
+      skinMap[pid] = [];
+    }
+    // Only add virtual entry if there's no active donor skin already
+    const hasActiveDonorSkin = skinMap[pid].some(s => s.type === 'donor');
+    if (!hasActiveDonorSkin) {
+      skinMap[pid].push({
+        type: 'donor_badge',
+        icon: '❤️',
+        displayName: count >= 5 ? 'Heart Badge ★' : 'Heart Badge',
+        colorClass: '{"frame":"#fb7185","name":"#fb7185|#ef4444|#f472b6","badge":"rgba(244,63,94,0.2)|#fda4af","border":"#f43f5e|#ef4444|#f472b6","glow":"rgba(244,63,94,0.35)"}',
+        priority: 0,
+        duration: 'permanent',
+        reason: `${count}x donasi`,
+        expiresAt: null,
+        donorBadgeCount: count,
+      });
+    } else {
+      // Attach donorBadgeCount to the existing donor skin entry
+      const donorSkin = skinMap[pid].find(s => s.type === 'donor');
+      if (donorSkin) {
+        donorSkin.donorBadgeCount = count;
+      }
+    }
   }
 
   // Total prize pool — filter weekly donations

@@ -229,15 +229,16 @@ model TournamentPrize {
 // ============================================
 
 model Account {
-  id           String    @id @default(cuid())
-  playerId     String    @unique  // One account per player
-  username     String    @unique  // For login (gamertag-based)
-  passwordHash String
-  email        String?   @unique  // Optional email for recovery
-  phone        String?             // WhatsApp number for recovery
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  playerId        String    @unique  // One account per player
+  username        String    @unique  // For login (gamertag-based)
+  passwordHash    String
+  email           String?   @unique  // Optional email for recovery
+  phone           String?             // WhatsApp number for recovery
+  donorBadgeCount Int       @default(0) // Permanent heart badge count from donations (1-4: small, 5+: big + pulse glow)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   skins  PlayerSkin[]
