@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 
 interface SponsorBannerProps {
   placement: 'bracket_top' | 'bracket_side' | 'stream_overlay' | 'landing_page' | 'dashboard';
@@ -39,11 +38,10 @@ export function SponsorBanner({ placement, className = '' }: SponsorBannerProps)
   return (
     <div className={`sponsor-banners ${className}`}>
       {banners.map((banner, index) => (
-        <motion.div
+        <div
           key={banner.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          className="animate-fade-enter-sm"
+          style={{ animationDelay: `${index * 100}ms` }}
         >
           {banner.linkUrl ? (
             <a
@@ -69,7 +67,7 @@ export function SponsorBanner({ placement, className = '' }: SponsorBannerProps)
               <span className="text-xs text-muted-foreground">{banner.sponsor.name}</span>
             </div>
           )}
-        </motion.div>
+        </div>
       ))}
     </div>
   );
@@ -150,12 +148,9 @@ export function SponsoredPrizes({ tournamentId, className = '' }: SponsoredPrize
       </h4>
       <div className="grid gap-2">
         {prizes.map((prize: any) => (
-          <motion.div
+          <div
             key={prize.id}
-            className="sponsored-prize-card"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.02 }}
+            className="animate-fade-enter hover-scale-sm sponsored-prize-card"
           >
             <div className="flex items-center gap-3">
               {prize.imageUrl && (
@@ -184,7 +179,7 @@ export function SponsoredPrizes({ tournamentId, className = '' }: SponsoredPrize
                 />
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

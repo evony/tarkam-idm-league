@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Heart, Flame, Users, Trophy, Swords, Sparkles, Music, Shield } from 'lucide-react';
 import { AnimatedSection, SectionHeader } from './shared';
 
@@ -70,7 +69,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
         {/* Origin Story */}
         <AnimatedSection variant="fadeUp">
-          <div className="relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-6 sm:p-8 mb-8">
+          <div className="relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-6 sm:p-8 mb-8">
             {/* Gold accent line */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
             {/* Subtle gold glow */}
@@ -136,7 +135,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
         {/* Season 1 Success Callout */}
         <AnimatedSection variant="fadeUp">
-          <div className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-5 sm:p-6">
+          <div className="relative rounded-2xl border border-white/[0.06] bg-white/[0.05] p-5 sm:p-6">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles className="w-4 h-4 text-green-400" />

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface AchievementBadgeProps {
@@ -51,14 +50,12 @@ export function AchievementBadge({
   const isEarned = earned;
 
   return (
-    <motion.div
+    <div
       className={cn(
         'flex items-center gap-2',
-        !isEarned && 'opacity-40 grayscale'
+        !isEarned && 'opacity-40 grayscale',
+        animated && 'animate-fade-enter hover-scale-md'
       )}
-      initial={animated ? { scale: 0.8, opacity: 0 } : undefined}
-      animate={animated ? { scale: 1, opacity: 1 } : undefined}
-      whileHover={animated ? { scale: 1.05 } : undefined}
     >
       {/* Badge Icon */}
       <div className="relative group">
@@ -75,20 +72,11 @@ export function AchievementBadge({
 
         {/* Glow effect for earned achievements */}
         {isEarned && animated && (
-          <motion.div
+          <div
             className={cn(
-              'absolute inset-0 rounded-full bg-gradient-to-br opacity-50 blur-md -z-10',
+              'absolute inset-0 rounded-full bg-gradient-to-br opacity-50 blur-md -z-10 animate-pulse-scale',
               tierColors[tier]
             )}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
           />
         )}
 
@@ -109,7 +97,7 @@ export function AchievementBadge({
           <span className="text-[10px] text-muted-foreground">{tier}</span>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

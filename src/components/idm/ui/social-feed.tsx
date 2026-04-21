@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Heart, MessageCircle, Share2, TrendingUp, Flame, Clock, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -59,11 +58,9 @@ function FeedCard({ item, index }: { item: FeedItem; index: number }) {
   };
 
   return (
-    <motion.div
-      className="feed-card p-4"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
+    <div
+      className="animate-fade-enter feed-card p-4"
+      style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
@@ -120,7 +117,7 @@ function FeedCard({ item, index }: { item: FeedItem; index: number }) {
           </button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -147,25 +144,21 @@ export function LiveMatchBanner({
   const accentColor = division === 'male' ? '#22d3ee' : '#c084fc';
 
   return (
-    <motion.div
-      className={`relative rounded-xl p-4 overflow-hidden ${className}`}
+    <div
+      className={`animate-fade-enter relative rounded-xl p-4 overflow-hidden ${className}`}
       style={{
         background: `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)`,
         border: `1px solid ${accentColor}30`,
       }}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
     >
       {/* Live indicator */}
       <div className="absolute top-3 right-3">
-        <motion.div
-          className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/20"
-          animate={{ opacity: [1, 0.5, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
+        <div
+          className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/20 animate-pulse"
         >
           <span className="w-2 h-2 rounded-full bg-red-500" />
           <span className="text-[10px] font-bold text-red-400 uppercase">Live</span>
-        </motion.div>
+        </div>
       </div>
 
       {/* Tournament name */}
@@ -195,19 +188,17 @@ export function LiveMatchBanner({
       </div>
 
       {/* Watch button */}
-      <motion.button
-        className="mt-4 w-full py-2 rounded-lg text-sm font-bold"
+      <button
+        className="hover-scale-sm mt-4 w-full py-2 rounded-lg text-sm font-bold"
         style={{
           background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}10)`,
           border: `1px solid ${accentColor}30`,
           color: accentColor,
         }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
         Tonton Sekarang
-      </motion.button>
-    </motion.div>
+      </button>
+    </div>
   );
 }
 
@@ -259,17 +250,14 @@ export function CountdownTimer({ targetDate, label, className = '' }: CountdownT
           { value: timeLeft.seconds, label: 'S' },
         ].map((item, index) => (
           <div key={index} className="text-center">
-            <motion.div
-              className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-idm-gold-warm/10 border border-idm-gold-warm/20"
+            <div
+              className="animate-pulse-scale w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-idm-gold-warm/10 border border-idm-gold-warm/20"
               key={`${item.value}-${index}`}
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 0.3 }}
             >
               <span className="text-xl sm:text-2xl font-black text-idm-gold-warm">
                 {String(item.value).padStart(2, '0')}
               </span>
-            </motion.div>
+            </div>
             <span className="text-[10px] text-muted-foreground mt-1">{item.label}</span>
           </div>
         ))}

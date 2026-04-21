@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Crown, Zap } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 
@@ -14,9 +13,8 @@ interface TeamCardProps {
 
 export function TeamCard({ name, players, power, isWinner, showPower = true }: TeamCardProps) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className={`p-3 rounded-xl border transition-all ${
+    <div
+      className={`hover-scale-sm p-3 rounded-xl border transition-all ${
         isWinner
           ? 'bg-yellow-500/5 border-yellow-500/20 glow-gold'
           : 'bg-card border-border/50 hover:border-primary/20'
@@ -57,6 +55,6 @@ export function TeamCard({ name, players, power, isWinner, showPower = true }: T
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

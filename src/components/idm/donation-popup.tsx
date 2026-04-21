@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion removed — replaced with CSS animations
 import { X, Gift, Trophy, Music, Crown, Flame } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -62,14 +62,10 @@ export function DonationPopup({ show, message, onClose }: { show: boolean; messa
   }, [show, stableOnClose]);
 
   return (
-    <AnimatePresence>
+    <>
       {show && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
-          exit={{ opacity: 0, y: 50, x: '-50%', scale: 0.9 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className={`fixed bottom-20 lg:bottom-6 left-1/2 z-50 glass ${glowMap[type]} rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg max-w-sm relative overflow-hidden`}
+        <div
+          className={`animate-fade-enter fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 glass ${glowMap[type]} rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg max-w-sm relative overflow-hidden`}
         >
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
             type === 'donation' ? 'bg-primary/10' :
@@ -97,8 +93,8 @@ export function DonationPopup({ show, message, onClose }: { show: boolean; messa
               style={{ width: `${progress}%` }}
             />
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

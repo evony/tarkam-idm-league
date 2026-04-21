@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Star, Crown } from 'lucide-react';
 
 interface MVPSpotlightProps {
@@ -27,11 +26,8 @@ export function MVPSpotlight({
   const accentColor = division === 'male' ? '#22d3ee' : '#c084fc';
 
   return (
-    <motion.div
-      className={`mvp-spotlight relative rounded-2xl p-6 overflow-hidden ${className}`}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    <div
+      className={`animate-fade-enter mvp-spotlight relative rounded-2xl p-6 overflow-hidden ${className}`}
     >
       {/* Spotlight glow background */}
       <div
@@ -44,23 +40,13 @@ export function MVPSpotlight({
       {/* Animated particles — fewer, larger, slower for elegance */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(5)].map((_, i) => (
-          <motion.div
+          <div
             key={i}
-            className="absolute w-1.5 h-1.5 rounded-full bg-idm-gold-warm"
+            className="absolute w-1.5 h-1.5 rounded-full bg-idm-gold-warm animate-pulse-scale"
             style={{
               left: `${20 + Math.random() * 60}%`,
               top: `${20 + Math.random() * 60}%`,
-            }}
-            animate={{
-              opacity: [0, 0.8, 0],
-              scale: [0, 1, 0],
-              y: [-15, -35],
-            }}
-            transition={{
-              duration: 3,
-              delay: i * 0.4,
-              repeat: Infinity,
-              ease: 'easeOut',
+              animationDelay: `${i * 0.4}s`,
             }}
           />
         ))}
@@ -69,20 +55,18 @@ export function MVPSpotlight({
       {/* Content */}
       <div className="relative z-10 text-center">
         {/* MVP Badge — larger, premium style */}
-        <motion.div
+        <div
           className="mvp-badge-premium inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-          animate={{ boxShadow: ['0 0 0 rgba(212,168,83,0)', '0 0 24px rgba(212,168,83,0.3)', '0 0 0 rgba(212,168,83,0)'] }}
-          transition={{ duration: 2.5, repeat: Infinity }}
         >
           <Star className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
           <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">
             MVP
           </span>
-        </motion.div>
+        </div>
 
         {/* Avatar with crown — gold pulse ring */}
         <div className="relative inline-block mb-3">
-          <motion.div
+          <div
             className="w-24 h-24 rounded-full overflow-hidden border-4 gold-pulse-ring"
             style={{ borderColor: accentColor }}
           >
@@ -100,27 +84,23 @@ export function MVPSpotlight({
                 {gamertag.charAt(0).toUpperCase()}
               </div>
             )}
-          </motion.div>
+          </div>
 
-          {/* Crown — gentle float, no rotation */}
-          <motion.div
+          {/* Crown — gentle float */}
+          <div
             className="absolute -top-3 left-1/2 -translate-x-1/2"
-            animate={{ y: [0, -3, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Crown className="w-8 h-8 text-idm-gold-warm drop-shadow-[0_0_10px_rgba(212,168,83,0.5)]" />
-          </motion.div>
+          </div>
         </div>
 
         {/* Name */}
-        <motion.h3
+        <h3
           className="text-xl font-black mb-1"
           style={{ color: accentColor }}
-          animate={{ textShadow: ['0 0 0 transparent', `0 0 20px ${accentColor}40`, '0 0 0 transparent'] }}
-          transition={{ duration: 2, repeat: Infinity }}
         >
           {gamertag}
-        </motion.h3>
+        </h3>
 
         {/* Tournament name */}
         {tournamentName && (
@@ -151,20 +131,18 @@ export function MVPSpotlight({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 // Mini MVP badge for cards — premium style
 export function MVPBadge({ className = '' }: { className?: string }) {
   return (
-    <motion.div
+    <div
       className={`mvp-badge-premium inline-flex items-center gap-1 px-2.5 py-1 rounded-full ${className}`}
-      animate={{ boxShadow: ['0 0 0 rgba(212,168,83,0)', '0 0 12px rgba(212,168,83,0.3)', '0 0 0 rgba(212,168,83,0)'] }}
-      transition={{ duration: 2, repeat: Infinity }}
     >
       <Star className="w-3.5 h-3.5 text-idm-gold-warm fill-idm-gold-warm" />
       <span className="text-[10px] font-bold text-idm-gold-warm">MVP</span>
-    </motion.div>
+    </div>
   );
 }

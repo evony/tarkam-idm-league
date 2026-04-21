@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   Shield, Users, Plus, Trash2, Loader2, Crown, UserCog,
   Eye, EyeOff, Save, KeyRound, X, Edit3, AlertTriangle, Lock
@@ -17,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { container, item } from '@/lib/animations';
 import { useAppStore } from '@/lib/store';
 
 interface AdminUser {
@@ -197,7 +195,7 @@ export function AdminManagement() {
   };
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* ====== CHANGE OWN PASSWORD CARD (visible to ALL admins) ====== */}
       <Card className="border border-border/50">
         <CardContent className="p-4 space-y-3">
@@ -311,10 +309,9 @@ export function AdminManagement() {
           ) : (
             <div className="space-y-2">
               {admins.map((admin, index) => (
-                <motion.div
+                <div
                   key={admin.id}
-                  variants={item}
-                  className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50"
+                  className="stagger-item-fast flex items-center justify-between p-3 rounded-xl bg-card border border-border/50"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -387,7 +384,7 @@ export function AdminManagement() {
                       </Button>
                     )}
                   </div>
-                </motion.div>
+                </div>
               ))}
 
               {admins.length === 0 && (
@@ -692,6 +689,6 @@ export function AdminManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </div>
   );
 }

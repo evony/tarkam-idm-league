@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   Building2, Plus, Pencil, Trash2, ExternalLink, Image as ImageIcon, Star, Loader2, X, Link
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { container, item } from '@/lib/animations';
 import { CloudinaryPicker } from './cloudinary-picker';
 
 interface Sponsor {
@@ -226,7 +224,7 @@ export function AdminSponsorPanel() {
   }, {});
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1">
@@ -261,8 +259,8 @@ export function AdminSponsorPanel() {
         </div>
       ) : (
         <div className="space-y-4">
-          {Object.entries(groupedSponsors).map(([tier, tierSponsors]) => (
-            <motion.div key={tier} variants={item}>
+          {Object.entries(groupedSponsors).map(([tier, tierSponsors], tierIndex) => (
+            <div key={tier} className="stagger-item-fast" style={{ animationDelay: `${tierIndex * 50}ms` }}>
               <Card className={dt.casinoCard}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -352,7 +350,7 @@ export function AdminSponsorPanel() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           ))}
 
           {filteredSponsors.length === 0 && (
@@ -512,6 +510,6 @@ export function AdminSponsorPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </div>
   );
 }

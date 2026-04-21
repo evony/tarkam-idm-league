@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { Crown, Music, Trophy, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
@@ -554,10 +553,9 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               const isDraw = hasScore && m.score1 === m.score2;
               const isLive = m.status === 'live' || m.status === 'main_event';
               return (
-                <motion.div
+                <div
                   key={m.id}
-                  whileHover={{ scale: 1.01 }}
-                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : dt.borderSubtle} transition-all ${dt.hoverBorder} relative`}
+                  className={`hover-scale-sm rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : dt.borderSubtle} transition-all ${dt.hoverBorder} relative`}
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
                   {(!m.team1 || !m.team2) && m.status !== 'completed' && (
@@ -581,7 +579,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                       {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                     </span>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -608,10 +606,9 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
               const isByeMatch = (!m.team1 || !m.team2) && m.status !== 'completed';
               return (
-                <motion.div
+                <div
                   key={m.id}
-                  whileHover={{ scale: 1.01 }}
-                  className={`rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : 'border-idm-gold-warm/20'} transition-all relative`}
+                  className={`hover-scale-sm rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : 'border-idm-gold-warm/20'} transition-all relative`}
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
                   <div className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${dt.neonText} bg-idm-gold-warm/5 flex items-center justify-between`}>
@@ -636,7 +633,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                       {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                     </span>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>

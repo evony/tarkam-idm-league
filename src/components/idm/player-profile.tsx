@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -185,25 +184,17 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
   const avatarSrc = getAvatarUrl(player.gamertag, playerDivision as 'male' | 'female', player.avatar);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
-        onClick={onClose}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Profil ${player.gamertag}`}
+    <div
+      className="animate-fade-enter-sm fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/90 p-0 sm:p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Profil ${player.gamertag}`}
+    >
+      <div
+        className="animate-fade-enter bg-background w-full sm:max-w-lg sm:rounded-2xl overflow-hidden max-h-[92vh] overflow-y-auto custom-scrollbar"
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 100, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 100, scale: 0.95 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-background w-full sm:max-w-lg sm:rounded-2xl overflow-hidden max-h-[92vh] overflow-y-auto custom-scrollbar"
-          onClick={(e) => e.stopPropagation()}
-        >
           {/* ═══ HERO BANNER — Full Avatar Card Style ═══ */}
           <div className="relative h-[28rem] overflow-hidden">
             {/* Full AI-generated avatar as background */}
@@ -245,7 +236,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
             <button
               onClick={onClose}
               aria-label="Tutup profil"
-              className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/60 backdrop-blur-sm flex items-center justify-center hover:bg-background/80 transition-colors z-20 border border-border/30"
+              className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/80 flex items-center justify-center hover:bg-background/80 transition-colors z-20 border border-border/30"
             >
               <X className="w-5 h-5" />
             </button>
@@ -253,7 +244,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
             {/* Rank badge — top-left — only shown when player has competitive results */}
             {isTop3 && (
               <div className="absolute top-3 left-3 z-10">
-                <Badge className={`text-[10px] font-black border-0 backdrop-blur-sm px-2.5 py-1 ${
+                <Badge className={`text-[10px] font-black border-0 px-2.5 py-1 ${
                   effectiveRank === 1 ? 'bg-yellow-500/25 text-yellow-400 shadow-lg shadow-yellow-500/10' :
                   effectiveRank === 2 ? 'bg-gray-400/20 text-gray-300' :
                   'bg-amber-600/20 text-amber-500'
@@ -265,7 +256,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
 
             {/* Division badge */}
             <div className="absolute top-3 left-3 z-10" style={{ marginTop: isTop3 ? '28px' : 0 }}>
-              <Badge className={`${dt.casinoBadge} text-[9px] backdrop-blur-sm`}>
+              <Badge className={`${dt.casinoBadge} text-[9px]`}>
                 {playerDivision === 'male' ? '🕺 Divisi Male' : '💃 Divisi Female'}
               </Badge>
             </div>
@@ -289,7 +280,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                   <TierBadge tier={player.tier} />
                   <span className={`text-xs font-semibold drop-shadow-sm ${tier.color}`}>{tier.label}</span>
                   {player.streak > 1 && (
-                    <Badge className="bg-orange-500/20 text-orange-400 text-[10px] border-0 backdrop-blur-sm flex items-center gap-1">
+                    <Badge className="bg-orange-500/20 text-orange-400 text-[10px] border-0 flex items-center gap-1">
                       <Flame className="w-3 h-3" /> {player.streak} Streak
                     </Badge>
                   )}
@@ -501,8 +492,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
               </div>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </div>
   );
 }

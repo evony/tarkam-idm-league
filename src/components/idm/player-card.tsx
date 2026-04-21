@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Crown, Flame } from 'lucide-react';
 import { TierBadge } from './tier-badge';
@@ -32,11 +31,9 @@ export function PlayerCard({
   const avatarSrc = getAvatarUrl(gamertag, division, avatar);
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.98 }}
+    <div
       onClick={onClick}
-      className={`relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
+      className={`hover-scale-md relative rounded-2xl cursor-pointer transition-all overflow-hidden ${
         isChampion ? dt.neonPulse : ''
       }`}
       style={{ aspectRatio: '3/4' }}
@@ -87,10 +84,8 @@ export function PlayerCard({
 
       {/* Champion glow border */}
       {isChampion && (
-        <motion.div
-          className="absolute inset-0 rounded-2xl border-2 border-yellow-500/30"
-          animate={{ borderColor: ['rgba(234,179,8,0.2)', 'rgba(234,179,8,0.5)', 'rgba(234,179,8,0.2)'] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        <div
+          className="absolute inset-0 rounded-2xl border-2 border-yellow-500/30 animate-pulse"
         />
       )}
 
@@ -125,6 +120,6 @@ export function PlayerCard({
       <div className={`absolute inset-0 rounded-2xl border transition-all duration-300 ${
         division === 'male' ? 'border-[#06b6d4]/0 hover:border-[#06b6d4]/30' : 'border-[#a855f7]/0 hover:border-[#a855f7]/30'
       }`} />
-    </motion.div>
+    </div>
   );
 }

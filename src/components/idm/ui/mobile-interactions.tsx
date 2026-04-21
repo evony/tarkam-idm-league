@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 // Pull to Refresh Hook
 interface UsePullToRefreshOptions {
@@ -169,10 +168,9 @@ export function PullToRefresh({ onRefresh, children, className = '' }: PullToRef
           transform: `translateY(${progress * 40}px)`,
         }}
       >
-        <motion.div
-          animate={isRefreshing ? { rotate: 360 } : { rotate: progress * 360 }}
-          transition={isRefreshing ? { duration: 1, repeat: Infinity, ease: 'linear' } : { duration: 0 }}
-          className="w-6 h-6 border-2 border-idm-gold-warm border-t-transparent rounded-full"
+        <div
+          className={`w-6 h-6 border-2 border-idm-gold-warm border-t-transparent rounded-full ${isRefreshing ? 'animate-spin-slow' : ''}`}
+          style={!isRefreshing ? { transform: `rotate(${progress * 360}deg)` } : undefined}
         />
       </div>
       {children}
@@ -192,15 +190,15 @@ export function Swipeable({ children, onSwipeLeft, onSwipeRight, className = '' 
   const { containerRef, swipeDirection } = useSwipe({ onSwipeLeft, onSwipeRight });
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
       className={className}
-      animate={{
-        x: swipeDirection === 'left' ? -10 : swipeDirection === 'right' ? 10 : 0,
+      style={{
+        transform: `translateX(${swipeDirection === 'left' ? -10 : swipeDirection === 'right' ? 10 : 0}px)`,
+        transition: 'transform 200ms',
       }}
-      transition={{ duration: 0.2 }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

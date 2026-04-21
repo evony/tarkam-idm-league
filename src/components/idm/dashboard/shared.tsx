@@ -29,7 +29,7 @@ export const CasinoHeaderCard = React.memo(function CasinoHeaderCard({ icon: Ico
         <div className="casino-img-overlay" />
         <div className={`absolute top-2 left-2 ${dt.cornerAccent}`} />
         <div className={`absolute top-2 right-2 rotate-90 ${dt.cornerAccent}`} />
-        {badge && <Badge className={`absolute top-3 right-3 ${dt.casinoBadge} backdrop-blur-sm`}>{badge}</Badge>}
+        {badge && <Badge className={`absolute top-3 right-3 ${dt.casinoBadge}`}>{badge}</Badge>}
         <div className="absolute bottom-3 left-4 flex items-center gap-3 z-10">
           <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} flex items-center justify-center shadow-lg`}>
             <Icon className="w-5 h-5 text-white" />

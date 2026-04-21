@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 
 interface LandingFooterProps {
@@ -33,12 +32,7 @@ export function LandingFooter({ cmsFooterText, cmsFooterTagline, cmsLogo, cmsSit
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-24 pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.04) 0%, transparent 70%)' }} />
 
         <div className="relative max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="stagger-item">
             {/* Top row: Brand + Tagline + Nav links */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
               {/* Brand */}
@@ -107,7 +101,7 @@ export function LandingFooter({ cmsFooterText, cmsFooterTagline, cmsLogo, cmsSit
               <p className="text-[11px] text-idm-gold-warm/40 font-semibold tracking-wider uppercase">{cmsFooterTagline}</p>
               <p className="text-[9px] text-muted-foreground/50">{cmsFooterText}</p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </footer>
 

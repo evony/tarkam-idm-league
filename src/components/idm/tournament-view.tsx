@@ -2,8 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
-import { motion } from 'framer-motion';
-// Note: motion.div kept for floating dot animation (animate={{ repeat: Infinity }})
+// Note: motion.div removed — replaced with CSS animations
 import {
   Music, Users, Crown, Trophy, ChevronRight, Calendar, MapPin, Heart,
   Swords, Clock, Zap, Gift
@@ -95,12 +94,10 @@ export function TournamentView() {
                       <Trophy className={`w-8 h-8 ${dt.neonText}`} />
                     </div>
                     {/* Floating dots */}
-                    <motion.div
-                      animate={{ y: [-3, 3, -3], opacity: [0.5, 1, 0.5] }}
-                      transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                      className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'} opacity-70`}
+                    <div
+                      className={`animate-bob-fade absolute -top-1 -right-1 w-3 h-3 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'} opacity-70`}
                     />
-                  </motion.div>
+                  </div>
 
                   <h3 className={`text-xl font-bold ${dt.neonGradient} mb-2`}>Belum Ada Tournament</h3>
                   <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
@@ -431,7 +428,7 @@ export function TournamentView() {
                 </CardContent>
               </Card>
             </div>
-          )
+          )}
         </>
       )}
 

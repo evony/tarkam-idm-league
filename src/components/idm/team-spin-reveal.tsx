@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Sparkles, Users, ChevronRight, PartyPopper, Play, X, Zap } from 'lucide-react';
@@ -361,7 +360,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       fixed inset-0 z-50
       lg:static lg:z-auto
       bg-black/85 lg:bg-transparent
-      backdrop-blur-sm lg:backdrop-blur-none
       overflow-y-auto
     ">
       <div className="min-h-full lg:min-h-0 flex items-start justify-center lg:block">
@@ -375,7 +373,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
           <div className="hidden lg:block h-1 bg-gradient-to-r from-idm-gold-warm via-amber-400 to-idm-gold-warm" />
 
           {/* ===== HEADER ===== */}
-          <div className="bg-black/90 lg:bg-card/95 backdrop-blur-md border-b border-white/10 lg:border-idm-gold-warm/10 px-4 py-3 shrink-0">
+          <div className="bg-black/95 lg:bg-card/95 border-b border-white/10 lg:border-idm-gold-warm/10 px-4 py-3 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-idm-gold-warm" />
@@ -414,11 +412,9 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
             {/* Progress bar */}
             <div className="mt-2 h-1 bg-white/10 lg:bg-idm-gold-warm/10 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-idm-gold-warm rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${(doneCount / totalSteps) * 100}%` }}
-                transition={{ duration: 0.5 }}
+              <div
+                className="h-full bg-idm-gold-warm rounded-full transition-[width] duration-500 ease-out"
+                style={{ width: `${(doneCount / totalSteps) * 100}%` }}
               />
             </div>
 
@@ -456,20 +452,15 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
               {!isComplete && currentItem && (
                 <div className="text-center space-y-4">
                   {/* Step info */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentStep}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="space-y-1"
-                    >
-                      <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40 uppercase tracking-widest">{currentRound}</p>
-                      <p className="text-sm font-bold text-idm-gold-warm">
-                        Tim {currentItem.teamIndex + 1} — {tierConf.emoji} Tier {currentTier}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
+                  <div
+                    key={currentStep}
+                    className="animate-fade-enter space-y-1"
+                  >
+                    <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40 uppercase tracking-widest">{currentRound}</p>
+                    <p className="text-sm font-bold text-idm-gold-warm">
+                      Tim {currentItem.teamIndex + 1} — {tierConf.emoji} Tier {currentTier}
+                    </p>
+                  </div>
 
                   {/* ===== SLOT MACHINE ROLLER ===== */}
                   <div
@@ -491,16 +482,14 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                     {/* Roller content */}
                     {rollerStrip.length > 0 ? (
-                      <motion.div
+                      <div
                         key={spinKey}
-                        initial={{ y: 0 }}
-                        animate={{ y: rollerTargetY }}
-                        transition={{
-                          duration: SPIN_DURATION,
-                          ease: SPIN_EASE,
-                        }}
-                        onAnimationComplete={handleSpinComplete}
-                        style={{ willChange: 'transform' }}
+                        className="animate-spin-roller"
+                        style={{
+                          '--roller-target': `${rollerTargetY}px`,
+                          willChange: 'transform',
+                        } as React.CSSProperties}
+                        onAnimationEnd={handleSpinComplete}
                       >
                         {rollerStrip.map((player, i) => {
                           // Check if this is the center item at the final position
@@ -522,7 +511,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                             </div>
                           );
                         })}
-                      </motion.div>
+                      </div>
                     ) : (
                       /* Initial state before first spin */
                       <div className="flex items-center justify-center h-full">
@@ -540,49 +529,37 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                     {/* Reveal sparkle explosion */}
                     {showReveal && (
-                      <motion.div
-                        className="absolute inset-0 pointer-events-none z-20"
-                        initial={{ opacity: 1 }}
-                        animate={{ opacity: 0 }}
-                        transition={{ duration: 2.5 }}
+                      <div
+                        className="absolute inset-0 pointer-events-none z-20 animate-fade-out"
                       >
                         {[...Array(8)].map((_, i) => (
-                          <motion.div
+                          <div
                             key={i}
-                            className="absolute w-1.5 h-1.5 rounded-full"
+                            className="absolute w-1.5 h-1.5 rounded-full animate-sparkle-explode"
                             style={{
                               left: '50%',
                               top: '50%',
                               backgroundColor: i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#f59e0b' : '#ffffff',
-                            }}
-                            animate={{
-                              x: [0, (Math.random() - 0.5) * 200],
-                              y: [0, (Math.random() - 0.5) * 120],
-                              opacity: [1, 0],
-                              scale: [1, 0],
-                            }}
-                            transition={{ duration: 1.2, delay: i * 0.03, ease: 'easeOut' }}
+                              '--sparkle-x': `${(Math.random() - 0.5) * 200}px`,
+                              '--sparkle-y': `${(Math.random() - 0.5) * 120}px`,
+                              animationDelay: `${i * 0.03}s`,
+                            } as React.CSSProperties}
                           />
                         ))}
-                      </motion.div>
+                      </div>
                     )}
                   </div>
 
                   {/* Reveal info (badge + points) */}
-                  <AnimatePresence>
-                    {showReveal && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <TierBadge tier={currentTier} />
-                        <span className="text-xs text-white/40 lg:text-idm-gold-warm/40">{(randomSelection[currentStep] || currentItem?.player)?.points} pts</span>
-                        <span className="text-xs text-green-400 font-semibold">✅ Terpilih!</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {showReveal && (
+                    <div
+                      className="animate-fade-enter flex items-center justify-center gap-2"
+                    >
+                      <TierBadge tier={currentTier} />
+                      <span className="text-xs text-white/40 lg:text-idm-gold-warm/40">{(randomSelection[currentStep] || currentItem?.player)?.points} pts</span>
+                      <span className="text-xs text-green-400 font-semibold">✅ Terpilih!</span>
+                    </div>
+                  )}
 
                   {/* ===== PLAY BUTTON — always visible, disabled during spin ===== */}
                   {!isComplete && (
@@ -606,10 +583,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       {/* Helper text */}
                       {isSpinning && (
                         <div className="flex items-center gap-1.5">
-                          <motion.div
-                            className="w-1.5 h-1.5 rounded-full bg-idm-gold-warm"
-                            animate={{ scale: [1, 1.5, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity }}
+                          <div
+                            className="w-1.5 h-1.5 rounded-full bg-idm-gold-warm animate-pulse-scale"
                           />
                           <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40">
                             {tierConf.emoji} Tier {currentTier} Tim {currentItem.teamIndex + 1} sedang diacak...
@@ -648,18 +623,15 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
               {/* ===== COMPLETION CELEBRATION ===== */}
               {isComplete && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', duration: 0.6 }}
-                  className="text-center py-8 space-y-4"
+                <div
+                  className="animate-fade-enter text-center py-8 space-y-4"
                 >
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 0.5, repeat: 3 }}
+                  <div
+                    className="animate-wiggle"
+                    style={{ animationIterationCount: 3 }}
                   >
                     <PartyPopper className="w-16 h-16 text-idm-gold-warm mx-auto" />
-                  </motion.div>
+                  </div>
                   <p className="text-2xl font-black text-idm-gold-warm">Semua Tim Terbentuk!</p>
                   <p className="text-sm text-white/50 lg:text-idm-gold-warm/50">{teamCount} tim berhasil dibuat</p>
 
@@ -668,12 +640,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     {Array.from({ length: teamCount }, (_, i) => {
                       const slot = teamSlots[i];
                       return (
-                        <motion.div
+                        <div
                           key={i}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="p-2 rounded-lg border border-white/10 lg:border-idm-gold-warm/10 bg-white/5 lg:bg-idm-gold-warm/5 text-xs"
+                          className="animate-fade-enter p-2 rounded-lg border border-white/10 lg:border-idm-gold-warm/10 bg-white/5 lg:bg-idm-gold-warm/5 text-xs"
+                          style={{ animationDelay: `${i * 50}ms` }}
                         >
                           <div className="font-semibold text-idm-gold-warm truncate flex items-center gap-1">
                             {slot?.name || `Tim ${i + 1}`}
@@ -693,7 +663,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               );
                             })}
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     })}
                   </div>
@@ -705,7 +675,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                   >
                     Lanjut ke Bracket <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
-                </motion.div>
+                </div>
               )}
 
               {/* ===== TEAM GRID — Compact, scrollable ===== */}
@@ -722,14 +692,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       const isCurrentlyRevealing = currentItem?.teamIndex === i && !isComplete;
 
                       return (
-                        <motion.div
+                        <div
                           key={i}
-                          initial={{ opacity: 0.5 }}
-                          animate={{
-                            opacity: 1,
-                            scale: isCurrentlyRevealing && showReveal ? [1, 1.03, 1] : 1,
-                          }}
-                          transition={{ duration: 0.3 }}
                           className={`p-2 rounded-lg border text-xs transition-all duration-300
                             ${isCurrentlyRevealing ? 'border-idm-gold-warm/50 bg-idm-gold-warm/5 ring-1 ring-idm-gold-warm/20' :
                               hasAny ? 'bg-white/5 lg:bg-idm-gold-warm/5 border-white/10 lg:border-idm-gold-warm/10' : 'bg-white/[0.02] lg:bg-idm-gold-warm/[0.02] border-white/5 lg:border-idm-gold-warm/5'}`}
@@ -764,13 +728,11 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                                 >
                                   <span className="text-[10px] shrink-0">{tc.emoji}</span>
                                   {player ? (
-                                    <motion.span
-                                      initial={{ opacity: 0, x: -5 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      className={`text-[11px] font-medium truncate ${tc.color}`}
+                                    <span
+                                      className={`animate-fade-enter text-[11px] font-medium truncate ${tc.color}`}
                                     >
                                       {player.gamertag}
-                                    </motion.span>
+                                    </span>
                                   ) : isThisSlotRevealing ? (
                                     <span className="text-[11px] text-idm-gold-warm animate-pulse">Mengacak...</span>
                                   ) : (
@@ -780,7 +742,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               );
                             })}
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     })}
                   </div>

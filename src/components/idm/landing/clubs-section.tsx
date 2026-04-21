@@ -1,9 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Users, Shield, Music, ChevronUp, ChevronDown, Crown } from 'lucide-react';
-import { SectionHeader, fadeUp, stagger } from './shared';
+import { SectionHeader } from './shared';
 import { CardSkeleton } from '../ui/skeleton';
 import { TierBadge } from '../tier-badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -61,7 +60,7 @@ interface ClubsSectionProps {
 
 export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections, leagueData, setSelectedClub, selectedClub, setSelectedPlayer, showAllClubs, setShowAllClubs, showAllPlayers, setShowAllPlayers }: ClubsSectionProps) {
   return (<>
-      {/* ========== CLUB PESERTA — Premium Parallax Showcase ========== */}
+      {/* ========== CLUB PESERTA — Premium Showcase ========== */}
       <section id="clubs" className="relative py-24 px-4 overflow-hidden">
         {/* Background — Clean roster with subtle dot grid + central gold glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
@@ -71,12 +70,12 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(212,168,83,0.06) 0%, transparent 50%), radial-gradient(ellipse at 30% 70%, rgba(6,182,212,0.02) 0%, transparent 40%), radial-gradient(ellipse at 70% 70%, rgba(168,85,247,0.02) 0%, transparent 40%)' }} />
 
         <div className="relative z-10 max-w-7xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={stagger}>
+          <div className="stagger-item">
             <SectionHeader icon={Users} label={cmsSections.clubs?.subtitle || "Kompetisi"} title={cmsSections.clubs?.title || "Club & Peserta"} subtitle={cmsSections.clubs?.description || "Club-club terbaik yang bertarung di arena IDM League"} />
 
             {/* Liga IDM Champion callout */}
             {leagueData?.ligaChampion && (
-              <motion.div variants={fadeUp} className="mb-8">
+              <div className="stagger-item-fast mb-8" style={{ animationDelay: '60ms' }}>
                 <div className="flex items-center justify-center">
                   <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-idm-gold-warm/15 bg-idm-gold-warm/5">
                     <Crown className="w-3.5 h-3.5 text-idm-gold-warm" />
@@ -89,7 +88,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                     <span className="text-[10px] text-muted-foreground/60">{leagueData?.stats?.totalClubs || 0} club bertanding</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {isDataLoading ? (
@@ -144,14 +143,10 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                           {(showAllClubs ? sortedClubs : sortedClubs.slice(0, 6)).map((club, idx) => {
                             const isChampion = leagueData?.ligaChampion && club.name === leagueData.ligaChampion.name;
                             return (
-                              <motion.div
+                              <div
                                 key={club.id}
-                                initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.03, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                whileHover={{ y: -4, scale: 1.03 }}
-                                className="cursor-pointer group/club"
+                                className="stagger-item-fast hover-scale-md cursor-pointer group/club"
+                                style={{ animationDelay: `${idx * 30}ms` }}
                                 onClick={() => setSelectedClub({
                                   id: club.id,
                                   name: club.name,
@@ -173,7 +168,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   })),
                                 })}
                               >
-                                <div className={`relative rounded-xl bg-white/[0.03] backdrop-blur-sm border p-3 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
+                                <div className={`relative rounded-xl bg-white/[0.06] border p-3 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
                                   isChampion ? 'border-idm-gold-warm/30 shadow-[0_0_20px_rgba(212,168,83,0.1)]' : 'border-white/[0.06]'
                                 }`}>
                                   {/* Champion badge */}
@@ -203,7 +198,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                     <span className="font-bold text-red-400">{club.losses}L</span>
                                   </div>
                                 </div>
-                              </motion.div>
+                              </div>
                             );
                           })}
                         </div>
@@ -247,17 +242,13 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                           {(showAllPlayers ? malePlayers : malePlayers.slice(0, 6)).map((player, idx) => {
                             const losses = player.matches - player.totalWins;
                             return (
-                              <motion.div
+                              <div
                                 key={player.id}
-                                initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.03, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                whileHover={{ y: -4, scale: 1.03 }}
-                                className="cursor-pointer group/player"
+                                className="stagger-item-fast hover-scale-md cursor-pointer group/player"
+                                style={{ animationDelay: `${idx * 30}ms` }}
                                 onClick={() => setSelectedPlayer({ ...player, division: 'male' })}
                               >
-                                <div className="relative rounded-xl bg-white/[0.03] backdrop-blur-sm border border-[#06b6d4]/10 text-center transition-all duration-300 overflow-hidden hover:shadow-[0_8px_24px_rgba(6,182,212,0.08)]">
+                                <div className="relative rounded-xl bg-white/[0.06] border border-[#06b6d4]/10 text-center transition-all duration-300 overflow-hidden hover:shadow-[0_8px_24px_rgba(6,182,212,0.08)]">
                                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#06b6d4] to-transparent z-20" />
                                   <div className="relative h-28 sm:h-32 overflow-hidden group-hover/player:scale-105 transition-transform duration-500">
                                     <Image src={getAvatarUrl(player.gamertag, 'male', player.avatar)} alt={player.gamertag} fill sizes="200px" className="object-cover object-top" />
@@ -272,7 +263,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                     </div>
                                   </div>
                                 </div>
-                              </motion.div>
+                              </div>
                             );
                           })}
                         </div>
@@ -315,17 +306,13 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                           {(showAllPlayers ? femalePlayers : femalePlayers.slice(0, 6)).map((player, idx) => {
                             return (
-                              <motion.div
+                              <div
                                 key={player.id}
-                                initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.03, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                whileHover={{ y: -4, scale: 1.03 }}
-                                className="cursor-pointer group/player"
+                                className="stagger-item-fast hover-scale-md cursor-pointer group/player"
+                                style={{ animationDelay: `${idx * 30}ms` }}
                                 onClick={() => setSelectedPlayer({ ...player, division: 'female' })}
                               >
-                                <div className="relative rounded-xl bg-white/[0.03] backdrop-blur-sm border border-[#a855f7]/10 text-center transition-all duration-300 overflow-hidden hover:shadow-[0_8px_24px_rgba(168,85,247,0.08)]">
+                                <div className="relative rounded-xl bg-white/[0.06] border border-[#a855f7]/10 text-center transition-all duration-300 overflow-hidden hover:shadow-[0_8px_24px_rgba(168,85,247,0.08)]">
                                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#a855f7] to-transparent z-20" />
                                   <div className="relative h-28 sm:h-32 overflow-hidden group-hover/player:scale-105 transition-transform duration-500">
                                     <Image src={getAvatarUrl(player.gamertag, 'female', player.avatar)} alt={player.gamertag} fill sizes="200px" className="object-cover object-top" />
@@ -340,7 +327,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                     </div>
                                   </div>
                                 </div>
-                              </motion.div>
+                              </div>
                             );
                           })}
                         </div>
@@ -372,7 +359,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                 </Tabs>
               );
             })()}
-          </motion.div>
+          </div>
         </div>
       </section>
   </>);

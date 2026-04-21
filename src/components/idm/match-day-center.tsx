@@ -663,7 +663,7 @@ export function MatchDayCenter() {
                     />
                   </div>
                 </div>
-              )}}
+              )}
 
               {/* Match Meta */}
               {t && (
@@ -1039,15 +1039,15 @@ export function MatchDayCenter() {
                   </div>
                 )}
               </SectionCard>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ═══ RESULTS TAB ═══ */}
         <TabsContent value="results" className="mt-4 space-y-4">
-          <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+          <div className="space-y-4">
             {/* All Tournament Results */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d0">
               <SectionCard title="Hasil Turnamen" icon={Trophy} badge={`${tournamentMatches.length} match`}>
                 <div className="space-y-2">
                   {tournamentMatches.map((m) => {
@@ -1057,9 +1057,8 @@ export function MatchDayCenter() {
                     const isLive = m.status === 'live' || m.status === 'main_event';
 
                     return (
-                      <motion.div
+                      <div
                         key={m.id}
-                        whileHover={{ x: 2 }}
                         className={`flex items-stretch rounded-lg overflow-hidden ${dt.bgSubtle} ${dt.borderSubtle} border transition-all ${dt.hoverBorder} cursor-pointer`}
                         onClick={() => {
                           const idx = tournamentMatches.findIndex(tm => tm.id === m.id);
@@ -1104,15 +1103,15 @@ export function MatchDayCenter() {
                           )}
                           {m.mvpPlayer && <span className="text-[7px] text-yellow-500 mt-0.5 font-bold">MVP</span>}
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
               </SectionCard>
-            </motion.div>
+            </div>
 
             {/* Recent League Results */}
-            <motion.div variants={item}>
+            <div className="stagger-item-fast stagger-d1">
               <SectionCard title="Hasil League" icon={Radio} badge="Terbaru">
                 <div className="space-y-2">
                   {data.recentMatches?.slice(0, 6).map(m => {
@@ -1145,10 +1144,10 @@ export function MatchDayCenter() {
                   })}
                 </div>
               </SectionCard>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
-    </motion.div>
+    </div>
   );
 }

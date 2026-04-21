@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AnimatePresence } from 'framer-motion';
 import {
   Shield, Plus, X, Loader2, Crown, UserPlus, UserMinus,
   Edit3, Trash2, Check, ChevronDown, ChevronUp, Users, Search, Camera
@@ -438,8 +437,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                     </div>
 
                     {/* ===== EXPANDED: MEMBERS ===== */}
-                    <AnimatePresence>
-                      {isExpanded && (
+                    {isExpanded && (
                         <div
                           className="overflow-hidden stagger-item-subtle"
                         >
@@ -472,8 +470,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                 </div>
 
                                 {/* Add Member Panel */}
-                                <AnimatePresence>
-                                  {showAddMember === club.id && (
+                                {showAddMember === club.id && (
                                     <div
                                       className="overflow-hidden stagger-item-subtle"
                                     >
@@ -516,7 +513,6 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                                       </div>
                                     </div>
                                   )}
-                                </AnimatePresence>
 
                                 {/* Member List */}
                                 <div className="space-y-1.5">
@@ -593,7 +589,6 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                           </div>
                         </div>
                       )}
-                    </AnimatePresence>
                   </CardContent>
                 </Card>
               </div>

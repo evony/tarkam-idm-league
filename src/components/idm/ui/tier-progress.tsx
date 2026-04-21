@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 interface TierProgressProps {
   currentPoints: number;
   tier: 'S' | 'A' | 'B';
@@ -57,20 +55,14 @@ export function TierProgress({
       </div>
 
       <div className="relative h-2 bg-background rounded-full overflow-hidden border border-border">
-        <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
-          style={{ backgroundColor: tierInfo.color }}
-          initial={showAnimation ? { width: 0 } : false}
-          animate={{ width: `${Math.min(progress, 100)}%` }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out"
+          style={{ backgroundColor: tierInfo.color, width: `${Math.min(progress, 100)}%` }}
         />
         {/* Glow effect */}
-        <motion.div
-          className="absolute inset-y-0 left-0 rounded-full tier-progress-glow"
-          style={{ color: tierInfo.color }}
-          initial={showAnimation ? { width: 0 } : false}
-          animate={{ width: `${Math.min(progress, 100)}%` }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        <div
+          className="absolute inset-y-0 left-0 rounded-full tier-progress-glow transition-[width] duration-700 ease-out"
+          style={{ color: tierInfo.color, width: `${Math.min(progress, 100)}%` }}
         />
       </div>
 
@@ -84,23 +76,18 @@ export function TierProgress({
 
       {/* Tier Up Animation */}
       {isUpgrading && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: [0, 1.2, 1], opacity: 1 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg"
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg animate-fade-enter"
         >
           <div className="text-center">
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="text-3xl mb-1"
+            <div
+              className="text-3xl mb-1 animate-spin-slow"
             >
               ⬆️
-            </motion.div>
+            </div>
             <div className="text-sm font-bold text-idm-gold-warm">TIER UP!</div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -131,12 +118,9 @@ export function TierProgressMini({
         {tier}
       </span>
       <div className="flex-1 h-1.5 bg-background rounded-full overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ backgroundColor: tierInfo.color }}
-          initial={{ width: 0 }}
-          animate={{ width: `${Math.min(progress, 100)}%` }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        <div
+          className="h-full rounded-full transition-[width] duration-700 ease-out"
+          style={{ backgroundColor: tierInfo.color, width: `${Math.min(progress, 100)}%` }}
         />
       </div>
       <span className="text-[10px] text-muted-foreground">{currentPoints}</span>

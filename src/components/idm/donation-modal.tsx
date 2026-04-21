@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+// motion removed — replaced with CSS animations
 import {
   Gift, Heart, Sparkles, Wallet,
   Loader2, CheckCircle2, X, Copy, Check, Phone
@@ -239,7 +239,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-border/50 bg-background">
         {/* Accessible title - visually hidden */}
         <DialogHeader className="sr-only">
           <DialogTitle>{config.title}</DialogTitle>
@@ -255,7 +255,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           />
           <div className="relative z-10 flex items-center gap-3 p-5 h-full">
             <div
-              className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center animate-[wiggle_3s_ease-in-out_infinite]"
+              className="w-12 h-12 rounded-xl bg-white/25 flex items-center justify-center animate-[wiggle_3s_ease-in-out_infinite]"
             >
               <TypeIcon className="w-6 h-6 text-white" />
             </div>
@@ -361,7 +361,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                               </>
                             )}
                           </div>
-                        )
+                        )}
 
                         {/* Holder Name */}
                         {paymentHolder && (
@@ -421,7 +421,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                   </div>
                 )}
             </div>
-          )
+          )}
 
           {/* ========== FORM ========== */}
           {!submitResult && (
@@ -464,13 +464,11 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                 <label className="text-xs font-semibold text-muted-foreground mb-2 block">Pilih Nominal</label>
                 <div className="grid grid-cols-3 gap-2">
                   {presetAmounts.map((btn) => (
-                    <motion.button
+                    <button
                       key={btn.amount}
                       type="button"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
                       onClick={() => { setSelectedAmount(btn.amount); setCustomAmount(''); }}
-                      className={`px-2 py-3 rounded-xl border text-center transition-all duration-200 ${
+                      className={`hover-scale-sm px-2 py-3 rounded-xl border text-center transition-all duration-200 ${
                         selectedAmount === btn.amount && !customAmount
                           ? `${config.borderAccent} ${config.bgSubtle} ${config.textAccent} border-2 shadow-sm`
                           : `border-border/50 bg-background/50 ${config.hoverBg} hover:border-border`
@@ -480,7 +478,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                       <p className={`text-xs font-bold mt-0.5 ${selectedAmount === btn.amount && !customAmount ? config.textAccent : ''}`}>
                         Rp {btn.label}
                       </p>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -579,7 +577,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                 }
               </p>
             </div>
-          )
+          )}
         </div>
       </DialogContent>
     </Dialog>

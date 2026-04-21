@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Shield, Flame, Search, List, Grid3X3, Trophy, Zap, Target, Users, ChevronDown, ChevronUp, Crown, Star, Music } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -43,11 +42,9 @@ function ParticipantCard({ player, rank, onClick }: {
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.04, y: -6 }}
-      whileTap={{ scale: 0.97 }}
+    <div
       onClick={onClick}
-      className={`relative rounded-xl cursor-pointer overflow-hidden transition-all duration-300 ${
+      className={`hover-scale-md relative rounded-xl cursor-pointer overflow-hidden transition-all duration-300 ${
         dt.casinoCard
       } ${isChampion ? dt.neonPulse : ''} ${isTop3 ? dt.casinoGlow : ''} casino-shimmer`}
     >
@@ -157,19 +154,17 @@ function ParticipantCard({ player, rank, onClick }: {
             <span className={`text-[10px] font-black ${winRate >= 60 ? 'text-green-500' : winRate >= 40 ? 'text-yellow-500' : 'text-red-500'}`}>{winRate}%</span>
           </div>
           <div className={`h-1.5 rounded-full ${dt.bgSubtle} overflow-hidden`}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${winRate}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className={`h-full rounded-full ${
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ease-out ${
                 winRate >= 60 ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}` :
                 winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
               }`}
+              style={{ width: `${winRate}%` }}
             />
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -186,10 +181,9 @@ function ParticipantTableRow({ player, rank, onClick }: {
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
 
   return (
-    <motion.div
-      whileHover={{ x: 4, scale: 1.002 }}
+    <div
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-200 border-b ${
+      className={`hover-scale-sm flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-200 border-b ${
         dt.borderSubtle
       } ${isChampion ? `${dt.bgSubtle} border-l-2 border-l-yellow-500` : isTop3 ? `${dt.bgSubtle} border-l-2 border-l-current` : `${dt.hoverBgSubtle}`}`}
       style={!isChampion && isTop3 ? { borderLeftColor: 'var(--idm-male, var(--idm-female))' } as React.CSSProperties : undefined}
@@ -232,11 +226,9 @@ function ParticipantTableRow({ player, rank, onClick }: {
       {/* Win Rate mini bar */}
       <div className="hidden sm:flex items-center gap-1.5 shrink-0">
         <div className={`w-14 h-1.5 rounded-full ${dt.bgSubtle} overflow-hidden`}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${winRate}%` }}
-            transition={{ duration: 0.5 }}
-            className={`h-full rounded-full ${winRate >= 60 ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}` : winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+          <div
+            className={`h-full rounded-full transition-[width] duration-500 ease-out ${winRate >= 60 ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}` : winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+            style={{ width: `${winRate}%` }}
           />
         </div>
         <span className={`text-[9px] font-bold w-7 text-right ${winRate >= 60 ? dt.neonText : 'text-muted-foreground'}`}>{winRate}%</span>
@@ -257,7 +249,7 @@ function ParticipantTableRow({ player, rank, onClick }: {
           <p className="text-[7px] text-muted-foreground">MVP</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

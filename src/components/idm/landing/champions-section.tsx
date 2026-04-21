@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Trophy, Music, Users, Shield, Crown, Wallet, Flame, Play,
@@ -37,7 +36,7 @@ export function ChampionsSection({
 }: ChampionsSectionProps) {
   return (
     <>
-      {/* ========== SEASON CHAMPION — Smooth Reveal Parallax ========== */}
+      {/* ========== SEASON CHAMPION — Smooth Reveal ========== */}
       <section id="champions" role="region" aria-label="Season Champions" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Background — Celebratory bilateral glow with subtle gold shimmer */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
@@ -54,23 +53,15 @@ export function ChampionsSection({
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Section Header — Fade in from below */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <div className="stagger-item">
             <SectionHeader icon={Crown} label={cmsSections.champions?.subtitle || "Aula Champion"} title={cmsSections.champions?.title || "Season Champion"} subtitle={cmsSections.champions?.description || "Juara terbaru dari setiap divisi — 1 tim, 3 pemain, 1 gelar"} />
-          </motion.div>
+          </div>
 
           {/* Liga IDM Champion — Premium Showcase */}
           {leagueData?.ligaChampion && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.97 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-8"
+            <div
+              className="animate-fade-enter mb-8"
+              style={{ animationDelay: '100ms' }}
             >
               <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/30" style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 25%, #0d0a06 50%, #1a0f05 75%, #0c0a06 100%)' }}>
                 {/* Gold shimmer overlay */}
@@ -87,7 +78,7 @@ export function ChampionsSection({
                   {championVideoUrl && onVideoPlay && (
                     <button
                       onClick={() => onVideoPlay(championVideoUrl, 'Champion Showcase')}
-                      className="absolute top-4 right-4 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 backdrop-blur-sm hover:bg-idm-gold-warm/30 hover:border-idm-gold-warm/60 transition-all cursor-pointer"
+                      className="absolute top-4 right-4 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 hover:bg-idm-gold-warm/30 hover:border-idm-gold-warm/60 transition-all cursor-pointer"
                       aria-label="Play champion video"
                     >
                       <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
@@ -111,13 +102,11 @@ export function ChampionsSection({
                       </div>
                     </div>
                     {/* Trophy animation */}
-                    <motion.div
-                      animate={{ y: [0, -5, 0], rotate: [0, 2, -2, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                      className="hidden sm:block"
+                    <div
+                      className="animate-float-medium hidden sm:block"
                     >
                       <Crown className="w-10 h-10 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 20px rgba(212,168,83,0.3))' }} />
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Champion Club Display */}
@@ -213,7 +202,7 @@ export function ChampionsSection({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Both Divisions Side by Side */}
@@ -233,12 +222,10 @@ export function ChampionsSection({
               const accentFaint = isMale ? '#67e8f9' : '#e9d5ff';
 
               return (
-                <motion.div
+                <div
                   key={division}
-                  initial={{ opacity: 0, x: isMale ? -20 : 20, y: 12 }}
-                  whileInView={{ opacity: 1, x: 0, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.4, delay: divIdx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="stagger-item-fast"
+                  style={{ animationDelay: `${divIdx * 100}ms` }}
                 >
                   {(!data || !data.weeklyChampions?.length) ? (
                     <Card className="overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
@@ -252,13 +239,11 @@ export function ChampionsSection({
                           <div className="absolute top-3 right-3 w-8 h-8 border-t border-r" style={{ borderColor: hexToRgba(accent, 0x20) }} aria-hidden="true" />
                           {/* Elegant trophy float animation */}
                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <motion.div
-                              className="empty-state-icon"
-                              animate={{ y: [0, -6, 0] }}
-                              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                            <div
+                              className="empty-state-icon animate-float-medium"
                             >
                               <Crown className="w-14 h-14" style={{ color: hexToRgba(accent, 0x25), filter: `drop-shadow(0 0 24px ${hexToRgba(accent, 0x20)})` }} />
-                            </motion.div>
+                            </div>
                           </div>
                           <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
                             <div className="flex items-center gap-3">
@@ -311,9 +296,9 @@ export function ChampionsSection({
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
                             {/* Crown Glow — gentle float */}
                             <div className="absolute top-4 right-6">
-                              <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+                              <div className="animate-float-subtle">
                                 <Crown className="w-8 h-8 trophy-float" style={{ color: accentLight, filter: `drop-shadow(0 0 16px ${hexToRgba(accent, 0x80)})` }} />
-                              </motion.div>
+                              </div>
                             </div>
                             {/* Division + Week Badges */}
                             <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
@@ -386,7 +371,7 @@ export function ChampionsSection({
                                     <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06]/5 via-transparent to-transparent" />
                                     {pIdx < 2 && <div className="absolute right-0 top-4 bottom-4 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0x15) }} />}
                                     <div className="absolute top-2 left-2 z-10">
-                                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black backdrop-blur-sm" style={{ backgroundColor: hexToRgba(accent, 0x30), color: accentLight }}>
+                                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black" style={{ backgroundColor: hexToRgba(accent, 0x30), color: accentLight }}>
                                         {pIdx + 1}
                                       </div>
                                     </div>
@@ -415,7 +400,7 @@ export function ChampionsSection({
                       </Card>
                     );
                   })()}
-                </motion.div>
+                </div>
               );
             })}
           </div>

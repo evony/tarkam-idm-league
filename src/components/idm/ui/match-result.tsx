@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Trophy, Swords, Star, ArrowRight, Clock, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -52,11 +52,8 @@ export function MatchResultCard({
   const maxScore = format === 'BO1' ? 1 : format === 'BO3' ? 2 : 3;
 
   return (
-    <motion.div
-      className={`match-result-card ${status === 'completed' ? (team1.isWinner ? 'winner' : 'loser') : ''} rounded-xl p-4 bg-card border ${className}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <div
+      className={`animate-fade-enter match-result-card ${status === 'completed' ? (team1.isWinner ? 'winner' : 'loser') : ''} rounded-xl p-4 bg-card border ${className}`}
     >
       {/* Match Info Bar */}
       <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
@@ -65,14 +62,12 @@ export function MatchResultCard({
             {format}
           </span>
           {status === 'live' && (
-            <motion.span
-              className="flex items-center gap-1 text-red-400"
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
+            <span
+              className="flex items-center gap-1 text-red-400 animate-pulse"
             >
               <span className="w-2 h-2 rounded-full bg-red-500" />
               LIVE
-            </motion.span>
+            </span>
           )}
           {status === 'completed' && (
             <span className="text-green-400">Selesai</span>
@@ -90,66 +85,54 @@ export function MatchResultCard({
       <div className="flex items-center justify-between gap-4">
         {/* Team 1 */}
         <div className="flex-1 text-center">
-          <motion.div
-            className={`text-lg font-bold truncate ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
-            animate={team1.isWinner && showScore ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.3, delay: 0.5 }}
+          <div
+            className={`text-lg font-bold truncate ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'} ${team1.isWinner && showScore ? 'animate-pulse-scale' : ''}`}
           >
             {team1.name}
-          </motion.div>
+          </div>
           {team1.isWinner && status === 'completed' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center justify-center gap-1 mt-1"
+            <div
+              className="animate-fade-enter-sm flex items-center justify-center gap-1 mt-1"
+              style={{ animationDelay: '0.8s' }}
             >
               <Trophy className="w-3 h-3 text-idm-gold-warm" />
               <span className="text-[10px] text-idm-gold-warm">WINNER</span>
-            </motion.div>
+            </div>
           )}
         </div>
 
         {/* Score */}
         <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-background">
-          <motion.span
-            className={`text-2xl font-black ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
-            initial={showAnimation ? { scale: 0 } : false}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.3 }}
+          <span
+            className={`animate-fade-enter-sm text-2xl font-black ${team1.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
+            style={showAnimation ? { animationDelay: '0.3s' } : undefined}
           >
             {team1.score}
-          </motion.span>
+          </span>
           <span className="text-muted-foreground">-</span>
-          <motion.span
-            className={`text-2xl font-black ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
-            initial={showAnimation ? { scale: 0 } : false}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.4 }}
+          <span
+            className={`animate-fade-enter-sm text-2xl font-black ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
+            style={showAnimation ? { animationDelay: '0.4s' } : undefined}
           >
             {team2.score}
-          </motion.span>
+          </span>
         </div>
 
         {/* Team 2 */}
         <div className="flex-1 text-center">
-          <motion.div
-            className={`text-lg font-bold truncate ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'}`}
-            animate={team2.isWinner && showScore ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.3, delay: 0.5 }}
+          <div
+            className={`text-lg font-bold truncate ${team2.isWinner ? 'text-idm-gold-warm' : 'text-foreground'} ${team2.isWinner && showScore ? 'animate-pulse-scale' : ''}`}
           >
             {team2.name}
-          </motion.div>
+          </div>
           {team2.isWinner && status === 'completed' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center justify-center gap-1 mt-1"
+            <div
+              className="animate-fade-enter-sm flex items-center justify-center gap-1 mt-1"
+              style={{ animationDelay: '0.8s' }}
             >
               <Trophy className="w-3 h-3 text-idm-gold-warm" />
               <span className="text-[10px] text-idm-gold-warm">WINNER</span>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
@@ -157,27 +140,21 @@ export function MatchResultCard({
       {/* MVP */}
       <AnimatePresence>
         {mvp && status === 'completed' && showScore && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ delay: 1 }}
-            className="mt-4 pt-3 border-t border-border"
+          <div
+            className="animate-fade-enter mt-4 pt-3 border-t border-border"
+            style={{ animationDelay: '1s' }}
           >
             <div className="flex items-center justify-center gap-2">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-              >
+              <div className="animate-pulse">
                 <Star className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
-              </motion.div>
+              </div>
               <span className="text-xs text-muted-foreground">MVP:</span>
               <span className="text-sm font-bold text-idm-gold-warm">{mvp.gamertag}</span>
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -198,12 +175,10 @@ export function MatchResultTimeline({ matches, currentRound, className = '' }: M
   return (
     <div className={`space-y-3 ${className}`}>
       {matches.map((match, index) => (
-        <motion.div
+        <div
           key={match.id}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="relative pl-6"
+          className="animate-fade-enter relative pl-6"
+          style={{ animationDelay: `${index * 100}ms` }}
         >
           {/* Timeline connector */}
           {index < matches.length - 1 && (
@@ -231,7 +206,7 @@ export function MatchResultTimeline({ matches, currentRound, className = '' }: M
             showAnimation={false}
             className="!p-3"
           />
-        </motion.div>
+        </div>
       ))}
     </div>
   );

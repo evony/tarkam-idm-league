@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion removed — replaced with CSS animations
 import {
   UserPlus, X, Loader2, MapPin, Phone, Users, Music, CheckCircle2, AlertTriangle, Ban, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
@@ -274,33 +274,26 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
   const divisionEmoji = division === 'male' ? '🕺' : '💃';
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
         <>
           {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={handleClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/60 animate-fade-enter-sm"
             aria-hidden="true"
           />
 
           {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:w-full z-50 max-h-[90vh] overflow-y-auto"
+          <div
+            className="animate-fade-enter fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:w-full z-50 max-h-[90vh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label="Form Pendaftaran Peserta"
           >
             <Card className="border-idm-gold-warm/20 bg-background shadow-2xl">
               {/* Header */}
-              <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10">
+              <div className="sticky top-0 bg-background border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${division === 'male' ? 'bg-[#06b6d4]/10' : 'bg-[#a855f7]/10'}`}>
                     <UserPlus className={`w-5 h-5 ${division === 'male' ? 'text-[#22d3ee]' : 'text-[#c084fc]'}`} />
@@ -618,7 +611,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         )}
                       </div>
                   </div>
-                )
+                )}
 
                 {/* Registration Form */}
                 {!submitResult && !warningState?.show && (
@@ -811,9 +804,9 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

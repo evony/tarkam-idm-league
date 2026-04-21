@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Trophy, Shield, Users, Flame, Gift, Swords, Crown, Sparkles, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { fadeUp, stagger, scaleIn } from './shared';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import type { StatsData } from '@/types/stats';
 
@@ -96,14 +94,10 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full border border-idm-gold-warm/8" />
         </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="relative z-10 max-w-3xl mx-auto text-center"
+        <div
+          className="stagger-item relative z-10 max-w-3xl mx-auto text-center"
         >
-          <motion.div variants={fadeUp}>
+          <div className="stagger-item-fast stagger-d0">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-idm-gold-warm/50" />
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5">
@@ -112,20 +106,20 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               </div>
               <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-idm-gold-warm/50" />
             </div>
-          </motion.div>
-          <motion.h2 variants={fadeUp} className="text-5xl sm:text-7xl font-black text-gradient-champion leading-none">
+          </div>
+          <h2 className="stagger-item-fast stagger-d1 text-5xl sm:text-7xl font-black text-gradient-champion leading-none">
             The Dream
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed">
+          </h2>
+          <p className="stagger-item-fast stagger-d2 text-sm text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed">
             {leagueData?.ligaChampion
               ? dreamDescCompleted
               : dreamDescActive
             }
-          </motion.p>
+          </p>
 
           {/* Champion Highlight */}
           {leagueData?.ligaChampion && (
-            <motion.div variants={fadeUp} className="mt-6">
+            <div className="stagger-item-fast mt-6" style={{ animationDelay: '120ms' }}>
               <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-idm-gold-warm/20 bg-idm-gold-warm/5">
                 <div className="relative">
                   <ClubLogoImage clubName={leagueData.ligaChampion.name} dbLogo={leagueData.ligaChampion.logo} alt={leagueData.ligaChampion.name} width={40} height={40} className="w-10 h-10 rounded-xl object-cover border border-idm-gold-warm/30" />
@@ -138,27 +132,27 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
                   <p className="text-lg font-black text-white">{leagueData.ligaChampion.name}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Season Highlights */}
-          <motion.div variants={fadeUp} className="mt-10 grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="stagger-item-fast mt-10 grid grid-cols-3 gap-3 sm:gap-4" style={{ animationDelay: '180ms' }}>
             {[
               { icon: Shield, value: `${clubsCompeting}`, label: 'Club Bertanding', accent: 'border-idm-gold-warm/15' },
               { icon: Swords, value: `${matchesPlayed}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]' },
               { icon: Users, value: `${totalParticipants}`, label: 'Peserta Total', accent: 'border-idm-gold-warm/15' },
             ].map((s, i) => (
-              <div key={s.label} className={`rounded-2xl bg-white/[0.03] backdrop-blur-sm border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06] hover:scale-[1.02]`}>
+              <div key={s.label} className={`rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06] hover:scale-[1.02]`}>
                 <s.icon className="w-4 h-4 text-idm-gold-warm mx-auto mb-2" />
                 <p className="text-lg sm:text-2xl font-black text-white truncate">{s.value}</p>
                 <p className="text-[9px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1">{s.label}</p>
               </div>
             ))}
-          </motion.div>
+          </div>
 
           {/* Countdown Timer */}
           {countdown && cmsSettings?.countdown_label && (
-            <motion.div variants={fadeUp} className="mt-8">
+            <div className="stagger-item-fast mt-8" style={{ animationDelay: '240ms' }}>
               <div className="rounded-2xl border border-idm-gold-warm/20 bg-idm-gold-warm/[0.04] p-5 sm:p-6 text-center">
                 <p className="text-xs text-idm-gold-warm/70 font-bold uppercase tracking-widest mb-4">{cmsSettings.countdown_label}</p>
                 <div className="flex items-center justify-center gap-2 sm:gap-3">
@@ -182,11 +176,11 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Liga IDM Season Next — Call for Support (simplified) */}
-          <motion.div variants={fadeUp} className="mt-8">
+          <div className="stagger-item-fast mt-8" style={{ animationDelay: '300ms' }}>
             <div className="rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/5 p-5 sm:p-6 text-center">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Flame className="w-4 h-4 text-idm-gold-warm" />
@@ -197,14 +191,14 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
                 {dreamSeasonNextText}
               </p>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={fadeUp} className="mt-8">
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} onClick={() => openDonationModal('season')} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-shadow cursor-pointer">
+          <div className="stagger-item-fast mt-8" style={{ animationDelay: '360ms' }}>
+            <button onClick={() => openDonationModal('season')} className="hover-scale-md px-7 py-3 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-shadow cursor-pointer">
               <Gift className="w-4 h-4 inline mr-2" />Dukung Liga IDM Season {nextSeason}
-            </motion.button>
-          </motion.div>
-        </motion.div>
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* ========== CTA — Premium Glass Reveal ========== */}
@@ -222,30 +216,24 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-idm-gold-warm/10 rounded-br-xl" />
         </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="relative z-10 max-w-lg mx-auto text-center"
+        <div
+          className="stagger-item relative z-10 max-w-lg mx-auto text-center"
         >
-          <motion.div variants={scaleIn}>
-            <motion.div
-              animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="inline-block mb-4"
+          <div className="animate-fade-enter">
+            <div
+              className="animate-float-medium inline-block mb-4"
             >
               <Sparkles className="w-10 h-10 text-idm-gold-warm" />
-            </motion.div>
-          </motion.div>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-5xl font-black text-gradient-champion mb-3">
+            </div>
+          </div>
+          <h2 className="stagger-item-fast stagger-d0 text-3xl sm:text-5xl font-black text-gradient-champion mb-3">
             {cmsSections.cta?.title || 'Punya Skill? Buktikan.'}
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-xs text-muted-foreground mb-8">
+          </h2>
+          <p className="stagger-item-fast stagger-d1 text-xs text-muted-foreground mb-8">
             {cmsSections.cta?.description || 'Daftar sekarang dan tunjukkan siapa dancer terbaik.'}
-          </motion.p>
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+          </p>
+          <div className="stagger-item-fast stagger-d2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="hover-scale-md">
               <Button
                 size="lg"
                 className="w-full sm:w-auto btn-male px-6 py-4 sm:px-8 sm:py-6 text-xs sm:text-sm font-bold rounded-2xl transition-all"
@@ -253,8 +241,8 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               >
                 Male Division <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+            </div>
+            <div className="hover-scale-md">
               <Button
                 size="lg"
                 variant="outline"
@@ -263,9 +251,9 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
               >
                 Female Division <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </div>
+          </div>
+        </div>
       </section>
 
   </>);

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Crown, Music, Radio, Clock, Flame, Zap, ChevronRight, Trophy, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
@@ -78,11 +77,9 @@ export function DanceMatchCard({
   };
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.01, y: -2 }}
-      whileTap={{ scale: 0.99 }}
+    <div
       onClick={handleClick}
-      className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
+      className={`hover-scale-md relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
         dt.casinoCard
       } ${isLive ? dt.neonPulse : ''} ${dt.casinoGlow} casino-shimmer`}
     >
@@ -254,6 +251,6 @@ export function DanceMatchCard({
           <ChevronRight className={`w-3 h-3 text-muted-foreground transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

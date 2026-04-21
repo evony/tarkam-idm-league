@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   BarChart3, TrendingUp, ArrowUpCircle, RefreshCw, Loader2,
   ChevronDown, ChevronUp, History, Star, Award, Zap, Flame
@@ -12,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { TierBadge } from './tier-badge';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { container, item } from '@/lib/animations';
 import type { DivisionTheme } from '@/hooks/use-division-theme';
 
 interface RankingPanelProps {
@@ -144,7 +142,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
     : allRankings.filter((r: { tier: string }) => r.tier === filterTier);
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+    <div className="space-y-4">
       {/* ===== SUMMARY CARDS ===== */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Card className={dt.casinoCard}>
@@ -283,8 +281,8 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
               points: number; totalWins: number; totalMvp: number; streak: number;
               maxStreak: number; matches: number; tournamentCount: number; club: string | null;
               upgradeInfo: { shouldUpgrade: boolean; targetTier: string; pointsToNext: number; nextThreshold: number | null };
-            }) => (
-              <motion.div key={p.id} variants={item}>
+            }, index) => (
+              <div key={p.id} className="stagger-item-fast" style={{ animationDelay: `${index * 50}ms` }}>
                 <div
                   className={`grid grid-cols-[2.5rem_1fr_3rem_3.5rem_3.5rem_3.5rem_3rem] sm:grid-cols-[2.5rem_1fr_3.5rem_4rem_4rem_4rem_5rem] gap-1 px-3 py-2 items-center cursor-pointer hover:bg-muted/30 transition-colors border-b border-border/5
                     ${p.upgradeInfo.shouldUpgrade ? 'bg-yellow-500/5' : ''}
@@ -422,7 +420,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
                     ) : null}
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -453,6 +451,6 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

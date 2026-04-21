@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { X, ExternalLink, Play } from 'lucide-react';
 
 interface VideoModalProps {
@@ -50,29 +50,6 @@ function parseYouTubeUrl(url: string): { id: string; startTime: number } | null 
   return { id, startTime };
 }
 
-/* ─── Animation variants ─── */
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const contentVariants = {
-  hidden: { opacity: 0, scale: 0.92, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: 'spring', stiffness: 350, damping: 30 },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.92,
-    y: 20,
-    transition: { duration: 0.2 },
-  },
-};
-
 export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
   /* ─── Resolve video source ─── */
   const ytInfo = parseYouTubeUrl(videoUrl);
@@ -115,33 +92,25 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
   }, [isOpen, handleKeyDown]);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
-          variants={overlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          {/* Backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={onClose}
-            aria-hidden="true"
-          />
+    <>
+    {isOpen && (
+      <div
+        className="animate-fade-enter-sm fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/90"
+          onClick={onClose}
+          aria-hidden="true"
+        />
 
-          {/* Content */}
-          <motion.div
-            className="relative z-10 w-full max-w-4xl"
-            variants={contentVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title ?? 'Video player'}
-          >
+        {/* Content */}
+        <div
+          className="animate-fade-enter relative z-10 w-full max-w-4xl"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title ?? 'Video player'}
+        >
             {/* Close button */}
             <button
               type="button"
@@ -228,9 +197,9 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                 </div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </div>
+    </div>
+    )}
+    </>
   );
 }

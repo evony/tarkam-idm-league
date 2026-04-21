@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Music, Shield, Crown, Clock, Flame,
@@ -9,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { MVPCardSkeleton } from '../ui/skeleton';
 import { TierBadge } from '../tier-badge';
 import { SectionHeader } from './shared';
-import { fadeLeft, fadeRight, stagger } from './variants';
 import { getAvatarUrl } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
@@ -41,7 +39,7 @@ export function MvpSection({
         <div className="ambient-light" style={{ top: '30%', left: '15%', animationDuration: '22s' }} />
 
         <div className="relative z-10 max-w-6xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={stagger}>
+          <div className="stagger-item">
             <SectionHeader icon={Crown} label={cmsSections.mvp?.subtitle || "Hall of Fame"} title={cmsSections.mvp?.title || "MVP Arena"} subtitle={cmsSections.mvp?.description || "Pemain terbaik dari setiap divisi — Dipilih admin berdasarkan skor tertinggi"} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative max-w-5xl mx-auto">
@@ -56,7 +54,7 @@ export function MvpSection({
               ) : (
               <>
               {/* Male MVP — Left DRAMATIC HERO CARD */}
-              <motion.div variants={fadeLeft}>
+              <div className="stagger-item-fast" style={{ animationDelay: '0ms' }}>
                 {(() => {
                   const mvp = maleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
@@ -65,9 +63,9 @@ export function MvpSection({
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.08), transparent 60%)' }} />
                       {/* Dashed avatar placeholder */}
                       <div className="relative z-10 w-28 h-28 rounded-full border-2 border-dashed border-[#06b6d4]/25 flex items-center justify-center mb-6">
-                        <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+                        <div className="animate-float-medium">
                           <Crown className="w-16 h-16 text-[#06b6d4]/30" />
-                        </motion.div>
+                        </div>
                       </div>
                       {/* Decorative gold lines flanking text */}
                       <div className="relative z-10 flex items-center gap-3 mb-2">
@@ -101,7 +99,7 @@ export function MvpSection({
 
                       {/* Top Badges */}
                       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-                        <div className="flex items-center gap-2 bg-[#06b6d4]/20 backdrop-blur-md px-3 py-1.5 rounded-lg border border-[#06b6d4]/30">
+                        <div className="flex items-center gap-2 bg-[#06b6d4]/30 px-3 py-1.5 rounded-lg border border-[#06b6d4]/30">
                           <Music className="w-4 h-4 text-[#22d3ee]" />
                           <span className="text-[11px] font-bold text-[#22d3ee] uppercase tracking-wider">Male</span>
                         </div>
@@ -151,10 +149,10 @@ export function MvpSection({
                     </div>
                   );
                 })()}
-              </motion.div>
+              </div>
 
               {/* Female MVP — Right DRAMATIC HERO CARD */}
-              <motion.div variants={fadeRight}>
+              <div className="stagger-item-fast" style={{ animationDelay: '60ms' }}>
                 {(() => {
                   const mvp = femaleData?.mvpHallOfFame?.[0];
                   if (!mvp) return (
@@ -163,9 +161,9 @@ export function MvpSection({
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.08), transparent 60%)' }} />
                       {/* Dashed avatar placeholder */}
                       <div className="relative z-10 w-28 h-28 rounded-full border-2 border-dashed border-[#a855f7]/25 flex items-center justify-center mb-6">
-                        <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+                        <div className="animate-float-medium">
                           <Crown className="w-16 h-16 text-[#a855f7]/30" />
-                        </motion.div>
+                        </div>
                       </div>
                       {/* Decorative gold lines flanking text */}
                       <div className="relative z-10 flex items-center gap-3 mb-2">
@@ -199,7 +197,7 @@ export function MvpSection({
 
                       {/* Top Badges */}
                       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-                        <div className="flex items-center gap-2 bg-[#a855f7]/20 backdrop-blur-md px-3 py-1.5 rounded-lg border border-[#a855f7]/30">
+                        <div className="flex items-center gap-2 bg-[#a855f7]/30 px-3 py-1.5 rounded-lg border border-[#a855f7]/30">
                           <Shield className="w-4 h-4 text-[#c084fc]" />
                           <span className="text-[11px] font-bold text-[#c084fc] uppercase tracking-wider">Female</span>
                         </div>
@@ -249,11 +247,11 @@ export function MvpSection({
                     </div>
                   );
                 })()}
-              </motion.div>
+              </div>
               </>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </>

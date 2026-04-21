@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
 
-import { useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { Crown, Users, Swords, BookOpen, Trophy } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
@@ -63,14 +62,8 @@ export function LandingPage() {
     setDonationModalOpen(true);
   }, []);
 
-  /* Parallax Refs — simplified for mobile performance */
+  /* Hero section ref */
   const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(heroScroll, [0, 1], ['0%', '25%']);
-  const heroScale = useTransform(heroScroll, [0, 1], [1, 1.05]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.7], [1, 0]);
-  const contentY = useTransform(heroScroll, [0, 1], ['0%', '15%']);
-  const heroMidY = useTransform(heroScroll, [0, 1], ['0%', '8%']);
 
   /* Data Queries */
   const { data: maleData, isLoading: isMaleLoading } = useQuery<StatsData>({
@@ -277,11 +270,6 @@ export function LandingPage() {
       {/* ========== SECTION COMPONENTS ========== */}
       <HeroSection
         heroRef={heroRef}
-        heroY={heroY}
-        heroScale={heroScale}
-        heroOpacity={heroOpacity}
-        contentY={contentY}
-        heroMidY={heroMidY}
         cmsLogo={cmsLogo}
         cmsSiteTitle={cmsSiteTitle}
         cmsHeroTitle={cmsHeroTitle}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -305,25 +305,17 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
   }, [onClose]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4"
-        onClick={onClose}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Profil Club ${club.name}`}
+    <div
+      className="animate-fade-enter-sm fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Profil Club ${club.name}`}
+    >
+      <div
+        className="animate-fade-enter bg-background w-full sm:max-w-md sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 100, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 100, scale: 0.95 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-background w-full sm:max-w-md sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
-          onClick={(e) => e.stopPropagation()}
-        >
           {/* ── Header Banner ── */}
           <div className="relative h-80">
             {/* Unified club banner — use league/gold theme */}
@@ -727,8 +719,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               </div>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </div>
   );
 }

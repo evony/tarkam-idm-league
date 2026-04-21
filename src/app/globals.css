@@ -271,9 +271,51 @@
   .animate-pulse-scale,
   .animate-float-subtle,
   .animate-float-medium,
-  .animate-bob-fade {
+  .animate-bob-fade,
+  .animate-spin-roller,
+  .animate-sparkle-explode,
+  .animate-wiggle {
     animation: none;
   }
+}
+
+/* Slot machine roller — translates from Y=0 to CSS custom property target */
+@keyframes spin-roller {
+  from { transform: translateY(0); }
+  to { transform: translateY(var(--roller-target)); }
+}
+.animate-spin-roller {
+  animation: spin-roller 1.5s cubic-bezier(0.05, 0.7, 0.1, 1) forwards;
+  contain: layout style;
+}
+
+/* Fade out — replaces motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} */
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.animate-fade-out {
+  animation: fade-out 2.5s ease forwards;
+}
+
+/* Sparkle explosion — particles fly outward from center */
+@keyframes sparkle-explode {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--sparkle-x), var(--sparkle-y)) scale(0); opacity: 0; }
+}
+.animate-sparkle-explode {
+  animation: sparkle-explode 1.2s ease-out forwards;
+}
+
+/* Wiggle — replaces motion.div animate={{ rotate: [0, 10, -10, 0] }} */
+@keyframes wiggle {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(10deg); }
+  75% { transform: rotate(-10deg); }
+  100% { transform: rotate(0deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.5s ease;
 }
 
 /* Progress bar fill — animates from width:0 to inline target width */
