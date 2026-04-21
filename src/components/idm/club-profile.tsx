@@ -427,30 +427,9 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               <StatBlock icon={Music} label="Selisih Game" value={displayGameDiff > 0 ? `+${displayGameDiff}` : displayGameDiff} color="text-yellow-500" />
             </div>
 
-            {/* Division member count — informational, not separating club by gender */}
-            {hasBothDivisions && (
-              <div className="mb-4 p-3 rounded-xl bg-muted/20 border border-border/20">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Komposisi Pemain</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 text-idm-gold-warm">
-                      🕺 Male
-                    </p>
-                    <div className="text-[10px]">
-                      <span className="font-bold text-white">{maleCount}</span> <span className="text-muted-foreground">pemain</span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 text-idm-gold-warm">
-                      💃 Female
-                    </p>
-                    <div className="text-[10px]">
-                      <span className="font-bold text-white">{femaleCount}</span> <span className="text-muted-foreground">pemain</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Division member count removed — clubs are not gendered.
+                Players within a club may participate in male or female divisions,
+                but the club itself belongs to ALL divisions. */}
 
             {/* Detailed Stats */}
             <div className="space-y-3 mb-4">

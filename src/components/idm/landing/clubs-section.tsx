@@ -15,7 +15,6 @@ interface LeagueClub {
   name: string;
   logo: string | null;
   bannerImage: string | null;
-  divisions?: string[];   // which divisions this club has teams in
   wins: number;
   losses: number;
   points: number;

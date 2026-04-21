@@ -42,6 +42,10 @@ interface ClubData {
   _count?: { members: number };
   members?: ClubMemberData[];
   season?: { name: string; division: string };
+  // Unified club fields (from unified API)
+  bannerImage?: string | null;
+  memberCount?: number;
+  seasonRecords?: Array<{ id: string; seasonId: string; division: string; memberCount: number }>;
 }
 
 export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: ClubManagementProps) {
@@ -70,15 +74,14 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
   const [bannerPickerOpen, setBannerPickerOpen] = useState(false);
   const [bannerClubId, setBannerClubId] = useState<string | null>(null);
 
-  // Fetch clubs with members
+  // Fetch clubs — use unified mode to show ALL clubs across both divisions
+  // Clubs belong to ALL divisions, so the list should be the same in male and female tabs
   const { data: clubs, isLoading } = useQuery<ClubData[]>({
-    queryKey: ['admin-clubs-manage', division, seasonId],
+    queryKey: ['admin-clubs-manage', division, 'unified'],
     queryFn: async () => {
-      if (!seasonId) return [];
-      const res = await fetch(`/api/clubs?seasonId=${seasonId}`);
+      const res = await fetch(`/api/clubs?unified=true&division=${division}`);
       return res.json();
     },
-    enabled: !!seasonId,
   });
 
   // Fetch expanded club detail
@@ -115,7 +118,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       toast.success('Club berhasil dibuat!');
       setNewClubName('');
     },
@@ -132,7 +135,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
       qc.refetchQueries({ queryKey: ['league-landing'] });
       qc.refetchQueries({ queryKey: ['league-summary'] });
@@ -150,7 +153,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       qc.refetchQueries({ queryKey: ['league-landing'] });
       qc.refetchQueries({ queryKey: ['league-summary'] });
       broadcastInvalidation('league-landing', 'league', 'stats', 'league-summary');
@@ -171,7 +174,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       toast.success('Anggota berhasil ditambahkan!');
       setShowAddMember(null);
       setSearchPlayer('');
@@ -189,7 +192,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       toast.success('Anggota berhasil dihapus dari club!');
     },
     onError: (e: Error) => { toast.error(e.message); },
@@ -222,7 +225,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
       // CRITICAL: Force-refetch landing page data so logo updates show immediately
       // Using refetchQueries instead of invalidateQueries to bypass staleTime
@@ -260,7 +263,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, 'unified'] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
       // CRITICAL: Force-refetch landing page data so banner updates show immediately
       qc.refetchQueries({ queryKey: ['league-landing'] });
@@ -422,7 +425,7 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
                       <div className="flex items-center gap-2">
                         <Badge className={dt.casinoBadge}>
                           <Users className="w-3 h-3 mr-1" />
-                          {club._count?.members || 0}
+                          {club.memberCount ?? club._count?.members ?? 0}
                         </Badge>
 
                         {/* Quick action buttons */}

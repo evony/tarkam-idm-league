@@ -85,16 +85,15 @@ export function AdminPanel() {
     queryFn: async () => { const res = await fetch('/api/cms/settings', { credentials: 'include' }); const d = await res.json(); return (d?.map || {}) as Record<string, string>; },
   });
 
-  // Get clubs for dropdown — use seasonForClubs (the season with actual club data)
+  // Get clubs for dropdown — use unified mode to show ALL clubs across both divisions
+  // Clubs belong to ALL divisions, so the dropdown should show all clubs
   const clubsSeasonId = stats?.seasonForClubs?.id || stats?.season?.id;
   const { data: clubs } = useQuery({
-    queryKey: ['admin-clubs', clubsSeasonId],
+    queryKey: ['admin-clubs', storeDivision, 'unified'],
     queryFn: async () => {
-      if (!clubsSeasonId) return [];
-      const res = await fetch(`/api/clubs?seasonId=${clubsSeasonId}`);
+      const res = await fetch(`/api/clubs?unified=true&division=${storeDivision}`);
       return res.json();
     },
-    enabled: !!clubsSeasonId,
   });
 
   // Helper for authenticated fetch

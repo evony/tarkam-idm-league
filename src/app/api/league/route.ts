@@ -261,15 +261,14 @@ export async function GET() {
   const isPreSeason = allClubs.length > 0 && leagueMatches.length === 0;
 
   // ── Deduplicate clubs across seasons/divisions ──
-  // Some clubs exist in both Male and Female seasons (e.g., MAXIMOUS, EUPHORIC).
-  // For the unified Club grid, merge same-named clubs into ONE entry with
-  // combined members and best stats.
+  // Clubs in IDM League are unified entities — a club is NOT "male" or "female".
+  // A club belongs to ALL divisions. Even if a club only has members in one
+  // division, it's still the same club. We merge same-named clubs into ONE entry.
   const clubMap = new Map<string, {
     id: string;
     name: string;
     logo: string | null;
     bannerImage: string | null;
-    divisions: string[];
     wins: number;
     losses: number;
     points: number;
@@ -285,7 +284,6 @@ export async function GET() {
       name: c.name,
       logo: c.logo,
       bannerImage: c.bannerImage,
-      divisions: [c.division],
       wins: c.wins,
       losses: c.losses,
       points: c.points,
@@ -306,8 +304,7 @@ export async function GET() {
     if (!existing) {
       clubMap.set(c.name, clubEntry);
     } else {
-      // Merge: combine divisions, keep best stats, use logo if available
-      existing.divisions.push(c.division);
+      // Merge: keep best stats, use logo if available
       existing.wins += c.wins;
       existing.losses += c.losses;
       existing.points += c.points;
