@@ -113,8 +113,8 @@ export function LandingPage() {
   const cmsHeroTitle = cms.hero_title || 'Idol Meta';
   const cmsHeroSubtitle = cms.hero_subtitle || 'Fan Made Edition';
   const cmsHeroTagline = cms.hero_tagline || 'Tempat dancer terbaik berkompetisi. Tournament mingguan, liga profesional, dan podium yang menunggu.';
-  const cmsHeroBgDesktop = cms.hero_bg_desktop || '/bg-default.jpg';
-  const cmsHeroBgMobile = cms.hero_bg_mobile || '/bg-mobiledefault.jpg';
+  const cmsHeroBgDesktop = cms.hero_bg_desktop || '';
+  const cmsHeroBgMobile = cms.hero_bg_mobile || '';
   const cmsFooterText = cms.footer_text || '© 2025 IDM League — Idol Meta Fan Made Edition. All rights reserved.';
   const cmsFooterTagline = cms.footer_tagline || 'Dance. Compete. Dominate.';
 
