@@ -3,36 +3,46 @@ import { withDbRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
 
 /**
- * POST /api/clubs/update-logos
+ * POST /api/sync
  *
- * Sync club logos from Cloudinary into the database.
- * Supports per-division logos (some clubs have different logos for male/female).
- * Can be called with a JSON body or uses the built-in mapping.
+ * One-time sync endpoint to push data from local SQLite to Neon PostgreSQL.
+ * Syncs: club logos, player avatars, season champion data.
  *
- * Body format (optional):
- * { "logos": [{ "name": "MAXIMOUS", "division": "female", "logo": "https://..." }] }
+ * After calling this, all logo/avatar data will be in the production database.
+ * Future uploads via admin panel will save directly to Neon — no more sync needed.
+ *
+ * Body format (optional — uses built-in defaults if not provided):
+ * {
+ *   "clubLogos": [{ "name": "MAXIMOUS", "division": "male", "logo": "https://..." }],
+ *   "playerAvatars": [{ "gamertag": "Bambang", "avatar": "https://..." }],
+ *   "seasonChampions": [{ "seasonName": "...", "championClubName": "MAXIMOUS" }]
+ * }
  */
 export async function POST(request: Request) {
   try {
-    // Try to read logos from request body first
-    let logos: Array<{ name: string; division?: string; logo: string }>;
+    let body: {
+      clubLogos?: Array<{ name: string; division?: string; logo: string }>;
+      playerAvatars?: Array<{ gamertag: string; avatar: string }>;
+      seasonChampions?: Array<{ seasonName: string; championClubName: string }>;
+    } = {};
 
     try {
-      const body = await request.json();
-      if (body?.logos && Array.isArray(body.logos) && body.logos.length > 0) {
-        logos = body.logos;
-      } else {
-        logos = getDefaultLogos();
-      }
+      body = await request.json();
     } catch {
-      // No body or invalid JSON — use built-in mapping
-      logos = getDefaultLogos();
+      // No body — use defaults
     }
 
-    const updatedClubs = [];
+    const results = {
+      clubLogos: { total: 0, updated: 0, details: [] as Array<{ name: string; division: string; count: number }> },
+      playerAvatars: { total: 0, updated: 0, details: [] as Array<{ gamertag: string; count: number }> },
+      seasonChampions: { total: 0, updated: 0, details: [] as Array<{ seasonName: string; success: boolean }> },
+    };
 
-    for (const clubData of logos) {
-      // Build where clause — match by name AND division if both provided
+    // ── 1. Sync Club Logos ──
+    const clubLogos = body.clubLogos?.length ? body.clubLogos : getDefaultClubLogos();
+    results.clubLogos.total = clubLogos.length;
+
+    for (const clubData of clubLogos) {
       const where: { name: string; division?: string } = { name: clubData.name };
       if (clubData.division) {
         where.division = clubData.division;
@@ -43,33 +53,74 @@ export async function POST(request: Request) {
         data: { logo: clubData.logo },
       }));
 
-      updatedClubs.push({
+      results.clubLogos.details.push({
         name: clubData.name,
         division: clubData.division || 'all',
-        updated: result.count > 0,
         count: result.count,
       });
+      if (result.count > 0) results.clubLogos.updated++;
+    }
+
+    // ── 2. Sync Player Avatars ──
+    const playerAvatars = body.playerAvatars?.length ? body.playerAvatars : getDefaultPlayerAvatars();
+    results.playerAvatars.total = playerAvatars.length;
+
+    for (const playerData of playerAvatars) {
+      const result = await withDbRetry(() => db.player.updateMany({
+        where: { gamertag: playerData.gamertag },
+        data: { avatar: playerData.avatar },
+      }));
+
+      results.playerAvatars.details.push({
+        gamertag: playerData.gamertag,
+        count: result.count,
+      });
+      if (result.count > 0) results.playerAvatars.updated++;
+    }
+
+    // ── 3. Sync Season Champion Club ──
+    const seasonChampions = body.seasonChampions?.length ? body.seasonChampions : getDefaultSeasonChampions();
+    results.seasonChampions.total = seasonChampions.length;
+
+    for (const champData of seasonChampions) {
+      // Find the champion club by name
+      const championClub = await withDbRetry(() => db.club.findFirst({
+        where: { name: champData.championClubName },
+        select: { id: true },
+      }));
+
+      if (championClub) {
+        const result = await withDbRetry(() => db.season.updateMany({
+          where: { name: champData.seasonName },
+          data: { championClubId: championClub.id },
+        }));
+        results.seasonChampions.details.push({
+          seasonName: champData.seasonName,
+          success: result.count > 0,
+        });
+        if (result.count > 0) results.seasonChampions.updated++;
+      } else {
+        results.seasonChampions.details.push({
+          seasonName: champData.seasonName,
+          success: false,
+        });
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Updated ${updatedClubs.filter(c => c.updated).length}/${logos.length} club logos`,
-      updatedClubs,
+      message: 'Sync completed',
+      results,
     });
   } catch (e: unknown) {
     const error = e as Error;
-    console.error('Update club logos error:', error);
+    console.error('[/api/sync] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-/**
- * Default logo mapping from Cloudinary.
- * Some clubs share logos across divisions, others have different ones.
- */
-function getDefaultLogos(): Array<{ name: string; division: string; logo: string }> {
+function getDefaultClubLogos(): Array<{ name: string; division: string; logo: string }> {
   return [
-    // Male division logos
     { name: 'ALQA', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
     { name: 'AVENUE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp' },
     { name: 'CROWN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
@@ -98,5 +149,17 @@ function getDefaultLogos(): Array<{ name: string; division: string; logo: string
     { name: 'SOUTHERN', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
     { name: 'TOGETHER', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
     { name: 'YAKUZA', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
+  ];
+}
+
+function getDefaultPlayerAvatars(): Array<{ gamertag: string; avatar: string }> {
+  return [
+    { gamertag: 'Bambang', avatar: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775739753/idm/avatars/h5u2udboaznqgs3yw8f2.webp' },
+  ];
+}
+
+function getDefaultSeasonChampions(): Array<{ seasonName: string; championClubName: string }> {
+  return [
+    { seasonName: 'IDM League Season 1 - Male', championClubName: 'MAXIMOUS' },
   ];
 }
