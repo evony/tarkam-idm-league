@@ -1308,3 +1308,37 @@ Stage Summary:
   - Win/Loss indicators per club, MVP highlighted with gold
 - API routes tested and working (player search returns results with club info)
 - Lint passes with zero errors
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Add player-centric UX improvements — "Cari Saya" search, "Profil Saya" quick access, simplified navigation labels
+
+Work Log:
+- Created new `PlayerQuickSearch` component (`src/components/idm/player-quick-search.tsx`)
+  - Prominent inline search bar with "Cari Saya" label and sparkle icon
+  - Debounced search (250ms) with instant dropdown results
+  - "Profil Saya" quick access in dropdown (from localStorage)
+  - Saves last viewed player to localStorage with 7-day expiry
+  - Click-outside and Escape to close dropdown
+- Integrated PlayerQuickSearch into Dashboard (`src/components/idm/dashboard/index.tsx`)
+  - Added between Quick Stats and Live Match Banner
+  - All player selection handlers wrapped with `saveLastViewedPlayer()` for "My Profile" persistence
+  - Added "Profil Saya" quick access card below search bar (shows after first player search)
+  - Updated all tab content components to use `handleSelectPlayer` instead of `setSelectedPlayer`
+- Simplified tab labels for better intuitiveness:
+  - "Ringkasan" → "Beranda" (more familiar for casual users)
+  - "Klasemen" → "Peringkat" (simpler word, less formal)
+  - "Match" → "Pertandingan" (full Indonesian, not English)
+  - "Peserta" stays as is
+- Updated standings sub-tabs to Indonesian:
+  - "Players" → "Pemain"
+  - "Clubs" → "Klub"
+- Added imports: `getAvatarUrl`, `TierBadge`, `getLastViewedPlayer` to dashboard
+- Verified lint passes clean, dev server compiles successfully
+
+Stage Summary:
+- Players can now find themselves with ONE click via prominent "Cari Saya" search bar
+- "Profil Saya" card provides persistent one-click access to last viewed player profile
+- All navigation labels are now in everyday Indonesian — less confusing for non-technical users
+- localStorage-based player memory survives page refreshes and session changes

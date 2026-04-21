@@ -25,10 +25,11 @@ import { ClubProfile } from '../club-profile';
 import { ParticipantGrid } from '../participant-grid';
 import { StatusBadge } from '../status-badge';
 import { ShareButton } from '../ui/share-button';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getAvatarUrl } from '@/lib/utils';
+import { TierBadge } from '../tier-badge';
 import type { StatsData } from '@/types/stats';
 
 import { NoSeasonState } from './no-season-state';
@@ -37,6 +38,7 @@ import { OverviewTab } from './overview-tab';
 import { StandingsTab } from './standings-tab';
 import { MatchesTab } from './matches-tab';
 import { DonationModal } from '../donation-modal';
+import { PlayerQuickSearch, saveLastViewedPlayer, getLastViewedPlayer } from '../player-quick-search';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -45,9 +47,23 @@ export function Dashboard() {
   const isMobile = useIsMobile();
 
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] | null>(null);
+
+  // Wrap setSelectedPlayer to also save to "My Profile" localStorage
+  const handleSelectPlayer = (player: StatsData['topPlayers'][0]) => {
+    saveLastViewedPlayer(player);
+    setSelectedPlayer(player);
+    setMyPlayer(player);
+  };
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
   const [donationOpen, setDonationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // "My Profile" — remember last viewed player for quick access
+  const [myPlayer, setMyPlayer] = useState<ReturnType<typeof getLastViewedPlayer>>(null);
+  useEffect(() => {
+    const saved = getLastViewedPlayer();
+    if (saved) setMyPlayer(saved);
+  }, []);
 
   const { data, isLoading } = useQuery<StatsData>({
     queryKey: ['stats', division],
@@ -140,7 +156,7 @@ export function Dashboard() {
   const hasTournament = !!t;
 
   if (!hasTournament) {
-    return <NoTournamentState data={data} setSelectedPlayer={setSelectedPlayer} />;
+    return <NoTournamentState data={data} setSelectedPlayer={handleSelectPlayer} />;
   }
 
   /* Unified stats array — rendered once, responsive classes handle differences */
@@ -274,6 +290,44 @@ export function Dashboard() {
         ))}
       </div>
 
+      {/* ========== CARI SAYA — Player Quick Search ========== */}
+      <div className="stagger-item-subtle stagger-d3">
+        <PlayerQuickSearch onSelectPlayer={handleSelectPlayer} />
+      </div>
+
+      {/* ========== PROFIL SAYA — Quick Access Card ========== */}
+      {myPlayer && (
+        <div className="stagger-item-subtle stagger-d4">
+          <button
+            onClick={() => handleSelectPlayer(myPlayer as any)}
+            className={`w-full flex items-center gap-3 p-3 sm:p-4 rounded-xl ${dt.casinoCard} border ${dt.border} hover:shadow-md transition-shadow cursor-pointer group text-left`}
+          >
+            <div className={`w-11 h-11 rounded-xl ${dt.bg} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
+              <Image
+                src={getAvatarUrl(myPlayer.gamertag, division, myPlayer.avatar)}
+                alt={myPlayer.gamertag}
+                width={44}
+                height={44}
+                className="w-full h-full rounded-xl object-cover"
+                unoptimized
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold truncate">{myPlayer.gamertag}</span>
+                <TierBadge tier={myPlayer.tier} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {myPlayer.club ? <>{myPlayer.club} · </> : ''}{myPlayer.points} pts · {myPlayer.totalWins}W
+              </p>
+            </div>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${dt.bg} text-[10px] font-bold ${dt.text} shrink-0 group-hover:scale-105 transition-transform`}>
+              👤 Profil Saya
+            </div>
+          </button>
+        </div>
+      )}
+
       {/* ========== LIVE MATCH BANNER ========== */}
       {t?.matches?.some(m => m.status === 'live' || m.status === 'main_event') && (
         <div
@@ -304,9 +358,9 @@ export function Dashboard() {
           <div className={`border-b ${dt.border}`}>
             <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
               {[
-                { value: 'overview', label: 'Ringkasan', icon: Trophy },
-                { value: 'standings', label: 'Klasemen', icon: Shield },
-                { value: 'matches', label: 'Match', icon: Music },
+                { value: 'overview', label: 'Beranda', icon: Trophy },
+                { value: 'standings', label: 'Peringkat', icon: Shield },
+                { value: 'matches', label: 'Pertandingan', icon: Music },
                 { value: 'participants', label: 'Peserta', icon: Gamepad2 },
               ].map(tab => (
                 <TabsTrigger
@@ -327,7 +381,7 @@ export function Dashboard() {
           <OverviewTab
             data={data}
             division={division}
-            setSelectedPlayer={setSelectedPlayer}
+            setSelectedPlayer={handleSelectPlayer}
             setSelectedClub={setSelectedClub}
           />
         </TabsContent>
@@ -336,7 +390,7 @@ export function Dashboard() {
         <TabsContent value="standings" className="mt-3 sm:mt-4 lg:mt-6 space-y-3 sm:space-y-4 lg:space-y-6">
           <StandingsTab
             data={data}
-            setSelectedPlayer={setSelectedPlayer}
+            setSelectedPlayer={handleSelectPlayer}
             setSelectedClub={setSelectedClub}
           />
         </TabsContent>
@@ -359,7 +413,7 @@ export function Dashboard() {
             <div className="stagger-item-subtle">
               <ParticipantGrid
                 players={data.topPlayers || []}
-                onPlayerClick={(player) => setSelectedPlayer(player)}
+                onPlayerClick={(player) => handleSelectPlayer(player)}
               />
             </div>
           </div>

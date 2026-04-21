@@ -48,13 +48,13 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
             onClick={() => setLeaderboardSort('players')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'players' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <Users className="w-3 h-3" /> Players
+            <Users className="w-3 h-3" /> Pemain
           </button>
           <button
             onClick={() => setLeaderboardSort('clubs')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'clubs' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <Shield className="w-3 h-3" /> Clubs
+            <Shield className="w-3 h-3" /> Klub
           </button>
         </div>
         <button
