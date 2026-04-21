@@ -5,7 +5,7 @@ import {
   X, Eye, EyeOff, Loader2, Lock, User, Gamepad2,
   ArrowLeft, UserPlus, LogIn, Sparkles, Shield,
 } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -228,6 +228,7 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
+        <DialogTitle className="sr-only">Akun Pemain IDM League</DialogTitle>
         {/* Top accent bar */}
         <div className={`h-1 w-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`} />
 

@@ -6,7 +6,7 @@ import {
   ArrowLeft, UserPlus, LogIn, Sparkles, Shield,
   KeyRound,
 } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -379,6 +379,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
+        <DialogTitle className="sr-only">Login IDM League</DialogTitle>
         {/* Top accent bar — gradient changes based on active tab */}
         <div className={`h-1 w-full bg-gradient-to-r ${
           activeTab === 'admin'
