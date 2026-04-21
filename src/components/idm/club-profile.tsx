@@ -327,14 +327,9 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             {/* Geometric SVG pattern overlay */}
             <BannerPattern />
 
-            {/* Division color accents — bilateral cyan left, purple right */}
+            {/* Gold league accent — unified club, no division split */}
             <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-              {unifiedData?.hasMaleDivision && (
-                <div className="absolute top-0 left-0 w-1/2 h-full" style={{ background: 'radial-gradient(ellipse at 20% 30%, rgba(34,211,238,0.06) 0%, transparent 60%)' }} />
-              )}
-              {unifiedData?.hasFemaleDivision && (
-                <div className="absolute top-0 right-0 w-1/2 h-full" style={{ background: 'radial-gradient(ellipse at 80% 30%, rgba(192,132,252,0.06) 0%, transparent 60%)' }} />
-              )}
+              <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(212,168,83,0.06) 0%, transparent 60%)' }} />
             </div>
 
             {/* Bottom fade to background */}
@@ -400,32 +395,13 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             <div className="text-center mb-4">
               <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>
               <div className="flex items-center justify-center gap-2 mt-2">
-                {/* Unified club badge — show both divisions */}
-                {hasBothDivisions ? (
-                  <>
-                    <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border border-idm-gold-warm/20 border-0">
-                      <Shield className="w-3 h-3 mr-1" /> Club Mix
-                    </Badge>
-                    <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-0">
-                      🕺 {maleCount} Male
-                    </Badge>
-                    <Badge className="bg-purple-500/10 text-purple-400 text-[10px] border-0">
-                      💃 {femaleCount} Female
-                    </Badge>
-                  </>
-                ) : unifiedData?.hasMaleDivision ? (
-                  <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-0">
-                    🕺 Divisi Male
-                  </Badge>
-                ) : unifiedData?.hasFemaleDivision ? (
-                  <Badge className="bg-purple-500/10 text-purple-400 text-[10px] border-0">
-                    💃 Divisi Female
-                  </Badge>
-                ) : (
-                  <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
-                    <Shield className="w-3 h-3 mr-1" /> Club
-                  </Badge>
-                )}
+                {/* Club badge — unified, no division split */}
+                <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
+                  <Shield className="w-3 h-3 mr-1" /> Club IDM League
+                </Badge>
+                <Badge className="bg-white/5 text-muted-foreground text-[10px] border-0">
+                  <Users className="w-3 h-3 mr-1" /> {members.length} Pemain
+                </Badge>
                 {displayIsUndefeated && (
                   <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">
                     🔥 Tak Terkalahkan
@@ -451,40 +427,27 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               <StatBlock icon={Music} label="Selisih Game" value={displayGameDiff > 0 ? `+${displayGameDiff}` : displayGameDiff} color="text-yellow-500" />
             </div>
 
-            {/* Per-division stats breakdown (when both divisions exist) */}
-            {hasBothDivisions && unifiedData?.divisionStats && (
+            {/* Division member count — informational, not separating club by gender */}
+            {hasBothDivisions && (
               <div className="mb-4 p-3 rounded-xl bg-muted/20 border border-border/20">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Statistik Per Divisi</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Komposisi Pemain</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {unifiedData.divisionStats.map((ds: { division: string; wins: number; losses: number; points: number; gameDiff: number }) => (
-                    <div key={ds.division} className={`p-2.5 rounded-lg border ${
-                      ds.division === 'male'
-                        ? 'bg-cyan-500/5 border-cyan-500/10'
-                        : 'bg-purple-500/5 border-purple-500/10'
-                    }`}>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${
-                        ds.division === 'male' ? 'text-cyan-400' : 'text-purple-400'
-                      }`}>
-                        {ds.division === 'male' ? '🕺 Male' : '💃 Female'}
-                      </p>
-                      <div className="space-y-0.5 text-[10px]">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Poin</span>
-                          <span className="font-bold text-white">{ds.points}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Rekor</span>
-                          <span className="font-bold">{ds.wins}W/{ds.losses}L</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">GD</span>
-                          <span className={`font-bold ${ds.gameDiff > 0 ? 'text-green-500' : ds.gameDiff < 0 ? 'text-red-500' : ''}`}>
-                            {ds.gameDiff > 0 ? '+' : ''}{ds.gameDiff}
-                          </span>
-                        </div>
-                      </div>
+                  <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 text-idm-gold-warm">
+                      🕺 Male
+                    </p>
+                    <div className="text-[10px]">
+                      <span className="font-bold text-white">{maleCount}</span> <span className="text-muted-foreground">pemain</span>
                     </div>
-                  ))}
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 text-idm-gold-warm">
+                      💃 Female
+                    </p>
+                    <div className="text-[10px]">
+                      <span className="font-bold text-white">{femaleCount}</span> <span className="text-muted-foreground">pemain</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -563,17 +526,16 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{p.gamertag}</span>
                             <TierBadge tier={p.tier} />
-                            {/* Division indicator dot */}
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isMale ? 'bg-cyan-400' : 'bg-purple-400'}`} title={isMale ? 'Divisi Male' : 'Divisi Female'} />
+                            {/* Division indicator — subtle, just for info */}
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 bg-idm-gold-warm/50`} title={`Divisi ${isMale ? 'Male' : 'Female'}`} />
                             {p.role === 'captain' && (
                               <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-idm-gold-warm/15 text-idm-gold-warm">CPT</span>
                             )}
                           </div>
                           <p className="text-[10px] text-muted-foreground">
-                            {isMale ? '🕺 Male' : '💃 Female'}
-                            {p.city && <> · <MapPin className="w-2.5 h-2.5 inline -mt-0.5" /> {p.city}</>}
-                            {p.totalWins > 0 && ` · ${p.totalWins}W`}
+                            {p.totalWins > 0 && `${p.totalWins}W`}
                             {p.totalMvp > 0 && ` · ${p.totalMvp}x MVP`}
+                            {p.city && <> · <MapPin className="w-2.5 h-2.5 inline -mt-0.5" /> {p.city}</>}
                           </p>
                         </div>
                         <div className="text-right">
