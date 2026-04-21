@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const q = searchParams.get('q')?.trim() || '';
+  const division = searchParams.get('division') || 'male';
+
+  if (!q) {
+    return NextResponse.json({ players: [] });
+  }
+
+  // Search by gamertag or name (case-insensitive, partial match)
+  // SQLite uses LIKE for pattern matching
+  const players = await db.player.findMany({
+    where: {
+      division,
+      isActive: true,
+      OR: [
+        { gamertag: { contains: q } },
+        { name: { contains: q } },
+      ],
+    },
+    include: {
+      clubMembers: {
+        include: {
+          club: {
+            select: { id: true, name: true, logo: true },
+          },
+        },
+      },
+    },
+    orderBy: { points: 'desc' },
+    take: 20,
+  });
+
+  // Get rank for each player within their division
+  const divisionPlayers = await db.player.findMany({
+    where: { division, isActive: true },
+    orderBy: { points: 'desc' },
+    select: { id: true },
+  });
+  const rankMap = new Map(divisionPlayers.map((p, i) => [p.id, i + 1]));
+
+  const result = players.map(p => {
+    const clubMember = p.clubMembers[0]; // first club membership
+    return {
+      id: p.id,
+      gamertag: p.gamertag,
+      division: p.division,
+      tier: p.tier,
+      points: p.points,
+      totalWins: p.totalWins,
+      totalMvp: p.totalMvp,
+      avatar: p.avatar,
+      club: clubMember?.club ?? null,
+      rank: rankMap.get(p.id) ?? 0,
+    };
+  });
+
+  return NextResponse.json({ players: result });
+}

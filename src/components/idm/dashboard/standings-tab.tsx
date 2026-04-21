@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 
-import Image from 'next/image';
 import {
-  Users, Shield, Award, Flame, ChevronDown, ChevronUp,
+  Users, Shield, Award, Flame, ChevronDown, ChevronUp, Search,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,8 @@ import {
 import { TierBadge } from '../tier-badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
+import { PlayerSearch } from '../player-search';
+import { useAppStore } from '@/lib/store';
 
 import type { StatsData } from '@/types/stats';
 
@@ -25,10 +26,12 @@ interface StandingsTabProps {
 
 export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: StandingsTabProps) {
   const dt = useDivisionTheme();
+  const division = useAppStore(s => s.division);
 
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const topPlayers = data?.topPlayers ?? [];
   const displayedPlayers = showAllPlayers ? topPlayers : topPlayers.slice(0, 10);
@@ -38,19 +41,27 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
   return (
     <div className="space-y-4">
 
-      {/* Toornament-style sub-tabs for Players/Clubs */}
-      <div className={`flex items-center gap-1 p-1 rounded-lg ${dt.bgSubtle} ${dt.border} w-fit`}>
+      {/* Toornament-style sub-tabs for Players/Clubs + Search button */}
+      <div className="flex items-center gap-2">
+        <div className={`flex items-center gap-1 p-1 rounded-lg ${dt.bgSubtle} ${dt.border}`}>
+          <button
+            onClick={() => setLeaderboardSort('players')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'players' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Users className="w-3 h-3" /> Players
+          </button>
+          <button
+            onClick={() => setLeaderboardSort('clubs')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'clubs' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Shield className="w-3 h-3" /> Clubs
+          </button>
+        </div>
         <button
-          onClick={() => setLeaderboardSort('players')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'players' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+          onClick={() => setSearchOpen(true)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dt.bgSubtle} ${dt.border} border ${dt.text} hover:${dt.bg}`}
         >
-          <Users className="w-3 h-3" /> Players
-        </button>
-        <button
-          onClick={() => setLeaderboardSort('clubs')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'clubs' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
-        >
-          <Shield className="w-3 h-3" /> Clubs
+          <Search className="w-3 h-3" /> Cari
         </button>
       </div>
 
@@ -154,6 +165,14 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
           </Card>
         </div>
       )}
+
+      {/* Player Search Dialog */}
+      <PlayerSearch
+        division={division}
+        onSelectPlayer={(p) => { setSelectedPlayer(p); setSearchOpen(false); }}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+      />
 
       {/* Club Standings — Toornament clean table */}
       {leaderboardSort === 'clubs' && (

@@ -1170,3 +1170,141 @@ Stage Summary:
 - All clubs now show correct logos in both Season Champion and Club Peserta sections
 - Three-layer defense: proactive sync on update, fallback resolution on read, auto-fill on create
 - Pushed to Vercel for deployment
+
+---
+Task ID: Backend-API-1
+Agent: Backend API Developer
+Task: Create backend APIs for player dashboard features
+
+Work Log:
+- Read worklog.md and existing project structure (Prisma schema, db.ts, existing API routes)
+- Studied existing code patterns: `params: Promise<{ id: string }>` for Next.js 16, `db` import from `@/lib/db`, cache headers pattern
+
+**1. Created `/api/players/[id]/matches/route.ts` — Player Match History API**
+- Finds player by ID with club membership
+- Fetches league matches via club (home + away queries, merged and sorted by week desc)
+- Fetches tournament matches via TeamPlayer (team1 + team2 queries, merged and sorted by createdAt desc)
+- Deduplicates tournament matches by ID
+- Calculates `result` (win/loss/upcoming/null) for both league and tournament matches
+- Determines `isHome` for league matches and `playerTeamId` for tournament matches
+- Returns player info with club, leagueMatches array, and tournamentMatches array
+
+**2. Enhanced `/api/league-matches/[id]/route.ts` — Added GET handler**
+- Added `export const dynamic = 'force-dynamic'` and cache headers
+- GET handler fetches match with club1 and club2, each including their members with player details
+- Returns structured response: match info + club1/club2 with members array (id, gamertag, tier, division, avatar, role)
+- Existing PUT handler preserved unchanged
+
+**3. Created `/api/players/search/route.ts` — Player Search API**
+- Accepts `q` (required) and `division` (optional) query params
+- Uses Prisma `contains` for case-insensitive partial gamertag matching
+- Limits to 20 results, ordered by points desc, totalWins desc, maxStreak desc
+- Includes club membership info in response
+- Calculates rank by counting players ahead in the same division with better stats (points, then totalWins, then maxStreak)
+- Returns `{ players: [...] }` with id, gamertag, division, tier, points, totalWins, totalMvp, avatar, club, rank
+
+**4. Created `/api/league-matches/club/route.ts` — Club Schedule API**
+- Accepts `clubId` (required) and `seasonId` (optional) query params
+- Falls back to club's own seasonId if not provided
+- Fetches all league matches for the club in the season (home + away via OR filter)
+- Calculates `isHome`, `opponent`, and `result` (win/loss/upcoming/null) per match
+- Returns `{ club: {...}, matches: [...] }` sorted by week asc
+
+**5. Code Quality**
+- All routes use `export const dynamic = 'force-dynamic'`
+- All routes include Cache-Control and Surrogate-Key headers
+- All routes follow `params: Promise<{ id: string }>` pattern for Next.js 16
+- All routes have proper error handling with try/catch and appropriate HTTP status codes
+- Removed unused `teamMap` variable from player matches route
+- `bun run lint` passes with zero errors
+
+Stage Summary:
+- 4 API endpoints created/enhanced for player dashboard features
+- Player Match History API: full match history across league + tournaments
+- League Match Detail API: detailed match info with club rosters
+- Player Search API: gamertag search with rank calculation
+- Club Schedule API: full club match schedule with results
+- All endpoints follow project conventions (cache headers, dynamic rendering, error handling)
+
+---
+Task ID: 2-b
+Agent: Frontend Developer
+Task: Add Match History to Player Profile + Club Schedule Filter to Matches Tab
+
+Work Log:
+
+**Task 1: Match History Section in Player Profile**
+- Read existing player-profile.tsx (499 lines) — identified insertion point between "Rekor Match" and "Rincian Poin" sections
+- Added `useState` import for `showAllMatches` toggle
+- Added `Swords`, `ChevronDown`, `ChevronUp` icons from lucide-react
+- Added `useQuery` for `/api/players/${player.id}/matches` with:
+  - `enabled: !!player.id && player.matches > 0` (optimization — only fetch when player has matches)
+  - `staleTime: 30000` (30s cache)
+- Added match history section between "Rekor Match" and "Rincian Poin":
+  - Header: Swords icon + "Riwayat Match" + total matches count badge
+  - Liga sub-section: league matches with week, club names, score, result badge (✅ Menang / ❌ Kalah / Akan Datang)
+  - Turnamen sub-section: tournament matches with week, team names, result badge
+  - Empty state: "Belum ada riwayat match"
+  - "Lihat Semua" / "Lihat Lebih Sedikit" toggle when matches > 10
+- Color coding: green for Menang, red for Kalah, muted for upcoming
+- All labels in Indonesian
+
+**Task 2: Club Schedule Filter in Matches Tab**
+- Read existing matches-tab.tsx (177 lines) — understood bracket + match list structure
+- Added `clubs?: StatsData['clubs']` prop to MatchesTabProps interface
+- Added imports: `useQuery`, `Shield`, `Image`, `ClubLogoImage`, Select components
+- Created `ClubMatchRow` sub-component for club-specific match display:
+  - Week indicator, opponent logo, home/away label, score, result badge
+  - Shows from the selected club's perspective
+- Added `selectedClubId` state with `useState`
+- Added `useQuery` for `/api/league-matches/club?clubId=...&seasonId=...`:
+  - Only enabled when `selectedClubId !== 'all'`
+  - `staleTime: 30000`
+  - Includes loading skeleton state
+- Added `clubMatchesByWeek` computed via `useMemo` — splits into completed/upcoming
+- Added club filter UI row between bracket and match results:
+  - Shield icon + "Filter Club" label
+  - shadcn/ui Select with "Semua Club" option + all clubs from data
+  - Shows selected club's logo when filtered
+- Conditional rendering: when club selected → show club-specific schedule, otherwise show original all-clubs view
+- Empty state for clubs with no matches
+
+**Task 3: Parent Component Update**
+- Updated Dashboard (index.tsx) to pass `clubs={data.clubs}` prop to MatchesTab
+
+**Verification:**
+- `bun run lint` passed with zero errors
+- Dev server running stable (HTTP 200)
+- All existing functionality preserved
+
+Stage Summary:
+- Player profiles now show "Riwayat Match" section with league + tournament match history
+- Matches tab now has club filter dropdown for per-club schedule view
+- Both features use existing division theme styling (dt object)
+- All labels in Indonesian (Menang, Kalah, Liga, Turnamen, Akan Datang)
+- Query optimization: only fetches when relevant data exists
+
+---
+Task ID: 2-a
+Agent: Frontend Developer
+Task: Player Search & Match Detail Modal — create components, API routes, and integrate into dashboard
+
+Work Log:
+- Created `/src/components/idm/player-search.tsx` — PlayerSearch dialog with debounced search, avatars, tier badges, club info
+- Created `/src/components/idm/match-detail-modal.tsx` — MatchDetailModal with score header, MVP highlight, club rosters
+- Created `/src/app/api/players/search/route.ts` — GET /api/players/search?q=&division= with gamertag/name search, rank calculation
+- Created `/src/app/api/league-matches/[id]/route.ts` — GET /api/league-matches/{id} with club rosters, MVP lookup
+- Modified `/src/components/idm/dashboard/standings-tab.tsx` — Added search button, PlayerSearch integration, removed unused Image import
+- Modified `/src/components/idm/dashboard/matches-tab.tsx` — Added clickable match rows, MatchDetailModal, removed unused Image import
+
+Stage Summary:
+- Player Search dialog opens from "Cari" button next to Players/Clubs sub-tabs
+  - 300ms debounce, auto-focus, clear button, empty/no-results states
+  - Results show avatar, gamertag, tier, club, rank, points, wins, MVP
+  - Selecting a player calls setSelectedPlayer and closes dialog
+- Match Detail Modal opens when clicking any match row
+  - Shows instant preview data (club names, score, week, status)
+  - Loads full detail from API (club rosters with avatars/tier/captain, MVP)
+  - Win/Loss indicators per club, MVP highlighted with gold
+- API routes tested and working (player search returns results with club info)
+- Lint passes with zero errors

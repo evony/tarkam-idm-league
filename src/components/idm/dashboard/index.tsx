@@ -349,6 +349,7 @@ export function Dashboard() {
             upcomingMatches={upcomingMatches}
             matchesByWeek={matchesByWeek}
             upcomingByWeek={upcomingByWeek}
+            clubs={data.clubs}
           />
         </TabsContent>
 

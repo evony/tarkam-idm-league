@@ -2,11 +2,11 @@
 
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   X, Trophy, Flame, Crown, Shield, Target,
   TrendingUp, Award, Calendar, Star, BarChart3,
-  Activity, MapPin, Users
+  Activity, MapPin, Users, Swords, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { Badge } from '@/components/ui/badge';
@@ -167,6 +167,20 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
     },
     enabled: !!player.id,
   });
+
+  // Fetch player match history
+  const { data: matchHistoryData } = useQuery({
+    queryKey: ['player-matches', player.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/players/${player.id}/matches`);
+      return res.json();
+    },
+    enabled: !!player.id && player.matches > 0,
+    staleTime: 30000,
+  });
+
+  const [showAllMatches, setShowAllMatches] = useState(false);
+  const MATCH_LIMIT = 10;
 
   const tierConfig: Record<string, { label: string; color: string; desc: string }> = {
     S: { label: 'S Tier', color: 'text-red-500', desc: 'Penari Elite — Performer teratas dengan ritme luar biasa' },
@@ -462,6 +476,91 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                 <div className={`p-4 rounded-xl ${dt.bgSubtle} border ${dt.borderSubtle} text-center`}>
                   <Calendar className={`w-5 h-5 ${dt.text} mx-auto mb-1.5 opacity-40`} />
                   <p className="text-xs text-muted-foreground">Belum ada match tercatat</p>
+                </div>
+              </div>
+            )}
+
+            {/* ═══ Match History (Riwayat Match) ═══ */}
+            {hasMatchHistory && matchHistoryData && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Swords className={`w-4 h-4 ${dt.text}`} />
+                  <h3 className="text-sm font-semibold">Riwayat Match</h3>
+                  <Badge className={`${dt.casinoBadge} text-[8px] ml-auto`}>
+                    {(matchHistoryData.leagueMatches?.length || 0) + (matchHistoryData.tournamentMatches?.length || 0)} DIMAINKAN
+                  </Badge>
+                </div>
+                <div className={`p-3 rounded-xl ${dt.bgSubtle} border ${dt.borderSubtle} space-y-3`}>
+                  {/* Liga Matches */}
+                  {matchHistoryData.leagueMatches?.length > 0 && (
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${dt.text} mb-1.5`}>Liga</p>
+                      <div className="space-y-1.5">
+                        {(showAllMatches ? matchHistoryData.leagueMatches : matchHistoryData.leagueMatches.slice(0, MATCH_LIMIT)).map((m: { id: string; week: number; score1: number | null; score2: number | null; status: string; isHome: boolean; club1: { name: string }; club2: { name: string }; result: string }) => (
+                          <div key={m.id} className="flex items-center gap-2 text-xs">
+                            <span className={`w-8 shrink-0 text-[9px] font-bold ${dt.neonText}`}>W{m.week}</span>
+                            <span className="flex-1 min-w-0 truncate text-muted-foreground">
+                              {m.isHome ? (
+                                <>{m.club1.name} <span className="text-foreground font-semibold">{m.score1 ?? '-'}-{m.score2 ?? '-'}</span> {m.club2.name}</>
+                              ) : (
+                                <>{m.club2.name} <span className="text-foreground font-semibold">{m.score2 ?? '-'}-{m.score1 ?? '-'}</span> {m.club1.name}</>
+                              )}
+                            </span>
+                            {m.result === 'win' ? (
+                              <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 px-1.5 py-0 shrink-0">✅ Menang</Badge>
+                            ) : m.result === 'loss' ? (
+                              <Badge className="bg-red-500/10 text-red-500 text-[9px] border-0 px-1.5 py-0 shrink-0">❌ Kalah</Badge>
+                            ) : (
+                              <Badge className="bg-muted/30 text-muted-foreground text-[9px] border-0 px-1.5 py-0 shrink-0">Akan Datang</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tournament Matches */}
+                  {matchHistoryData.tournamentMatches?.length > 0 && (
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${dt.text} mb-1.5`}>Turnamen</p>
+                      <div className="space-y-1.5">
+                        {(showAllMatches ? matchHistoryData.tournamentMatches : matchHistoryData.tournamentMatches.slice(0, Math.max(0, MATCH_LIMIT - (matchHistoryData.leagueMatches?.length || 0)))).map((m: { id: string; round: number; score1: number | null; score2: number | null; status: string; tournamentName: string; weekNumber: number; team1: { name: string }; team2: { name: string } | null; result: string }) => (
+                          <div key={m.id} className="flex items-center gap-2 text-xs">
+                            <span className={`w-8 shrink-0 text-[9px] font-bold ${dt.neonText}`}>W{m.weekNumber}</span>
+                            <span className="flex-1 min-w-0 truncate text-muted-foreground">
+                              {m.team1.name} vs {m.team2?.name || 'TBD'}
+                            </span>
+                            {m.result === 'win' ? (
+                              <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 px-1.5 py-0 shrink-0">✅ Menang</Badge>
+                            ) : m.result === 'loss' ? (
+                              <Badge className="bg-red-500/10 text-red-500 text-[9px] border-0 px-1.5 py-0 shrink-0">❌ Kalah</Badge>
+                            ) : (
+                              <Badge className="bg-muted/30 text-muted-foreground text-[9px] border-0 px-1.5 py-0 shrink-0">Akan Datang</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty state for match history */}
+                  {(!matchHistoryData.leagueMatches?.length && !matchHistoryData.tournamentMatches?.length) && (
+                    <p className="text-xs text-muted-foreground text-center py-2">Belum ada riwayat match</p>
+                  )}
+
+                  {/* Show More / Show Less toggle */}
+                  {(matchHistoryData.leagueMatches?.length || 0) + (matchHistoryData.tournamentMatches?.length || 0) > MATCH_LIMIT && (
+                    <button
+                      onClick={() => setShowAllMatches(!showAllMatches)}
+                      className={`flex items-center gap-1 text-[10px] font-semibold ${dt.text} mx-auto hover:opacity-80 transition-opacity`}
+                    >
+                      {showAllMatches ? (
+                        <>Lihat Lebih Sedikit <ChevronUp className="w-3 h-3" /></>
+                      ) : (
+                        <>Lihat Semua <ChevronDown className="w-3 h-3" /></>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
