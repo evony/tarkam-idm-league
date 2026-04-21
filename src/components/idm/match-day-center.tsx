@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TierBadge } from './tier-badge';
+import { ShareButton } from './ui/share-button';
 import {
   MatchDayHeroSkeleton,
   MatchRowSkeleton,
@@ -520,13 +521,20 @@ export function MatchDayCenter() {
                     {t?.name || 'Turnamen IDM'}
                   </Badge>
                 </div>
-                {(selectedMatch?.status === 'live' || selectedMatch?.status === 'main_event') ? (
-                  <LivePulse />
-                ) : selectedMatch?.status === 'completed' ? (
-                  <Badge className="bg-green-500/10 text-green-500 text-[10px] font-black border-0">SELESAI</Badge>
-                ) : (
-                  <Badge className={`${dt.casinoBadge} text-[10px]`}>MENDATANG</Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  <ShareButton
+                    title={t?.name || 'IDM League'}
+                    description={`Week ${t?.weekNumber ?? '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+                    variant="icon"
+                  />
+                  {(selectedMatch?.status === 'live' || selectedMatch?.status === 'main_event') ? (
+                    <LivePulse />
+                  ) : selectedMatch?.status === 'completed' ? (
+                    <Badge className="bg-green-500/10 text-green-500 text-[10px] font-black border-0">SELESAI</Badge>
+                  ) : (
+                    <Badge className={`${dt.casinoBadge} text-[10px]`}>MENDATANG</Badge>
+                  )}
+                </div>
               </div>
 
               {/* Match Selection Tabs */}
@@ -539,7 +547,7 @@ export function MatchDayCenter() {
                       <button
                         key={m.id}
                         onClick={() => setSelectedMatchIdx(idx)}
-                        className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all border ${
+                        className={`shrink-0 px-3 py-2 rounded-md text-[11px] min-h-[36px] font-semibold transition-all border ${
                           isActive
                             ? `${dt.bg} ${dt.text} ${dt.border} shadow-sm`
                             : `${dt.bgSubtle} ${dt.borderSubtle} text-muted-foreground hover:text-foreground`
@@ -691,7 +699,7 @@ export function MatchDayCenter() {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className={`relative px-4 py-2.5 text-xs font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none ${division === 'male' ? 'data-[state=active]:text-idm-male' : 'data-[state=active]:text-idm-female'} text-muted-foreground hover:text-foreground transition-colors`}
+                className={`relative px-3 py-2.5 text-[11px] sm:text-xs sm:px-4 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none ${division === 'male' ? 'data-[state=active]:text-idm-male' : 'data-[state=active]:text-idm-female'} text-muted-foreground hover:text-foreground transition-colors`}
               >
                 <tab.icon className="w-3.5 h-3.5 mr-1.5 inline" />
                 {tab.label}
@@ -750,10 +758,10 @@ export function MatchDayCenter() {
                             <span className={`text-[9px] font-bold ${pState.userVote === 'team2' ? dt.neonText : 'text-muted-foreground'}`}>{100 - t1Pct}%</span>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-1 shrink-0">
+                        <div className="flex flex-col gap-1.5 shrink-0">
                           <button
                             onClick={() => handleVote(m.id, 'team1')}
-                            className={`px-2 py-0.5 rounded text-[8px] font-bold transition-all ${
+                            className={`px-3 py-1.5 rounded-md text-[10px] min-h-[32px] font-bold transition-all ${
                               pState.userVote === 'team1'
                                 ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white`
                                 : `${dt.bgSubtle} ${dt.text} ${dt.hoverBg}`
@@ -763,7 +771,7 @@ export function MatchDayCenter() {
                           </button>
                           <button
                             onClick={() => handleVote(m.id, 'team2')}
-                            className={`px-2 py-0.5 rounded text-[8px] font-bold transition-all ${
+                            className={`px-3 py-1.5 rounded-md text-[10px] min-h-[32px] font-bold transition-all ${
                               pState.userVote === 'team2'
                                 ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white`
                                 : `${dt.bgSubtle} ${dt.text} ${dt.hoverBg}`

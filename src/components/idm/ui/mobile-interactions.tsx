@@ -16,7 +16,8 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefresh
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (window.scrollY === 0) {
+    const scrollTop = containerRef.current?.scrollTop ?? window.scrollY;
+    if (scrollTop === 0) {
       startY.current = e.touches[0].clientY;
       setIsPulling(true);
     }
@@ -28,7 +29,8 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefresh
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
 
-    if (diff > 0 && window.scrollY === 0) {
+    const currentScrollTop = containerRef.current?.scrollTop ?? window.scrollY;
+    if (diff > 0 && currentScrollTop === 0) {
       setPullDistance(Math.min(diff, threshold * 1.5));
     }
   }, [isPulling, isRefreshing, threshold]);

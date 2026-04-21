@@ -702,7 +702,7 @@ export function LeagueView() {
 
                           {/* Click to see full profile */}
                           <button
-                            className="w-full text-center text-[10px] text-idm-gold-warm font-semibold py-1.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 hover:bg-idm-gold-warm/10 transition-colors"
+                            className="w-full text-center text-[10px] text-idm-gold-warm font-semibold py-2 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 hover:bg-idm-gold-warm/10 transition-colors min-h-[36px]"
                             onClick={(e) => { e.stopPropagation(); setSelectedClub(club); }}
                           >
                             Lihat Profil Club →

@@ -24,6 +24,7 @@ import { PlayerProfile } from '../player-profile';
 import { ClubProfile } from '../club-profile';
 import { ParticipantGrid } from '../participant-grid';
 import { StatusBadge } from '../status-badge';
+import { ShareButton } from '../ui/share-button';
 import React, { useState, useMemo } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -169,7 +170,12 @@ export function Dashboard() {
         {/* Bottom corner accents — desktop only */}
         <div className={`hidden lg:block absolute bottom-3 left-3 rotate-180 ${dt.cornerAccent}`} />
         <div className={`hidden lg:block absolute bottom-3 right-3 rotate-270 ${dt.cornerAccent}`} />
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
+          <ShareButton
+            title={t?.name || 'IDM League'}
+            description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+            variant="icon"
+          />
           <StatusBadge status={t?.status || 'registration'} />
         </div>
         <div className="absolute bottom-3 sm:bottom-4 lg:bottom-6 left-3 sm:left-5 lg:left-8 right-3 sm:right-5 lg:right-8 z-10">
@@ -183,13 +189,13 @@ export function Dashboard() {
           </div>
           <h2 className={`text-base sm:text-2xl lg:text-3xl font-black ${dt.neonGradient}`}>{t?.name || 'IDM League Babak'}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{data.season?.name}</p>
-          <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1"><Clock className={`w-3 h-3 ${dt.neonText}`} />{t?.scheduledAt ? new Date(t.scheduledAt).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Segera Hadir'}</span>
             <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 ${dt.neonText}`} />{t?.location || 'Online'}</span>
             <span className="flex items-center gap-1"><Flame className={`w-3 h-3 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
           </div>
           {/* Desktop-only extra info row */}
-          <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 ${dt.neonText}`} />Format: {t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
             {t?.bpm ? <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
             <span className="flex items-center gap-1"><Music className={`w-3 h-3 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
@@ -233,16 +239,16 @@ export function Dashboard() {
           </div>
         )}
         <div className={`flex flex-col justify-between p-3 lg:p-6 rounded-xl ${dt.bgSubtle} ${dt.border} shadow-sm lg:shadow-md`}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">💰 Prize Pool</span>
-            <span className={`text-lg lg:text-2xl font-bold ${dt.neonGradient}`}>{formatCurrency(t?.prizePool || 0)}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground shrink-0">💰 Prize Pool</span>
+            <span className={`text-sm sm:text-lg lg:text-2xl font-bold ${dt.neonGradient} truncate`}>{formatCurrency(t?.prizePool || 0)}</span>
           </div>
           <Progress value={data.totalPrizePool > 0 ? Math.min((data.totalPrizePool / 500000) * 100, 100) : 0} className="mt-2 h-1.5" />
           <div className="flex items-center justify-between mt-1">
-            <p className="text-[10px] text-muted-foreground">Terkumpul: {formatCurrency(data.totalPrizePool)}</p>
+            <p className="text-[10px] text-muted-foreground truncate mr-2">Terkumpul: {formatCurrency(data.totalPrizePool)}</p>
             <button
               onClick={() => setDonationOpen(true)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer`}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[32px] shrink-0`}
             >
               <Gift className="w-3 h-3" />
               Sawer

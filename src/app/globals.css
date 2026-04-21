@@ -60,6 +60,14 @@
 /* ============================================
    NIGHT FURY THEME (Dark Only)
    Deep obsidian black + glowing gold / warm amber
+
+   NOTE: This app is dark-only — <html> has hardcoded className="dark".
+   next-themes is installed but NOT wrapped with ThemeProvider.
+   To add light mode: wrap app in <ThemeProvider>, add .light CSS vars,
+   and remove the hardcoded "dark" class from layout.tsx.
+
+   OLED NOTE: --background is #0c0a06 (warm near-black) for design
+   consistency. For OLED battery savings, use --background-oled (#000000).
    ============================================ */
 :root {
   --radius: 0.75rem;
@@ -74,12 +82,12 @@
   --secondary: rgba(229, 190, 74, 0.1);
   --secondary-foreground: #e5be4a;
   --muted: rgba(229, 190, 74, 0.06);
-  --muted-foreground: #9a8a6e;
+  --muted-foreground: #a89878; /* improved from #9a8a6e for WCAG AA+ contrast on small text (~7:1 on card bg) */
   --accent: rgba(229, 190, 74, 0.12);
   --accent-foreground: #e5be4a;
   --destructive: #f87171;
   --border: rgba(229, 190, 74, 0.12);
-  --input: rgba(229, 190, 74, 0.12);
+  --input: rgba(229, 190, 74, 0.18); /* increased from 0.12 for better form input visibility in dark mode */
   --ring: #e5be4a;
   --chart-1: #e5be4a;
   --chart-2: #d4a017;
@@ -113,6 +121,8 @@
   --idm-female-light: #e9d5ff;
   --idm-female-glow: rgba(192, 132, 252, 0.35);
   --idm-female-bg: rgba(192, 132, 252, 0.08);
+  /* OLED-optimized true black — swap with --background for battery savings on OLED screens */
+  --background-oled: #000000;
 }
 
 @layer base {
@@ -3315,20 +3325,17 @@ html {
 /* Pull to refresh */
 .pull-to-refresh {
   position: relative;
+  min-height: 100%;
 }
 
 .pull-to-refresh-indicator {
   position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.pull-to-refresh.pulling .pull-to-refresh-indicator {
-  top: 20px;
-  opacity: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+  transition: opacity 0.2s;
 }
 
 /* Haptic feedback visual */

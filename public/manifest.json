@@ -1,12 +1,13 @@
 {
-  "name": "IDM League - Idol Meta Fan Made Edition",
+  "name": "IDM League — Tournament Hub",
   "short_name": "IDM League",
-  "description": "Premium Dance Tournament & League Platform",
+  "description": "Fan Made Tournament Hub untuk komunitas IDM — live scores, prediksi, klasemen, dan lebih banyak!",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#2dd4bf",
   "orientation": "portrait",
+  "background_color": "#0c0a06",
+  "theme_color": "#0c0a06",
+  "categories": ["sports", "entertainment"],
   "icons": [
     {
       "src": "/logo1.webp",

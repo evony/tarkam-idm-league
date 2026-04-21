@@ -1,7 +1,6 @@
 'use client';
 
-import { AnimatePresence } from 'framer-motion';
-import { Trophy, Swords, Star, ArrowRight, Clock, MapPin } from 'lucide-react';
+import { Trophy, Star, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface MatchResultCardProps {
@@ -35,7 +34,6 @@ export function MatchResultCard({
   mvp,
   format = 'BO1',
   scheduledAt,
-  location,
   status,
   className = '',
   showAnimation = true,
@@ -48,8 +46,6 @@ export function MatchResultCard({
       return () => clearTimeout(timer);
     }
   }, [status, showAnimation]);
-
-  const maxScore = format === 'BO1' ? 1 : format === 'BO3' ? 2 : 3;
 
   return (
     <div
@@ -138,8 +134,7 @@ export function MatchResultCard({
       </div>
 
       {/* MVP */}
-      <AnimatePresence>
-        {mvp && status === 'completed' && showScore && (
+      {mvp && status === 'completed' && showScore && (
           <div
             className="animate-fade-enter mt-4 pt-3 border-t border-border"
             style={{ animationDelay: '1s' }}
@@ -152,8 +147,7 @@ export function MatchResultCard({
               <span className="text-sm font-bold text-idm-gold-warm">{mvp.gamertag}</span>
             </div>
           </div>
-        )}
-      </AnimatePresence>
+      )}
     </div>
   );
 }

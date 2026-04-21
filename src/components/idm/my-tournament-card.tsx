@@ -179,7 +179,7 @@ export function MyTournamentCard() {
           <p className="text-[10px] text-muted-foreground">Ketik nama atau gamertag lalu tekan Cari</p>
         </div>
         {submittedName && (
-          <Button size="sm" variant="outline" className="h-7 text-[10px] shrink-0 gap-1" onClick={handleReset}>
+          <Button size="sm" variant="outline" className="h-9 text-[11px] shrink-0 gap-1 min-h-[36px]" onClick={handleReset}>
             <ArrowRight className="w-3 h-3 rotate-180" /> Kembali
           </Button>
         )}
@@ -567,7 +567,7 @@ export function MyTournamentCard() {
                     );
                   })}
                   {myMatches.length > 5 && (
-                    <button onClick={() => setShowAllMatches(!showAllMatches)} className="w-full py-1.5 text-[10px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors">
+                    <button onClick={() => setShowAllMatches(!showAllMatches)} className="w-full py-2 text-[10px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors min-h-[36px]">
                       {showAllMatches ? <>Tutup <ChevronUp className="w-3 h-3" /></> : <>Lihat semua ({myMatches.length}) <ChevronDown className="w-3 h-3" /></>}
                     </button>
                   )}

@@ -5,33 +5,39 @@ import Image from 'next/image';
 import {
   Gamepad2, Trophy, Users, Shield,
   Home, Flame, Radio, UserPlus, LogOut, Target, KeyRound,
-  PanelLeftClose, ChevronRight
+  PanelLeftClose, ChevronRight, Download, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { AdminLogin } from './admin-login';
 import { LandingPage } from './landing-page';
 import { DonationPopup } from './donation-popup';
 import { NotificationStack } from './notification-stack';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { useQuery } from '@tanstack/react-query';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { usePWA } from '@/hooks/use-pwa';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useHaptic, PullToRefresh } from '@/components/idm/ui/mobile-interactions';
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
-  <div className="space-y-5">
-    <Skeleton className="h-44 rounded-2xl" />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-      <Skeleton className="h-20 rounded-xl" />
-      <Skeleton className="h-20 rounded-xl" />
+  <div className="space-y-4 max-w-7xl mx-auto">
+    <CasinoHeroSkeleton />
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="flex items-center justify-center rounded-xl border border-border/50 bg-card/60 p-4">
+        <div className="skeleton-shimmer h-8 w-48 rounded-lg" />
+      </div>
+      <div className="p-4 rounded-xl border border-border/50 bg-card/60 space-y-2">
+        <div className="skeleton-shimmer h-3 w-24 rounded" />
+        <div className="skeleton-shimmer h-6 w-32 rounded" />
+        <div className="skeleton-shimmer h-1.5 w-full rounded-full" />
+      </div>
     </div>
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-16 rounded-xl" />
-      ))}
-    </div>
+    <StatsRowSkeleton count={4} />
   </div>
 );
 
@@ -48,10 +54,10 @@ const MatchDayCenter = dynamic(() => import('./match-day-center').then(m => ({ d
   loading: () => viewLoading,
 });
 const RegistrationForm = dynamic(() => import('./registration-form').then(m => ({ default: m.RegistrationForm })), {
-  loading: () => <div className="max-w-md mx-auto"><Skeleton className="h-96 rounded-2xl" /></div>,
+  loading: () => <div className="max-w-md mx-auto"><div className="skeleton-shimmer h-96 rounded-2xl" /></div>,
 });
 const MyTournamentCard = dynamic(() => import('./my-tournament-card').then(m => ({ default: m.MyTournamentCard })), {
-  loading: () => <div className="max-w-lg mx-auto"><Skeleton className="h-96 rounded-2xl" /></div>,
+  loading: () => <div className="max-w-lg mx-auto"><div className="skeleton-shimmer h-96 rounded-2xl" /></div>,
 });
 
 const navItems: { id: AppView; label: string; icon: typeof Gamepad2 }[] = [
@@ -71,7 +77,7 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
   return (
     <div className="flex items-center bg-muted rounded-full p-0.5 gap-0.5">
       <button
-        onClick={() => setDivision('male')}
+        onClick={() => { setDivision('male'); toast.success('🕺 Male Division'); }}
         className={`${baseClass} rounded-full font-semibold transition-colors duration-150 ${
           division === 'male'
             ? 'bg-idm-male text-white shadow-md'
@@ -81,7 +87,7 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
         🕺 Male
       </button>
       <button
-        onClick={() => setDivision('female')}
+        onClick={() => { setDivision('female'); toast.success('💃 Female Division'); }}
         className={`${baseClass} rounded-full font-semibold transition-colors duration-150 ${
           division === 'female'
             ? 'bg-idm-female text-white shadow-md'
@@ -343,6 +349,21 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
 export function AppShell() {
   const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView } = useAppStore();
   const dt = useDivisionTheme();
+  const { hapticTap } = useHaptic();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
+  const { canInstall: _canInstall, promptInstall } = usePWA();
+  const [canInstall, setCanInstall] = useState(_canInstall);
+  const [dismissed, setDismissed] = useState(false);
+
+  // Sync with PWA hook + localStorage dismissal
+  useEffect(() => {
+    if (_canInstall && !localStorage.getItem('pwa-install-dismissed')) {
+      setCanInstall(true);
+    } else {
+      setCanInstall(false);
+    }
+  }, [_canInstall]);
 
   // Check session on mount
   useEffect(() => {
@@ -390,7 +411,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Mobile Header — compact with Admin shield in header */}
-      <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
+      <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2.5 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg overflow-hidden">
             <Image src="/logo1.webp" alt="IDM" width={28} height={28} className="w-full h-full object-cover" />
@@ -403,7 +424,7 @@ export function AppShell() {
             variant="ghost"
             size="icon"
             className={`h-10 w-10 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
-            onClick={() => setCurrentView('admin')}
+            onClick={() => { hapticTap(); setCurrentView('admin'); }}
             title="Admin Panel"
           >
             <Shield className="w-5 h-5" />
@@ -411,51 +432,122 @@ export function AppShell() {
         </div>
       </header>
 
+      {/* PWA Install Banner — mobile only */}
+      {canInstall && !dismissed && (
+        <div className={`lg:hidden ${dt.glassStrong} border-b ${dt.border} px-3 py-2 flex items-center gap-2`}>
+          <Download className="w-4 h-4 text-idm-gold-warm shrink-0" />
+          <p className="text-[11px] flex-1">Install IDM League di HP-mu untuk akses cepat!</p>
+          <button
+            onClick={() => { promptInstall(); }}
+            className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black shrink-0"
+          >
+            Install
+          </button>
+          <button
+            onClick={() => { setDismissed(true); setCanInstall(false); localStorage.setItem('pwa-install-dismissed', '1'); }}
+            className="p-1 text-muted-foreground hover:text-foreground shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-1">
         {/* Desktop Sidebar — Collapsible */}
         <DesktopSidebar />
 
         {/* Main Content */}
         <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
-          <div
-            key={currentView}
-            className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
-          >
-            {renderView()}
-          </div>
+          {isMobile ? (
+            <PullToRefresh onRefresh={async () => { queryClient.invalidateQueries(); }}>
+              <div
+                key={currentView}
+                className={`pt-6 px-3 pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
+              >
+                {renderView()}
+              </div>
+            </PullToRefresh>
+          ) : (
+            <div
+              key={currentView}
+              className={`pt-6 px-3 pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
+            >
+              {renderView()}
+            </div>
+          )}
         </main>
       </div>
 
       {/* Mobile Bottom Nav */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border safe-area-bottom`}>
-        <div className="flex justify-around py-1 px-0.5">
+        <div className="flex items-end justify-around py-1.5 px-0.5">
+          {/* Home */}
           <button
-            onClick={() => useAppStore.getState().setCurrentView('landing')}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors duration-200 relative ${
+            onClick={() => { hapticTap(); setCurrentView('landing'); }}
+            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
               (currentView as AppView) === 'landing' ? dt.text : 'text-muted-foreground'
             }`}
           >
-            <Home className="w-[18px] h-[18px]" />
+            <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium leading-tight">Home</span>
             {(currentView as AppView) === 'landing' && (
-              <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+              <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
             )}
           </button>
-          {navItems.map((navItem) => {
+
+          {/* First 2 nav items */}
+          {navItems.slice(0, 2).map((navItem) => {
             const Icon = navItem.icon;
             const isActive = currentView === navItem.id;
             return (
               <button
                 key={navItem.id}
-                onClick={() => useAppStore.getState().setCurrentView(navItem.id)}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors duration-200 relative ${
+                onClick={() => { hapticTap(); setCurrentView(navItem.id); }}
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
                   isActive ? dt.text : 'text-muted-foreground'
                 }`}
               >
-                <Icon className="w-[18px] h-[18px]" />
+                <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium leading-tight">{navItem.label}</span>
                 {isActive && (
-                  <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+                  <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+                )}
+              </button>
+            );
+          })}
+
+          {/* Daftar (Register) — Center Action Button */}
+          <button
+            onClick={() => { hapticTap(); setCurrentView('register'); }}
+            className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] rounded-xl px-3 py-2.5 -mt-3 shadow-lg transition-colors duration-200 relative ${
+              currentView === 'register'
+                ? 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
+                : 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
+            }`}
+          >
+            <UserPlus className="w-5 h-5" />
+            <span className="text-[10px] font-semibold leading-tight">Daftar</span>
+            {currentView === 'register' && (
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-idm-dark/40" />
+            )}
+          </button>
+
+          {/* Last 2 nav items */}
+          {navItems.slice(2).map((navItem) => {
+            const Icon = navItem.icon;
+            const isActive = currentView === navItem.id;
+            return (
+              <button
+                key={navItem.id}
+                onClick={() => { hapticTap(); setCurrentView(navItem.id); }}
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
+                  isActive ? dt.text : 'text-muted-foreground'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-tight">{navItem.label}</span>
+                {isActive && (
+                  <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
                 )}
               </button>
             );
