@@ -1,10 +1,16 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { unstable_noStore as noStore } from 'next/cache';
 
-// Force dynamic rendering — prevent Next.js from caching stats API
+// Force dynamic rendering — prevent Next.js/Vercel from caching stats API
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function GET(request: Request) {
+  // Opt out of ALL Next.js caching — ensures fresh data on every request
+  noStore();
+
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division') || 'male';
 
@@ -21,7 +27,10 @@ export async function GET(request: Request) {
   if (!season) {
     return NextResponse.json({ hasData: false, division }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=20',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
   }
@@ -245,8 +254,11 @@ export async function GET(request: Request) {
     },
   }, {
     headers: {
-      // Short CDN cache with revalidation — balances freshness with performance
-      'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=20',
+      // No caching — club logos and data must be fresh after admin updates
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'CDN-Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     },
   });
 }

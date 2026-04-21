@@ -134,6 +134,9 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
+      qc.refetchQueries({ queryKey: ['league-landing'] });
+      qc.refetchQueries({ queryKey: ['league-summary'] });
+      broadcastInvalidation('league-landing', 'league', 'stats', 'league-summary');
       toast.success('Club berhasil diperbarui!');
       setEditingClub(null);
     },
@@ -148,6 +151,9 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
+      qc.refetchQueries({ queryKey: ['league-landing'] });
+      qc.refetchQueries({ queryKey: ['league-summary'] });
+      broadcastInvalidation('league-landing', 'league', 'stats', 'league-summary');
       setExpandedClub(null);
       toast.success('Club berhasil dihapus!');
     },
@@ -218,12 +224,14 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
-      // CRITICAL: Invalidate landing page league data so logo updates show on landing
-      qc.invalidateQueries({ queryKey: ['league-landing'] });
-      qc.invalidateQueries({ queryKey: ['league'] });
-      qc.invalidateQueries({ queryKey: ['stats'] });
+      // CRITICAL: Force-refetch landing page data so logo updates show immediately
+      // Using refetchQueries instead of invalidateQueries to bypass staleTime
+      qc.refetchQueries({ queryKey: ['league-landing'] });
+      qc.refetchQueries({ queryKey: ['league'] });
+      qc.refetchQueries({ queryKey: ['stats'] });
+      qc.refetchQueries({ queryKey: ['league-summary'] });
       // Broadcast cross-tab invalidation so landing page in OTHER tabs refetches
-      broadcastInvalidation('league-landing', 'league', 'stats');
+      broadcastInvalidation('league-landing', 'league', 'stats', 'league-summary');
       toast.success('Logo club diperbarui!');
       setLogoClubId(null);
     },
@@ -254,12 +262,13 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-clubs-manage', division, seasonId] });
       qc.invalidateQueries({ queryKey: ['club-detail', expandedClub] });
-      // CRITICAL: Invalidate landing page league data so banner updates show on landing
-      qc.invalidateQueries({ queryKey: ['league-landing'] });
-      qc.invalidateQueries({ queryKey: ['league'] });
-      qc.invalidateQueries({ queryKey: ['stats'] });
+      // CRITICAL: Force-refetch landing page data so banner updates show immediately
+      qc.refetchQueries({ queryKey: ['league-landing'] });
+      qc.refetchQueries({ queryKey: ['league'] });
+      qc.refetchQueries({ queryKey: ['stats'] });
+      qc.refetchQueries({ queryKey: ['league-summary'] });
       // Broadcast cross-tab invalidation so landing page in OTHER tabs refetches
-      broadcastInvalidation('league-landing', 'league', 'stats');
+      broadcastInvalidation('league-landing', 'league', 'stats', 'league-summary');
       toast.success('Banner club diperbarui!');
       setBannerClubId(null);
     },

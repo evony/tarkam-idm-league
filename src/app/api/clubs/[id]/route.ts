@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag, unstable_noStore as noStore } from 'next/cache';
 
 // GET /api/clubs/[id] — Club detail with members
 export async function GET(
@@ -59,9 +59,14 @@ export async function PUT(
     },
   });
 
-  // Invalidate Next.js server cache so landing page shows updated logo/banner
+  // Invalidate ALL Next.js/Vercel cache layers so landing page shows updated logo/banner
+  // 1. revalidatePath — invalidates Full Route Cache and Data Cache for these paths
   revalidatePath('/');
   revalidatePath('/api/league');
+  // 2. revalidateTag — more targeted, works with fetch() tags and Vercel CDN
+  revalidateTag('league-data');
+  // 3. Also invalidate stats routes (club logos appear in standings)
+  revalidatePath('/api/stats');
 
   return NextResponse.json(updated);
 }
@@ -91,9 +96,11 @@ export async function DELETE(
   await db.clubMember.deleteMany({ where: { clubId: id } });
   await db.club.delete({ where: { id } });
 
-  // Invalidate Next.js server cache so landing page updates after club deletion
+  // Invalidate ALL Next.js/Vercel cache layers so landing page updates after club deletion
   revalidatePath('/');
   revalidatePath('/api/league');
+  revalidateTag('league-data');
+  revalidatePath('/api/stats');
 
   return NextResponse.json({ success: true, message: 'Club berhasil dihapus' });
 }

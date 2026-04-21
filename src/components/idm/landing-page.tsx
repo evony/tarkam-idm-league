@@ -97,14 +97,22 @@ export function LandingPage() {
 
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string }; ligaChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
     queryKey: ['league-landing'],
-    queryFn: async () => { const res = await fetch('/api/league'); if (!res.ok) throw new Error('League API failed'); return res.json(); },
-    staleTime: 5000, // 5s — fast refresh for admin logo/banner updates
-    gcTime: 300000, // Keep cached data for 5 minutes
+    queryFn: async () => {
+      // cache: 'no-store' + timestamp cache-busting ensures Vercel CDN and browser
+      // NEVER serve stale data. Critical for admin logo/banner updates to show immediately.
+      const url = `/api/league?_t=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('League API failed');
+      return res.json();
+    },
+    staleTime: 0, // Always consider data stale — refetch on every mount
+    gcTime: 300000, // Keep cached data for 5 minutes (but always stale)
+    refetchOnMount: 'always', // Always refetch when component mounts (e.g., navigating back to landing)
     retry: 3, // Retry 3 times for Neon cold start
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
     refetchOnWindowFocus: true, // Refetch when user comes back to tab
     refetchOnReconnect: true, // Refetch when network reconnects
-    refetchInterval: 60000, // Poll every 60s as safety net for cross-tab updates
+    refetchInterval: 30000, // Poll every 30s as safety net for cross-tab updates
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;

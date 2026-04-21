@@ -1,12 +1,20 @@
 import { db } from '@/lib/db';
 import { withDbRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
+import { unstable_noStore as noStore } from 'next/cache';
 
 // Force dynamic rendering — prevent Next.js/Vercel from caching this API response
 // This ensures club logos and other data are always fresh after CMS updates
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+// Revalidate every 0 seconds — never serve stale data from Vercel's Data Cache
+export const revalidate = 0;
 
 export async function GET() {
+  // Opt out of ALL Next.js caching — ensures fresh data on every request
+  // This is critical for Vercel where multiple cache layers can serve stale data
+  noStore();
+
   try {
   // Get all seasons (active + completed) — League is unified, not per-division
   // Completed seasons still have champion data that must be displayed
@@ -246,8 +254,14 @@ export async function GET() {
     },
   }, {
     headers: {
-      // Prevent CDN caching — ensure fresh data after CMS updates (logo, etc.)
-      'Cache-Control': 'no-store, max-age=0',
+      // Nuclear anti-caching — must prevent Vercel Edge Network CDN, browser cache,
+      // and any intermediate proxy from caching this response.
+      // Club logo/banner updates from admin panel MUST reflect immediately.
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'CDN-Cache-Control': 'no-store',  // Vercel-specific: bypass Edge Network CDN
+      'Pragma': 'no-cache',              // HTTP/1.0 backward compat
+      'Expires': '0',                     // Never cache
+      'Vary': '*',                        // Prevent cache key reuse
     },
   });
 
@@ -260,6 +274,14 @@ export async function GET() {
       error: error?.message || 'Database connection failed',
       // Always attempt to preserve ligaChampion if we got that far
       ligaChampion: null,
-    }, { status: 200 }); // Return 200 so React Query doesn't treat it as an error
+    }, {
+      status: 200, // Return 200 so React Query doesn't treat it as an error
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   }
 }
