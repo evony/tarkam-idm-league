@@ -4,6 +4,7 @@ import { ArrowRight, Music, Shield, Trophy, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedSection, SectionHeader } from './shared';
 import { formatCurrency } from '@/lib/utils';
+import { useSectionParallax } from '@/hooks/use-parallax';
 import type { StatsData } from '@/types/stats';
 
 interface TournamentHubProps {
@@ -16,6 +17,9 @@ interface TournamentHubProps {
 }
 
 export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, onEnterApp, onVideoPlay }: TournamentHubProps) {
+  // Subtle parallax for floating decorative elements
+  const floatLayer = useSectionParallax<HTMLDivElement>({ speed: 0.05 });
+
   return (
     <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Arena battle with bilateral division glow */}
@@ -24,6 +28,14 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
       <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212,168,83,0.15) 35px, rgba(212,168,83,0.15) 36px)', backgroundSize: '50px 50px' }} />
       {/* Division color split — cyan left, purple right */}
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
+
+      {/* ── Floating parallax decorative elements ── */}
+      <div ref={floatLayer} className="parallax-layer absolute inset-0 pointer-events-none will-change-transform" aria-hidden="true">
+        <div className="absolute top-[20%] left-[8%] w-48 h-48 rounded-full bg-cyan-400/[0.02] blur-2xl" />
+        <div className="absolute top-[30%] right-[5%] w-40 h-40 rounded-full bg-purple-400/[0.02] blur-2xl" />
+        <div className="absolute bottom-[15%] left-[40%] w-2.5 h-2.5 rounded-full bg-idm-gold-warm/10" />
+        <div className="absolute top-[10%] right-[30%] w-20 h-20 rounded-full border border-idm-gold-warm/[0.03]" />
+      </div>
 
       <div className="relative z-10 max-w-6xl mx-auto">
         <AnimatedSection parallax>

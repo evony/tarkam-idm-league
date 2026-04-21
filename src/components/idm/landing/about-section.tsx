@@ -2,6 +2,7 @@
 
 import { Heart, Flame, Users, Trophy, Swords, Sparkles, Music, Shield } from 'lucide-react';
 import { AnimatedSection, SectionHeader } from './shared';
+import { useSectionParallax } from '@/hooks/use-parallax';
 
 interface AboutSectionProps {
   cmsSections: Record<string, any>;
@@ -50,6 +51,10 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
   const accentTexts = ['text-cyan-400', 'text-idm-gold-warm', 'text-purple-400'];
   const accentLineColors = ['via-cyan-500/50', 'via-idm-gold-warm', 'via-purple-500/50'];
 
+  // Subtle parallax for floating decorative elements
+  const floatLayer1 = useSectionParallax<HTMLDivElement>({ speed: 0.04 });
+  const floatLayer2 = useSectionParallax<HTMLDivElement>({ speed: 0.08 });
+
   return (
     <section id="about" role="region" aria-label="Cerita Kami" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Warm narrative glow with subtle vertical line pattern */}
@@ -61,6 +66,19 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
 
       {/* Ambient orb — single, slow orbit for warmth */}
       <div className="ambient-light" style={{ top: '15%', right: '8%', animationDuration: '25s' }} />
+
+      {/* ── Floating parallax decorative elements ── */}
+      <div ref={floatLayer1} className="parallax-layer absolute inset-0 pointer-events-none will-change-transform" aria-hidden="true">
+        {/* Slow layer: large soft shapes */}
+        <div className="absolute top-1/4 right-[10%] w-40 h-40 rounded-full bg-idm-gold-warm/[0.025] blur-2xl" />
+        <div className="absolute bottom-1/4 left-[5%] w-32 h-32 rounded-full border border-idm-gold-warm/[0.04]" />
+      </div>
+      <div ref={floatLayer2} className="parallax-layer absolute inset-0 pointer-events-none will-change-transform" aria-hidden="true">
+        {/* Medium layer: small accent dots */}
+        <div className="absolute top-[15%] left-[20%] w-1.5 h-1.5 rounded-full bg-idm-gold-warm/15" />
+        <div className="absolute top-[70%] right-[25%] w-2 h-2 rounded-full bg-cyan-400/10" />
+        <div className="absolute top-[45%] right-[8%] w-1 h-1 rounded-full bg-purple-400/10" />
+      </div>
 
       <div className="relative z-10 max-w-4xl mx-auto">
         <AnimatedSection parallax>

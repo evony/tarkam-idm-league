@@ -14,10 +14,11 @@ import { AdminLogin } from './admin-login';
 import { LandingPage } from './landing-page';
 import { DonationPopup } from './donation-popup';
 import { NotificationStack } from './notification-stack';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useParallax } from '@/hooks/use-parallax';
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
@@ -338,9 +339,34 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
   );
 }
 
+/* ─── Subtle floating decorative shapes for dashboard parallax ─── */
+function DashboardParallaxDecor({ scrollContainerRef }: { scrollContainerRef: React.RefObject<HTMLElement | null> }) {
+  // Layer 1: slow drift — large soft blobs
+  const blob1Ref = useParallax<HTMLDivElement>({ speed: 0.08, maxOffset: 60, scrollContainerRef });
+  const blob2Ref = useParallax<HTMLDivElement>({ speed: 0.12, maxOffset: 80, scrollContainerRef });
+  // Layer 2: medium drift — small dots
+  const dot1Ref = useParallax<HTMLDivElement>({ speed: 0.18, maxOffset: 50, scrollContainerRef });
+  const dot2Ref = useParallax<HTMLDivElement>({ speed: 0.15, maxOffset: 40, scrollContainerRef });
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+      {/* Large soft glow blobs — deepest layer, slowest */}
+      <div ref={blob1Ref} className="will-change-transform absolute -top-20 -right-20 w-72 h-72 rounded-full bg-idm-gold-warm/[0.03] blur-3xl" />
+      <div ref={blob2Ref} className="will-change-transform absolute top-1/3 -left-32 w-80 h-80 rounded-full bg-idm-gold-warm/[0.02] blur-3xl" />
+      {/* Small decorative dots — medium layer */}
+      <div ref={dot1Ref} className="will-change-transform absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-idm-gold-warm/10" />
+      <div ref={dot2Ref} className="will-change-transform absolute top-2/3 left-1/3 w-1.5 h-1.5 rounded-full bg-idm-gold-warm/8" />
+      {/* Static ring outlines — no parallax, just depth */}
+      <div className="absolute bottom-1/4 right-10 w-24 h-24 rounded-full border border-idm-gold-warm/[0.04]" />
+      <div className="absolute top-1/2 left-10 w-16 h-16 rounded-full border border-idm-gold-warm/[0.03]" />
+    </div>
+  );
+}
+
 export function AppShell() {
   const { currentView, donationPopup, hideDonationPopup, division, adminAuth, setAdminAuth, setCurrentView } = useAppStore();
   const dt = useDivisionTheme();
+  const mainRef = useRef<HTMLElement>(null);
   // Check session on mount
   useEffect(() => {
     async function checkSession() {
@@ -412,11 +438,13 @@ export function AppShell() {
         {/* Desktop Sidebar — Collapsible */}
         <DesktopSidebar />
 
-        {/* Main Content */}
-        <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
+        {/* Main Content — with subtle parallax decorative layer */}
+        <main ref={mainRef} className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh} relative`}>
+          {/* Subtle parallax background decorations — only for non-admin views */}
+          {currentView !== 'admin' && <DashboardParallaxDecor scrollContainerRef={mainRef} />}
           <div
             key={currentView}
-            className={`pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
+            className={`relative z-10 pt-6 px-3 pb-24 sm:pt-6 sm:px-4 sm:pb-24 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : currentView === 'dashboard' || currentView === 'mytournament' ? '' : 'max-w-[1600px]'} mx-auto`}
           >
             {renderView()}
           </div>

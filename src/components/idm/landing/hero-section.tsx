@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard } from './shared';
 import { formatCurrency } from '@/lib/utils';
-import { useParallax } from '@/hooks/use-parallax';
+import { useParallax, useSectionParallax } from '@/hooks/use-parallax';
 import type { StatsData } from '@/types/stats';
 
 /**
@@ -64,20 +64,24 @@ export function HeroSection({
   cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
   nextSeason, maleData, particles, onRegister, onVideoPlay
 }: HeroSectionProps) {
-  /* Parallax: hero background moves at 15% of scroll speed, capped at 100px */
-  const bgParallaxRef = useParallax<HTMLDivElement>({ speed: 0.15, maxOffset: 100 });
+  /* ── Multi-layer parallax for depth illusion ──
+   * Layer 0 (BG):  moves slowest  → speed 0.3, max 150px  (deepest)
+   * Layer 1 (Mid):  moves medium  → uses useSectionParallax speed 0.06
+   * Content stays fixed (z-10, no parallax) → creates maximum depth contrast
+   */
+  const bgParallaxRef = useParallax<HTMLDivElement>({ speed: 0.3, maxOffset: 150 });
+  const midLayerRef = useSectionParallax<HTMLDivElement>({ speed: 0.06 });
 
   return (
     <>
-      {/* ========== HERO SECTION — Cinematic with Subtle Parallax ========== */}
+      {/* ========== HERO SECTION — Cinematic with Multi-Layer Parallax ========== */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Multi-layer Background — parallax: background drifts slower than scroll */}
-        <div ref={bgParallaxRef} className="parallax-bg absolute inset-0" style={{ zIndex: 0 }}>
+        {/* ── Layer 0: Deep Background — parallax: slowest drift ── */}
+        <div ref={bgParallaxRef} className="parallax-bg absolute inset-0 will-change-transform" style={{ zIndex: 0 }}>
         {cmsHeroBgVideo ? (() => {
           const ytInfo = parseYouTubeUrl(cmsHeroBgVideo);
           const ytId = ytInfo?.id ?? null;
           return ytId ? (
-            /* YouTube autoplay embed as cinematic background (bandwidth goes to YouTube, not Vercel) */
             <div className="absolute inset-0">
               <div className="absolute inset-0 w-full h-full overflow-hidden">
                 <iframe
@@ -89,9 +93,7 @@ export function HeroSection({
                   title="Hero background video"
                 />
               </div>
-              {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
-              {/* Watch Video button — opens modal with controls */}
               {onVideoPlay && (
                 <button
                   onClick={() => onVideoPlay(cmsHeroBgVideo!, 'Video Highlight')}
@@ -104,7 +106,6 @@ export function HeroSection({
               )}
             </div>
           ) : (
-            /* Cloudinary / direct video URL — autoplay background */
             <div className="absolute inset-0">
               <video
                 src={cmsHeroBgVideo}
@@ -116,7 +117,6 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
-              {/* Dark overlay for text readability */}
               <div className="absolute inset-0 bg-black/50" />
             </div>
           );
@@ -130,31 +130,32 @@ export function HeroSection({
             </div>
           </>
         )}
-        </div>{/* end parallax-bg wrapper */}
+        </div>{/* end parallax-bg layer 0 */}
 
-        {/* Layer 2: Mid-depth gold haze */}
-        <div
-          className="absolute inset-0 z-[1]"
-          style={{
-            background: 'radial-gradient(ellipse at 50% 60%, rgba(212,168,83,0.08) 0%, transparent 70%)',
-          }}
-        />
+        {/* ── Layer 1: Mid-depth — parallax: medium drift (gold haze, grid, gradients) ── */}
+        <div ref={midLayerRef} className="parallax-layer absolute inset-0 z-[1] will-change-transform pointer-events-none">
+          {/* Gold haze */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse at 50% 60%, rgba(212,168,83,0.08) 0%, transparent 70%)',
+            }}
+          />
+          {/* Gradient Overlay — 2 layers */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
+          {/* Animated Grid Overlay */}
+          <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+            backgroundImage: `linear-gradient(rgba(212,168,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.3) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px',
+          }} />
+        </div>
 
-        {/* Gradient Overlay — 2 layers */}
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
-
-        {/* Animated Grid Overlay */}
-        <div className="absolute inset-0 z-[1] opacity-[0.02] dark:opacity-[0.04]" style={{
-          backgroundImage: `linear-gradient(rgba(212,168,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.3) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
-        }} />
-
-        {/* Ambient Orbit Light */}
+        {/* Ambient Orbit Light — stays with content layer (no parallax) */}
         <div className="ambient-light z-[1]" style={{ top: '30%', left: '20%' }} />
         <div className="ambient-light z-[1]" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
 
-        {/* Floating Particles */}
+        {/* Floating Particles — slight parallax (inherits from section) */}
         <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden" aria-hidden="true">
           {particles.map((p) => (
             <div
@@ -172,7 +173,7 @@ export function HeroSection({
           ))}
         </div>
 
-        {/* Hero Content */}
+        {/* Hero Content — stays fixed, no parallax (creates depth contrast) */}
         <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto w-full">
           {/* Decorative top accent line */}
           <div className="animate-fade-enter mb-6">
@@ -287,14 +288,10 @@ export function HeroSection({
           aria-hidden="true"
           style={{ animationDelay: '1.5s' }}
         >
-          <div
-            className="animate-float-medium flex flex-col items-center gap-2"
-          >
+          <div className="animate-float-medium flex flex-col items-center gap-2">
             <span className="text-[10px] text-idm-gold-warm/50 uppercase tracking-widest font-semibold">Jelajahi</span>
             <div className="w-6 h-10 rounded-full border-2 border-idm-gold-warm/20 flex items-start justify-center p-1.5">
-              <div
-                className="animate-float-subtle w-1.5 h-1.5 rounded-full bg-idm-gold-warm/60"
-              />
+              <div className="animate-float-subtle w-1.5 h-1.5 rounded-full bg-idm-gold-warm/60" />
             </div>
           </div>
         </div>

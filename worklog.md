@@ -741,3 +741,34 @@ Stage Summary:
 - Scroll parallax: AnimatedSection elements offset +/-8px based on viewport position — gentle depth illusion
 - Performance: no Framer Motion, rAF-based, GPU-accelerated transforms, reduced-motion support
 - Applied to both landing page (6 sections) and dashboard (3 key cards)
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix parallax animations not visible — enhance landing + dashboard parallax
+
+Work Log:
+- Diagnosed 4 root causes for invisible parallax:
+  1. Hero BG parallax too subtle (speed 0.15, max 100px) — barely noticeable
+  2. AnimatedSection parallax only ±8px — too small to perceive
+  3. Dashboard had NO parallax at all
+  4. Dashboard scroll is in container <main>, not window — useParallax hooks read window.scrollY which stays at 0
+- Fixed useParallax hook: Added `scrollContainerRef` parameter to support container-based scrolling (critical for dashboard)
+- Fixed useSectionParallax hook: Same container scroll support added
+- Created useMultiLayerParallax hook: Multiple layers with different speeds for depth illusion
+- Enhanced hero BG parallax: speed 0.15→0.3, maxOffset 100→150px, uses translate3d for GPU
+- Added multi-layer parallax to hero: Layer 0 (BG) slow drift, Layer 1 (mid-depth gradients) medium drift, Content stays fixed
+- Enhanced AnimatedSection parallax: ±8px→±20px range, uses translate3d, added rAF cleanup
+- Added DashboardParallaxDecor component to app-shell: soft glow blobs + dots + ring outlines that drift when scrolling in <main> container
+- Added floating decorative parallax elements to about-section (2 layers with different speeds)
+- Added floating decorative parallax elements to tournament-hub (1 layer with division-colored blobs)
+- All parallax uses will-change: transform and translate3d for GPU compositing
+- Lint: clean, no errors
+- Dev server: running, all routes 200
+
+Stage Summary:
+- Landing page parallax now visible: hero BG moves at 30% of scroll speed, mid-layer at 6%, sections at ±20px
+- Dashboard parallax works: decorative elements drift when scrolling inside <main> container
+- Container scroll support: useParallax/useSectionParallax hooks accept scrollContainerRef
+- Performance: pure CSS transforms + rAF throttling, no framer-motion, translate3d for GPU
+- All effects are subtle ("tipis") but noticeable — inspired by museum-style parallax from reference site

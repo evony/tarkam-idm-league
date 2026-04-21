@@ -30,30 +30,33 @@ export function AnimatedSection({ children, className = '', variant = 'fadeUp', 
           observer.unobserve(el);
         }
       },
-      { rootMargin: '-60px' }
+      { rootMargin: '-40px' }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Subtle parallax offset — element drifts slightly based on scroll position
+  // Subtle parallax offset — element drifts based on scroll position
+  // Increased from ±8px to ±20px for visible but still subtle effect
   useEffect(() => {
     if (!parallax || !isVisible) return;
     const el = ref.current;
     if (!el) return;
 
     let ticking = false;
+    let rafId = 0;
     const onScroll = () => {
       if (!ticking) {
         ticking = true;
-        requestAnimationFrame(() => {
+        rafId = requestAnimationFrame(() => {
           const rect = el.getBoundingClientRect();
           const viewH = window.innerHeight;
           // Only apply when element is in viewport
           if (rect.bottom > 0 && rect.top < viewH) {
             const centerOffset = (rect.top + rect.height / 2 - viewH / 2) / viewH;
-            el.style.transform = `translateY(${centerOffset * -8}px)`;
+            // ±20px parallax range — visible but still subtle
+            el.style.transform = `translate3d(0, ${centerOffset * -20}px, 0)`;
           }
           ticking = false;
         });
@@ -61,7 +64,10 @@ export function AnimatedSection({ children, className = '', variant = 'fadeUp', 
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [parallax, isVisible]);
 
   // Map variant to CSS animation class
