@@ -21,10 +21,21 @@ interface AdminAuthState {
   admin: AdminUser | null;
 }
 
+interface PlayerSkinData {
+  type: string;
+  icon: string;
+  displayName: string;
+  colorClass: string;
+  priority: number;
+  duration: string;
+  reason?: string | null;
+  expiresAt?: string | null;
+}
+
 interface PlayerAccount {
   id: string;
   username: string;
-  skin?: string | null;
+  skins: PlayerSkinData[];
   player: {
     id: string;
     gamertag: string;

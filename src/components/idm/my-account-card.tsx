@@ -11,6 +11,8 @@ import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TierBadge } from './tier-badge';
+import { SkinBadgesRow, SkinAvatarFrame, SkinName } from './skin-renderer';
+import { getPrimarySkin } from '@/lib/skin-utils';
 import { getAvatarUrl, clubToString } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -31,6 +33,10 @@ export function MyAccountCard({ onOpenProfile }: MyAccountCardProps) {
   const playerDivision = player.division as 'male' | 'female';
   const avatarSrc = getAvatarUrl(player.gamertag, playerDivision, player.avatar);
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
+
+  // Skin data
+  const skins = account.skins || [];
+  const primarySkin = getPrimarySkin(skins);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -54,14 +60,14 @@ export function MyAccountCard({ onOpenProfile }: MyAccountCardProps) {
   };
 
   return (
-    <div className={`stagger-item-subtle stagger-d4 rounded-xl ${dt.casinoCard} border ${dt.border} overflow-hidden`}>
+    <div className={`stagger-item-subtle stagger-d4 rounded-xl ${primarySkin ? 'border border-border/50' : dt.casinoCard + ' border ' + dt.border} overflow-hidden`} style={primarySkin ? undefined : undefined}>
       {/* Header */}
       <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 ${dt.bgSubtle} border-b ${dt.borderSubtle}`}>
-        <Sparkles className={`w-3.5 h-3.5 ${dt.text}`} />
+        <Sparkles className={`w-3.5 h-3.5 ${primarySkin ? 'text-idm-gold' : dt.text}`} />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Akun Saya</span>
-        {account.skin && (
+        {skins.length > 0 && (
           <Badge className={`${dt.casinoBadge} text-[8px] ml-auto`}>
-            <Star className="w-2.5 h-2.5 mr-0.5" /> Skin Aktif
+            <Star className="w-2.5 h-2.5 mr-0.5" /> {skins.length} Skin
           </Badge>
         )}
       </div>
@@ -69,32 +75,36 @@ export function MyAccountCard({ onOpenProfile }: MyAccountCardProps) {
       {/* Player Info */}
       <div className="p-3 sm:p-4">
         <div className="flex items-start gap-3">
-          {/* Avatar */}
+          {/* Avatar with skin frame */}
           <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-border/30 shadow-lg">
-              <Image
-                src={avatarSrc}
-                alt={player.gamertag}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-                unoptimized
-              />
-            </div>
-            {/* Skin indicator overlay */}
-            {account.skin && (
-              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] flex items-center justify-center shadow-md">
-                <Crown className="w-3 h-3 text-black" />
+            <SkinAvatarFrame skin={primarySkin}>
+              <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-border/30 shadow-lg">
+                <Image
+                  src={avatarSrc}
+                  alt={player.gamertag}
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
               </div>
-            )}
+            </SkinAvatarFrame>
           </div>
 
           {/* Name & Stats */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold truncate">{player.gamertag}</span>
+              <SkinName skin={primarySkin}>
+                <span className="text-sm font-bold truncate">{player.gamertag}</span>
+              </SkinName>
               <TierBadge tier={player.tier} />
             </div>
+            {/* Skin badges row */}
+            {skins.length > 0 && (
+              <div className="mt-0.5">
+                <SkinBadgesRow skins={skins} />
+              </div>
+            )}
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {player.city ? player.city + ' · ' : ''}{playerDivision === 'male' ? '🕺 Male' : '💃 Female'}
             </p>

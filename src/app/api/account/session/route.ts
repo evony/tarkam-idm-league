@@ -57,12 +57,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ authenticated: false });
     }
 
+    // Get active skins for the player
+    const playerSkins = await db.playerSkin.findMany({
+      where: {
+        accountId: account.id,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
+      },
+      include: {
+        skin: { select: { id: true, type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
+      },
+      orderBy: { skin: { priority: 'desc' } },
+    });
+
     return NextResponse.json({
       authenticated: true,
       account: {
         id: account.id,
         username: account.username,
-        skin: account.skin,
+        skins: playerSkins.map(ps => ({
+          type: ps.skin.type,
+          icon: ps.skin.icon,
+          displayName: ps.skin.displayName,
+          colorClass: ps.skin.colorClass,
+          priority: ps.skin.priority,
+          duration: ps.skin.duration,
+          reason: ps.reason,
+          expiresAt: ps.expiresAt?.toISOString() ?? null,
+        })),
         player: account.player,
       },
     });

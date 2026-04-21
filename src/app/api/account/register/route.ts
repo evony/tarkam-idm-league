@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       account: {
         id: account.id,
         username: account.username,
-        skin: account.skin,
+        skins: [], // New accounts have no skins
         player: account.player,
       },
     }, { status: 201 });

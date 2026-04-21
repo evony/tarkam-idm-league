@@ -14,6 +14,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAppStore } from '@/lib/store';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { TierBadge } from './tier-badge';
+import { SkinBadgesRow, SkinAvatarFrame, SkinName } from './skin-renderer';
+import { getPrimarySkin } from '@/lib/skin-utils';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { getAvatarUrl } from '@/lib/utils';
@@ -413,21 +415,30 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                 <div>
                   <div className={`p-4 rounded-xl ${division === 'male' ? 'bg-idm-male/5 border border-idm-male/20' : 'bg-idm-female/5 border border-idm-female/20'} mb-4`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-border/20">
-                        <Image
-                          src={getAvatarUrl(playerAuth.account!.player.gamertag, playerAuth.account!.player.division as 'male' | 'female', playerAuth.account!.player.avatar)}
-                          alt={playerAuth.account!.player.gamertag}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
-                          unoptimized
-                        />
-                      </div>
+                      <SkinAvatarFrame skin={getPrimarySkin(playerAuth.account!.skins || [])}>
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border/20">
+                          <Image
+                            src={getAvatarUrl(playerAuth.account!.player.gamertag, playerAuth.account!.player.division as 'male' | 'female', playerAuth.account!.player.avatar)}
+                            alt={playerAuth.account!.player.gamertag}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      </SkinAvatarFrame>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold truncate">{playerAuth.account!.player.gamertag}</span>
+                          <SkinName skin={getPrimarySkin(playerAuth.account!.skins || [])}>
+                            <span className="text-sm font-bold truncate">{playerAuth.account!.player.gamertag}</span>
+                          </SkinName>
                           <TierBadge tier={playerAuth.account!.player.tier} />
                         </div>
+                        {(playerAuth.account!.skins?.length ?? 0) > 0 && (
+                          <div className="mt-0.5">
+                            <SkinBadgesRow skins={playerAuth.account!.skins || []} />
+                          </div>
+                        )}
                         <p className="text-[10px] text-muted-foreground">{playerAuth.account!.player.name}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {playerAuth.account!.player.division === 'male' ? '🕺 Male' : '💃 Female'} · {playerAuth.account!.player.points} pts
