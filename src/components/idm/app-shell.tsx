@@ -478,76 +478,59 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Nav */}
+      {/* ═══ FAB: Daftar (Register) — floating above bottom-right ═══ */}
+      <button
+        onClick={() => { hapticTap(); setCurrentView('register'); }}
+        className={`lg:hidden fixed z-50 right-4 shadow-xl rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+          currentView === 'register'
+            ? 'bottom-[88px]'
+            : 'bottom-[80px]'
+        }`}
+        aria-label="Daftar Turnamen"
+      >
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg ${
+          currentView === 'register'
+            ? 'bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-idm-dark ring-2 ring-idm-gold-warm/40'
+            : 'bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
+        }`}>
+          <UserPlus className="w-5 h-5" />
+          <span className="text-sm font-bold">Daftar</span>
+        </div>
+      </button>
+
+      {/* ═══ Mobile Bottom Nav — 5 items, clean and spacious ═══ */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border safe-area-bottom`}>
-        <div className="flex items-end justify-around py-1.5 px-0.5">
+        <div className="flex justify-around py-1 px-1">
           {/* Home */}
           <button
             onClick={() => { hapticTap(); setCurrentView('landing'); }}
-            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
+            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
               (currentView as AppView) === 'landing' ? dt.text : 'text-muted-foreground'
             }`}
           >
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium leading-tight">Home</span>
             {(currentView as AppView) === 'landing' && (
-              <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+              <div className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
             )}
           </button>
 
-          {/* First 2 nav items */}
-          {navItems.slice(0, 2).map((navItem) => {
+          {/* All 4 nav items — evenly spaced */}
+          {navItems.map((navItem) => {
             const Icon = navItem.icon;
             const isActive = currentView === navItem.id;
             return (
               <button
                 key={navItem.id}
                 onClick={() => { hapticTap(); setCurrentView(navItem.id); }}
-                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
                   isActive ? dt.text : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium leading-tight">{navItem.label}</span>
                 {isActive && (
-                  <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
-                )}
-              </button>
-            );
-          })}
-
-          {/* Daftar (Register) — Center Action Button */}
-          <button
-            onClick={() => { hapticTap(); setCurrentView('register'); }}
-            className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] rounded-xl px-3 py-2.5 -mt-3 shadow-lg transition-colors duration-200 relative ${
-              currentView === 'register'
-                ? 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
-                : 'bg-gradient-to-br from-idm-gold-warm to-[#e8d5a3] text-idm-dark'
-            }`}
-          >
-            <UserPlus className="w-5 h-5" />
-            <span className="text-[10px] font-semibold leading-tight">Daftar</span>
-            {currentView === 'register' && (
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-idm-dark/40" />
-            )}
-          </button>
-
-          {/* Last 2 nav items */}
-          {navItems.slice(2).map((navItem) => {
-            const Icon = navItem.icon;
-            const isActive = currentView === navItem.id;
-            return (
-              <button
-                key={navItem.id}
-                onClick={() => { hapticTap(); setCurrentView(navItem.id); }}
-                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-h-[44px] rounded-lg transition-colors duration-200 relative ${
-                  isActive ? dt.text : 'text-muted-foreground'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-tight">{navItem.label}</span>
-                {isActive && (
-                  <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
+                  <div className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full ${division === 'male' ? 'bg-idm-male' : 'bg-idm-female'}`} />
                 )}
               </button>
             );
