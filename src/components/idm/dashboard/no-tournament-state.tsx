@@ -256,6 +256,7 @@ export function NoTournamentState({ data, setSelectedPlayer }: NoTournamentState
         <PlayerProfile
           player={{ ...localSelectedPlayer, name: localSelectedPlayer.gamertag, maxStreak: 0, matches: 0, division: undefined }}
           onClose={() => setLocalSelectedPlayer(null)}
+          skinMap={data?.skinMap}
         />
       )}
 

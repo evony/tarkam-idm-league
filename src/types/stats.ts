@@ -179,6 +179,8 @@ export interface StatsData {
   totalPrizePool: number;
   seasonDonationTotal: number;
   topPlayers: TopPlayer[];
+  /** Map of playerId → active skin data array (for displaying skins on any player) */
+  skinMap: Record<string, PlayerSkinInfo[]>;
   recentMatches: MatchResult[];
   upcomingMatches: UpcomingMatch[];
   seasonProgress: SeasonProgress;
@@ -190,4 +192,16 @@ export interface StatsData {
   tournaments?: TournamentSummary[];
   /** Optional: enriched topDonors with tier info (landing page) */
   topDonorsEnriched?: TopDonorEnriched[];
+}
+
+/** Lightweight skin info returned in the skinMap for each player */
+export interface PlayerSkinInfo {
+  type: string;
+  icon: string;
+  displayName: string;
+  colorClass: string;
+  priority: number;
+  duration: string;
+  reason?: string | null;
+  expiresAt?: string | null;
 }

@@ -32,9 +32,9 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
   const division = useAppStore(s => s.division);
   const playerAuth = useAppStore(s => s.playerAuth);
 
-  // Get logged-in player info for skin display
-  const loggedInPlayerId = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.player.id : null;
-  const loggedInSkins = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.skins : undefined;
+  // Skin map from API — contains skins for ALL players in the division
+  // This is much more efficient than only showing skins for the logged-in user
+  const skinMap = data?.skinMap || {};
 
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [showAllPlayers, setShowAllPlayers] = useState(false);
@@ -105,9 +105,9 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                   <TableBody>
                     {displayedPlayers?.map((p, idx) => {
                       const losses = p.matches - p.totalWins;
-                      const isMe = p.id === loggedInPlayerId;
-                      const mySkins = isMe ? loggedInSkins : undefined;
-                      const primarySkin = mySkins && mySkins.length > 0 ? getPrimarySkin(mySkins) : null;
+                      const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === p.id;
+                      const playerSkins = skinMap[p.id];
+                      const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
                       return (
                         <TableRow
                           key={p.id}
@@ -136,7 +136,7 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                                   <SkinName skin={primarySkin}>
                                     <p className="text-xs font-medium truncate">{p.gamertag}</p>
                                   </SkinName>
-                                  {mySkins && mySkins.length > 0 && <SkinBadgesRow skins={mySkins} />}
+                                  {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
                                 </div>
                                 {clubToString(p.club as any) && <p className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</p>}
                               </div>

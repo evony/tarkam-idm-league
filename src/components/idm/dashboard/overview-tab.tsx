@@ -29,6 +29,8 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
   const dt = useDivisionTheme();
   const playerAuth = useAppStore(s => s.playerAuth);
 
+  // Skin map from API — contains skins for ALL players in the division
+  const skinMap = data?.skinMap || {};
   // Get logged-in player's skins for skin display on player cards
   const loggedInPlayerId = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.player.id : null;
   const loggedInSkins = playerAuth.isAuthenticated && playerAuth.account ? playerAuth.account.skins : undefined;
@@ -117,7 +119,7 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                       rank={idx + 1}
                       isMvp={p.totalMvp > 0 && idx === 0}
                       club={p.club}
-                      skins={p.id === loggedInPlayerId ? loggedInSkins : undefined}
+                      skins={skinMap[p.id] || (p.id === loggedInPlayerId ? loggedInSkins : undefined)}
                       onClick={() => setSelectedPlayer(p)}
                     />
                   </div>
@@ -170,6 +172,7 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                               streak={p.streak}
                               rank={idx + 1}
                               isMvp={selected.mvp?.id === p.id}
+                              skins={skinMap[p.id]}
                               onClick={() => setSelectedPlayer({
                                 ...p,
                                 name: p.gamertag,
@@ -240,6 +243,7 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                             streak={selectedMvp.streak}
                             rank={1}
                             isMvp={true}
+                            skins={skinMap[selectedMvp.id]}
                             onClick={() => setSelectedPlayer({
                               ...selectedMvp,
                               name: selectedMvp.gamertag,

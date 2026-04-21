@@ -11,6 +11,7 @@ import {
 import { TierBadge } from './tier-badge';
 import { SkinBadgesRow, SkinAvatarFrame, SkinName } from './skin-renderer';
 import { getPrimarySkin } from '@/lib/skin-utils';
+import type { PlayerSkinInfo } from '@/types/stats';
 import { Badge } from '@/components/ui/badge';
 import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
@@ -36,6 +37,8 @@ interface PlayerProfileProps {
   };
   onClose: () => void;
   rank?: number;
+  /** Map of playerId → skins[] from stats API, for showing any player's skins */
+  skinMap?: Record<string, PlayerSkinInfo[]>;
 }
 
 /* ─── Procedural Player Banner — uses AI-generated division background ─── */
@@ -133,7 +136,7 @@ function StatBlock({ icon: Icon, label, value, sub, color, highlight, size = 'no
   );
 }
 
-export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
+export function PlayerProfile({ player, onClose, rank, skinMap }: PlayerProfileProps) {
   const storeDivision = useAppStore(s => s.division);
   const playerAuth = useAppStore(s => s.playerAuth);
   // Use the PLAYER's actual division, NOT the currently selected UI division
@@ -143,10 +146,10 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
   // This ensures male players always show cyan and female players always show purple
   const dt = getDivisionTheme(playerDivision as 'male' | 'female');
 
-  // Skins: only available for the logged-in player viewing their own profile
+  // Skins: use skinMap for ALL players, fall back to logged-in user's skins for self
   const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === player.id;
-  const mySkins = isMe ? (playerAuth.account?.skins || []) : [];
-  const primarySkin = mySkins.length > 0 ? getPrimarySkin(mySkins) : null;
+  const playerSkins = skinMap?.[player.id] || (isMe ? playerAuth.account?.skins || [] : []);
+  const primarySkin = playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
 
   const winRate = player.matches > 0 ? Math.round((player.totalWins / player.matches) * 100) : 0;
   const mvpRate = player.matches > 0 ? Math.round((player.totalMvp / player.matches) * 100) : 0;
@@ -301,7 +304,7 @@ export function PlayerProfile({ player, onClose, rank }: PlayerProfileProps) {
                   <SkinName skin={primarySkin}>
                     <h2 className="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">{player.gamertag}</h2>
                   </SkinName>
-                  {mySkins.length > 0 && <SkinBadgesRow skins={mySkins} />}
+                  {playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
                 </div>
                 <p className="text-xs text-white/60 mt-0.5">{player.city ? <><MapPin className="w-3 h-3 inline -mt-0.5 mr-0.5" />{player.city}</> : player.name}</p>
                 <div className="flex items-center gap-2 mt-1.5">

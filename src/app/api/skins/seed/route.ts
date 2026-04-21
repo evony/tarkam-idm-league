@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { DEFAULT_SKIN_COLORS } from '@/lib/skin-utils';
 
-// Default skin definitions
+// Default skin definitions — colorClass uses CSS color strings (not Tailwind classes)
+// because the renderer uses inline styles. See skin-utils.ts for the color format spec.
 const DEFAULT_SKINS = [
   {
     type: 'champion',
     displayName: 'Gold Crown',
     description: 'Skin juara tournament mingguan — berlaku selama 1 minggu setelah menang',
     icon: '🥇',
-    colorClass: JSON.stringify({
-      frame: 'ring-2 ring-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.4)]',
-      name: 'bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent',
-      badge: 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30',
-      border: 'border-yellow-400/30 shadow-[0_0_8px_rgba(250,204,21,0.2)]',
-    }),
+    colorClass: JSON.stringify(DEFAULT_SKIN_COLORS.champion),
     priority: 4,
     duration: 'weekly',
     isActive: true,
@@ -24,12 +21,7 @@ const DEFAULT_SKINS = [
     displayName: 'Platinum Star',
     description: 'Skin MVP tournament mingguan — berlaku selama 1 minggu setelah mendapat MVP',
     icon: '⭐',
-    colorClass: JSON.stringify({
-      frame: 'ring-2 ring-gray-300 shadow-[0_0_12px_rgba(212,212,212,0.4)]',
-      name: 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-300 bg-clip-text text-transparent',
-      badge: 'bg-gray-300/20 text-gray-200 border-gray-300/30',
-      border: 'border-gray-300/30 shadow-[0_0_8px_rgba(212,212,212,0.2)]',
-    }),
+    colorClass: JSON.stringify(DEFAULT_SKIN_COLORS.mvp),
     priority: 3,
     duration: 'weekly',
     isActive: true,
@@ -39,12 +31,7 @@ const DEFAULT_SKINS = [
     displayName: 'Emerald Luxury',
     description: 'Skin penyelenggara/penyewa tournament — permanen selama aktif menjadi host',
     icon: '💎',
-    colorClass: JSON.stringify({
-      frame: 'ring-2 ring-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.4)]',
-      name: 'bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent',
-      badge: 'bg-emerald-400/20 text-emerald-400 border-emerald-400/30',
-      border: 'border-emerald-400/30 shadow-[0_0_8px_rgba(52,211,153,0.2)]',
-    }),
+    colorClass: JSON.stringify(DEFAULT_SKIN_COLORS.host),
     priority: 2,
     duration: 'permanent',
     isActive: true,
@@ -54,12 +41,7 @@ const DEFAULT_SKINS = [
     displayName: 'Maroon Heart',
     description: 'Skin donatur — permanen sebagai tanda terima kasih atas kontribusi',
     icon: '❤️',
-    colorClass: JSON.stringify({
-      frame: 'ring-2 ring-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.4)]',
-      name: 'bg-gradient-to-r from-rose-500 via-rose-400 to-pink-500 bg-clip-text text-transparent',
-      badge: 'bg-rose-400/20 text-rose-400 border-rose-400/30',
-      border: 'border-rose-400/30 shadow-[0_0_8px_rgba(251,113,133,0.2)]',
-    }),
+    colorClass: JSON.stringify(DEFAULT_SKIN_COLORS.donor),
     priority: 1,
     duration: 'permanent',
     isActive: true,

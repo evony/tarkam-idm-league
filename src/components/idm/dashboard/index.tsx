@@ -470,7 +470,7 @@ export function Dashboard() {
 
       {/* Player & Club Profiles */}
       {selectedPlayer && (
-        <PlayerProfile player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
+        <PlayerProfile player={selectedPlayer} onClose={() => setSelectedPlayer(null)} skinMap={data?.skinMap} />
       )}
       {selectedClub && (
         <ClubProfile club={selectedClub} onClose={() => setSelectedClub(null)} />

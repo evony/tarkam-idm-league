@@ -200,6 +200,50 @@ export async function GET(request: Request) {
 
   // ── Compute derived values in-memory (no extra DB queries) ──
 
+  // ── Active skins map: playerId → skins[] for all players in this division ──
+  // Efficient single query instead of per-player lookups
+  const playerIds = topPlayers.map((p: { id: string }) => p.id);
+  const activePlayerSkins = playerIds.length > 0 ? await db.playerSkin.findMany({
+    where: {
+      account: { player: { id: { in: playerIds } } },
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gt: new Date() } },
+      ],
+    },
+    include: {
+      skin: { select: { type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
+      account: { select: { player: { select: { id: true } } } },
+    },
+  }) : [];
+
+  // Build a map: playerId → skins[]
+  const skinMap: Record<string, Array<{
+    type: string;
+    icon: string;
+    displayName: string;
+    colorClass: string;
+    priority: number;
+    duration: string;
+    reason?: string | null;
+    expiresAt?: Date | null;
+  }>> = {};
+
+  for (const ps of activePlayerSkins) {
+    const pid = ps.account.player.id;
+    if (!skinMap[pid]) skinMap[pid] = [];
+    skinMap[pid].push({
+      type: ps.skin.type,
+      icon: ps.skin.icon,
+      displayName: ps.skin.displayName,
+      colorClass: ps.skin.colorClass, // Raw JSON string — renderer parses it
+      priority: ps.skin.priority,
+      duration: ps.skin.duration,
+      reason: ps.reason,
+      expiresAt: ps.expiresAt,
+    });
+  }
+
   // Total prize pool — filter weekly donations
   const totalPrizePool = seasonDonations
     .filter(d => d.type === 'weekly')
@@ -292,6 +336,7 @@ export async function GET(request: Request) {
     totalPrizePool,
     seasonDonationTotal,
     topPlayers,
+    skinMap,
     clubs,
     recentMatches,
     upcomingMatches,

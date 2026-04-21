@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { awardPoints, processTierUpgrade } from '@/lib/points';
 import { checkTournamentAchievements } from '@/lib/achievements';
+import { autoAwardTournamentSkins } from '@/lib/skin-auto-award';
 import { NextResponse } from 'next/server';
 
 export async function POST(
@@ -285,6 +286,15 @@ export async function POST(
   // ===== CHECK AND AWARD ACHIEVEMENTS =====
   const achievementsAwarded = await checkTournamentAchievements(id);
 
+  // ===== AUTO-AWARD SKINS (Champion + MVP) =====
+  let skinsAwarded: { playerId: string; gamertag: string; skinType: string; displayName: string; action: string }[] = [];
+  try {
+    skinsAwarded = await autoAwardTournamentSkins(id, rank1TeamId, mvpPlayerId ?? null, authResult.id);
+  } catch (e) {
+    console.error('Auto-award skins error (non-fatal):', e);
+    // Don't fail finalization if skin awarding fails
+  }
+
   const result = await db.tournament.findUnique({
     where: { id },
     include: {
@@ -295,5 +305,5 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ ...result, tierUpgrades, achievementsAwarded });
+  return NextResponse.json({ ...result, tierUpgrades, achievementsAwarded, skinsAwarded });
 }

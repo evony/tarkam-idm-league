@@ -273,3 +273,37 @@ Stage Summary:
 - Skins visible on: player cards, standings, profile, my-tournament-card, account card, login modal
 - Currently shows skins only for logged-in player (Option B — others need backend API change)
 - All lint checks pass, dev server compiles successfully
+---
+Task ID: 8
+Agent: Main Agent
+Task: Complete skin system implementation - fix seed data, auto-award, public skin display
+
+Work Log:
+- Fixed DialogTitle missing error in unified-login-modal.tsx and player-account-modal.tsx (added sr-only DialogTitle for accessibility)
+- Fixed seed data colorClass mismatch: seed/route.ts was using Tailwind class names but skin-renderer.tsx uses CSS color strings in inline styles. Updated seed to use DEFAULT_SKIN_COLORS from skin-utils.ts
+- Created skin auto-award utility (/src/lib/skin-auto-award.ts):
+  - autoAwardTournamentSkins() function: awards champion skin to winning team members + MVP skin to MVP player
+  - Handles re-award of expired skins (updates record) and extension of active skins (+7 days)
+  - Skips players without accounts
+  - Non-fatal error handling (doesn't fail tournament finalization if skin awarding fails)
+- Hooked auto-award into tournament finalization (/api/tournaments/[id]/finalize/route.ts):
+  - Imports autoAwardTournamentSkins
+  - Calls it after checkTournamentAchievements with rank1TeamId, mvpPlayerId, adminId
+  - Returns skinsAwarded array in finalization response
+- Added skinMap to /api/stats response:
+  - Efficient single query fetches all active skins for players in the division
+  - Returns Record<playerId, skinData[]> so frontend can show any player's skins
+- Updated StatsData type with skinMap and PlayerSkinInfo interface
+- Updated all frontend components to use skinMap instead of only logged-in player's skins:
+  - standings-tab.tsx: shows skins for ALL players in leaderboard
+  - overview-tab.tsx: shows skins on top 3 cards, champion cards, MVP cards
+  - player-profile.tsx: accepts skinMap prop, shows any player's skins
+  - no-tournament-state.tsx: passes skinMap to PlayerProfile
+  - dashboard/index.tsx: passes skinMap to PlayerProfile
+
+Stage Summary:
+- Skin seed data now consistent with renderer (CSS color strings)
+- Auto-award: Champion + MVP skins automatically awarded when tournament is finalized
+- Public skins: ALL players' skins now visible everywhere (standings, overview, profiles)
+- DialogTitle accessibility fix applied to both login modals
+- All lint checks pass, dev server compiles successfully
