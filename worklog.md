@@ -37,3 +37,24 @@ Stage Summary:
 - Skin-ready: Account.skin field prepared for future skin system
 - All API routes tested and working (register, login, logout, session, duplicate prevention, wrong password)
 - UI integrated across dashboard and app-shell
+---
+Task ID: 1
+Agent: main
+Task: Fix mobile header + Merge Admin/Player login into unified modal with tabs
+
+Work Log:
+- Created new UnifiedLoginModal component with two tabs: Peserta (default) and Admin (with Shield icon)
+- Peserta tab includes full player flow: choose → login → register (with gamertag search) → registration form
+- Admin tab includes admin login form + change password form
+- Both tabs show "already logged in" state when user is authenticated
+- Fixed mobile header by removing separate Shield button, reducing to single UserCircle button
+- Made header more compact (py-2, h-9 buttons, gap-1 spacing)
+- Updated Admin nav button in sidebar to open unified modal when not authenticated
+- Removed inline AdminLogin rendering - now opens modal on Admin tab instead
+- UserCircle button color reflects login state: male/female color for player, gold for admin-only
+
+Stage Summary:
+- Created: /src/components/idm/unified-login-modal.tsx (new combined login modal)
+- Modified: /src/components/idm/app-shell.tsx (simplified header, unified modal integration)
+- Mobile header now clean with just: Logo + Title | DivisionToggle + UserCircle
+- Admin login accessible via Admin tab in unified modal

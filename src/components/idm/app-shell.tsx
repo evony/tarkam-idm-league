@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
-import { AdminLogin } from './admin-login';
+import { UnifiedLoginModal } from './unified-login-modal';
 import { LandingPage } from './landing-page';
 import { DonationPopup } from './donation-popup';
 import { NotificationStack } from './notification-stack';
@@ -22,7 +22,7 @@ import { usePWA } from '@/hooks/use-pwa';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useHaptic, PullToRefresh } from '@/components/idm/ui/mobile-interactions';
-import { PlayerAccountModal } from './player-account-modal';
+/* PlayerAccountModal replaced by UnifiedLoginModal */
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
@@ -102,7 +102,7 @@ function DivisionToggle({ compact = false }: { compact?: boolean } = {}) {
 }
 
 /* ─── Collapsible Desktop Sidebar ─── */
-function DesktopSidebar({ onOpenAccountModal }: { onOpenAccountModal: () => void }) {
+function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccountModal: () => void; onOpenAdminModal: () => void }) {
   const { currentView, setCurrentView, division, adminAuth, clearAdminAuth, sidebarCollapsed, toggleSidebarCollapsed, playerAuth, clearPlayerAuth } = useAppStore();
   const dt = useDivisionTheme();
 
@@ -225,14 +225,14 @@ function DesktopSidebar({ onOpenAccountModal }: { onOpenAccountModal: () => void
 
         {collapsed && <div className="my-1 mx-auto w-6 h-px bg-border/40" />}
 
-        {/* Admin */}
+        {/* Admin — open unified modal if not authenticated */}
         <NavButton
           icon={Shield} label="Admin" collapsed={collapsed}
           isActive={currentView === 'admin'}
           iconBg={currentView === 'admin' ? dt.iconBg : ''}
           activeGlow={currentView === 'admin'}
           division={division}
-          onClick={() => setCurrentView('admin')}
+          onClick={() => adminAuth.isAuthenticated ? setCurrentView('admin') : onOpenAdminModal()}
         />
       </nav>
 
@@ -395,6 +395,7 @@ export function AppShell() {
   const [canInstall, setCanInstall] = useState(_canInstall);
   const [dismissed, setDismissed] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [accountModalDefaultTab, setAccountModalDefaultTab] = useState<'peserta' | 'admin'>('peserta');
 
   // Sync with PWA hook + localStorage dismissal
   useEffect(() => {
@@ -457,7 +458,7 @@ export function AppShell() {
       case 'dashboard': return <Dashboard />;
       case 'matchday': return <MatchDayCenter />;
       case 'league': return <LeagueView />;
-      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminLogin />;
+      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : (() => { /* Open unified modal on admin tab instead of inline login */ setTimeout(() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('dashboard'); }, 0); return null; })();
       case 'register': return <RegistrationForm />;
       case 'mytournament': return <MyTournamentCard />;
       default: return <Dashboard />;
@@ -466,33 +467,24 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Mobile Header — compact with Admin shield in header */}
-      <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2.5 flex items-center justify-between`}>
+      {/* Mobile Header — clean, single account button */}
+      <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg overflow-hidden">
             <Image src="/logo1.webp" alt="IDM" width={28} height={28} className="w-full h-full object-cover" />
           </div>
           <span className="text-gradient-fury text-sm font-bold">IDM League</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <DivisionToggle compact />
           <Button
             variant="ghost"
             size="icon"
-            className={`h-10 w-10 ${playerAuth.isAuthenticated ? (division === 'male' ? 'text-idm-male' : 'text-idm-female') : 'text-muted-foreground'}`}
-            onClick={() => { hapticTap(); setAccountModalOpen(true); }}
+            className={`h-9 w-9 ${playerAuth.isAuthenticated ? (division === 'male' ? 'text-idm-male' : 'text-idm-female') : adminAuth.isAuthenticated ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
+            onClick={() => { hapticTap(); setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }}
             title={playerAuth.isAuthenticated ? `Akun: ${playerAuth.account?.player.gamertag}` : 'Masuk Akun'}
           >
-            <UserCircle className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-10 w-10 ${currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}
-            onClick={() => { hapticTap(); setCurrentView('admin'); }}
-            title="Admin Panel"
-          >
-            <Shield className="w-5 h-5" />
+            <UserCircle className="w-4.5 h-4.5" />
           </Button>
         </div>
       </header>
@@ -519,7 +511,7 @@ export function AppShell() {
 
       <div className="flex flex-1">
         {/* Desktop Sidebar — Collapsible */}
-        <DesktopSidebar onOpenAccountModal={() => setAccountModalOpen(true)} />
+        <DesktopSidebar onOpenAccountModal={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} onOpenAdminModal={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); }} />
 
         {/* Main Content */}
         <main className={`flex-1 min-w-0 overflow-y-auto ${dt.bgMesh}`}>
@@ -606,10 +598,11 @@ export function AppShell() {
       {/* Notification Stack */}
       <NotificationStack />
 
-      {/* Player Account Modal — accessible from anywhere */}
-      <PlayerAccountModal
+      {/* Unified Login Modal — Peserta + Admin tabs */}
+      <UnifiedLoginModal
         open={accountModalOpen}
         onOpenChange={setAccountModalOpen}
+        defaultTab={accountModalDefaultTab}
       />
 
       {/* Footer — desktop only, premium subtle style */}
