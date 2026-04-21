@@ -277,11 +277,9 @@
 /* Main brand gradient text — Gold-to-amber-to-champagne */
 .text-gradient-fury {
   background: linear-gradient(135deg, #e5be4a, #f5d77a, #d4a017, #f5e6c8, #b8860b);
-  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-shift 4s ease-in-out infinite;
 }
 
 @keyframes gradient-shift {
@@ -718,7 +716,6 @@ html {
     var(--idm-gold)
   );
   background-size: 200% 200%;
-  animation: gradient-shift 6s ease-in-out infinite;
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
