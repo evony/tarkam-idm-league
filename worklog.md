@@ -796,3 +796,26 @@ Stage Summary:
 - Content rises upward + fades out, creating foreground/background depth separation
 - This matches the Framer Motion parallax that was visible on the Vercel deployment
 - Dashboard parallax (container-based) still works via useParallax with scrollContainerRef
+
+---
+Task ID: 1
+Agent: main
+Task: Fix landing page parallax - restore Framer Motion parallax that was working on Vercel deployment, remove dashboard parallax
+
+Work Log:
+- Investigated why Vercel deployment had good parallax but sandbox didn't
+- Found that previous session's custom hooks (useHeroParallax, useSectionParallax) replaced working Framer Motion implementation and broke it
+- Also found CSS conflict: duplicate `.parallax-layer` at line 1598 had `transition: transform 0.1s linear` which would interfere with JS-driven transforms
+- Restored Vercel versions of: hero-section.tsx, landing-page.tsx, shared.tsx, about-section.tsx, tournament-hub.tsx
+- Removed DashboardParallaxDecor from app-shell.tsx (user requested no dashboard parallax for better smoothness)
+- Removed useParallax import and useRef from app-shell.tsx
+- Fixed duplicate .parallax-layer CSS in globals.css (removed transition override)
+- Verified lint passes, dev server compiles without errors, page renders correctly
+
+Stage Summary:
+- Landing page parallax restored to Framer Motion implementation (same as Vercel deployment)
+- Dashboard has no parallax (clean, smooth for mid-range devices)
+- Framer Motion's useScroll + useTransform drives hero BG, mid-layer, and content parallax
+- AnimatedSection uses Framer Motion's motion.div with useInView + variants for entrance animations
+- SectionHeader uses motion.div variants for staggered animations
+- StatCard uses motion.div with whileInView for entrance animation

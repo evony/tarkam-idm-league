@@ -1,10 +1,10 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { ArrowRight, Music, Shield, Trophy, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedSection, SectionHeader } from './shared';
 import { formatCurrency } from '@/lib/utils';
-import { useSectionParallax } from '@/hooks/use-parallax';
 import type { StatsData } from '@/types/stats';
 
 interface TournamentHubProps {
@@ -17,9 +17,6 @@ interface TournamentHubProps {
 }
 
 export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, onEnterApp, onVideoPlay }: TournamentHubProps) {
-  // Subtle parallax for floating decorative elements
-  const floatLayer = useSectionParallax<HTMLDivElement>({ speed: 0.05 });
-
   return (
     <section id="kompetisi" role="region" aria-label="Kompetisi" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background — Arena battle with bilateral division glow */}
@@ -29,23 +26,15 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
       {/* Division color split — cyan left, purple right */}
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
 
-      {/* ── Floating parallax decorative elements ── */}
-      <div ref={floatLayer} className="parallax-layer absolute inset-0 pointer-events-none will-change-transform" aria-hidden="true">
-        <div className="absolute top-[20%] left-[8%] w-48 h-48 rounded-full bg-cyan-400/[0.02] blur-2xl" />
-        <div className="absolute top-[30%] right-[5%] w-40 h-40 rounded-full bg-purple-400/[0.02] blur-2xl" />
-        <div className="absolute bottom-[15%] left-[40%] w-2.5 h-2.5 rounded-full bg-idm-gold-warm/10" />
-        <div className="absolute top-[10%] right-[30%] w-20 h-20 rounded-full border border-idm-gold-warm/[0.03]" />
-      </div>
-
       <div className="relative z-10 max-w-6xl mx-auto">
-        <AnimatedSection parallax>
+        <AnimatedSection>
           <SectionHeader icon={Music} label="Kompetisi" title="Dua Divisi, Satu Arena" subtitle="Weekly Tournament setiap minggu — pilih divisimu dan langsung bertanding" />
         </AnimatedSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* ═══ Weekly Tournament — Male Division ═══ */}
-          <AnimatedSection variant="fadeLeft" parallax>
-            <div className="perspective-card relative group rounded-2xl overflow-hidden border border-cyan-500/20 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
+          <AnimatedSection variant="fadeLeft">
+            <div className="relative group rounded-2xl overflow-hidden border border-cyan-500/20 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(6,182,212,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -57,7 +46,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   return maleVideoUrl && onVideoPlay ? (
                     <button
                       onClick={() => onVideoPlay(maleVideoUrl, 'Weekly Male')}
-                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer"
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
                       aria-label="Play video"
                     >
                       <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
@@ -120,8 +109,8 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
           </AnimatedSection>
 
           {/* ═══ Weekly Tournament — Female Division ═══ */}
-          <AnimatedSection variant="fadeRight" parallax>
-            <div className="perspective-card relative group rounded-2xl overflow-hidden border border-purple-500/20 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
+          <AnimatedSection variant="fadeRight">
+            <div className="relative group rounded-2xl overflow-hidden border border-purple-500/20 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(168,85,247,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(168,85,247,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -133,7 +122,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   return femaleVideoUrl && onVideoPlay ? (
                     <button
                       onClick={() => onVideoPlay(femaleVideoUrl, 'Weekly Female')}
-                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer"
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
                       aria-label="Play video"
                     >
                       <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
@@ -200,7 +189,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
         <AnimatedSection variant="fadeUp">
           <button
             onClick={() => document.getElementById('dream')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer"
+            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">

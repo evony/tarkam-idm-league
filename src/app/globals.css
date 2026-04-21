@@ -1594,12 +1594,7 @@ html {
    17. ADVANCED PARALLAX & SCROLL FX
    ============================================ */
 
-/* Multi-layer parallax depth */
-.parallax-layer {
-  will-change: transform;
-  transition: transform 0.1s linear;
-}
-
+/* Parallax speed CSS custom properties (used by JS hooks) */
 .parallax-slow { --parallax-speed: 0.15; }
 .parallax-medium { --parallax-speed: 0.3; }
 .parallax-fast { --parallax-speed: 0.5; }
