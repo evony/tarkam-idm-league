@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -40,6 +41,10 @@ export async function POST(request: Request) {
   const club = await db.club.create({
     data: { name, division, logo: logo || null, seasonId },
   });
+
+  // Invalidate Next.js server cache so landing page shows new club
+  revalidatePath('/');
+  revalidatePath('/api/league');
 
   return NextResponse.json(club, { status: 201 });
 }

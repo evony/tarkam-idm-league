@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 // GET /api/clubs/[id] — Club detail with members
 export async function GET(
@@ -58,6 +59,10 @@ export async function PUT(
     },
   });
 
+  // Invalidate Next.js server cache so landing page shows updated logo/banner
+  revalidatePath('/');
+  revalidatePath('/api/league');
+
   return NextResponse.json(updated);
 }
 
@@ -85,6 +90,10 @@ export async function DELETE(
   // Remove all members first, then delete club
   await db.clubMember.deleteMany({ where: { clubId: id } });
   await db.club.delete({ where: { id } });
+
+  // Invalidate Next.js server cache so landing page updates after club deletion
+  revalidatePath('/');
+  revalidatePath('/api/league');
 
   return NextResponse.json({ success: true, message: 'Club berhasil dihapus' });
 }

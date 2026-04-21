@@ -2,6 +2,10 @@ import { db } from '@/lib/db';
 import { withNeonRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
 
+// Force dynamic rendering — prevent Next.js/Vercel from caching this API response
+// This ensures club logos and other data are always fresh after CMS updates
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
   // Get all seasons (active + completed) — League is unified, not per-division
@@ -226,6 +230,11 @@ export async function GET() {
       main: 3,
       substitute: 2,
       rule: 'Peserta bebas mix atau tidak mix dari divisi male dan female. Skuad champion dapat memilih anggota dari divisi mana saja.',
+    },
+  }, {
+    headers: {
+      // Prevent CDN caching — ensure fresh data after CMS updates (logo, etc.)
+      'Cache-Control': 'no-store, max-age=0',
     },
   });
 

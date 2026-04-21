@@ -1,6 +1,9 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+// Force dynamic — prevent Next.js/Vercel from caching CMS content
+export const dynamic = 'force-dynamic';
+
 // GET all CMS content for public rendering (no auth required)
 export async function GET() {
   const [settings, sections] = await Promise.all([

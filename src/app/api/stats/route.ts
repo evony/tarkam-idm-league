@@ -1,6 +1,9 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+// Force dynamic rendering — prevent Next.js from caching stats API
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division') || 'male';
@@ -18,7 +21,7 @@ export async function GET(request: Request) {
   if (!season) {
     return NextResponse.json({ hasData: false, division }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=20',
       },
     });
   }
@@ -242,7 +245,8 @@ export async function GET(request: Request) {
     },
   }, {
     headers: {
-      'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
+      // Short CDN cache with revalidation — balances freshness with performance
+      'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=20',
     },
   });
 }
