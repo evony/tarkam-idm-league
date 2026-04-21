@@ -1148,3 +1148,25 @@ Stage Summary:
 - Avatar bug resolved — code already queries Player table directly for championSquad member avatars
 - Club logos all showing (15/15 have Cloudinary URLs in local DB)
 - Vercel build script auto-swaps schema provider when deploying
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix Club Peserta section not showing synced logos from admin panel
+
+Work Log:
+- Investigated data flow: Season Champion reads from championSeason.championClub (Season 1), while Club Peserta reads from allClubs (Season 2/latest)
+- Root cause: Club records are per-season (@@unique([name, seasonId])). Logo updates only affect ONE season's club record
+- Fixed PUT /api/clubs/[id]: Added updateMany to sync logo/banner across ALL seasons when admin updates
+- Fixed GET /api/league: Added fallback logo resolution - if club has no logo in current season, look up same name in other seasons
+- Fixed GET /api/stats: Same fallback logo resolution pattern
+- Fixed POST /api/clubs: Auto-fill logo/banner from previous seasons when creating a new club
+- Fixed revalidateTag deprecation warning (added second argument 'layout')
+- Fixed Prisma error (Club model has no createdAt field, removed orderBy)
+- Verified all 15 male clubs and 13 female clubs now have logos in API responses
+- Pushed to GitHub: 6ec6534
+
+Stage Summary:
+- All clubs now show correct logos in both Season Champion and Club Peserta sections
+- Three-layer defense: proactive sync on update, fallback resolution on read, auto-fill on create
+- Pushed to Vercel for deployment
