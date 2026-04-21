@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const SPLASH_AUDIO_URL = 'https://res.cloudinary.com/dagoryri5/video/upload/v1776781508/tangtangtang_opfd7y.mp3';
 
@@ -10,8 +10,56 @@ const SPLASH_ENTER_DURATION = 4100;
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   const [entered, setEntered] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [beatScale, setBeatScale] = useState(1);
+  const [glowIntensity, setGlowIntensity] = useState(0.2);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animFrameRef = useRef<number>(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Audio-reactive beat detection loop
+  useEffect(() => {
+    if (!entered || !analyserRef.current) return;
+
+    const analyser = analyserRef.current;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    let prevEnergy = 0;
+    const SMOOTH = 0.3;
+
+    const tick = () => {
+      analyser.getByteFrequencyData(dataArray);
+
+      // Focus on bass frequencies (first ~15 bins) for beat detection
+      let bassSum = 0;
+      const bassEnd = Math.min(15, dataArray.length);
+      for (let i = 0; i < bassEnd; i++) {
+        bassSum += dataArray[i];
+      }
+      const bassAvg = bassSum / bassEnd;
+
+      // Detect beat: sudden energy spike
+      const isBeat = bassAvg > prevEnergy * 1.3 && bassAvg > 80;
+
+      // Map bass energy to visual scale (1.0 → 1.15 max)
+      const targetScale = isBeat ? 1 + (bassAvg / 255) * 0.18 : 1;
+      const targetGlow = isBeat ? 0.15 + (bassAvg / 255) * 0.45 : 0.12;
+
+      // Smooth interpolation
+      setBeatScale(prev => prev + (targetScale - prev) * SMOOTH);
+      setGlowIntensity(prev => prev + (targetGlow - prev) * 0.25);
+
+      prevEnergy = bassAvg * 0.7 + prevEnergy * 0.3; // rolling average
+
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [entered]);
 
   const handleEnter = useCallback(() => {
     if (entered) return;
@@ -21,6 +69,21 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
     const audio = new Audio(SPLASH_AUDIO_URL);
     audio.volume = 0.7;
     audioRef.current = audio;
+
+    // Connect to Web Audio API analyser for beat detection
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const source = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      analyserRef.current = analyser;
+    } catch {
+      // Web Audio API not available — logo stays static, no beat sync
+    }
+
     audio.play().catch(() => {});
 
     // Start visual fade-out slightly before audio ends
@@ -54,6 +117,16 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
         background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)'
       }} />
 
+      {/* Audio-reactive background pulse — subtle radial flash on beats */}
+      {entered && (
+        <div
+          className="absolute inset-0 pointer-events-none transition-opacity duration-150"
+          style={{
+            background: `radial-gradient(ellipse at 50% 45%, rgba(229,190,74,${glowIntensity * 0.3}) 0%, transparent 55%)`,
+          }}
+        />
+      )}
+
       {/* Subtle ambient glow — reduced intensity */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse"
@@ -65,32 +138,39 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       {/* ═══ Main Content ═══ */}
       <div className="relative z-10 flex flex-col items-center">
 
-        {/* Main Logo — with cinematic reveal animation */}
+        {/* Main Logo — with cinematic reveal + audio-reactive pulse */}
         <div className="mb-8" style={{ animation: 'splash-logo-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both' }}>
-          <div className="relative">
-            {/* Subtle glow ring — reduced */}
+          <div
+            className="relative transition-transform duration-100 ease-out"
+            style={{ transform: entered ? `scale(${beatScale})` : undefined }}
+          >
+            {/* Audio-reactive glow ring — intensity follows beat */}
             <div
-              className="absolute -inset-3 rounded-2xl"
+              className="absolute -inset-4 rounded-2xl transition-all duration-100"
               style={{
-                boxShadow: '0 0 20px rgba(184,134,11,0.2), 0 0 40px rgba(245,158,11,0.08)',
-                animation: 'splash-glow-breathe 2.5s ease-in-out infinite',
+                boxShadow: entered
+                  ? `0 0 ${20 + glowIntensity * 40}px rgba(184,134,11,${0.15 + glowIntensity * 0.5}), 0 0 ${40 + glowIntensity * 60}px rgba(245,158,11,${0.05 + glowIntensity * 0.25})`
+                  : '0 0 20px rgba(184,134,11,0.15), 0 0 40px rgba(245,158,11,0.05)',
               }}
             />
             <div
               className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50"
-              style={{ animation: 'splash-logo-float 3s ease-in-out infinite' }}
+              style={{ animation: entered ? undefined : 'splash-logo-float 3s ease-in-out infinite' }}
             >
               <img src="/logo.webp" alt="IDM League" className="w-full h-full object-cover" />
             </div>
-            {/* Rotating border accent */}
+            {/* Audio-reactive rotating border accent */}
             <div
-              className="absolute -inset-1 rounded-2xl border border-idm-gold-warm/0"
-              style={{ animation: 'splash-border-rotate 6s linear infinite' }}
+              className="absolute -inset-1.5 rounded-2xl transition-all duration-150"
+              style={{
+                border: `1px solid rgba(212,168,83,${entered ? 0.1 + glowIntensity * 0.4 : 0.05})`,
+                animation: 'splash-border-rotate 6s linear infinite',
+              }}
             />
           </div>
         </div>
 
-        {/* Title — letter-by-letter feel with scale bounce */}
+        {/* Title — with audio-reactive glow on beats */}
         <div
           className="text-center"
           style={{ animation: 'splash-title-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both' }}
@@ -111,20 +191,32 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             </span>
           </h1>
           <p
-            className="text-xs sm:text-sm text-white/40 mt-2 tracking-[0.25em] uppercase font-light"
-            style={{ animation: 'splash-subtitle-enter 0.6s ease-out 1.4s both' }}
+            className="text-xs sm:text-sm text-white/40 mt-2 tracking-[0.25em] uppercase font-light transition-all duration-100"
+            style={{
+              animation: 'splash-subtitle-enter 0.6s ease-out 1.4s both',
+              textShadow: entered ? `0 0 ${glowIntensity * 20}px rgba(229,190,74,${glowIntensity * 0.5})` : undefined,
+            }}
           >
             Idol Meta · Fan Made Edition
           </p>
         </div>
 
-        {/* Decorative line divider */}
+        {/* Decorative line divider — pulses with audio */}
         <div
-          className="mt-6 flex items-center gap-3"
-          style={{ animation: 'splash-subtitle-enter 0.6s ease-out 1.5s both' }}
+          className="mt-6 flex items-center gap-3 transition-all duration-100"
+          style={{
+            animation: 'splash-subtitle-enter 0.6s ease-out 1.5s both',
+            opacity: entered ? 0.5 + glowIntensity * 0.5 : undefined,
+          }}
         >
           <div className="h-px w-10 bg-gradient-to-r from-transparent to-idm-gold-warm/30" />
-          <div className="w-1 h-1 rounded-full bg-idm-gold-warm/40" />
+          <div
+            className="rounded-full bg-idm-gold-warm/40 transition-all duration-100"
+            style={{
+              width: entered ? `${4 + glowIntensity * 8}px` : '4px',
+              height: entered ? `${4 + glowIntensity * 8}px` : '4px',
+            }}
+          />
           <div className="h-px w-10 bg-gradient-to-l from-transparent to-idm-gold-warm/30" />
         </div>
 
@@ -157,7 +249,14 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 style={{ animation: `progress-fill ${SPLASH_ENTER_DURATION - 500}ms ease-in-out both` }}
               />
             </div>
-            <p className="text-[10px] text-white/30 text-center mt-2 tracking-wider" style={{ animation: 'splash-subtitle-enter 0.3s ease-out 0.2s both' }}>
+            <p
+              className="text-[10px] text-center mt-2 tracking-wider transition-all duration-100"
+              style={{
+                animation: 'splash-subtitle-enter 0.3s ease-out 0.2s both',
+                color: `rgba(255,255,255,${0.3 + glowIntensity * 0.4})`,
+                textShadow: entered ? `0 0 ${glowIntensity * 12}px rgba(229,190,74,${glowIntensity * 0.4})` : undefined,
+              }}
+            >
               MEMASUKI ARENA
             </p>
           </div>
