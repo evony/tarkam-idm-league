@@ -76,15 +76,21 @@ export function LandingPage() {
   const contentY = useTransform(heroScroll, [0, 1], ['0%', '15%']);
   const heroMidY = useTransform(heroScroll, [0, 1], ['0%', '8%']);
 
-  /* Data Queries */
+  /* Data Queries — 15s polling, CDN-cached */
   const { data: maleData, isLoading: isMaleLoading } = useQuery<StatsData>({
     queryKey: ['stats', 'male'],
     queryFn: async () => { const res = await fetch('/api/stats?division=male'); return res.json(); },
+    staleTime: 15000,
+    refetchInterval: 15000, // 15s polling — CDN handles most requests
+    refetchOnWindowFocus: true,
   });
 
   const { data: femaleData, isLoading: isFemaleLoading } = useQuery<StatsData>({
     queryKey: ['stats', 'female'],
     queryFn: async () => { const res = await fetch('/api/stats?division=female'); return res.json(); },
+    staleTime: 15000,
+    refetchInterval: 15000, // 15s polling — CDN handles most requests
+    refetchOnWindowFocus: true,
   });
 
   const isDataLoading = isMaleLoading || isFemaleLoading;
@@ -92,7 +98,9 @@ export function LandingPage() {
   const { data: cmsData } = useQuery({
     queryKey: ['cms-content'],
     queryFn: async () => { const res = await fetch('/api/cms/content'); if (!res.ok) return { settings: {}, sections: {} }; return res.json(); },
-    staleTime: 10000,
+    staleTime: 30000, // CMS changes rarely — 30s is enough
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string }; ligaChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
@@ -102,15 +110,17 @@ export function LandingPage() {
       if (!res.ok) throw new Error('League API failed');
       return res.json();
     },
-    // ── Smart Client-Side Caching ──
-    // CDN caches for 10s server-side, but we keep client data fresh too.
-    // staleTime 10s = match the CDN s-maxage, so client and CDN are in sync.
-    // After admin mutation → refetchQueries() forces immediate fresh data.
-    staleTime: 10000, // 10s — matches CDN s-maxage, data is fresh for 10s
+    // ── 15s Polling Strategy ──
+    // Most requests hit Vercel CDN (s-maxage=10), not the database.
+    // 15s is safe for free tier while still feeling responsive:
+    //   - CDN caches for 10s → most polls hit CDN, not DB
+    //   - Admin updates: revalidateTag purges CDN → next poll gets fresh data
+    //   - Admin changes appear within max 15s without manual refresh
+    staleTime: 15000, // 15s — data considered fresh for 15s
     gcTime: 300000, // Keep unused data for 5 min in memory
     refetchOnWindowFocus: true, // Refetch when user comes back to tab
     refetchOnReconnect: true, // Refetch when network reconnects
-    refetchInterval: 60000, // Poll every 60s as safety net
+    refetchInterval: 15000, // 15s polling — safe for free tier, CDN-cached
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;
