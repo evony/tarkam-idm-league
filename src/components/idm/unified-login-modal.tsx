@@ -508,12 +508,30 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                     </button>
                   </div>
 
-                  <div className="mt-4 p-2.5 rounded-lg bg-muted/20 border border-border/30">
-                    <div className="flex items-start gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-idm-gold shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-muted-foreground">
-                        Akun pemain terhubung ke data turnamen IDM League. Dapatkan skin eksklusif untuk pemenang juara & MVP! 🏆
+                  <div className="mt-4 p-3 rounded-xl bg-gradient-to-br from-idm-gold/5 to-idm-gold/[0.02] border border-idm-gold/20">
+                    <div className="flex items-start gap-2 mb-2.5">
+                      <Sparkles className="w-4 h-4 text-idm-gold shrink-0 mt-0.5" />
+                      <p className="text-[11px] font-semibold text-idm-gold-warm">
+                        Skin Eksklusif Setiap Minggu!
                       </p>
+                    </div>
+                    <div className="space-y-1.5 ml-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">🥇</span>
+                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-foreground">1, 2, 3</strong></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">⭐</span>
+                        <span className="text-[10px] text-muted-foreground">MVP Mingguan</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">🏟️</span>
+                        <span className="text-[10px] text-muted-foreground">Penyewa Turnamen</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">💛</span>
+                        <span className="text-[10px] text-muted-foreground">Donatur Setiap Minggu</span>
+                      </div>
                     </div>
                   </div>
                 </div>
