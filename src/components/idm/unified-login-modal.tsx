@@ -530,7 +530,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">💛</span>
-                        <span className="text-[10px] text-muted-foreground">Donatur Setiap Minggu</span>
+                        <span className="text-[10px] text-muted-foreground">Donatur</span>
                       </div>
                     </div>
                   </div>
