@@ -1,10 +1,6 @@
-// Fix DATABASE_URL BEFORE importing PrismaClient — system env may override
-// the .env file with a SQLite path, but we need PostgreSQL (Neon).
-const _envUrl = process.env.DATABASE_URL || '';
-const _directUrl = process.env.DIRECT_DATABASE_URL || '';
-if (_envUrl.startsWith('file:') && _directUrl.startsWith('postgresql://')) {
-  process.env.DATABASE_URL = _directUrl;
-}
+// ─── Database Client ───
+// Local dev uses SQLite (file:...), Vercel production uses Neon (postgresql://).
+// The Prisma schema provider matches the DATABASE_URL environment variable.
 
 import { PrismaClient } from '@prisma/client'
 
@@ -13,7 +9,9 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  return new PrismaClient()
+  return new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  })
 }
 
 export const db =

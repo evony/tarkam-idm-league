@@ -63,7 +63,7 @@ export async function DELETE(
         data: { points: { decrement: totalPoints } },
       });
       // Clamp to 0 if negative (updateMany doesn't support Math.max)
-      await db.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+      await db.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
     }
 
     // ─── Step 2: Rollback match/wins/streak stats (batch) ───
@@ -109,7 +109,7 @@ export async function DELETE(
         },
       });
       // Clamp to 0
-      await db.$executeRaw`UPDATE "Player" SET "totalWins" = GREATEST("totalWins", 0), matches = GREATEST(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+      await db.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
     }
 
     // ─── Step 3: Rollback club stats (batch) ───
@@ -377,7 +377,7 @@ export async function PUT(
                 }
                 for (const [playerId, totalPoints] of pointsByPlayer) {
                   await tx.player.updateMany({ where: { id: playerId }, data: { points: { decrement: totalPoints } } });
-                  await tx.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+                  await tx.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
                 }
                 await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
                 await tx.tournamentPrize.deleteMany({ where: { tournamentId: id } });
@@ -393,7 +393,7 @@ export async function PUT(
               const mvpParts = await tx.participation.findMany({ where: { tournamentId: id, isMvp: true }, select: { playerId: true } });
               for (const mvp of mvpParts) {
                 await tx.player.update({ where: { id: mvp.playerId }, data: { totalMvp: { decrement: 1 } } });
-                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = MAX("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
               }
 
               // Always reset isWinner/isMvp on participations if they shouldn't be set
@@ -434,7 +434,7 @@ export async function PUT(
                   where: { id: playerId },
                   data: { points: { decrement: totalPoints } },
                 });
-                await tx.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+                await tx.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
               }
               await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
 
@@ -448,7 +448,7 @@ export async function PUT(
                   where: { id: mvp.playerId },
                   data: { totalMvp: { decrement: 1 } },
                 });
-                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = MAX("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
               }
 
               // 1c. Reset team ranks and isWinner
@@ -551,7 +551,7 @@ export async function PUT(
                   where: { id: playerId },
                   data: { points: { decrement: totalPoints } },
                 });
-                await tx.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+                await tx.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
               }
               await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw'] } } });
             });
@@ -632,7 +632,7 @@ export async function PUT(
                     streak: 0,
                   },
                 });
-                await tx.$executeRaw`UPDATE "Player" SET "totalWins" = GREATEST("totalWins", 0), matches = GREATEST(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+                await tx.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
               }
 
               // Apply club stat changes
@@ -910,7 +910,7 @@ export async function PUT(
                 }
                 for (const [playerId, totalPoints] of pointsByPlayer) {
                   await tx.player.updateMany({ where: { id: playerId }, data: { points: { decrement: totalPoints } } });
-                  await tx.$executeRaw`UPDATE "Player" SET points = GREATEST(points, 0) WHERE id = ${playerId} AND points < 0`;
+                  await tx.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
                 }
                 await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['prize_juara1', 'prize_juara2', 'prize_juara3', 'prize_mvp', 'prize_other', 'tier_upgrade_bonus'] } } });
                 await tx.tournamentPrize.deleteMany({ where: { tournamentId: id } });
@@ -924,7 +924,7 @@ export async function PUT(
               const mvpParts = await tx.participation.findMany({ where: { tournamentId: id, isMvp: true }, select: { playerId: true } });
               for (const mvp of mvpParts) {
                 await tx.player.update({ where: { id: mvp.playerId }, data: { totalMvp: { decrement: 1 } } });
-                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = GREATEST("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
+                await tx.$executeRaw`UPDATE "Player" SET "totalMvp" = MAX("totalMvp", 0) WHERE id = ${mvp.playerId} AND "totalMvp" < 0`;
               }
               await tx.participation.updateMany({ where: { tournamentId: id, isMvp: true }, data: { isMvp: false } });
               await tx.participation.updateMany({ where: { tournamentId: id, isWinner: true }, data: { isWinner: false } });

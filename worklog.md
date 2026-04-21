@@ -175,3 +175,35 @@ Stage Summary:
 - All 9 card classes with `backdrop-filter` are now safe from click-blocking browser bug
 - Zero duplicate CSS definitions remain — all keyframes and classes are unique
 - Rollback logic now has transaction-protected status update with consistency verification
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Fix server crash — switch from Neon/PostgreSQL to local SQLite + double-fork guardian
+
+Work Log:
+- Diagnosed root cause: `DATABASE_URL=file:...` (SQLite) but `schema.prisma` had `provider = "postgresql"` → PrismaClientInitializationError crashes entire server
+- Previous db.ts had Neon fallback logic (swap to DIRECT_DATABASE_URL) but DIRECT_DATABASE_URL was not set
+- Previous db.ts proxy approach kept server alive but all API routes returned 500
+- **Fix 1**: Changed `schema.prisma` from `provider = "postgresql"` to `provider = "sqlite"`, removed `directUrl`
+- **Fix 2**: Changed all `GREATEST()` raw SQL calls to `MAX()` for SQLite compatibility (10 occurrences in route.ts)
+- **Fix 3**: Simplified `db.ts` — removed Neon/proxy fallback logic, direct SQLite connection
+- **Fix 4**: Restored `withNeonRetry` export in `db-resilience.ts` (was accidentally removed, used by league route)
+- **Fix 5**: Created `instrumentation.ts` with uncaughtException/unhandledRejection guards
+- **Fix 6**: Created double-fork guardian script `scripts/dev-guardian.sh` v2.0
+  - Fork #1: Guardian → Monitor child
+  - Fork #2: Monitor → Server (via setsid for session detachment)
+  - Auto-restart with exponential backoff (3s→6s→12s→24s→30s)
+  - Crash rate limiting (10 restarts per 60s window)
+  - Graceful shutdown on SIGTERM/SIGINT
+- **Fix 7**: Added `dev:guardian` script to package.json
+- Ran `prisma generate` and `prisma db push` — SQLite database is in sync
+- All API routes now return 200: `/api/feed`, `/api/auth/session`, `/api/stats`, `/api/league`, `/api/clubs`, `/api/cms/content`
+
+Stage Summary:
+- Server runs with local SQLite database — all API routes return 200
+- Prisma schema switched to `sqlite` provider matching `DATABASE_URL=file:...`
+- Raw SQL queries use `MAX()` instead of `GREATEST()` for SQLite compatibility
+- Double-fork guardian auto-restarts server on crash
+- Process-level error guards prevent unhandled errors from crashing the server
+- For Vercel/Neon deployment: change schema provider back to `postgresql` and set DATABASE_URL to Neon connection string
