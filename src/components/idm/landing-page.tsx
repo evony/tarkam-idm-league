@@ -98,21 +98,19 @@ export function LandingPage() {
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string }; ligaChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
     queryKey: ['league-landing'],
     queryFn: async () => {
-      // cache: 'no-store' + timestamp cache-busting ensures Vercel CDN and browser
-      // NEVER serve stale data. Critical for admin logo/banner updates to show immediately.
-      const url = `/api/league?_t=${Date.now()}`;
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch('/api/league');
       if (!res.ok) throw new Error('League API failed');
       return res.json();
     },
-    staleTime: 0, // Always consider data stale — refetch on every mount
-    gcTime: 300000, // Keep cached data for 5 minutes (but always stale)
-    refetchOnMount: 'always', // Always refetch when component mounts (e.g., navigating back to landing)
-    retry: 3, // Retry 3 times for Neon cold start
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+    // ── Smart Client-Side Caching ──
+    // CDN caches for 10s server-side, but we keep client data fresh too.
+    // staleTime 10s = match the CDN s-maxage, so client and CDN are in sync.
+    // After admin mutation → refetchQueries() forces immediate fresh data.
+    staleTime: 10000, // 10s — matches CDN s-maxage, data is fresh for 10s
+    gcTime: 300000, // Keep unused data for 5 min in memory
     refetchOnWindowFocus: true, // Refetch when user comes back to tab
     refetchOnReconnect: true, // Refetch when network reconnects
-    refetchInterval: 30000, // Poll every 30s as safety net for cross-tab updates
+    refetchInterval: 60000, // Poll every 60s as safety net
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;

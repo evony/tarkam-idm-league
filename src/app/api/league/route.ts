@@ -1,20 +1,48 @@
 import { db } from '@/lib/db';
 import { withDbRetry } from '@/lib/db-resilience';
 import { NextResponse } from 'next/server';
-import { unstable_noStore as noStore } from 'next/cache';
 
-// Force dynamic rendering — prevent Next.js/Vercel from caching this API response
-// This ensures club logos and other data are always fresh after CMS updates
+// Force dynamic — this route is never statically rendered
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-// Revalidate every 0 seconds — never serve stale data from Vercel's Data Cache
-export const revalidate = 0;
+
+// ── Smart Caching Strategy for /api/league ──
+//
+// Vercel has 3 cache layers: Data Cache, CDN (Edge Network), Browser cache.
+// We use a BALANCED approach instead of nuclear no-cache:
+//
+// 1. CDN Cache: 10s + stale-while-revalidate=30
+//    → Normal visitors get fast cached responses (hit Neon DB less)
+//    → Stale responses are served while CDN revalidates in background
+//
+// 2. Browser Cache: max-age=0 (never cache in browser)
+//    → Browser always re-requests, but CDN still serves cached if fresh
+//
+// 3. Surrogate-Key: 'league-data'
+//    → Admin mutations call revalidateTag('league-data') to PURGE CDN instantly
+//    → After admin updates logo/score, next visitor gets fresh data
+//
+// 4. Cloudinary images: cached by Cloudinary CDN (separate, not affected)
+//
+// Result: Fast for visitors, instant updates after admin changes.
+
+/** Shared cache headers for all /api/league responses */
+const LEAGUE_CACHE_HEADERS = {
+  // s-maxage=10: Vercel CDN caches for 10 seconds (fast for normal visitors)
+  // stale-while-revalidate=30: Serve stale while revalidating in background
+  // max-age=0: Browser NEVER caches (always re-requests, but CDN may serve cached)
+  // Surrogate-Key: Allows targeted CDN purge via revalidateTag('league-data')
+  'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30, max-age=0',
+  'Surrogate-Key': 'league-data',
+  'Vary': 'Accept-Encoding',  // Don't split cache by irrelevant headers
+};
+
+const LEAGUE_CACHE_HEADERS_SHORT = {
+  // Shorter cache for error/fallback responses
+  'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=15, max-age=0',
+  'Surrogate-Key': 'league-data',
+};
 
 export async function GET() {
-  // Opt out of ALL Next.js caching — ensures fresh data on every request
-  // This is critical for Vercel where multiple cache layers can serve stale data
-  noStore();
-
   try {
   // Get all seasons (active + completed) — League is unified, not per-division
   // Completed seasons still have champion data that must be displayed
@@ -36,7 +64,9 @@ export async function GET() {
   }));
 
   if (!seasons || seasons.length === 0) {
-    return NextResponse.json({ hasData: false, reason: 'no_season' });
+    return NextResponse.json({ hasData: false, reason: 'no_season' }, {
+      headers: LEAGUE_CACHE_HEADERS_SHORT,
+    });
   }
 
   // Build Liga IDM champion data from the season that has a championClubId
@@ -130,6 +160,8 @@ export async function GET() {
       reason: 'no_clubs',
       season: { id: season.id, name: season.name },
       ligaChampion, // ALWAYS return champion data even when no clubs in current season
+    }, {
+      headers: LEAGUE_CACHE_HEADERS_SHORT,
     });
   }
 
@@ -253,16 +285,7 @@ export async function GET() {
       rule: 'Peserta bebas mix atau tidak mix dari divisi male dan female. Skuad champion dapat memilih anggota dari divisi mana saja.',
     },
   }, {
-    headers: {
-      // Nuclear anti-caching — must prevent Vercel Edge Network CDN, browser cache,
-      // and any intermediate proxy from caching this response.
-      // Club logo/banner updates from admin panel MUST reflect immediately.
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-      'CDN-Cache-Control': 'no-store',  // Vercel-specific: bypass Edge Network CDN
-      'Pragma': 'no-cache',              // HTTP/1.0 backward compat
-      'Expires': '0',                     // Never cache
-      'Vary': '*',                        // Prevent cache key reuse
-    },
+    headers: LEAGUE_CACHE_HEADERS,
   });
 
   } catch (error: any) {
@@ -276,12 +299,7 @@ export async function GET() {
       ligaChampion: null,
     }, {
       status: 200, // Return 200 so React Query doesn't treat it as an error
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-        'CDN-Cache-Control': 'no-store',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
+      headers: LEAGUE_CACHE_HEADERS_SHORT,
     });
   }
 }

@@ -1,16 +1,25 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { unstable_noStore as noStore } from 'next/cache';
 
-// Force dynamic rendering — prevent Next.js/Vercel from caching stats API
+// Force dynamic — this route is never statically rendered
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+
+// ── Smart Caching Strategy for /api/stats ──
+// Same as /api/league: CDN caches 10s, browser never caches, Surrogate-Key for targeted purge.
+// Admin mutations that affect standings/scores call revalidateTag('league-data').
+
+const STATS_CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30, max-age=0',
+  'Surrogate-Key': 'league-data',
+  'Vary': 'Accept-Encoding',
+};
+
+const STATS_CACHE_HEADERS_SHORT = {
+  'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=15, max-age=0',
+  'Surrogate-Key': 'league-data',
+};
 
 export async function GET(request: Request) {
-  // Opt out of ALL Next.js caching — ensures fresh data on every request
-  noStore();
-
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division') || 'male';
 
@@ -26,12 +35,7 @@ export async function GET(request: Request) {
 
   if (!season) {
     return NextResponse.json({ hasData: false, division }, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-        'CDN-Cache-Control': 'no-store',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
+      headers: STATS_CACHE_HEADERS_SHORT,
     });
   }
 
@@ -253,12 +257,6 @@ export async function GET(request: Request) {
       percentage: SEASON_TOTAL_WEEKS > 0 ? Math.round((completedWeeks / SEASON_TOTAL_WEEKS) * 100) : 0,
     },
   }, {
-    headers: {
-      // No caching — club logos and data must be fresh after admin updates
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-      'CDN-Cache-Control': 'no-store',
-      'Pragma': 'no-cache',
-      'Expires': '0',
-    },
+    headers: STATS_CACHE_HEADERS,
   });
 }
