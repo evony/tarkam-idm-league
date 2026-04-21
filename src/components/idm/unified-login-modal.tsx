@@ -518,7 +518,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta' }
                     <div className="space-y-1.5 ml-6">
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">🥇</span>
-                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-foreground">1, 2, 3</strong></span>
+                        <span className="text-[10px] text-muted-foreground">Juara <strong className="text-foreground">1</strong></span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-base leading-none">⭐</span>
