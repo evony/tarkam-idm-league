@@ -1304,3 +1304,68 @@ The project is **fully featured and visually polished** with real match data now
 3. Add dark/light mode toggle
 4. Add notification system for real-time tournament updates
 5. Improve admin panel UX with batch operations
+
+---
+Task ID: 15
+Agent: Main Agent (Cron Round 6)
+Task: Fix HMR error, add new features, improve styling, set up cron review
+
+Work Log:
+- Fixed HMR runtime error for stats-ticker.tsx by clearing .next cache and restarting dev server
+- Confirmed stats-ticker.tsx file exists on disk and is syntactically correct — the error was stale HMR cache
+- Verified dev server running and all APIs returning 200 after cache clear
+- Added new Live Match Indicator widget for dashboard (via subagent):
+  - Created /api/matches/next API endpoint returning live count, next match, recent results
+  - Created live-match-indicator.tsx with LIVE badge, countdown, horizontal scrolling results
+  - Integrated into dashboard after QuickStatsBar
+- Added new Community Feed widget for landing page (via subagent):
+  - Created community-feed.tsx with social-media style activity timeline
+  - 4 activity types: registration, match result, donation, achievement
+  - Live indicator, staggered CSS animations, glassmorphism cards
+  - Integrated between Achievements and Dream sections
+- Created Featured Matches section for landing page:
+  - New /src/components/idm/landing/featured-matches.tsx component
+  - Match cards with player avatars, score display, winner highlighting
+  - Uses /api/matches/next endpoint data
+  - Responsive 2-column grid on desktop
+  - CSS animations for card entrance and hover glow
+- Added navigation entries for Match section (desktop nav + mobile bottom nav)
+- Updated sectionIds to include 'matches' and 'community'
+- Added CSS animations for featured-match-card (entrance + hover glow)
+- All new animations respect prefers-reduced-motion
+- Ran bun run lint — passed with zero errors
+- Dev server compiling successfully, all endpoints returning 200
+
+Stage Summary:
+- HMR runtime error fixed by clearing .next cache
+- 3 new features: Live Match Indicator (dashboard), Community Feed (landing), Featured Matches (landing)
+- New API endpoint: /api/matches/next returning live count, next match, recent results
+- Navigation updated with Match and Community entries
+- All lint checks pass, dev server operational
+
+## Current Project Status
+
+### Assessment
+The project is **feature-rich and visually polished**. The IDM League tournament platform now has comprehensive landing page sections (Hero, Stats Ticker, Season Timeline, About, Tournament Hub, Champions, MVP, Player Spotlight, Clubs, Club Leaderboard, Achievements, Featured Matches, Community Feed, Dream/CTA, Footer) and a full dashboard (Quick Stats, Live Match Indicator, Activity Feed, Top Donors, Standings, Matches, Stats Charts, Overview with Player Comparison).
+
+### Completed in This Round (Task ID 15)
+- Fixed HMR runtime error by clearing .next cache
+- Added Live Match Indicator widget on dashboard
+- Added Community Feed section on landing page
+- Added Featured Matches section on landing page
+- New /api/matches/next API endpoint
+- Updated navigation with Match and Community links
+- CSS animations for new components
+
+### Unresolved Issues / Risks
+1. **Framer-motion scroll warning** persists (harmless, from useInView internal check)
+2. **No real donations** in database — Top Donors shows encouraging empty state
+3. **No achievements earned** — Achievements section shows empty state
+4. **Mobile bottom nav** getting crowded with many items
+
+### Priority Recommendations for Next Phase
+1. Add demo donation data to populate Top Donors section
+2. Add achievement earning logic to populate Achievements section
+3. Consolidate mobile bottom nav (group sections, use scrollable nav)
+4. Add tournament bracket visualization
+5. Add notification system for real-time tournament updates

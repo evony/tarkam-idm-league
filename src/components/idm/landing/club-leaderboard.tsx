@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Crown, Medal, ChevronRight, TrendingUp } from 'lucide-react';
+import { Trophy, Crown, Medal, ChevronRight, TrendingUp, Crown as CrownIcon } from 'lucide-react';
 import { SectionHeader } from './shared';
 import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
@@ -119,9 +119,11 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
     ? rowStyles[club.rank]
     : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]';
 
+  const isEven = index % 2 === 0;
+
   return (
     <div
-      className={`leaderboard-row-enhanced grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl border transition-all duration-300 hover:scale-[1.01] ${rowClass}`}
+      className={`leaderboard-row-wrapper leaderboard-row-enhanced grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl border transition-all duration-300 hover:scale-[1.01] ${isEven ? 'leaderboard-row-even' : 'leaderboard-row-odd'} ${rowClass}`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
       {/* Rank */}
@@ -145,6 +147,9 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
               {club.name}
             </p>
             {club.rank === 1 && (
+              <Crown className="w-3.5 h-3.5 text-idm-gold-warm shrink-0 leaderboard-crown-icon" />
+            )}
+            {club.rank !== 1 && club.rank <= 3 && (
               <TrendingUp className="w-3 h-3 text-idm-gold-warm shrink-0" />
             )}
           </div>
@@ -159,6 +164,14 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
               <span className="text-[10px] font-bold text-green-400">{club.wins}W</span>
               <span className="text-[10px] text-muted-foreground/50">-</span>
               <span className="text-[10px] font-bold text-red-400">{club.losses}L</span>
+            </div>
+          </div>
+          {/* Hover reveal: extra stats */}
+          <div className="leaderboard-hover-stats mt-1">
+            <div className="flex items-center gap-3 text-[9px] text-muted-foreground/70">
+              <span>Win Rate: {club.wins + club.losses > 0 ? Math.round((club.wins / (club.wins + club.losses)) * 100) : 0}%</span>
+              <span>GD: {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}</span>
+              <span>PTS/Member: {club.memberCount > 0 ? (club.points / club.memberCount).toFixed(1) : '0'}</span>
             </div>
           </div>
         </div>

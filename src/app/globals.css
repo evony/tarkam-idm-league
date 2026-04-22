@@ -1076,6 +1076,80 @@ div.group:hover .donor-rank-badge {
   border-radius: 0 2px 0 0;
 }
 
+/* ============================================
+   LIVE MATCH INDICATOR — Dashboard
+   ============================================ */
+
+/* Result card entrance — slide up with stagger */
+@keyframes live-indicator-result-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.live-indicator-result-card {
+  animation: live-indicator-result-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* Live match indicator card — glassmorphism with gold accent top */
+.live-match-indicator-card {
+  background: linear-gradient(
+    145deg,
+    rgba(22, 18, 10, 0.75) 0%,
+    rgba(14, 12, 7, 0.85) 50%,
+    rgba(20, 16, 8, 0.8) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 20px rgba(229, 190, 74, 0.03),
+    0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   COMMUNITY FEED — Landing page
+   ============================================ */
+
+/* Feed card staggered entrance — slide from left with fade */
+@keyframes community-feed-card-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.community-feed-card {
+  animation: community-feed-card-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* Community feed container — custom scrollbar styling */
+.community-feed-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 190, 74, 0.15) transparent;
+}
+.community-feed-container::-webkit-scrollbar {
+  width: 4px;
+}
+.community-feed-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.community-feed-container::-webkit-scrollbar-thumb {
+  background: rgba(229, 190, 74, 0.15);
+  border-radius: 4px;
+}
+.community-feed-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 190, 74, 0.3);
+}
+
 /* Noise texture overlay on dark backgrounds */
 .noise-texture {
   position: relative;
@@ -1089,6 +1163,43 @@ div.group:hover .donor-rank-badge {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size: 128px 128px;
   mix-blend-mode: overlay;
+}
+
+/* ============================================
+   FEATURED MATCHES — Landing page
+   ============================================ */
+
+/* Match card entrance animation — slide up with fade */
+@keyframes featured-match-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.featured-match-card {
+  animation: featured-match-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* Match card hover glow — gold shimmer on left border */
+.featured-match-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(212, 168, 83, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.featured-match-card:hover::before {
+  opacity: 1;
 }
 
 /* Disable infinite animations for reduced-motion users */
@@ -1182,9 +1293,37 @@ div.group:hover .donor-rank-badge {
   .mvp-glow-ring-female,
   .mvp-text-animated,
   .mvp-stats-enhanced,
-  .club-card-hover {
+  .club-card-hover,
+  /* Live Match Indicator & Community Feed */
+  .live-indicator-result-card,
+  .live-match-indicator-card,
+  .community-feed-card,
+  /* Featured Matches */
+  .featured-match-card,
+  /* Visual Polish Enhancement (Task 4) additions */
+  .hero-grid-pattern::before,
+  .hero-title-glow,
+  .hero-scanline::after,
+  .hero-btn-gradient-border::before,
+  .leaderboard-crown-icon,
+  .champion-sparkle-1,
+  .champion-sparkle-2,
+  .champion-sparkle-3,
+  .champion-sparkle-4,
+  .champion-rotating-border::before,
+  .mvp-spotlight,
+  .mvp-border-pulse-male,
+  .mvp-border-pulse-female,
+  .mvp-stat-bar {
     animation: none;
     transform: none !important;
+  }
+  .hero-btn-gradient-border::before {
+    background-position: 0% center !important;
+  }
+  .leaderboard-hover-stats {
+    max-height: none !important;
+    opacity: 1 !important;
   }
   .stat-card-shimmer::after {
     background-position: -200% 0 !important;
@@ -6681,4 +6820,420 @@ html {
 .hero-title-parallax {
   will-change: transform;
   contain: layout style;
+}
+
+/* ============================================
+   VISUAL POLISH ENHANCEMENTS — Task 4 Agent
+   CSS-only animations for hero, leaderboard, champions, MVP
+   All respect prefers-reduced-motion
+   ============================================ */
+
+/* ─── Hero: Particle Grid Background ─── */
+@keyframes hero-grid-drift {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-8px, 4px); }
+  50% { transform: translate(4px, -8px); }
+  75% { transform: translate(-4px, -4px); }
+}
+
+.hero-grid-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout style;
+}
+
+.hero-grid-pattern::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background-image:
+    radial-gradient(circle, rgba(212, 168, 83, 0.15) 1px, transparent 1px),
+    radial-gradient(circle, rgba(212, 168, 83, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px, 24px 24px;
+  background-position: 0 0, 12px 12px;
+  animation: hero-grid-drift 20s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── Hero: Title Breathing Glow ─── */
+@keyframes hero-title-breathe {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(212, 168, 83, 0.05), 0 0 80px rgba(212, 168, 83, 0.03);
+    opacity: 0.6;
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(212, 168, 83, 0.12), 0 0 120px rgba(212, 168, 83, 0.06), 0 0 180px rgba(212, 168, 83, 0.02);
+    opacity: 1;
+  }
+}
+
+.hero-title-glow {
+  position: absolute;
+  inset: -20px -40px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(212, 168, 83, 0.08) 0%, transparent 70%);
+  animation: hero-title-breathe 4s ease-in-out infinite;
+  contain: layout style;
+  pointer-events: none;
+}
+
+/* ─── Hero: CRT Scanline Overlay ─── */
+@keyframes hero-scanline-scroll {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.hero-scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 15;
+  contain: layout style;
+}
+
+.hero-scanline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+.hero-scanline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(212, 168, 83, 0.015) 40%,
+    rgba(212, 168, 83, 0.03) 50%,
+    rgba(212, 168, 83, 0.015) 60%,
+    transparent 100%
+  );
+  animation: hero-scanline-scroll 8s linear infinite;
+}
+
+/* ─── Hero: Button Gradient Border + Shimmer ─── */
+@keyframes hero-btn-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.hero-btn-gradient-border {
+  position: relative;
+  contain: layout style;
+}
+
+.hero-btn-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(212, 168, 83, 0.3) 0%,
+    rgba(229, 190, 74, 0.6) 25%,
+    rgba(245, 215, 122, 0.8) 50%,
+    rgba(229, 190, 74, 0.6) 75%,
+    rgba(212, 168, 83, 0.3) 100%
+  );
+  background-size: 200% 100%;
+  z-index: -1;
+  animation: hero-btn-shimmer 3s ease-in-out infinite;
+}
+
+.hero-btn-gradient-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: #0c0a06;
+  z-index: -1;
+}
+
+/* ─── Leaderboard: Rank Podium Styling ─── */
+@keyframes leaderboard-crown-bob {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-3px) rotate(5deg); }
+}
+
+.leaderboard-crown-icon {
+  animation: leaderboard-crown-bob 2s ease-in-out infinite;
+  contain: layout style;
+  filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.4));
+}
+
+/* Alternating row gradient backgrounds */
+@keyframes leaderboard-row-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.leaderboard-row-even {
+  background: linear-gradient(90deg, rgba(229, 190, 74, 0.02) 0%, rgba(229, 190, 74, 0.04) 50%, rgba(229, 190, 74, 0.02) 100%);
+  background-size: 200% 100%;
+}
+
+.leaderboard-row-odd {
+  background: linear-gradient(90deg, rgba(20, 17, 10, 0.4) 0%, rgba(20, 17, 10, 0.6) 50%, rgba(20, 17, 10, 0.4) 100%);
+  background-size: 200% 100%;
+}
+
+/* Hover reveal for club stats */
+.leaderboard-hover-stats {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.leaderboard-row-wrapper:hover .leaderboard-hover-stats {
+  max-height: 60px;
+  opacity: 1;
+}
+
+/* ─── Champions: Confetti/Sparkle Effects ─── */
+@keyframes champion-sparkle-1 {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0); }
+  20% { opacity: 1; transform: translate(-8px, -12px) scale(1); }
+  80% { opacity: 0.8; transform: translate(-12px, -20px) scale(0.6); }
+}
+
+@keyframes champion-sparkle-2 {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0); }
+  20% { opacity: 1; transform: translate(10px, -8px) scale(1); }
+  80% { opacity: 0.6; transform: translate(16px, -16px) scale(0.5); }
+}
+
+@keyframes champion-sparkle-3 {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0); }
+  20% { opacity: 0.8; transform: translate(-4px, 8px) scale(0.8); }
+  80% { opacity: 0.4; transform: translate(-8px, 14px) scale(0.4); }
+}
+
+@keyframes champion-sparkle-4 {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0); }
+  20% { opacity: 0.9; transform: translate(6px, 6px) scale(0.9); }
+  80% { opacity: 0.3; transform: translate(10px, 12px) scale(0.3); }
+}
+
+.champion-sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  contain: layout style;
+}
+
+.champion-sparkle-1 {
+  top: 10%;
+  left: 15%;
+  background: radial-gradient(circle, rgba(229, 190, 74, 0.8), transparent);
+  animation: champion-sparkle-1 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.champion-sparkle-2 {
+  top: 8%;
+  right: 20%;
+  background: radial-gradient(circle, rgba(245, 215, 122, 0.8), transparent);
+  animation: champion-sparkle-2 3.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.champion-sparkle-3 {
+  bottom: 20%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(212, 168, 83, 0.6), transparent);
+  animation: champion-sparkle-3 4s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.champion-sparkle-4 {
+  bottom: 15%;
+  right: 15%;
+  background: radial-gradient(circle, rgba(229, 190, 74, 0.7), transparent);
+  animation: champion-sparkle-4 3.2s ease-in-out infinite;
+  animation-delay: 2.2s;
+}
+
+/* ─── Champions: Rotating Gold Border ─── */
+@keyframes champion-border-rotate {
+  0% { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.champion-rotating-border {
+  position: relative;
+  contain: layout style;
+}
+
+.champion-rotating-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(212, 168, 83, 0.6),
+    rgba(229, 190, 74, 0.1),
+    rgba(245, 215, 122, 0.3),
+    rgba(212, 168, 83, 0.1),
+    rgba(229, 190, 74, 0.6)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: champion-border-rotate 4s linear infinite;
+  pointer-events: none;
+}
+
+/* ─── Champions: Trophy Pedestal ─── */
+.champion-trophy-pedestal {
+  position: relative;
+}
+
+.champion-trophy-pedestal::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 8px;
+  background: linear-gradient(180deg, rgba(212, 168, 83, 0.2) 0%, rgba(212, 168, 83, 0.05) 100%);
+  border-radius: 50%;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* ─── Champions: Diamond Badge ─── */
+.champion-diamond-badge {
+  width: 28px;
+  height: 28px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e5be4a, #d4a853, #f5d77a, #d4a853);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(212, 168, 83, 0.4), 0 0 24px rgba(212, 168, 83, 0.15);
+}
+
+.champion-diamond-badge > * {
+  transform: rotate(-45deg);
+}
+
+/* ─── MVP: Spotlight Effect ─── */
+@keyframes mvp-spotlight-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.mvp-spotlight {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(ellipse at 50% 60%, rgba(212, 168, 83, 0.12) 0%, rgba(212, 168, 83, 0.04) 30%, transparent 60%);
+  animation: mvp-spotlight-pulse 4s ease-in-out infinite;
+  pointer-events: none;
+  contain: layout style;
+}
+
+.mvp-spotlight-male {
+  background: radial-gradient(ellipse at 50% 60%, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 30%, transparent 60%);
+}
+
+.mvp-spotlight-female {
+  background: radial-gradient(ellipse at 50% 60%, rgba(192, 132, 252, 0.1) 0%, rgba(192, 132, 252, 0.03) 30%, transparent 60%);
+}
+
+/* ─── MVP: Pulsing Border ─── */
+@keyframes mvp-border-pulse-male {
+  0%, 100% { border-color: rgba(34, 211, 238, 0.15); box-shadow: 0 0 0px rgba(34, 211, 238, 0); }
+  50% { border-color: rgba(34, 211, 238, 0.4); box-shadow: 0 0 20px rgba(34, 211, 238, 0.08), 0 0 40px rgba(34, 211, 238, 0.04); }
+}
+
+@keyframes mvp-border-pulse-female {
+  0%, 100% { border-color: rgba(192, 132, 252, 0.15); box-shadow: 0 0 0px rgba(192, 132, 252, 0); }
+  50% { border-color: rgba(192, 132, 252, 0.4); box-shadow: 0 0 20px rgba(192, 132, 252, 0.08), 0 0 40px rgba(192, 132, 252, 0.04); }
+}
+
+.mvp-border-pulse-male {
+  animation: mvp-border-pulse-male 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+.mvp-border-pulse-female {
+  animation: mvp-border-pulse-female 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── MVP: Stats Comparison Bar ─── */
+@keyframes mvp-stat-bar-fill {
+  from { width: 0; }
+}
+
+.mvp-stat-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(212, 168, 83, 0.6), rgba(229, 190, 74, 0.8));
+  animation: mvp-stat-bar-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+.mvp-stat-bar-male {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.5), rgba(34, 211, 238, 0.8));
+}
+
+.mvp-stat-bar-female {
+  background: linear-gradient(90deg, rgba(192, 132, 252, 0.5), rgba(192, 132, 252, 0.8));
+}
+
+/* ─── MVP: Watermark Text ─── */
+.mvp-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  font-size: 10rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(212, 168, 83, 0.02);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  -webkit-text-stroke: 1px rgba(212, 168, 83, 0.03);
+  z-index: 0;
+  contain: layout style;
+}
+
+@media (max-width: 640px) {
+  .mvp-watermark {
+    font-size: 5rem;
+  }
 }

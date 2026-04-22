@@ -48,6 +48,7 @@ import { QuickStatsBar } from './quick-stats-bar';
 import { TopDonorsWidget } from './top-donors-widget';
 import { DivisionRivalryWidget } from './division-rivalry-widget';
 import { LiveMatchCounter } from './live-match-counter';
+import { LiveMatchIndicator } from './live-match-indicator';
 import { MatchDayCountdown } from './match-day-countdown';
 import { StreakWidget } from './streak-widget';
 import { MatchResultsSummary } from './match-results-summary';
@@ -239,6 +240,11 @@ export function Dashboard() {
 
       {/* ========== QUICK STATS BAR — At-a-glance summary ========== */}
       <QuickStatsBar data={data} division={division} />
+
+      {/* ========== LIVE MATCH INDICATOR — Live count, next match, recent results ========== */}
+      <div className="stagger-item-subtle stagger-d0">
+        <LiveMatchIndicator />
+      </div>
 
       {/* ========== LIVE MATCH COUNTER — Real-time match status ========== */}
       <LiveMatchCounter />

@@ -141,6 +141,9 @@ export function HeroSection({
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
 
+        {/* Animated Particle Grid Background */}
+        <div className="hero-grid-pattern" aria-hidden="true" />
+
         {/* Animated Grid Overlay */}
         <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
           backgroundImage: `linear-gradient(rgba(212,168,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.3) 1px, transparent 1px)`,
@@ -149,6 +152,9 @@ export function HeroSection({
 
         {/* Vignette Effect — darkens edges for cinematic depth */}
         <div className="hero-vignette absolute inset-0 pointer-events-none" aria-hidden="true" />
+
+        {/* CRT Scanline Overlay — esports vibe */}
+        <div className="hero-scanline" aria-hidden="true" />
 
         {/* Ambient Orbit Light */}
         <div className="ambient-light" style={{ top: '30%', left: '20%' }} />
@@ -196,13 +202,15 @@ export function HeroSection({
               </motion.p>
             </motion.div>
 
-            {/* Main Title — with parallax offset */}
-            <motion.div variants={fadeUp} className="hero-title-parallax">
+            {/* Main Title — with parallax offset + breathing glow */}
+            <motion.div variants={fadeUp} className="hero-title-parallax relative">
+              {/* Breathing/pulsing glow behind title */}
+              <div className="hero-title-glow" aria-hidden="true" />
               <motion.h1
                 initial={{ opacity: 0, letterSpacing: '0.05em' }}
                 animate={{ opacity: 1, letterSpacing: '-0.02em' }}
                 transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="text-3xl sm:text-5xl lg:text-6xl text-gradient-fury font-bold tracking-tight uppercase mt-2"
+                className="relative z-10 text-3xl sm:text-5xl lg:text-6xl text-gradient-fury font-bold tracking-tight uppercase mt-2"
               >
                 {cmsHeroTitle}
               </motion.h1>
@@ -263,7 +271,7 @@ export function HeroSection({
               {cmsHeroTagline}
             </motion.p>
 
-            {/* Hero CTA — Register Button with glowing border animation */}
+            {/* Hero CTA — Register Button with gradient border + shimmer */}
             <motion.div variants={fadeUp} className="flex items-center justify-center">
               <motion.button
                 onClick={onRegister}
@@ -272,8 +280,9 @@ export function HeroSection({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Glowing border animation behind button */}
+                {/* Gradient border + shimmer behind button */}
                 <div className="hero-btn-glow absolute inset-0 rounded-sm" aria-hidden="true" />
+                <div className="hero-btn-gradient-border">
                 <div className="relative px-5 py-3 sm:px-10 sm:py-5 border-2 border-idm-gold-warm/60 rounded-sm transform -rotate-3 transition-all duration-300 group-hover:rotate-0 group-hover:scale-105 group-hover:border-idm-gold-warm/80">
                   <div className="absolute inset-0 bg-idm-gold-warm/5 group-hover:bg-idm-gold-warm/10 transition-colors duration-300" />
                   <div className="relative z-10">
@@ -291,6 +300,7 @@ export function HeroSection({
                   <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 sm:w-3 sm:h-3 border-t-2 border-r-2 border-idm-gold-warm/40 group-hover:border-idm-gold-warm/60 transition-colors" />
                   <div className="absolute bottom-0.5 left-0.5 sm:bottom-1 sm:left-1 w-2 h-2 sm:w-3 sm:h-3 border-b-2 border-l-2 border-idm-gold-warm/40 group-hover:border-idm-gold-warm/60 transition-colors" />
                   <div className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 w-2 h-2 sm:w-3 sm:h-3 border-b-2 border-r-2 border-idm-gold-warm/40 group-hover:border-idm-gold-warm/60 transition-colors" />
+                </div>
                 </div>
               </motion.button>
             </motion.div>

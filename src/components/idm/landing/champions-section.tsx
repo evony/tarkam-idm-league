@@ -116,12 +116,12 @@ export function ChampionsSection({
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     {/* Club Logo + Name */}
                     <div className="flex flex-col items-center text-center sm:text-left sm:flex-row gap-4 flex-1">
-                      <div className="relative">
+                      <div className="relative champion-trophy-pedestal">
                         <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-idm-gold-warm/30 bg-idm-gold-warm/5" style={{ boxShadow: '0 0 50px rgba(212,168,83,0.2)' }}>
                           <ClubLogoImage clubName={leagueData.ligaChampion.name} dbLogo={leagueData.ligaChampion.logo} alt={leagueData.ligaChampion.name} width={112} height={112} className="w-full h-full object-cover" />
                         </div>
-                        {/* Champion badge overlay */}
-                        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-lg" style={{ boxShadow: '0 0 20px rgba(212,168,83,0.5)' }}>
+                        {/* Champion badge overlay — diamond badge */}
+                        <div className="absolute -top-2 -right-2 champion-diamond-badge" aria-label="Champion badge">
                           <Crown className="w-4 h-4 text-[#0c0a06]" />
                         </div>
                       </div>
@@ -230,8 +230,13 @@ export function ChampionsSection({
                   className="stagger-item-fast perspective-container"
                   style={{ animationDelay: `${divIdx * 100}ms` }}
                 >
+                  {/* Sparkle decorations around champion cards */}
+                  <div className="champion-sparkle champion-sparkle-1" aria-hidden="true" />
+                  <div className="champion-sparkle champion-sparkle-2" aria-hidden="true" />
+                  <div className="champion-sparkle champion-sparkle-3" aria-hidden="true" />
+                  <div className="champion-sparkle champion-sparkle-4" aria-hidden="true" />
                   {(!data || !data.weeklyChampions?.length) ? (
-                    <Card className="overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
+                    <Card className="champion-rotating-border overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
                       <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
                       <CardContent className="p-0">
                         <div className="relative h-16 sm:h-20 overflow-hidden">
@@ -281,7 +286,7 @@ export function ChampionsSection({
                     const champions = data.weeklyChampions;
                     const selected = champions[champions.length - 1];
                     return (
-                      <Card className="perspective-card overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
+                      <Card className="champion-rotating-border perspective-card overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
                         {/* Gold accent line — thicker, more premium */}
                         <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
                         <CardContent className="p-0">
@@ -349,6 +354,10 @@ export function ChampionsSection({
                                 {/* CHAMPION gold watermark behind avatars */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
                                   <span className="text-4xl font-black uppercase tracking-widest select-none" style={{ color: 'rgba(212,168,83,0.04)', WebkitTextStroke: '1px rgba(212,168,83,0.06)' }}>CHAMPION</span>
+                                </div>
+                                {/* Diamond badge overlay */}
+                                <div className="absolute top-3 right-3 z-20 champion-diamond-badge" aria-label="Champion badge">
+                                  <Crown className="w-3.5 h-3.5 text-[#0c0a06]" />
                                 </div>
                                 {selected.winnerTeam.players.slice(0, 3).map((player: { id: string; gamertag: string; avatar: string | null; tier: string; points: number; totalWins: number; streak: number }, pIdx: number) => (
                                   <div
