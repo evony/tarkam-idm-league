@@ -380,3 +380,57 @@ Stage Summary:
 - PlayerComparison component features radar chart, horizontal bar chart, stat rows, verdict badge, and achievement comparison
 - Integration in overview-tab.tsx with "Bandingkan" button opening comparison modal
 - All lint checks pass, dev server operational, API endpoints verified
+
+---
+Task ID: 8-a
+Agent: Feature Agent
+Task: Add Achievements Showcase Section to Landing Page
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing code patterns: landing-page.tsx, shared.tsx (SectionHeader), animated-empty-state.tsx, use-division-theme.ts, /api/stats/route.ts (caching pattern), /api/achievements/route.ts (existing endpoint)
+- Read prisma/schema.prisma for PlayerAchievement, Achievement, and Player models
+- Created API endpoint /src/app/api/achievements/showcase/route.ts:
+  - GET /api/achievements/showcase?division=male
+  - Fetches top 8 PlayerAchievements joined with Player and Achievement data
+  - Returns array of { id, gamertag, avatar, achievement: { name, description, icon }, earnedAt, tier, division }
+  - Handles empty tables gracefully (returns { achievements: [] })
+  - Same caching pattern as /api/stats: CDN s-maxage=10, stale-while-revalidate=30, max-age=0
+  - Surrogate-Key: league-data for targeted purge
+  - Error handling returns empty array instead of 500
+- Created /src/components/idm/landing/achievements-section.tsx:
+  - Section with id="achievements" for nav linking
+  - SectionHeader with Crown icon, title "Prestasi Unggulan", subtitle "Achievement terbaru yang diraih para dancer"
+  - Horizontal scrollable card grid on mobile (snap-x, custom-scrollbar), 4-column grid on desktop
+  - Each card shows: AchievementIcon (lucide-react icon mapped from achievement name/icon), achievement name, description, player gamertag with avatar, time ago in Indonesian, tier badge with color effect
+  - AchievementIcon component renders Star/Trophy/Medal/Flame/Zap/Crown/Shield/Award based on achievement name pattern
+  - Tier badge color effects: S=red glow, A=amber glow, B=green glow
+  - Card styling: glassmorphism with gold border shimmer, hover scale effect
+  - Uses useDivisionTheme() hook for consistent styling
+  - Loading skeleton state (4 card skeletons)
+  - Empty state with AnimatedEmptyState component
+  - @tanstack/react-query with 30s staleTime
+  - Indonesian relative time formatting (Baru saja, X menit lalu, X jam lalu, etc.)
+  - Fixed lint error: Changed from dynamic component creation during render (getAchievementLucideIcon returning component) to type string mapping + static AchievementIcon component
+- Appended CSS animations to /src/app/globals.css:
+  - achievement-card-glow: Subtle golden glow pulse on achievement cards (3s ease-in-out infinite)
+  - achievement-icon-spin: Hover rotation/scale effect on achievement icons (rotate 15deg, scale 1.15)
+  - Added both classes to prefers-reduced-motion section for accessibility
+- Integrated into /src/components/idm/landing-page.tsx:
+  - Added Award import from lucide-react
+  - Added AchievementsSection import from './landing/achievements-section'
+  - Placed AchievementsSection between ClubsSection and DreamSection with section dividers
+  - Added 'achievements' to sectionIds array in IntersectionObserver useEffect
+  - Added { id: 'achievements', label: 'Achievement' } to desktop nav items
+  - Added { id: 'achievements', label: 'Achieve', icon: Award } to mobile bottom nav items
+- Ran `bun run lint` — passed with zero errors
+- Tested /api/achievements/showcase?division=male — returns 200 with { achievements: [] }
+- Verified landing page loads (200) and dev server compiles successfully
+
+Stage Summary:
+- API endpoint created at /api/achievements/showcase returning top 8 achievements with player data
+- AchievementsSection component created with glassmorphism cards, tier-based glow effects, Indonesian relative time, and responsive layout
+- CSS animations added for card glow and icon hover effects, both respecting prefers-reduced-motion
+- Achievements section integrated into landing page between Clubs and Dream sections
+- Navigation updated on both desktop and mobile to include Achievement/Achieve link
+- All lint checks pass, dev server operational, API verified

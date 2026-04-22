@@ -108,19 +108,21 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                       const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === p.id;
                       const playerSkins = skinMap[p.id];
                       const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
+                      const trendUp = p.streak > 1;
                       return (
                         <TableRow
                           key={p.id}
-                          className={`cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
+                          className={`row-entrance table-row-glow ${division === 'male' ? 'table-row-glow-male' : 'table-row-glow-female'} cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
                             idx < 3 ? `${dt.bgSubtle}` : ''
                           } ${isMe ? 'bg-idm-gold/5' : ''}`}
+                          style={{ animationDelay: `${idx * 40}ms` }}
                           onClick={() => setSelectedPlayer(p)}
                         >
                           <TableCell className="text-center">
                             <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                              idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                              idx === 1 ? 'bg-gray-400/20 text-gray-400' :
-                              idx === 2 ? 'bg-amber-600/20 text-amber-600' :
+                              idx === 0 ? 'rank-badge-gold text-black' :
+                              idx === 1 ? 'rank-badge-silver text-black' :
+                              idx === 2 ? 'rank-badge-bronze text-black' :
                               'text-muted-foreground'
                             }`}>
                               {idx + 1}
@@ -128,7 +130,11 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <div className={`w-7 h-7 rounded-full ${dt.iconBg} flex items-center justify-center text-[9px] font-bold ${dt.text} shrink-0`}>
+                              <div className={`w-7 h-7 rounded-full ${dt.iconBg} flex items-center justify-center text-[9px] font-bold ${dt.text} shrink-0 ${
+                                idx === 0 ? 'avatar-ring-gold' :
+                                idx === 1 ? 'avatar-ring-silver' :
+                                idx === 2 ? 'avatar-ring-bronze' : ''
+                              }`}>
                                 {p.gamertag.slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0">
@@ -143,7 +149,11 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                             </div>
                           </TableCell>
                           <TableCell className="text-center"><TierBadge tier={p.tier} /></TableCell>
-                          <TableCell className={`text-right font-bold text-xs ${idx < 3 ? dt.neonText : ''}`}>{p.points}</TableCell>
+                          <TableCell className="text-right">
+                              <span className={`font-bold text-xs ${idx < 3 ? dt.neonText : ''}`}>{p.points}</span>
+                              {trendUp && <span className="trend-up text-green-400 text-[9px] ml-0.5">↑</span>}
+                              {!trendUp && p.totalWins > 0 && idx > 3 && <span className="trend-down text-red-400/50 text-[9px] ml-0.5">↓</span>}
+                            </TableCell>
                           <TableCell className="text-center text-xs text-green-500 font-medium">{p.totalWins}</TableCell>
                           <TableCell className="text-center text-xs text-red-500 font-medium hidden sm:table-cell">{losses > 0 ? losses : 0}</TableCell>
                           <TableCell className="text-center text-xs hidden md:table-cell">
@@ -221,16 +231,17 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                         {displayedClubs?.map((club, idx) => (
                           <TableRow
                             key={club.id}
-                            className={`cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
+                            className={`row-entrance table-row-glow ${division === 'male' ? 'table-row-glow-male' : 'table-row-glow-female'} cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
                               idx < 4 ? `${dt.bgSubtle}` : ''
                             }`}
+                            style={{ animationDelay: `${idx * 40}ms` }}
                             onClick={() => setSelectedClub(club)}
                           >
                             <TableCell className="text-center">
                               <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                                idx === 1 ? 'bg-gray-400/20 text-gray-400' :
-                                idx === 2 ? 'bg-amber-600/20 text-amber-600' :
+                                idx === 0 ? 'rank-badge-gold text-black' :
+                                idx === 1 ? 'rank-badge-silver text-black' :
+                                idx === 2 ? 'rank-badge-bronze text-black' :
                                 'text-muted-foreground'
                               }`}>
                                 {idx + 1}

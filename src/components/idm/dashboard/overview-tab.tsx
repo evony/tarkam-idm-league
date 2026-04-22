@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 import {
-  Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp, Swords,
+  Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp, Swords, Clock,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +18,7 @@ import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { formatCurrency } from '@/lib/utils';
 import { PlayerComparison } from '../player-comparison';
+import { SeasonTimeline } from './season-timeline';
 import type { StatsData } from '@/types/stats';
 
 interface OverviewTabProps {
@@ -350,6 +351,8 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
               icon={Music}
               message="Belum ada hasil match"
               hint="Match yang sudah selesai akan muncul di sini"
+              pattern
+              cta={<span className={`empty-cta-hint text-[10px] ${dt.text} mt-1 inline-block`}>🎬 Daftar sekarang untuk mulai bertanding!</span>}
             />
           </SectionCard>
         </div>
@@ -383,6 +386,8 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
               icon={Gift}
               message="Belum ada donasi"
               hint="Donasi akan muncul di sini"
+              pattern
+              cta={<span className={`empty-cta-hint text-[10px] ${dt.text} mt-1 inline-block`}>💝 Dukung turnamen dengan saweran!</span>}
             />
             )}
           </div>
@@ -414,6 +419,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
             </div>
           </div>
         </SectionCard>
+      </div>
+
+      {/* Season Timeline */}
+      <div className="stagger-item-subtle stagger-d3">
+        <SeasonTimeline data={data} />
       </div>
 
       {/* Player Comparison Modal */}

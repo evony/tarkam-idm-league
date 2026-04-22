@@ -484,6 +484,30 @@
   animation: scroll-top-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ============================================
+   ACHIEVEMENT SHOWCASE — Landing page
+   ============================================ */
+
+/* Golden glow pulse on achievement cards */
+@keyframes achievement-card-glow-keyframes {
+  0%, 100% { box-shadow: 0 0 0px rgba(212, 168, 83, 0); }
+  50% { box-shadow: 0 0 16px rgba(212, 168, 83, 0.08), 0 0 32px rgba(212, 168, 83, 0.04); }
+}
+
+.achievement-card-glow {
+  animation: achievement-card-glow-keyframes 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Slow spin on achievement icon hover */
+.achievement-icon-spin {
+  transition: transform 0.3s ease;
+}
+
+.achievement-icon-spin:hover {
+  transform: rotate(15deg) scale(1.15);
+}
+
 /* Disable infinite animations for reduced-motion users */
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-slow,
@@ -510,9 +534,32 @@
   .hero-shimmer-sweep::after,
   .division-badge-glow-male,
   .division-badge-glow-female,
-  .activity-card-glass::after {
+  .activity-card-glass::after,
+  .rank-badge-gold,
+  .rank-badge-silver,
+  .rank-badge-bronze,
+  .table-row-glow:hover,
+  .table-row-glow-male:hover,
+  .table-row-glow-female:hover,
+  .row-entrance,
+  .empty-state-pattern::before,
+  .trend-up,
+  .trend-down,
+  .empty-cta-hint,
+  .sidebar-gradient-border::after,
+  .achievement-card-glow,
+  .achievement-icon-spin {
     animation: none;
     transform: none !important;
+  }
+  .table-row-glow:hover {
+    box-shadow: none;
+  }
+  .table-row-glow-male:hover {
+    box-shadow: none;
+  }
+  .table-row-glow-female:hover {
+    box-shadow: none;
   }
 }
 
@@ -4323,11 +4370,407 @@ html {
   .progress-breathe,
   .points-count-up,
   .activity-card-shimmer::before,
-  .activity-ripple-enter {
+  .activity-ripple-enter,
+  .timeline-milestone-pulse,
+  .timeline-progress-fill {
     animation: none;
     transform: none;
   }
   .empty-glow-ring { opacity: 0.3; }
   .hero-shine-sweep::after { display: none; }
   .activity-card-shimmer::before { display: none; }
+}
+
+/* ============================================
+   SEASON TIMELINE — Dashboard widget
+   Pulsing glow on current milestone + animated fill
+   ============================================ */
+
+/* Pulsing glow on the current milestone dot */
+@keyframes timeline-milestone-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(229, 190, 74, 0.3), 0 0 8px rgba(229, 190, 74, 0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(229, 190, 74, 0.5), 0 0 16px rgba(229, 190, 74, 0.25), 0 0 24px rgba(229, 190, 74, 0.1);
+    transform: scale(1.05);
+  }
+}
+
+.timeline-milestone-pulse {
+  animation: timeline-milestone-pulse 2s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Animated fill for timeline progress bar */
+@keyframes timeline-progress-fill {
+  from { width: 0; }
+}
+
+.timeline-progress-fill {
+  animation: timeline-progress-fill 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* ============================================
+   TASK 8-c: DASHBOARD VISUAL POLISH ENHANCEMENTS
+   Rank badges, table glow, empty state patterns, sidebar gradient border
+   ============================================ */
+
+/* ─── Rank Badge Shimmer Animations ─── */
+
+/* Gold shimmer for #1 rank — warm gold highlight sweep */
+@keyframes rank-badge-gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.rank-badge-gold {
+  background: linear-gradient(
+    90deg,
+    #e5be4a 0%,
+    #fde68a 25%,
+    #fef3c7 50%,
+    #fde68a 75%,
+    #e5be4a 100%
+  );
+  background-size: 200% 100%;
+  animation: rank-badge-gold-shimmer 2.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(229, 190, 74, 0.3), 0 0 20px rgba(229, 190, 74, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Silver shimmer for #2 rank — cool silver highlight sweep */
+@keyframes rank-badge-silver-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.rank-badge-silver {
+  background: linear-gradient(
+    90deg,
+    #9ca3af 0%,
+    #d1d5db 25%,
+    #f3f4f6 50%,
+    #d1d5db 75%,
+    #9ca3af 100%
+  );
+  background-size: 200% 100%;
+  animation: rank-badge-silver-shimmer 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(156, 163, 175, 0.25), 0 0 16px rgba(156, 163, 175, 0.08);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Bronze shimmer for #3 rank — warm bronze highlight sweep */
+@keyframes rank-badge-bronze-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.rank-badge-bronze {
+  background: linear-gradient(
+    90deg,
+    #b45309 0%,
+    #d97706 25%,
+    #fbbf24 50%,
+    #d97706 75%,
+    #b45309 100%
+  );
+  background-size: 200% 100%;
+  animation: rank-badge-bronze-shimmer 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(180, 83, 9, 0.25), 0 0 16px rgba(180, 83, 9, 0.08);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Table Row Hover Glow ─── */
+
+/* Subtle gold/cyan glow on table row hover — division-aware via JS class */
+.table-row-glow {
+  transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+.table-row-glow:hover {
+  box-shadow: 0 0 12px rgba(229, 190, 74, 0.08), inset 0 0 20px rgba(229, 190, 74, 0.03);
+}
+.table-row-glow-male:hover {
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.1), inset 0 0 20px rgba(34, 211, 238, 0.04);
+}
+.table-row-glow-female:hover {
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.1), inset 0 0 20px rgba(192, 132, 252, 0.04);
+}
+
+/* ─── Row Entrance Animation with Staggered Delay ─── */
+
+@keyframes row-entrance {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.row-entrance {
+  animation: row-entrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Empty State Pattern Background ─── */
+
+.empty-state-pattern {
+  position: relative;
+  overflow: hidden;
+}
+.empty-state-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background:
+    radial-gradient(circle at 20% 30%, currentColor 1px, transparent 1px),
+    radial-gradient(circle at 60% 70%, currentColor 1px, transparent 1px),
+    radial-gradient(circle at 80% 20%, currentColor 0.8px, transparent 0.8px),
+    radial-gradient(circle at 40% 80%, currentColor 0.8px, transparent 0.8px),
+    radial-gradient(circle at 10% 60%, currentColor 0.6px, transparent 0.6px),
+    radial-gradient(circle at 90% 50%, currentColor 0.6px, transparent 0.6px),
+    radial-gradient(circle at 50% 10%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 30% 50%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 70% 40%, currentColor 0.4px, transparent 0.4px),
+    radial-gradient(circle at 15% 85%, currentColor 0.4px, transparent 0.4px);
+  background-size: 60px 60px, 80px 80px, 50px 50px, 70px 70px, 90px 90px,
+    55px 55px, 65px 65px, 75px 75px, 85px 85px, 45px 45px;
+  animation: empty-pattern-drift 20s linear infinite;
+}
+
+@keyframes empty-pattern-drift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(60px, 60px); }
+}
+
+/* ─── Sidebar Gradient Border Effect ─── */
+
+.sidebar-gradient-border {
+  position: relative;
+}
+.sidebar-gradient-border::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--idm-gold),
+    var(--idm-amber),
+    var(--idm-gold),
+    transparent
+  );
+  opacity: 0.15;
+}
+
+/* ─── Avatar Ring Glow for Top 3 Players ─── */
+
+.avatar-ring-gold {
+  box-shadow: 0 0 0 2px rgba(229, 190, 74, 0.5), 0 0 8px rgba(229, 190, 74, 0.2);
+}
+.avatar-ring-silver {
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.4), 0 0 6px rgba(156, 163, 175, 0.15);
+}
+.avatar-ring-bronze {
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4), 0 0 6px rgba(180, 83, 9, 0.15);
+}
+
+/* ─── Trend Indicator Animations ─── */
+
+@keyframes trend-bounce-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+.trend-up {
+  animation: trend-bounce-up 1.5s ease-in-out infinite;
+}
+
+@keyframes trend-bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(1px); }
+}
+.trend-down {
+  animation: trend-bounce-down 1.5s ease-in-out infinite;
+}
+
+/* ─── Empty State CTA Hint Shimmer ─── */
+
+@keyframes empty-cta-shimmer {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+.empty-cta-hint {
+  animation: empty-cta-shimmer 2s ease-in-out infinite;
+}
+
+/* ============================================
+   SEASON TIMELINE — Dashboard
+   ============================================ */
+
+/* Timeline milestone pulse — animated glow on current milestone dot */
+@keyframes timeline-milestone-pulse-keyframes {
+  0%, 100% { box-shadow: 0 0 4px rgba(229, 190, 74, 0.3); }
+  50% { box-shadow: 0 0 12px rgba(229, 190, 74, 0.6), 0 0 24px rgba(229, 190, 74, 0.2); }
+}
+
+.timeline-milestone-pulse {
+  animation: timeline-milestone-pulse-keyframes 2s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Timeline progress fill — animated fill of progress bar */
+@keyframes timeline-progress-fill-keyframes {
+  from { width: 0; }
+}
+
+.timeline-progress-fill {
+  animation: timeline-progress-fill-keyframes 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================
+   RANK BADGES — Enhanced standings table
+   ============================================ */
+
+/* Gold shimmer for #1 rank */
+@keyframes rank-badge-gold-shimmer {
+  0%, 100% { background-position: -100% 0; }
+  50% { background-position: 200% 0; }
+}
+
+.rank-badge-gold {
+  background: linear-gradient(90deg, #e5be4a, #f5d77a, #e5be4a, #f5d77a);
+  background-size: 200% 100%;
+  animation: rank-badge-gold-shimmer 3s ease-in-out infinite;
+  color: #0c0a06;
+  text-shadow: none;
+}
+
+/* Silver shimmer for #2 rank */
+@keyframes rank-badge-silver-shimmer {
+  0%, 100% { background-position: -100% 0; }
+  50% { background-position: 200% 0; }
+}
+
+.rank-badge-silver {
+  background: linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af, #d1d5db);
+  background-size: 200% 100%;
+  animation: rank-badge-silver-shimmer 3s ease-in-out infinite;
+  color: #0c0a06;
+  text-shadow: none;
+}
+
+/* Bronze shimmer for #3 rank */
+@keyframes rank-badge-bronze-shimmer {
+  0%, 100% { background-position: -100% 0; }
+  50% { background-position: 200% 0; }
+}
+
+.rank-badge-bronze {
+  background: linear-gradient(90deg, #b45309, #d97706, #b45309, #d97706);
+  background-size: 200% 100%;
+  animation: rank-badge-bronze-shimmer 3s ease-in-out infinite;
+  color: #0c0a06;
+  text-shadow: none;
+}
+
+/* Table row glow on hover — generic gold */
+.table-row-glow {
+  transition: box-shadow 0.2s ease;
+}
+
+.table-row-glow:hover {
+  box-shadow: 0 0 12px rgba(229, 190, 74, 0.08), inset 0 0 8px rgba(229, 190, 74, 0.03);
+}
+
+/* Division-tinted table row glow */
+.table-row-glow-male:hover {
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.08), inset 0 0 8px rgba(34, 211, 238, 0.03);
+}
+
+.table-row-glow-female:hover {
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.08), inset 0 0 8px rgba(192, 132, 252, 0.03);
+}
+
+/* Row entrance animation for standings */
+@keyframes row-entrance-keyframes {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.row-entrance {
+  animation: row-entrance-keyframes 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================
+   EMPTY STATE ENHANCEMENTS
+   ============================================ */
+
+/* Subtle pattern for empty state backgrounds */
+.empty-state-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  background:
+    radial-gradient(circle at 20% 30%, var(--idm-gold) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, var(--idm-gold) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, var(--idm-gold) 1px, transparent 1px);
+  background-size: 40px 40px, 60px 60px, 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Trend indicators for standings */
+@keyframes trend-up-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.trend-up {
+  color: #22c55e;
+  animation: trend-up-bounce 2s ease-in-out infinite;
+}
+
+.trend-down {
+  color: #ef4444;
+}
+
+/* CTA hint text animation */
+@keyframes cta-hint-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.empty-cta-hint {
+  animation: cta-hint-pulse 2s ease-in-out infinite;
+}
+
+/* Sidebar gradient border */
+.sidebar-gradient-border {
+  position: relative;
+}
+
+.sidebar-gradient-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, var(--idm-gold-warm), transparent, var(--idm-gold-warm));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.3;
 }

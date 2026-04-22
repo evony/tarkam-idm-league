@@ -6,7 +6,7 @@ import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Swords, BookOpen, Trophy } from 'lucide-react';
+import { Crown, Users, Swords, BookOpen, Trophy, Award } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
 
@@ -16,6 +16,7 @@ import { StatsTicker } from './landing/stats-ticker';
 import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
+import { AchievementsSection } from './landing/achievements-section';
 import { ChampionsSection } from './landing/champions-section';
 import { MvpSection } from './landing/mvp-section';
 import { DreamSection } from './landing/dream-section';
@@ -169,7 +170,7 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'clubs', 'dream'];
+    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'clubs', 'achievements', 'dream'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -211,6 +212,7 @@ export function LandingPage() {
               { id: 'champions', label: 'Champion' },
               { id: 'mvp', label: 'MVP' },
               { id: 'clubs', label: 'Club' },
+              { id: 'achievements', label: 'Achievement' },
               { id: 'dream', label: 'Liga IDM' },
             ].map(item => (
               <button
@@ -266,6 +268,7 @@ export function LandingPage() {
             { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
             { id: 'champions', label: 'Champion', icon: Crown, special: true },
             { id: 'clubs', label: 'Club', icon: Users, special: false },
+            { id: 'achievements', label: 'Achieve', icon: Award, special: false },
             { id: 'dream', label: 'Liga IDM', icon: Trophy, special: false },
           ].map(item => {
             const isActive = (activeSection === 'champions' || activeSection === 'mvp') && item.id === 'champions' || activeSection === item.id;
@@ -396,6 +399,11 @@ export function LandingPage() {
         showAllPlayers={showAllPlayers}
         setShowAllPlayers={setShowAllPlayers}
       />
+
+      <div className="section-divider max-w-4xl mx-auto" />
+
+      {/* Achievements Showcase */}
+      <AchievementsSection />
 
       <div className="section-divider max-w-4xl mx-auto" />
 

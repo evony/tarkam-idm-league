@@ -12,6 +12,8 @@ interface AnimatedEmptyStateProps {
   hint: string;
   /** Optional CTA button */
   cta?: React.ReactNode;
+  /** Show subtle background pattern */
+  pattern?: boolean;
 }
 
 /**
@@ -19,11 +21,15 @@ interface AnimatedEmptyStateProps {
  * Features: floating/rotating icon, pulsing glow ring, sparkle decorations, gradient text.
  * CSS-only animations for performance. Respects prefers-reduced-motion.
  */
-export function AnimatedEmptyState({ icon: Icon, message, hint, cta }: AnimatedEmptyStateProps) {
+export function AnimatedEmptyState({ icon: Icon, message, hint, cta, pattern }: AnimatedEmptyStateProps) {
   const dt = useDivisionTheme();
 
   return (
     <div className={`relative p-8 rounded-xl ${dt.bgSubtle} ${dt.border} text-center overflow-hidden`}>
+      {/* Subtle background pattern */}
+      {pattern && (
+        <div className="empty-state-pattern absolute inset-0 pointer-events-none" aria-hidden="true" />
+      )}
       {/* Icon container with glow ring and sparkles */}
       <div className="relative inline-flex items-center justify-center mb-4">
         {/* Pulsing glow ring behind icon */}
