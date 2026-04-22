@@ -45,6 +45,7 @@ import { MyAccountCard } from '../my-account-card';
 import { ActivityFeed } from '../activity-feed';
 import { StatsTab } from './stats-tab';
 import { QuickStatsBar } from './quick-stats-bar';
+import { TopDonorsWidget } from './top-donors-widget';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -308,6 +309,11 @@ export function Dashboard() {
       {/* ========== ACTIVITY FEED — Live Platform Activity ========== */}
       <div className="stagger-item-subtle stagger-d2">
         <ActivityFeed />
+      </div>
+
+      {/* ========== TOP DONORS — Prize Pool Supporters ========== */}
+      <div className="stagger-item-subtle stagger-d3">
+        <TopDonorsWidget onDonate={() => setDonationOpen(true)} />
       </div>
 
       {/* ========== AKUN SAYA — My Account Card (when logged in) ========== */}

@@ -508,6 +508,161 @@
   transform: rotate(15deg) scale(1.15);
 }
 
+/* ============================================
+   TOP DONORS WIDGET — Dashboard
+   ============================================ */
+
+/* Donor row entrance animation — slides up and fades in with stagger */
+@keyframes donor-row-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.donor-row-enter {
+  animation: donor-row-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* Donor amount text — subtle count-up entrance */
+@keyframes donor-amount-count {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.donor-amount {
+  animation: donor-amount-count 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.2s;
+  contain: layout style;
+}
+
+/* Rank badge subtle pulse for gold rank */
+@keyframes donor-rank-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(250, 204, 21, 0.2); }
+  50% { box-shadow: 0 0 8px rgba(250, 204, 21, 0.4), 0 0 16px rgba(250, 204, 21, 0.1); }
+}
+
+.donor-rank-badge {
+  transition: transform 0.2s ease;
+}
+
+div.group:hover .donor-rank-badge {
+  transform: scale(1.1);
+}
+
+/* Glassmorphism card styling for donor widget */
+.glassmorphism-donor-card {
+  background: linear-gradient(
+    145deg,
+    rgba(22, 18, 10, 0.85) 0%,
+    rgba(14, 12, 7, 0.92) 50%,
+    rgba(20, 16, 8, 0.88) 100%
+  );
+  border: 1px solid rgba(229, 190, 74, 0.12);
+  box-shadow:
+    0 0 20px rgba(229, 190, 74, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Donor empty state — gentle float */
+@keyframes donor-empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.donor-empty-state .empty-icon-float {
+  animation: donor-empty-float 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ============================================
+   SEASON TIMELINE — Landing page
+   ============================================ */
+
+/* Timeline node entrance — fade up + scale */
+@keyframes timeline-node-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.timeline-node-entrance {
+  animation: timeline-node-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+/* Active season pulse glow ring — expands outward and fades */
+@keyframes timeline-pulse-glow {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+  }
+}
+
+.timeline-pulse-ring {
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.4);
+  animation: timeline-pulse-glow 2s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Active node glow — subtle box shadow pulse */
+@keyframes timeline-active-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.15), 0 0 16px rgba(34, 211, 238, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.3), 0 0 32px rgba(34, 211, 238, 0.1), 0 0 48px rgba(34, 211, 238, 0.05);
+  }
+}
+
+.timeline-active-node {
+  animation: timeline-active-glow 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Timeline line draw — width grows from left to right */
+@keyframes timeline-line-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.timeline-line-draw {
+  animation: timeline-line-draw 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.3s;
+}
+
 /* Disable infinite animations for reduced-motion users */
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-slow,
@@ -548,9 +703,33 @@
   .empty-cta-hint,
   .sidebar-gradient-border::after,
   .achievement-card-glow,
-  .achievement-icon-spin {
+  .achievement-icon-spin,
+  .timeline-node-entrance,
+  .timeline-pulse-ring,
+  .timeline-active-node,
+  .timeline-line-draw,
+  .section-divider-premium::before,
+  .section-divider-premium::after,
+  .club-card-shimmer:hover::after,
+  .compare-btn-glow,
+  .section-entrance,
+  .donor-row-enter,
+  .donor-amount,
+  .donor-rank-badge,
+  .donor-empty-state .empty-icon-float,
+  .leaderboard-row-entrance,
+  .leaderboard-rank-glow-gold,
+  .leaderboard-bar-fill,
+  .club-showmore-btn::before {
     animation: none;
     transform: none !important;
+  }
+  .section-divider-premium::after {
+    opacity: 1;
+    transform: rotate(45deg) !important;
+  }
+  .nav-logo-text-glow {
+    text-shadow: none;
   }
   .table-row-glow:hover {
     box-shadow: none;
@@ -1449,6 +1628,277 @@ html {
 
 .dark .section-divider {
   opacity: 0.7;
+}
+
+/* ============================================
+   4b. PREMIUM SECTION DIVIDER — Gold shimmer + diamond
+   ============================================ */
+
+@keyframes divider-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes divider-diamond-pulse {
+  0%, 100% { opacity: 0.6; transform: rotate(45deg) scale(0.8); }
+  50% { opacity: 1; transform: rotate(45deg) scale(1.1); }
+}
+
+.section-divider-premium {
+  position: relative;
+  height: 2px;
+  border: none;
+  margin: 2.5rem 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(229, 190, 74, 0.15) 15%,
+    rgba(229, 190, 74, 0.5) 40%,
+    rgba(245, 231, 200, 0.8) 50%,
+    rgba(229, 190, 74, 0.5) 60%,
+    rgba(229, 190, 74, 0.15) 85%,
+    transparent 100%
+  );
+  overflow: visible;
+}
+
+/* Shimmer overlay — travels along the line */
+.section-divider-premium::before {
+  content: '';
+  position: absolute;
+  inset: -1px 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(245, 215, 122, 0.5) 45%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(245, 215, 122, 0.5) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: divider-shimmer 4s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+/* Diamond center decoration */
+.section-divider-premium::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  margin-left: -4px;
+  background: linear-gradient(135deg, #e5be4a, #f5d77a);
+  border: 1px solid rgba(245, 231, 200, 0.6);
+  transform: rotate(45deg);
+  animation: divider-diamond-pulse 3s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(229, 190, 74, 0.4), 0 0 16px rgba(229, 190, 74, 0.15);
+  z-index: 1;
+}
+
+/* ============================================
+   4c. NAV SCROLLED GLOW — Premium nav effects
+   ============================================ */
+
+.nav-scrolled-glow {
+  border-bottom: 1px solid rgba(229, 190, 74, 0.25) !important;
+  box-shadow:
+    0 1px 0 0 rgba(229, 190, 74, 0.12),
+    0 2px 12px rgba(229, 190, 74, 0.06),
+    0 4px 30px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 0 rgba(229, 190, 74, 0.08) !important;
+}
+
+/* Logo gold glow when scrolled */
+.nav-logo-glow {
+  filter: drop-shadow(0 0 6px rgba(229, 190, 74, 0.35)) drop-shadow(0 0 14px rgba(229, 190, 74, 0.12));
+}
+
+/* Logo text gold shadow when scrolled */
+.nav-logo-text-glow {
+  text-shadow: 0 0 12px rgba(229, 190, 74, 0.25), 0 0 24px rgba(229, 190, 74, 0.08);
+}
+
+/* Active nav item — wider underline + subtle background */
+.nav-item-active {
+  background: rgba(229, 190, 74, 0.06);
+  border-radius: 6px;
+}
+
+/* ============================================
+   4d. CLUB CARD SHIMMER — Hover shimmer overlay
+   ============================================ */
+
+@keyframes club-shimmer-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.club-card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.club-card-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(229, 190, 74, 0.0) 30%,
+    rgba(229, 190, 74, 0.06) 45%,
+    rgba(245, 215, 122, 0.08) 50%,
+    rgba(229, 190, 74, 0.06) 55%,
+    rgba(229, 190, 74, 0.0) 70%,
+    transparent 100%
+  );
+  transform: skewX(-15deg);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.club-card-shimmer:hover::after {
+  animation: club-shimmer-sweep 0.8s ease-out forwards;
+}
+
+/* ============================================
+   4d-2. CLUB CARD WIN RATE BAR — Thin progress bar at bottom
+   ============================================ */
+
+.club-winrate-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.club-winrate-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #4ade80, #86efac);
+  border-radius: 0 0 12px 12px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+}
+
+.club-winrate-bar-fill.low {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+}
+
+.club-winrate-bar-fill.mid {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   4d-3. SHOW MORE BUTTON — Gold outline + hover fill
+   ============================================ */
+
+@keyframes showmore-fill-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.club-showmore-btn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(229, 190, 74, 0.35);
+  background: transparent;
+  color: rgba(229, 190, 74, 0.85);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.club-showmore-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(229, 190, 74, 0.15), rgba(229, 190, 74, 0.08));
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.club-showmore-btn:hover::before {
+  transform: translateX(0);
+}
+
+.club-showmore-btn:hover {
+  border-color: rgba(229, 190, 74, 0.6);
+  color: #f5e6c8;
+  box-shadow: 0 0 16px rgba(229, 190, 74, 0.1), 0 0 32px rgba(229, 190, 74, 0.05);
+}
+
+.club-showmore-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   4e. MATCH CARD HOVER — Dashboard match rows
+   ============================================ */
+
+.match-card-hover {
+  transition: all 0.2s ease;
+}
+
+.match-card-hover:hover {
+  background: rgba(229, 190, 74, 0.04);
+  border-color: rgba(229, 190, 74, 0.15);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(229, 190, 74, 0.05);
+}
+
+/* ============================================
+   4f. COMPARE BUTTON GLOW — Subtle pulse glow
+   ============================================ */
+
+@keyframes compare-btn-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(229, 190, 74, 0.0), 0 0 16px rgba(229, 190, 74, 0.0);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(229, 190, 74, 0.12), 0 0 24px rgba(229, 190, 74, 0.05);
+  }
+}
+
+.compare-btn-glow {
+  animation: compare-btn-glow 3s ease-in-out infinite;
+}
+
+.compare-btn-glow:hover {
+  box-shadow: 0 0 16px rgba(229, 190, 74, 0.2), 0 0 32px rgba(229, 190, 74, 0.08) !important;
+}
+
+/* ============================================
+   4g. SECTION ENTRANCE ANIMATION — Dashboard sections
+   ============================================ */
+
+@keyframes section-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-entrance {
+  animation: section-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .section-header-line {
@@ -4844,6 +5294,62 @@ html {
   );
   animation: spotlight-ring-rotate 4s linear infinite;
   z-index: -1;
+}
+
+/* ============================================
+   CLUB LEADERBOARD — Landing page
+   ============================================ */
+
+/* Row entrance animation — stagger from left */
+@keyframes leaderboard-row-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.leaderboard-row-entrance {
+  animation: leaderboard-row-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Top 3 rank glow animation — gold pulsing glow for rank #1 */
+@keyframes leaderboard-gold-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.5), 0 0 24px rgba(250, 204, 21, 0.15);
+  }
+}
+
+.leaderboard-rank-glow-gold {
+  animation: leaderboard-gold-glow 2.5s ease-in-out infinite;
+}
+
+/* Win rate bar fill animation */
+@keyframes leaderboard-bar-fill-keyframes {
+  from { width: 0; }
+}
+
+.leaderboard-bar-fill {
+  animation: leaderboard-bar-fill-keyframes 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Leaderboard reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-row-entrance {
+    animation: none;
+  }
+  .leaderboard-rank-glow-gold {
+    animation: none;
+  }
+  .leaderboard-bar-fill {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

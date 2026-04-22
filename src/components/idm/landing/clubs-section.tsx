@@ -166,7 +166,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   })),
                                 })}
                               >
-                                <div className={`relative rounded-xl bg-white/[0.06] border p-3 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
+                                <div className={`club-card-shimmer relative rounded-xl bg-white/[0.06] border p-3 pb-4 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
                                   isChampion ? 'border-idm-gold-warm/30 shadow-[0_0_20px_rgba(212,168,83,0.1)]' : 'border-white/[0.06]'
                                 }`}>
                                   {/* Champion badge */}
@@ -195,6 +195,20 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                     <span className="text-white/60">/</span>
                                     <span className="font-bold text-red-400">{club.losses}L</span>
                                   </div>
+                                  {/* Win Rate Progress Bar */}
+                                  {(() => {
+                                    const totalGames = club.wins + club.losses;
+                                    const winRate = totalGames > 0 ? (club.wins / totalGames) * 100 : 0;
+                                    const rateClass = winRate >= 60 ? '' : winRate >= 40 ? 'mid' : 'low';
+                                    return totalGames > 0 ? (
+                                      <div className="club-winrate-bar mt-2.5">
+                                        <div
+                                          className={`club-winrate-bar-fill progress-fill-animate ${rateClass}`}
+                                          style={{ width: `${winRate}%` }}
+                                        />
+                                      </div>
+                                    ) : null;
+                                  })()}
                                 </div>
                               </div>
                             );
@@ -206,19 +220,21 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                           <div className="flex justify-center mt-4">
                             <button
                               onClick={() => setShowAllClubs(!showAllClubs)}
-                              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-semibold border border-idm-gold-warm/20 hover:bg-idm-gold-warm/20 transition-all"
+                              className="club-showmore-btn flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-semibold"
                             >
-                              {showAllClubs ? (
-                                <>
-                                  <ChevronUp className="w-4 h-4" />
-                                  Tampilkan Lebih Sedikit
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDown className="w-4 h-4" />
-                                  Lihat Semua ({sortedClubs.length} Club)
-                                </>
-                              )}
+                              <span className="flex items-center gap-1.5">
+                                {showAllClubs ? (
+                                  <>
+                                    <ChevronUp className="w-4 h-4" />
+                                    Tampilkan Lebih Sedikit
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-4 h-4" />
+                                    Lihat Semua ({sortedClubs.length} Club)
+                                  </>
+                                )}
+                              </span>
                             </button>
                           </div>
                         )}

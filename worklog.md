@@ -508,3 +508,293 @@ Stage Summary:
 - Achievements section integrated into landing page between Clubs and Dream sections
 - Navigation updated on both desktop and mobile to include Achievement/Achieve link
 - All lint checks pass, dev server operational, API verified
+
+---
+Task ID: 11
+Agent: Feature Agent
+Task: Create a Season Timeline component for the landing page
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing files: landing-page.tsx, globals.css, prisma/schema.prisma, shared.tsx, animated-empty-state.tsx, club-logo-image.tsx, stats/route.ts, stats-ticker.tsx
+- Read /api/seasons/route.ts for existing seasons API pattern
+- Created API endpoint /src/app/api/seasons/timeline/route.ts:
+  - GET /api/seasons/timeline
+  - Fetches all seasons ordered by number ascending (chronological)
+  - Includes championClub relation (name + logo) for completed seasons
+  - Counts tournaments per season via _count
+  - Counts active players per division in parallel (efficient batch queries)
+  - Returns timeline array with: id, name, number, status, startDate, endDate, tournamentCount, playerCount, championClub
+  - CDN caching headers (s-maxage=10, stale-while-revalidate=30, max-age=0)
+  - Surrogate-Key: league-data for targeted purge
+  - Handles empty data gracefully (returns { seasons: [] })
+  - Error handling returns empty array instead of 500
+- Created /src/components/idm/landing/season-timeline.tsx:
+  - Visual horizontal timeline showing season progression
+  - Each season is a node with:
+    - Season number badge (gold for completed, cyan for active, gray for upcoming)
+    - Season name
+    - Status indicator (CheckCircle2 for completed, pulse dot for active, Clock for upcoming)
+    - Champion club name + logo for completed seasons (via ClubLogoImage component)
+    - Tournament count and player count
+  - Connected by gold gradient line (timeline-line-draw animation)
+  - Active season node pulses/glows (timeline-pulse-ring + timeline-active-node)
+  - Responsive: horizontal scroll on mobile (snap-x, custom-scrollbar), centered flex layout on desktop
+  - Uses @tanstack/react-query with 30s staleTime
+  - Uses SectionHeader with Calendar icon, title "Perjalanan Liga", subtitle "Jejak setiap season IDM League"
+  - Dark obsidian + gold theme (consistent with the rest of the app)
+  - Loading skeleton state (4 skeleton nodes with shimmer)
+  - Empty state with AnimatedEmptyState component
+  - Legend at bottom showing status color coding
+  - CSS-only animations (timeline-node-entrance, timeline-pulse-ring, timeline-active-node, timeline-line-draw)
+  - Staggered node entrance animation (120ms delay per node)
+- Integrated SeasonTimeline into landing-page.tsx:
+  - Added Calendar import from lucide-react
+  - Added SeasonTimeline import from './landing/season-timeline'
+  - Placed SeasonTimeline between StatsTicker and AboutSection
+  - Added section-divider between Timeline and About
+  - Added 'timeline' to sectionIds array in IntersectionObserver
+  - Added { id: 'timeline', label: 'Timeline' } to desktop nav items
+  - Added { id: 'timeline', label: 'Timeline', icon: Calendar } to mobile bottom nav items
+- Added CSS animations to /src/app/globals.css:
+  - timeline-node-enter: Fade up + scale entrance for timeline nodes (0.5s cubic-bezier)
+  - timeline-pulse-glow: Expanding/fading pulse ring for active season (2s infinite)
+  - timeline-active-glow: Pulsing box-shadow glow for active node (2.5s infinite)
+  - timeline-line-draw: Clip-path animation drawing connector lines from left to right (0.8s)
+  - All 4 animations added to prefers-reduced-motion block for accessibility
+- Ran `bun run lint` — passed with zero errors
+- Tested /api/seasons/timeline — returns 200 with 2 seasons (S1 Male completed with MAXIMOUS champion, S1 Female active)
+- Verified landing page loads (200) and dev server compiles successfully
+
+Stage Summary:
+- API endpoint created at /api/seasons/timeline returning chronological season data with champion club info
+- SeasonTimeline component created with horizontal timeline, status-coded nodes, champion display, and responsive layout
+- 4 CSS animations added (node entrance, pulse glow, active glow, line draw) — all respecting prefers-reduced-motion
+- SeasonTimeline integrated into landing page between StatsTicker and AboutSection
+- Navigation updated on both desktop and mobile to include Timeline link
+- All lint checks pass, dev server operational, API verified
+
+---
+Task ID: 13
+Agent: Feature Agent
+Task: Create Top Donors widget for the dashboard
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing /api/donations/top/route.ts — returns grouped donations (donorName, totalAmount, donationCount) but lacks latestDate and latestType needed for the widget
+- Read dashboard/index.tsx to understand integration point (ActivityFeed section, donationOpen state)
+- Read use-division-theme.ts for division-aware styling tokens (casinoCard, neonGradient, neonText, etc.)
+- Read activity-feed.tsx for widget patterns (useQuery with staleTime, Indonesian relative time, Card usage)
+- Read globals.css for existing CSS animation patterns and prefers-reduced-motion section
+- Created API endpoint /src/app/api/donations/top-donors/route.ts:
+  - GET /api/donations/top-donors
+  - Returns top 5 donors grouped by donorName (orderBy totalAmount desc) with latest donation details
+  - Each donor entry: donorName, totalAmount, donationCount, latestType (weekly/season), latestDate
+  - Also returns summary: totalAmount, totalDonors (unique), totalDonations
+  - Uses Prisma groupBy for top donors + parallel findFirst for each donor's latest type
+  - Aggregate query for overall totals
+  - Error handling returns empty arrays instead of 500
+- Created /src/components/idm/dashboard/top-donors-widget.tsx:
+  - Compact card widget showing top 5 donors
+  - Top 3 ranks with gold/silver/bronze badge (Trophy for #1, Medal for #2/#3, number for #4/#5)
+  - Donor name display (or "Anonymous" if empty)
+  - Amount formatted as Indonesian Rupiah via formatCurrency
+  - Date shown as relative time in Indonesian (Baru saja, X menit lalu, X jam lalu, X hari lalu)
+  - Donation type badge (Weekly/Season) with gold/amber styling
+  - Total donation summary at top (total amount + donor count)
+  - "Donasi Sekarang" CTA button opening donation modal via onDonate prop
+  - @tanstack/react-query with 30s staleTime
+  - Loading skeleton state (5 rows matching donor layout)
+  - Empty state with floating Heart icon, glow ring, encouraging message, and inline CTA button
+  - Compact height (max-h-64 with overflow scroll, custom-scrollbar)
+  - Glassmorphism card with gold accent top bar
+  - Uses useDivisionTheme() hook for neonGradient styling
+- Integrated TopDonorsWidget into /src/components/idm/dashboard/index.tsx:
+  - Added TopDonorsWidget import from './top-donors-widget'
+  - Placed after ActivityFeed section as standalone card with stagger-d3 delay
+  - Passes `() => setDonationOpen(true)` as onDonate handler
+- Added CSS animations to /src/app/globals.css:
+  - donor-row-enter: Slide-from-left entrance for donor rows (0.35s with stagger via inline animationDelay)
+  - donor-amount-count: Subtle count-up entrance for amount text (0.4s with 0.2s delay)
+  - donor-rank-badge: Hover scale effect for rank badges
+  - glassmorphism-donor-card: Custom glassmorphism card with gold-tinted gradient background and gold border
+  - donor-empty-float: Gentle float animation for empty state icon
+  - All new animation classes added to prefers-reduced-motion block
+- Ran `bun run lint` — passed with zero errors
+- Tested /api/donations/top-donors — returns 200 with { donors: [], summary: { totalAmount: 0, totalDonors: 0, totalDonations: 0 } }
+- Verified homepage loads (200) and dev server compiles successfully
+
+Stage Summary:
+- API endpoint created at /api/donations/top-donors returning top 5 donors with latest donation details and overall summary
+- TopDonorsWidget component created with gold/silver/bronze rank badges, Rupiah formatting, Indonesian relative time, Weekly/Season type badges, CTA button, loading/empty states
+- Widget integrated into dashboard after ActivityFeed section with donation modal handler
+- 5 CSS animations added (row entrance, amount count-up, rank badge hover, glassmorphism card, empty float) — all respecting prefers-reduced-motion
+- All lint checks pass, dev server operational, API verified
+
+---
+Task ID: 14
+Agent: Main Agent (Cron Round 4)
+Task: QA assessment, bug fixes, styling improvements, and new features
+
+Work Log:
+- Read worklog.md for full project context — feature-rich, stable project
+- Performed QA testing with agent-browser + VLM vision analysis:
+  - Landing page loads correctly with splash screen → hero → content sections
+  - Dashboard loads correctly with hero banner, stats, activity feed
+  - All navigation working (desktop nav, mobile bottom nav)
+  - Division switch working (Male/Female toggle)
+- Identified remaining issues: Cloudinary 404s (handled by fallback), no critical bugs
+- Launched 4 parallel subagents for improvements:
+  - Task 10: Styling improvements (section dividers, club cards, navigation glow)
+  - Task 11: Season Timeline feature (new landing page component)
+  - Task 12: Club Leaderboard feature (new landing page component)
+  - Task 13: Top Donors widget (new dashboard component)
+- All 4 subagents completed successfully
+- Verified all new API endpoints respond with 200:
+  - /api/seasons/timeline — returns 2 seasons with champion data
+  - /api/clubs/leaderboard — returns 15 ranked clubs
+  - /api/donations/top-donors — returns empty donors (no donations yet)
+- Final lint check: zero errors
+- Dev server compiling successfully with no errors
+
+Stage Summary:
+- 4 styling improvements: premium section dividers, club card shimmer + win rate bars, navigation glow, enhanced show more button
+- 3 new features: Season Timeline (landing page), Club Leaderboard (landing page), Top Donors Widget (dashboard)
+- 3 new API endpoints: /api/seasons/timeline, /api/clubs/leaderboard, /api/donations/top-donors
+- 13+ new CSS animations added (all respecting prefers-reduced-motion)
+- All changes are backward-compatible and lint-clean
+
+## Current Project Status
+
+### Assessment
+The project is **highly feature-rich and visually polished**. The IDM League tournament platform now has comprehensive functionality including tournament management, player registration, league system, admin panel, CMS, live activity feed, stats dashboard with charts, player comparison tool, achievements showcase, player spotlight, quick stats bar, season timeline, club leaderboard, and top donors widget.
+
+### Completed in This Round (Task ID 14)
+- QA testing with agent-browser + VLM vision analysis
+- 4 styling improvements: premium section dividers, club card enhancements, navigation glow, enhanced buttons
+- 3 new features: Season Timeline, Club Leaderboard, Top Donors Widget
+- 3 new API endpoints verified working
+- All lint checks pass, all APIs responding correctly
+
+### Unresolved Issues / Risks
+1. **Framer-motion scroll warning** persists (harmless, from useInView internal check)
+2. **Cloudinary 404s** for some club logos — fallback handles gracefully but underlying images still missing on Cloudinary
+3. **No completed matches or donations** in database — several sections show empty states
+4. **MVP section** shows "MVP Belum Dipilih" since no MVP data exists yet
+5. **Many sections are data-dependent** and will populate once actual tournament data is seeded
+
+### Priority Recommendations for Next Phase
+1. Seed more tournament data (matches, MVP awards, donations) to populate empty sections
+2. Add notification system for real-time tournament updates
+3. Add dark/light mode toggle
+4. Improve admin panel UX with batch operations
+5. Add social sharing features for player profiles
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing files: landing-page.tsx, globals.css, ClubLogoImage, SectionHeader, AnimatedEmptyState, achievements-section.tsx (for patterns), prisma/schema.prisma (Club, ClubMember models), /api/stats/route.ts (API patterns)
+- Created API endpoint /src/app/api/clubs/leaderboard/route.ts:
+  - GET /api/clubs/leaderboard?division=male
+  - Returns clubs ranked by points (descending), then wins (descending)
+  - Each club includes: id, name, logo, points, wins, losses, gameDiff, memberCount, rank, tier (S/A/B based on points thresholds: ≥100=S, ≥50=A, else B)
+  - Fallback logo resolution — same pattern as /api/stats (checks other seasons for club logo if missing)
+  - Same caching pattern: CDN s-maxage=10, stale-while-revalidate=30, max-age=0, Surrogate-Key: league-data
+  - Handles empty data gracefully (returns { clubs: [] })
+  - Error handling returns empty array instead of 500
+  - Uses season lookup pattern: find latest active/completed season with clubs
+- Created /src/components/idm/landing/club-leaderboard.tsx:
+  - Section with id="leaderboard" for nav linking
+  - SectionHeader with Trophy icon, title "Klasemen Club", subtitle "Peringkat club berdasarkan performa"
+  - Visual leaderboard table showing top clubs ranked by performance (esports-inspired design)
+  - Each row shows: Rank number (gold/silver/bronze styling for top 3), Club logo (ClubLogoImage), Club name + member count, W-L record, Game diff (+/-), Points + Tier badge, Win rate progress bar
+  - Top 3 clubs have special styling: #1 gold border + gradient bg + gold glow shadow, #2 silver border + gradient bg, #3 bronze border + gradient bg
+  - RankBadge component: #1 gold gradient with glow animation, #2 silver gradient, #3 bronze gradient, #4+ neutral
+  - TierBadge component: S=red, A=amber, B=green
+  - WinRateBar component: subtle progress bar with gradient fill
+  - Max 8 clubs shown initially, "Lihat Semua" button with club count if more exist
+  - Uses @tanstack/react-query with 30s staleTime
+  - Loading skeleton state (5 row skeletons)
+  - Empty state with AnimatedEmptyState (Trophy icon)
+  - Responsive: scrollable on mobile (min-width container with horizontal scroll), full table on desktop with column headers
+  - Dark obsidian + gold theme consistent with existing design
+  - CSS-only animations (no framer-motion): leaderboard-row-entrance, leaderboard-rank-glow-gold, leaderboard-bar-fill
+- Integrated into /src/components/idm/landing-page.tsx:
+  - Added ClubLeaderboard import from './landing/club-leaderboard'
+  - Placed between ClubsSection and AchievementsSection with section dividers
+  - Added 'leaderboard' to sectionIds array in IntersectionObserver
+- Added CSS animations to /src/app/globals.css:
+  - leaderboard-row-enter: Row entrance animation (stagger from left, 0.4s with cubic-bezier)
+  - leaderboard-gold-glow: Gold rank badge pulsing glow animation (2.5s infinite)
+  - leaderboard-bar-fill-keyframes: Win rate bar fill animation (0.8s cubic-bezier)
+  - All three classes added to main prefers-reduced-motion block
+- Ran `bun run lint` — passed with zero errors
+- Tested /api/clubs/leaderboard — returns 200 with 15 clubs for male division
+- Tested /api/clubs/leaderboard?division=female — returns 200 with clubs
+- Verified landing page loads (200) and dev server compiles successfully
+
+Stage Summary:
+- API endpoint created at /api/clubs/leaderboard returning clubs ranked by performance with tier calculation
+- ClubLeaderboard component created with esports-inspired table, gold/silver/bronze rank badges, win rate bars, responsive layout
+- Component integrated into landing page between Clubs and Achievements sections
+- 3 CSS animations added (row entrance, gold glow, bar fill) — all respecting prefers-reduced-motion
+- All lint checks pass, dev server operational, API verified
+
+---
+Task ID: 10
+Agent: Styling Agent
+Task: Improve styling with more visual details across landing page and dashboard
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing files: landing-page.tsx, clubs-section.tsx, globals.css
+- Verified existing CSS classes: section-divider-premium (with shimmer + diamond), nav-scrolled-glow, nav-logo-glow, club-card-shimmer — all already defined in globals.css but some not fully utilized in components
+- Enhanced Landing Page Section Dividers (landing-page.tsx):
+  - Created inline SectionDivider component using the premium section-divider-premium CSS class
+  - Added aria-hidden="true" for accessibility (decorative element)
+  - Replaced all 8 instances of `<div className="section-divider-premium max-w-4xl mx-auto" />` with `<SectionDivider />` for consistency
+  - Replaced the single remaining `<div className="section-divider max-w-4xl mx-auto" />` with `<SectionDivider />`
+- Enhanced Club Cards on Landing Page (clubs-section.tsx):
+  - Added `club-card-shimmer` class to club card container div for gold shimmer overlay on hover
+  - Added win rate progress bar at bottom of each club card:
+    - Thin 3px bar with rounded corners matching card border-radius
+    - Color-coded: green (≥60% win rate), amber (≥40%), red (<40%)
+    - Uses progress-fill-animate CSS class for entrance animation
+    - Only shown when club has at least 1 game played (wins + losses > 0)
+    - Subtle box-shadow glow matching bar color
+  - Changed card padding from p-3 to p-3 pb-4 to accommodate the progress bar
+  - Enhanced "Show More/Less" button:
+    - Applied new club-showmore-btn CSS class with gold outline + hover fill animation
+    - Background fill sweeps in from left on hover (::before pseudo-element with translateX transition)
+    - Border brightens and text color shifts to champagne on hover
+    - Subtle gold box-shadow glow appears on hover
+    - Button content wrapped in <span> with z-index:1 to stay above the fill effect
+- Enhanced Landing Navigation (landing-page.tsx):
+  - Applied nav-scrolled-glow class to nav element when scrolled (enhanced gold bottom border glow)
+  - Applied nav-logo-glow class to logo container when scrolled (drop-shadow filter)
+  - Applied nav-logo-text-glow class to site title text when scrolled (text-shadow effect)
+  - All three effects have smooth 500ms transition for polished appearance
+- Added CSS animations to globals.css:
+  - Enhanced nav-scrolled-glow: Improved gold border-bottom opacity (0.20→0.25), added intermediate 12px gold shadow layer, increased inset border opacity
+  - Enhanced nav-logo-glow: Stronger drop-shadow (6px→6px+14px, higher opacity)
+  - New nav-logo-text-glow: Gold text-shadow with 12px and 24px spread for subtle glow effect
+  - New club-winrate-bar: Absolute-positioned 3px bar at card bottom with overflow hidden
+  - New club-winrate-bar-fill: Green gradient fill with progress-fill-animate and subtle green glow
+  - New club-winrate-bar-fill.low: Red gradient for <40% win rate
+  - New club-winrate-bar-fill.mid: Amber gradient for 40-60% win rate
+  - New club-showmore-btn: Transparent background, gold outline, overflow hidden for fill effect
+  - New club-showmore-btn::before: Gold gradient background that translates in on hover
+  - New club-showmore-btn:hover: Brighter border, champagne text, gold box-shadow glow
+  - New club-showmore-btn > *: z-index:1 to keep content above fill effect
+- Updated prefers-reduced-motion section in globals.css:
+  - Added club-showmore-btn::before to animation disable list
+  - Added nav-logo-text-glow to remove text-shadow for reduced-motion users
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server running and compiling successfully (all APIs returning 200)
+
+Stage Summary:
+- SectionDivider component created and all 9 section dividers unified using it
+- Club cards enhanced with gold shimmer overlay on hover, color-coded win rate progress bar, and premium Show More button with hover fill animation
+- Navigation enhanced with gold bottom border glow, logo drop-shadow, and text-shadow effects when scrolled
+- 6 new CSS classes added (nav-logo-text-glow, club-winrate-bar, club-winrate-bar-fill variants, club-showmore-btn)
+- All new CSS animations respect prefers-reduced-motion
+- All lint checks pass, dev server operational

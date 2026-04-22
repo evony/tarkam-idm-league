@@ -6,7 +6,7 @@ import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Swords, BookOpen, Trophy, Award } from 'lucide-react';
+import { Crown, Users, Swords, BookOpen, Trophy, Award, Calendar } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
 
@@ -17,6 +17,8 @@ import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
 import { AchievementsSection } from './landing/achievements-section';
+import { ClubLeaderboard } from './landing/club-leaderboard';
+import { SeasonTimeline } from './landing/season-timeline';
 import { PlayerSpotlight } from './landing/player-spotlight';
 import { ChampionsSection } from './landing/champions-section';
 import { MvpSection } from './landing/mvp-section';
@@ -34,6 +36,11 @@ import { RegistrationModal } from './registration-modal';
 import { VideoModal } from './video-modal';
 import { BackToTop } from './ui/back-to-top';
 import { ScrollProgress } from './ui/scroll-progress';
+
+/* ═══ Premium Section Divider ═══ */
+function SectionDivider() {
+  return <div className="section-divider-premium max-w-4xl mx-auto" aria-hidden="true" />;
+}
 
 export function LandingPage() {
   const { setCurrentView, setDivision } = useAppStore();
@@ -171,7 +178,7 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'achievements', 'dream'];
+    const sectionIds = ['timeline', 'about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'leaderboard', 'achievements', 'dream'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -193,21 +200,22 @@ export function LandingPage() {
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+          ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] nav-scrolled-glow'
           : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-14 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg overflow-hidden glow-pulse shrink-0">
+            <div className={`w-7 h-7 rounded-lg overflow-hidden shrink-0 transition-all duration-500 ${scrolled ? 'nav-logo-glow glow-pulse' : 'glow-pulse'}`}>
               <Image src={cmsLogo} alt="IDM" width={28} height={28} className="w-full h-full object-cover" />
             </div>
-            <span className="text-gradient-fury text-sm font-bold tracking-tight">{cmsSiteTitle}</span>
+            <span className={`text-gradient-fury text-sm font-bold tracking-tight transition-all duration-500 ${scrolled ? 'nav-logo-text-glow' : ''}`}>{cmsSiteTitle}</span>
           </div>
 
           {/* Desktop Nav Links */}
           <div className="hidden sm:flex items-center gap-1">
             {[
+              { id: 'timeline', label: 'Timeline' },
               { id: 'about', label: 'Cerita Kami' },
               { id: 'kompetisi', label: 'Kompetisi' },
               { id: 'champions', label: 'Champion' },
@@ -265,6 +273,7 @@ export function LandingPage() {
       <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-idm-gold-warm/10 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {[
+            { id: 'timeline', label: 'Timeline', icon: Calendar, special: false },
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
             { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
             { id: 'champions', label: 'Champion', icon: Crown, special: true },
@@ -340,13 +349,18 @@ export function LandingPage() {
         leagueData={leagueData}
       />
 
+      {/* Season Timeline — Visual progression of all seasons */}
+      <SeasonTimeline />
+
+      <SectionDivider />
+
       {/* About / Cerita Kami */}
       <AboutSection
         cmsSections={cmsSections}
         cmsSettings={cms}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* Kompetisi */}
       <TournamentHub
@@ -358,7 +372,7 @@ export function LandingPage() {
         onVideoPlay={openVideoModal}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* Champions — shown first for achievement showcase */}
       <ChampionsSection
@@ -372,7 +386,7 @@ export function LandingPage() {
         onVideoPlay={openVideoModal}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* MVP */}
       <MvpSection
@@ -383,7 +397,7 @@ export function LandingPage() {
         setSelectedPlayer={setSelectedPlayer}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* Player Spotlight — Featured #1 players */}
       <PlayerSpotlight
@@ -393,7 +407,7 @@ export function LandingPage() {
         setSelectedPlayer={setSelectedPlayer}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* Clubs — moved below MVP */}
       <ClubsSection
@@ -411,12 +425,17 @@ export function LandingPage() {
         setShowAllPlayers={setShowAllPlayers}
       />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
+
+      {/* Club Leaderboard */}
+      <ClubLeaderboard />
+
+      <SectionDivider />
 
       {/* Achievements Showcase */}
       <AchievementsSection />
 
-      <div className="section-divider max-w-4xl mx-auto" />
+      <SectionDivider />
 
       {/* Dream / CTA */}
       <DreamSection
