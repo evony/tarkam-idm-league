@@ -34,7 +34,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* ═══ Weekly Tournament — Male Division ═══ */}
           <AnimatedSection variant="fadeLeft">
-            <div className="relative group rounded-2xl overflow-hidden border border-cyan-500/20 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
+            <div className="relative group rounded-2xl overflow-hidden border border-cyan-500/20 tournament-card-hover tournament-card-hover-male" style={{ background: 'linear-gradient(135deg, #060d10 0%, #0a1518 30%, #061012 60%, #0d0a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(6,182,212,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -56,7 +56,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(6,182,212,0.1)' }}>
-                    <Music className="w-7 h-7 text-cyan-400" />
+                    <Music className="w-7 h-7 text-cyan-400 tournament-icon-pulse" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -110,7 +110,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
 
           {/* ═══ Weekly Tournament — Female Division ═══ */}
           <AnimatedSection variant="fadeRight">
-            <div className="relative group rounded-2xl overflow-hidden border border-purple-500/20 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
+            <div className="relative group rounded-2xl overflow-hidden border border-purple-500/20 tournament-card-hover tournament-card-hover-female" style={{ background: 'linear-gradient(135deg, #0d060d 0%, #150a18 30%, #100612 60%, #140a14 100%)' }}>
               {/* Glow */}
               <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(168,85,247,0.08) 0%, transparent 50%)' }} />
               <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(168,85,247,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -132,7 +132,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5">
                   <div className="w-14 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0" style={{ boxShadow: '0 0 30px rgba(168,85,247,0.1)' }}>
-                    <Shield className="w-7 h-7 text-purple-400" />
+                    <Shield className="w-7 h-7 text-purple-400 tournament-icon-pulse" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -189,11 +189,11 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
         <AnimatedSection variant="fadeUp">
           <button
             onClick={() => document.getElementById('dream')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer"
+            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer liga-cta-shimmer"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-idm-gold-warm" />
+                <Trophy className="w-5 h-5 text-idm-gold-warm tournament-icon-pulse" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-bold text-idm-gold-warm">Liga IDM — Liga Profesional</p>

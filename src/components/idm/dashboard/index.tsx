@@ -49,6 +49,8 @@ import { TopDonorsWidget } from './top-donors-widget';
 import { DivisionRivalryWidget } from './division-rivalry-widget';
 import { LiveMatchCounter } from './live-match-counter';
 import { MatchDayCountdown } from './match-day-countdown';
+import { StreakWidget } from './streak-widget';
+import { MatchResultsSummary } from './match-results-summary';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -320,6 +322,16 @@ export function Dashboard() {
       {/* ========== DIVISION RIVALRY — Top 2 Head-to-Head ========== */}
       <div className="stagger-item-subtle stagger-d2">
         <DivisionRivalryWidget setSelectedPlayer={handleSelectPlayer} />
+      </div>
+
+      {/* ========== STREAK WIDGET — Longest Win Streak ========== */}
+      <div className="stagger-item-subtle stagger-d2">
+        <StreakWidget />
+      </div>
+
+      {/* ========== MATCH RESULTS SUMMARY — Recent Results ========== */}
+      <div className="stagger-item-subtle stagger-d3">
+        <MatchResultsSummary />
       </div>
 
       {/* ========== MATCH DAY COUNTDOWN ========== */}

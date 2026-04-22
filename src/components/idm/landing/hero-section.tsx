@@ -196,8 +196,8 @@ export function HeroSection({
               </motion.p>
             </motion.div>
 
-            {/* Main Title */}
-            <motion.div variants={fadeUp}>
+            {/* Main Title — with parallax offset */}
+            <motion.div variants={fadeUp} className="hero-title-parallax">
               <motion.h1
                 initial={{ opacity: 0, letterSpacing: '0.05em' }}
                 animate={{ opacity: 1, letterSpacing: '-0.02em' }}
@@ -206,6 +206,8 @@ export function HeroSection({
               >
                 {cmsHeroTitle}
               </motion.h1>
+              {/* Animated underline below title */}
+              <span className="hero-animated-underline" aria-hidden="true" />
               <motion.p
                 initial={{ opacity: 0, letterSpacing: '0.3em' }}
                 animate={{ opacity: 1, letterSpacing: '0.15em' }}

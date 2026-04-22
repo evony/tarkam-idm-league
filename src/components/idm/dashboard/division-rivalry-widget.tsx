@@ -92,7 +92,7 @@ function RivalPlayerCard({
       {/* Avatar with tier border */}
       <div className="relative">
         <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 group-hover:scale-105 ${
-          isLeading ? 'border-idm-gold-warm/50 shadow-[0_0_12px_rgba(229,190,74,0.2)]' : 'border-white/10'
+          isLeading ? 'border-idm-gold-warm/50 shadow-[0_0_12px_rgba(229,190,74,0.2)] rivalry-leading-glow' : 'border-white/10'
         }`}>
           <Image
             src={getAvatarUrl(player.gamertag, division, player.avatar)}
@@ -231,8 +231,12 @@ export function DivisionRivalryWidget({ setSelectedPlayer }: DivisionRivalryWidg
             onClick={() => setSelectedPlayer(player1)}
           />
 
-          {/* VS Badge — animated gradient */}
-          <div className="flex flex-col items-center gap-1 shrink-0">
+          {/* VS Badge — animated gradient with decorative ring */}
+          <div className="flex flex-col items-center gap-1 shrink-0 relative">
+            {/* Outer pulse ring */}
+            <div className="absolute inset-0 w-12 h-12 rounded-full rivalry-vs-pulse" aria-hidden="true" />
+            {/* Diagonal slash lines behind VS */}
+            <div className="rivalry-vs-slash w-14 h-14 absolute" aria-hidden="true" />
             <div className="rivalry-vs-badge w-12 h-12 rounded-full flex items-center justify-center relative">
               <span className="text-sm font-black text-idm-gold-warm relative z-10">VS</span>
             </div>

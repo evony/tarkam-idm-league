@@ -187,6 +187,25 @@ export function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
+  /* Section Reveal — IntersectionObserver for scroll-triggered fade-in animations */
+  useEffect(() => {
+    const revealSections = document.querySelectorAll('.section-reveal');
+    if (!revealSections.length) return;
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('section-reveal--visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+    revealSections.forEach((el) => revealObserver.observe(el));
+    return () => revealObserver.disconnect();
+  }, [maleData, femaleData, leagueData, cmsData]);
+
   useSwipeNavigation();
 
   const scrollToSection = (id: string) => {
@@ -253,7 +272,7 @@ export function LandingPage() {
               whileTap={{ scale: 0.95 }}
               onClick={() => enterApp('male')}
               aria-label="Enter Male Division"
-              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md"
+              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-male hover:text-white hover:shadow-md division-toggle-shimmer"
             >
               🕺 Male
             </motion.button>
@@ -261,7 +280,7 @@ export function LandingPage() {
               whileTap={{ scale: 0.95 }}
               onClick={() => enterApp('female')}
               aria-label="Enter Female Division"
-              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md"
+              className="px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 text-muted-foreground hover:bg-idm-female hover:text-white hover:shadow-md division-toggle-shimmer"
             >
               💃 Female
             </motion.button>
@@ -343,26 +362,33 @@ export function LandingPage() {
       />
 
       {/* Stats Ticker — Animated scrolling platform stats */}
+      <div className="section-reveal">
       <StatsTicker
         maleData={maleData}
         femaleData={femaleData}
         leagueData={leagueData}
       />
+      </div>
 
       {/* Season Timeline — Visual progression of all seasons */}
+      <div className="section-reveal">
       <SeasonTimeline />
+      </div>
 
       <SectionDivider />
 
       {/* About / Cerita Kami */}
+      <div className="section-reveal">
       <AboutSection
         cmsSections={cmsSections}
         cmsSettings={cms}
       />
+      </div>
 
       <SectionDivider />
 
       {/* Kompetisi */}
+      <div className="section-reveal">
       <TournamentHub
         maleData={maleData}
         femaleData={femaleData}
@@ -371,10 +397,12 @@ export function LandingPage() {
         onEnterApp={enterApp}
         onVideoPlay={openVideoModal}
       />
+      </div>
 
       <SectionDivider />
 
       {/* Champions — shown first for achievement showcase */}
+      <div className="section-reveal">
       <ChampionsSection
         maleData={maleData}
         femaleData={femaleData}
@@ -385,10 +413,12 @@ export function LandingPage() {
         championVideoUrl={cms.champion_video_url}
         onVideoPlay={openVideoModal}
       />
+      </div>
 
       <SectionDivider />
 
       {/* MVP */}
+      <div className="section-reveal">
       <MvpSection
         maleData={maleData}
         femaleData={femaleData}
@@ -396,20 +426,24 @@ export function LandingPage() {
         cmsSections={cmsSections}
         setSelectedPlayer={setSelectedPlayer}
       />
+      </div>
 
       <SectionDivider />
 
       {/* Player Spotlight — Featured #1 players */}
+      <div className="section-reveal">
       <PlayerSpotlight
         maleData={maleData}
         femaleData={femaleData}
         isDataLoading={isDataLoading}
         setSelectedPlayer={setSelectedPlayer}
       />
+      </div>
 
       <SectionDivider />
 
       {/* Clubs — moved below MVP */}
+      <div className="section-reveal">
       <ClubsSection
         maleData={maleData}
         femaleData={femaleData}
@@ -424,20 +458,26 @@ export function LandingPage() {
         showAllPlayers={showAllPlayers}
         setShowAllPlayers={setShowAllPlayers}
       />
+      </div>
 
       <SectionDivider />
 
       {/* Club Leaderboard */}
+      <div className="section-reveal">
       <ClubLeaderboard />
+      </div>
 
       <SectionDivider />
 
       {/* Achievements Showcase */}
+      <div className="section-reveal">
       <AchievementsSection />
+      </div>
 
       <SectionDivider />
 
       {/* Dream / CTA */}
+      <div className="section-reveal">
       <DreamSection
         maleData={maleData}
         femaleData={femaleData}
@@ -450,6 +490,7 @@ export function LandingPage() {
         openDonationModal={openDonationModal}
         onVideoPlay={openVideoModal}
       />
+      </div>
 
       <LandingFooter
         cmsFooterText={cmsFooterText}
