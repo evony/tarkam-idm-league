@@ -112,17 +112,17 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                       return (
                         <TableRow
                           key={p.id}
-                          className={`row-entrance table-row-glow ${division === 'male' ? 'table-row-glow-male' : 'table-row-glow-female'} cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
+                          className={`standings-row-enter standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} ${division === 'male' ? 'standings-row-glow-male' : 'standings-row-glow-female'} cursor-pointer transition-all duration-200 border-b ${dt.borderSubtle} ${
                             idx < 3 ? `${dt.bgSubtle}` : ''
                           } ${isMe ? 'bg-idm-gold/5' : ''}`}
-                          style={{ animationDelay: `${idx * 40}ms` }}
+                          style={{ animationDelay: `${idx * 50}ms` }}
                           onClick={() => setSelectedPlayer(p)}
                         >
                           <TableCell className="text-center">
                             <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                              idx === 0 ? 'rank-badge-gold text-black' :
-                              idx === 1 ? 'rank-badge-silver text-black' :
-                              idx === 2 ? 'rank-badge-bronze text-black' :
+                              idx === 0 ? 'rank-badge-gold-enhanced text-black' :
+                              idx === 1 ? 'rank-badge-silver-enhanced text-black' :
+                              idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
                               'text-muted-foreground'
                             }`}>
                               {idx + 1}
@@ -148,7 +148,7 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center"><TierBadge tier={p.tier} /></TableCell>
+                          <TableCell className="text-center"><span className={`tier-badge-glow ${p.tier === 'S' ? 'tier-badge-glow-s' : p.tier === 'A' ? 'tier-badge-glow-a' : p.tier === 'B' ? 'tier-badge-glow-b' : ''} rounded`}><TierBadge tier={p.tier} /></span></TableCell>
                           <TableCell className="text-right">
                               <span className={`font-bold text-xs ${idx < 3 ? dt.neonText : ''}`}>{p.points}</span>
                               {trendUp && <span className="trend-up text-green-400 text-[9px] ml-0.5">↑</span>}
@@ -231,17 +231,17 @@ export function StandingsTab({ data, setSelectedPlayer, setSelectedClub }: Stand
                         {displayedClubs?.map((club, idx) => (
                           <TableRow
                             key={club.id}
-                            className={`row-entrance table-row-glow ${division === 'male' ? 'table-row-glow-male' : 'table-row-glow-female'} cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
+                            className={`standings-row-enter standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} ${division === 'male' ? 'standings-row-glow-male' : 'standings-row-glow-female'} cursor-pointer transition-all duration-200 border-b ${dt.borderSubtle} ${
                               idx < 4 ? `${dt.bgSubtle}` : ''
                             }`}
-                            style={{ animationDelay: `${idx * 40}ms` }}
+                            style={{ animationDelay: `${idx * 50}ms` }}
                             onClick={() => setSelectedClub(club)}
                           >
                             <TableCell className="text-center">
                               <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                idx === 0 ? 'rank-badge-gold text-black' :
-                                idx === 1 ? 'rank-badge-silver text-black' :
-                                idx === 2 ? 'rank-badge-bronze text-black' :
+                                idx === 0 ? 'rank-badge-gold-enhanced text-black' :
+                                idx === 1 ? 'rank-badge-silver-enhanced text-black' :
+                                idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
                                 'text-muted-foreground'
                               }`}>
                                 {idx + 1}

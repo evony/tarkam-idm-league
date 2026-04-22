@@ -46,6 +46,8 @@ import { ActivityFeed } from '../activity-feed';
 import { StatsTab } from './stats-tab';
 import { QuickStatsBar } from './quick-stats-bar';
 import { TopDonorsWidget } from './top-donors-widget';
+import { DivisionRivalry } from './division-rivalry';
+import { MatchDayCountdown } from './match-day-countdown';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -311,8 +313,18 @@ export function Dashboard() {
         <ActivityFeed />
       </div>
 
-      {/* ========== TOP DONORS — Prize Pool Supporters ========== */}
+      {/* ========== DIVISION RIVALRY — Top 2 Head-to-Head ========== */}
+      <div className="stagger-item-subtle stagger-d2">
+        <DivisionRivalry setSelectedPlayer={handleSelectPlayer} />
+      </div>
+
+      {/* ========== MATCH DAY COUNTDOWN ========== */}
       <div className="stagger-item-subtle stagger-d3">
+        <MatchDayCountdown division={division} />
+      </div>
+
+      {/* ========== TOP DONORS — Prize Pool Supporters ========== */}
+      <div className="stagger-item-subtle stagger-d4">
         <TopDonorsWidget onDonate={() => setDonationOpen(true)} />
       </div>
 

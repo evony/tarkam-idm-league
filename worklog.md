@@ -798,3 +798,73 @@ Stage Summary:
 - 6 new CSS classes added (nav-logo-text-glow, club-winrate-bar, club-winrate-bar-fill variants, club-showmore-btn)
 - All new CSS animations respect prefers-reduced-motion
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent (Cron Round 5)
+Task: Fix HMR error, add new features, improve styling
+
+Work Log:
+- Fixed runtime HMR error: stats-ticker.tsx module factory unavailable due to stale .next cache
+  - Killed old dev server, cleared .next directory, restarted fresh
+  - Verified all APIs returning 200 (stats, activity, division-rivalry)
+- Created Division Rivalry widget (`/src/components/idm/dashboard/division-rivalry.tsx`):
+  - Head-to-head comparison of top 2 players in each division
+  - Side-by-side avatars with VS badge (animated glow)
+  - Stat comparison bars (Points, Wins, MVP, Streak) with gold highlight for leader
+  - Point gap indicator showing who's leading and by how much
+  - Click to open player profile
+  - Loading skeleton and empty states
+- Created Match Day Countdown widget (`/src/components/idm/dashboard/match-day-countdown.tsx`):
+  - Live countdown to next Saturday 19:00 WITA match day
+  - TimeUnit component with gold digit boxes (days, hours, minutes, seconds)
+  - LIVE indicator with pulsing red dot for active tournaments
+  - Match schedule info and upcoming match count
+  - Auto-updates every second
+- Created API endpoint `/api/division-rivalry/route.ts`:
+  - Returns top 2 players per division with head-to-head stats
+  - Includes club membership via clubMembers relation
+  - Point difference calculation for rivalry intensity
+  - Total player count per division for context
+  - CDN caching headers (s-maxage=10, stale-while-revalidate=30)
+- Integrated DivisionRivalry and MatchDayCountdown into dashboard (index.tsx)
+- Added CSS animations for rivalry and countdown widgets:
+  - countdown-digit-pulse: Subtle gold glow pulse on countdown digits
+  - countdown-card-enter: Fade-up entrance for countdown card
+  - rivalry-card::before: Animated gold border on hover
+  - All animations respect prefers-reduced-motion
+- Ran `bun run lint` — passed with zero errors
+- All APIs verified: /api/stats, /api/activity, /api/division-rivalry returning 200
+
+Stage Summary:
+- HMR error fixed by clearing .next cache and restarting dev server
+- New Division Rivalry widget — head-to-head comparison of top 2 players per division
+- New Match Day Countdown widget — live countdown to next match day with second-by-second updates
+- New /api/division-rivalry API endpoint with proper Prisma schema usage
+- 3 new CSS animations added (digit pulse, card entrance, rivalry hover border)
+- All lint checks pass, dev server operational, all APIs verified
+
+## Current Project Status
+
+### Assessment
+The project is **feature-rich and stable** with extensive tournament platform functionality. Multiple rounds of styling improvements and feature additions have been completed. The dual-environment setup (SQLite local / PostgreSQL production) continues to work correctly.
+
+### Completed in This Round (Task ID 15)
+- Fixed HMR runtime error by clearing stale .next cache
+- New Division Rivalry widget showing head-to-head comparison of top 2 players
+- New Match Day Countdown widget with live second-by-second countdown
+- New /api/division-rivalry API endpoint
+- 3 CSS animations for new components
+
+### Unresolved Issues / Risks
+1. **Framer-motion scroll warning** persists (harmless, from useInView internal check)
+2. **No completed matches** in database — some dashboard sections show empty states
+3. **Some Cloudinary images** may still 404 — fallback handles gracefully
+4. **MVP section** on landing page shows placeholder since no MVP data exists
+
+### Priority Recommendations for Next Phase
+1. Seed tournament match data to populate empty sections (Hasil Terbaru, etc.)
+2. Add notification/toast system for real-time updates
+3. Enhance mobile navigation with swipe gestures
+4. Add social sharing features for player profiles
+5. Implement dark/light mode toggle
