@@ -868,3 +868,218 @@ The project is **feature-rich and stable** with extensive tournament platform fu
 3. Enhance mobile navigation with swipe gestures
 4. Add social sharing features for player profiles
 5. Implement dark/light mode toggle
+
+---
+Task ID: 15-b
+Agent: Feature Enhancement Agent
+Task: Add new features (Division Rivalry, Live Match Counter, Social Share, Club Leaderboard Enhancement)
+
+Work Log:
+- Read worklog.md for full project context and all existing component patterns
+- Read existing files: dashboard/index.tsx, division-rivalry.tsx, player-profile.tsx, club-leaderboard.tsx, use-division-theme.ts, globals.css, prisma/schema.prisma
+- Verified /api/division-rivalry API route already exists and works (returns top 2 players per division)
+- Created /src/components/idm/dashboard/division-rivalry-widget.tsx:
+  - Enhanced version of existing DivisionRivalry with additional features
+  - Side-by-side player cards with avatar, gamertag, tier badge, points badge
+  - VS badge with animated gradient (rivalry-vs-gradient CSS animation)
+  - Point difference indicator with leading player highlight
+  - "Total Pemain Divisi" stat showing total players per division
+  - Responsive layout: stacked on mobile (flex-col), side-by-side on desktop (sm:flex-row)
+  - Uses useDivisionTheme() for styling
+  - Uses @tanstack/react-query with 30s staleTime
+  - Glassmorphism card styling with casino bar accent
+  - Stat comparison bars for Points, Wins, MVP, Streak
+  - Loading skeleton and empty states
+- Updated dashboard/index.tsx to use DivisionRivalryWidget instead of DivisionRivalry
+- Added CSS: rivalry-vs-badge with animated gradient background + glow (keyframes: rivalry-vs-gradient)
+- Added rivalry-vs-badge to prefers-reduced-motion section
+- Created /src/app/api/matches/live-count/route.ts:
+  - Returns { activeTournaments, completedMatches, upcomingMatches, liveNow }
+  - Counts active tournaments (non-completed statuses)
+  - Counts completed matches from Match model
+  - Counts upcoming matches (pending/ready status)
+  - Checks for live matches across Match and LeagueMatch models
+  - CDN caching headers (s-maxage=10, stale-while-revalidate=30)
+  - Graceful error handling returns zeros
+- Created /src/components/idm/dashboard/live-match-counter.tsx:
+  - Compact horizontal card with 3 stats: Turnamen Aktif, Match Selesai, Akan Datang
+  - "LIVE" indicator with pulsing red dot when matches are active
+  - "OFFLINE" indicator when no live matches
+  - AnimatedNumber component with stepped count-up animation
+  - Uses @tanstack/react-query with 15s staleTime and 15s refetchInterval
+  - Glassmorphism card styling with casino bar accent
+  - Loading skeleton state
+  - Division-aware styling via useDivisionTheme()
+- Integrated LiveMatchCounter into dashboard/index.tsx (after QuickStatsBar)
+- Added CSS: live-counter-stat with fade-up entry animation (keyframes: live-counter-stat-enter)
+- Added live-counter-stat to prefers-reduced-motion section
+- Created /src/components/idm/social-share-button.tsx:
+  - Share button for player profiles
+  - Uses Web Share API when available (mobile), falls back to clipboard copy
+  - Copies player stats URL (?player=ID) to clipboard
+  - Shows toast "Link profil disalin!" on successful copy via sonner
+  - Shows toast "Gagal menyalin link" on failure
+  - Small button with Share2 icon from lucide-react
+  - Subtle hover animation (text-idm-gold-warm + bg-idm-gold-warm/10)
+  - Check icon with green background on successful copy
+  - Accessible with proper aria-label
+- Integrated SocialShareButton into player-profile.tsx:
+  - Added import for SocialShareButton
+  - Added share button next to player gamertag name in the hero banner section
+- Enhanced /src/components/idm/landing/club-leaderboard.tsx:
+  - Added Top3Podium component: visual podium display for top 3 clubs
+    - Shows club logo, name, points, tier badge in a card
+    - Podium columns with different heights (2nd=h24, 1st=h32, 3rd=h20)
+    - Hover animation (scale + translateY) on podium cards
+    - Desktop only (hidden on mobile)
+  - Enhanced RankBadge with Crown icon for #1, Medal icon for #2/#3
+  - Added StrengthBar component: animated progress bar showing relative club strength (% of #1's points)
+  - Added WinRateMini component: compact win rate progress bar
+  - Enhanced LeaderboardRow with:
+    - hover:scale-[1.01] and enhanced hover shadows for top 3
+    - LeaderboardRowEnhanced entrance animation (slide from left)
+    - TrendingUp icon for #1 ranked club
+    - W/L record shown inline with club info
+  - Updated "Lihat Semua" button to "Lihat Semua Club" with ChevronRight icon
+  - Added hover:scale-[1.02] + active:scale-[0.98] on "Lihat Semua Club" button
+  - Added "Tampilkan Lebih Sedikit" collapse button
+  - Responsive design maintained (mobile horizontal scroll, desktop full table)
+- Added CSS: leaderboard-row-enhanced with slide-from-left entrance animation
+- Added CSS: leaderboard-podium-card with hover transform effects
+- Added leaderboard enhanced animations to prefers-reduced-motion section
+- Ran `bun run lint` — passed with zero errors
+- Tested all API endpoints:
+  - /api/division-rivalry — returns 200 with male/female rivalry data
+  - /api/matches/live-count — returns 200 with match count data
+  - /api/clubs/leaderboard — returns 200 with club leaderboard data
+- Verified homepage loads (200) and dev server compiles successfully
+
+Stage Summary:
+- Division Rivalry Widget created at division-rivalry-widget.tsx with animated VS badge, Total Players stat, responsive layout
+- Live Match Counter API created at /api/matches/live-count returning activeTournaments, completedMatches, upcomingMatches, liveNow
+- Live Match Counter component created with LIVE indicator, animated numbers, 15s polling
+- Social Share Button created at social-share-button.tsx with Web Share API + clipboard fallback
+- Social Share Button integrated into player profile next to player name
+- Club Leaderboard enhanced with Top3Podium, StrengthBar, WinRateMini, enhanced hover effects, "Lihat Semua Club" button
+- 6 CSS animations added (rivalry-vs-gradient, live-counter-stat-enter, leaderboard-row-enhanced-enter, leaderboard-podium-float, plus existing leaderboard animations)
+- All animations respect prefers-reduced-motion
+- All lint checks pass, dev server operational, all APIs verified
+
+---
+Task ID: 15-a
+Agent: Styling Enhancement Agent
+Task: Enhance landing page styling with more visual details
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform)
+- Read all relevant component files: hero-section.tsx, stats-ticker.tsx, champions-section.tsx, mvp-section.tsx, clubs-section.tsx, shared.tsx, globals.css
+- Enhanced Hero Section (hero-section.tsx):
+  - Added animated gradient mesh background (hero-landing-mesh) with gold/cyan/purple radial gradients drifting slowly
+  - Added vignette effect (hero-vignette) at edges for cinematic depth
+  - Replaced generic particle classes with hero-particle-gold and hero-particle-cyan for richer color
+  - Added glowing border animation (hero-btn-glow) behind the "DAFTAR SEKARANG" CTA button
+- Enhanced Stats Ticker (stats-ticker.tsx):
+  - Added count-up animation with custom useCountUp hook (ease-out cubic, staggered delays per card)
+  - Added TickerCard component with hover scale-105 and gold glow shadow effect
+  - Replaced static border lines with animated stats-ticker-glow-line (shimmer gold gradient)
+  - Added numericValue field to TickerItem for count-up support
+- Enhanced Champions Section (champions-section.tsx):
+  - Added floating crown animation at top center (champions-crown-float with bob + rotation)
+  - Added champion-name-shine shimmer effect on champion name text
+  - Added champion-member-card hover glow with division-colored shadows (cyan for male, purple for female)
+- Enhanced MVP Section (mvp-section.tsx):
+  - Added pulsing glow ring (mvp-glow-ring) around empty state placeholders (male=cyan, female=purple)
+  - Added animated gradient MVP text (mvp-text-animated) on badge — gold gradient shifts
+  - Enhanced stats panel with mvp-stats-enhanced class (subtle gold-tinted background + border)
+- Enhanced Clubs Section (clubs-section.tsx):
+  - Added club-card-hover class with hover:scale and gold glow border effects
+  - Added hover:border-idm-gold-warm/20 for non-champion cards
+- Added all CSS animations to globals.css:
+  - hero-landing-mesh-drift: Animated mesh gradient with 4 radial gradients (15s drift)
+  - hero-vignette: Radial gradient darkening at edges
+  - hero-particle-float: Gold/cyan particle rise animation with opacity
+  - hero-particle-gold/cyan: Colored particle backgrounds with glow shadows
+  - hero-btn-glow-pulse: Pulsing gold glow around CTA button
+  - ticker-glow-shift: Animated gold shimmer along top/bottom ticker borders
+  - champions-crown-bob: Floating crown with bob + rotation (4s)
+  - champion-name-shimmer: Text shimmer effect on champion name
+  - mvp-ring-pulse / mvp-ring-pulse-female: Pulsing glow rings for MVP placeholders
+  - mvp-text-gradient: Animated gradient text for "MVP" badge
+  - mvp-stats-enhanced: Subtle gold-tinted panel for stats
+  - club-card-hover: Gold glow on hover
+  - All new classes added to prefers-reduced-motion block
+  - Used contain: layout style for GPU optimization on animated elements
+- Fixed lint issues: Removed unused useRef import from stats-ticker.tsx
+- Ran bun run lint — passed with zero errors
+- Dev server compiling and serving (200 OK)
+
+Stage Summary:
+- Hero section enhanced with animated gradient mesh, vignette effect, gold/cyan floating particles, and glowing CTA button
+- Stats ticker enhanced with count-up animation, hover scale/glow cards, and animated gold border lines
+- Champions section enhanced with floating crown animation, name shimmer effect, and member card hover glow
+- MVP section enhanced with pulsing glow rings, animated gradient "MVP" text, and enhanced stats panel
+- Clubs section enhanced with card hover effects (scale + gold glow + border change)
+- 15+ new CSS animations added to globals.css, all respecting prefers-reduced-motion
+- All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent (Cron Round 5)
+Task: QA assessment, fix HMR error, styling improvements, and new features
+
+Work Log:
+- Read worklog.md for full project context — feature-rich, stable project with many previous rounds of improvements
+- Fixed HMR runtime error: stats-ticker.tsx module factory not available
+  - Root cause: Stale Turbopack cache from previous development sessions
+  - Solution: Killed dev server, deleted .next cache directory, restarted dev server
+  - Also fixed stale Prisma query cache: division-rivalry API was using old seasonId filter that doesn't exist on Player model
+- Performed QA testing with agent-browser + VLM vision analysis:
+  - Landing page: Splash → hero → all sections visible (Timeline, Cerita Kami, Kompetisi, Champions, MVP, Spotlight, Clubs, Leaderboard, Achievements, Dream, Footer)
+  - Dashboard: Hero banner, QuickStatsBar, LiveMatchCounter, Countdown, ActivityFeed, DivisionRivalry, TopDonors — all working
+  - No browser errors detected
+  - Only known issue: framer-motion scroll position warning (harmless)
+- Delegated styling enhancements (Task 15-a):
+  - Hero section: Added animated gradient mesh background, vignette effect, gold/cyan floating particles, glowing CTA button
+  - Stats Ticker: Added count-up animation with useCountUp hook, hover scale+glow effects, animated gold border lines
+  - Champions Section: Added floating crown animation, champion name shimmer, member card hover glow
+  - MVP Section: Added pulsing glow rings, animated gradient "MVP" text, enhanced stats panel
+  - Clubs Section: Added card hover effects (scale + gold glow border + shimmer)
+  - CSS: 15+ new animations added, all respecting prefers-reduced-motion
+- Delegated new features (Task 15-b):
+  - Division Rivalry Widget: Side-by-side head-to-head comparison of top 2 players per division with VS badge, point diff indicator
+  - Live Match Counter Widget: LIVE/OFFLINE indicator, animated number count-up, 3 stat cards (active tournaments, completed, upcoming)
+  - Social Share Button: Web Share API (mobile) + clipboard fallback (desktop), toast notification, integrated into player-profile.tsx
+  - Club Leaderboard Enhancement: Top3Podium visual display, rank badges, animated strength bars, win rate mini bars, "Lihat Semua Club" button
+- All lint checks pass with zero errors
+- Dev server running and serving correctly (HTTP 200)
+
+Stage Summary:
+- HMR runtime error fixed by clearing Turbopack cache
+- 6 landing page sections enhanced with premium visual effects (hero, stats ticker, champions, MVP, clubs, CSS animations)
+- 4 new features added: Division Rivalry Widget, Live Match Counter, Social Share Button, Club Leaderboard Enhancement
+- All changes are backward-compatible and lint-clean
+- Project is stable and running at http://localhost:3000
+
+## Current Project Status
+
+### Assessment
+The project is **highly feature-rich and visually polished**. The IDM League tournament platform now has comprehensive functionality including tournament management, player registration, league system, admin panel, CMS, live activity feed, stats dashboard with charts, player comparison tool, achievements showcase, player spotlight, quick stats bar, division rivalry, live match counter, social sharing, and enhanced club leaderboard.
+
+### Completed in This Round (Task ID 16)
+- Fixed HMR runtime error (stale Turbopack cache)
+- 6 landing page section styling enhancements (hero mesh gradient, stats count-up, champion shimmer, MVP glow, club hover effects)
+- 4 new features: Division Rivalry Widget, Live Match Counter, Social Share, Club Leaderboard Enhancement
+- 15+ new CSS animations added
+
+### Unresolved Issues / Risks
+1. **Framer-motion scroll warning** persists (harmless, from useInView internal check)
+2. **No completed matches** in database — some dashboard sections show empty states
+3. **MVP section** shows "MVP Belum Dipilih" since no MVP data exists yet
+4. **Some Cloudinary images** may still 404 — fallback handles gracefully
+
+### Priority Recommendations for Next Phase
+1. Seed more tournament data (matches, MVP awards) to populate empty sections
+2. Add dark/light mode toggle
+3. Add notification system for real-time tournament updates
+4. Improve admin panel UX with batch operations
+5. Add tournament bracket visualization improvements

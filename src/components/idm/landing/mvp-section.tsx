@@ -61,6 +61,8 @@ export function MvpSection({
                     <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[520px] champion-gold-frame border border-[#06b6d4]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
                       {/* Subtle radial glow */}
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.08), transparent 60%)' }} />
+                      {/* Pulsing glow ring around placeholder */}
+                      <div className="mvp-glow-ring absolute z-0 w-32 h-32 rounded-full" aria-hidden="true" />
                       {/* Dashed avatar placeholder */}
                       <div className="relative z-10 w-28 h-28 rounded-full border-2 border-dashed border-[#06b6d4]/25 flex items-center justify-center mb-6">
                         <div className="animate-float-medium">
@@ -105,7 +107,7 @@ export function MvpSection({
                         </div>
                         <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-idm-gold-warm/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
                           <Crown className="w-6 h-6 text-idm-gold-warm" />
-                          <span className="text-sm font-black text-idm-gold-warm uppercase tracking-wider">MVP</span>
+                          <span className="mvp-text-animated text-sm font-black uppercase tracking-wider">MVP</span>
                         </div>
                       </div>
 
@@ -124,8 +126,8 @@ export function MvpSection({
                           <TierBadge tier={mvp.tier} />
                           {mvp.totalMvp > 1 && <span className="text-[11px] font-bold text-yellow-400 bg-yellow-500/20 px-2.5 py-1 rounded-lg">{mvp.totalMvp}x MVP</span>}
                         </div>
-                        {/* Big Stats — with subtle panel bg */}
-                        <div className="mvp-stats-panel flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
+                        {/* Big Stats — with enhanced visual hierarchy */}
+                        <div className="mvp-stats-panel mvp-stats-enhanced flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
                           <div>
                             <p className="text-2xl font-black text-[#22d3ee]">{mvp.points}</p>
                             <p className="text-[10px] text-[#67e8f9]/50 uppercase font-semibold">Points</p>
@@ -159,6 +161,8 @@ export function MvpSection({
                     <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[520px] champion-gold-frame border border-[#a855f7]/20 bg-[#0c0a06] flex flex-col items-center justify-center p-8">
                       {/* Subtle radial glow */}
                       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.08), transparent 60%)' }} />
+                      {/* Pulsing glow ring around placeholder */}
+                      <div className="mvp-glow-ring-female absolute z-0 w-32 h-32 rounded-full" aria-hidden="true" />
                       {/* Dashed avatar placeholder */}
                       <div className="relative z-10 w-28 h-28 rounded-full border-2 border-dashed border-[#a855f7]/25 flex items-center justify-center mb-6">
                         <div className="animate-float-medium">
@@ -203,7 +207,7 @@ export function MvpSection({
                         </div>
                         <div className="mvp-badge-premium glow-pulse flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-idm-gold-warm/40" style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.35), rgba(212,168,83,0.15))' }}>
                           <Crown className="w-6 h-6 text-idm-gold-warm" />
-                          <span className="text-sm font-black text-idm-gold-warm uppercase tracking-wider">MVP</span>
+                          <span className="mvp-text-animated text-sm font-black uppercase tracking-wider">MVP</span>
                         </div>
                       </div>
 
@@ -222,8 +226,8 @@ export function MvpSection({
                           <TierBadge tier={mvp.tier} />
                           {mvp.totalMvp > 1 && <span className="text-[11px] font-bold text-yellow-400 bg-yellow-500/20 px-2.5 py-1 rounded-lg">{mvp.totalMvp}x MVP</span>}
                         </div>
-                        {/* Big Stats — with subtle panel bg */}
-                        <div className="mvp-stats-panel flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
+                        {/* Big Stats — with enhanced visual hierarchy */}
+                        <div className="mvp-stats-panel mvp-stats-enhanced flex items-center gap-5 mt-4 pt-3 px-3 pb-1">
                           <div>
                             <p className="text-2xl font-black text-[#c084fc]">{mvp.points}</p>
                             <p className="text-[10px] text-[#e9d5ff]/50 uppercase font-semibold">Points</p>

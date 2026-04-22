@@ -766,6 +766,30 @@ div.group:hover .donor-rank-badge {
   contain: layout style;
 }
 
+/* Rivalry VS badge — animated gradient background */
+@keyframes rivalry-vs-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.rivalry-vs-badge {
+  background: linear-gradient(135deg, rgba(229,190,74,0.15), rgba(229,190,74,0.05), rgba(229,190,74,0.15), rgba(229,190,74,0.05));
+  background-size: 300% 300%;
+  border: 1.5px solid rgba(229,190,74,0.3);
+  animation: rivalry-vs-gradient 3s ease-in-out infinite, vs-badge-glow 2s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Live Match Counter — stat entry animation */
+@keyframes live-counter-stat-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.live-counter-stat {
+  animation: live-counter-stat-enter 0.4s ease-out both;
+  contain: layout style;
+}
+
 /* Live match pulsing indicator — enhanced */
 @keyframes live-match-pulse {
   0%, 100% {
@@ -1131,6 +1155,8 @@ div.group:hover .donor-rank-badge {
   .tier-badge-glow,
   .match-card-enter,
   .vs-badge-glow,
+  .rivalry-vs-badge,
+  .live-counter-stat,
   .live-match-pulse,
   .chart-bar-animated,
   .counter-pop,
@@ -1140,7 +1166,23 @@ div.group:hover .donor-rank-badge {
   .stat-card-shimmer::after,
   .countdown-digit,
   .countdown-card,
-  .rivalry-card::before {
+  .rivalry-card::before,
+  /* Styling Enhancement Agent additions */
+  .hero-landing-mesh,
+  .hero-vignette,
+  .hero-particle,
+  .hero-particle-gold,
+  .hero-particle-cyan,
+  .hero-btn-glow,
+  .stats-ticker-glow-line,
+  .champions-crown-float,
+  .champion-name-shine,
+  .champion-member-card,
+  .mvp-glow-ring,
+  .mvp-glow-ring-female,
+  .mvp-text-animated,
+  .mvp-stats-enhanced,
+  .club-card-hover {
     animation: none;
     transform: none !important;
   }
@@ -5775,6 +5817,36 @@ html {
   }
 }
 
+/* Leaderboard enhanced row + podium — Task 15-b */
+@keyframes leaderboard-row-enhanced-enter {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.leaderboard-row-enhanced {
+  animation: leaderboard-row-enhanced-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  contain: layout style;
+}
+
+@keyframes leaderboard-podium-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.leaderboard-podium-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.leaderboard-podium-card:hover {
+  transform: translateY(-4px) scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-row-enhanced {
+    animation: none;
+  }
+  .leaderboard-podium-card:hover {
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spotlight-glow-male,
   .spotlight-glow-female,
@@ -6097,4 +6169,247 @@ html {
   .hero-title-glow {
     text-shadow: none;
   }
+}
+
+/* ============================================
+   STYLING ENHANCEMENT AGENT — Landing Page Polish
+   Hero, Stats Ticker, Champions, MVP, Clubs
+   GPU-optimized, respects prefers-reduced-motion
+   ============================================ */
+
+/* ─── Hero Landing Mesh Background ─── */
+@keyframes hero-landing-mesh-drift {
+  0%, 100% {
+    background-position: 0% 50%, 100% 50%, 50% 0%, 30% 70%;
+  }
+  25% {
+    background-position: 50% 0%, 0% 50%, 100% 50%, 70% 30%;
+  }
+  50% {
+    background-position: 100% 50%, 50% 100%, 0% 50%, 50% 50%;
+  }
+  75% {
+    background-position: 50% 100%, 100% 50%, 50% 0%, 30% 70%;
+  }
+}
+
+.hero-landing-mesh {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(212, 168, 83, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(34, 211, 238, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, rgba(192, 132, 252, 0.02) 0%, transparent 40%);
+  background-size: 200% 200%;
+  animation: hero-landing-mesh-drift 15s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── Hero Vignette Effect ─── */
+.hero-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(12, 10, 6, 0.4) 80%, rgba(12, 10, 6, 0.7) 100%);
+}
+
+/* ─── Hero Floating Particles — gold and cyan ─── */
+@keyframes hero-particle-float {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) translateX(5px) scale(1);
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-10vh) translateX(-10px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.hero-particle {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: hero-particle-float var(--particle-duration, 16s) linear infinite;
+  contain: layout style;
+}
+
+.hero-particle-gold {
+  background: radial-gradient(circle, rgba(229, 190, 74, 0.8), rgba(229, 190, 74, 0.2));
+  box-shadow: 0 0 6px rgba(229, 190, 74, 0.4), 0 0 12px rgba(229, 190, 74, 0.1);
+}
+
+.hero-particle-cyan {
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.8), rgba(34, 211, 238, 0.2));
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.4), 0 0 12px rgba(34, 211, 238, 0.1);
+}
+
+/* ─── Hero CTA Button Glow ─── */
+@keyframes hero-btn-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(229, 190, 74, 0.1), 0 0 16px rgba(229, 190, 74, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(229, 190, 74, 0.25), 0 0 32px rgba(229, 190, 74, 0.1), 0 0 48px rgba(229, 190, 74, 0.05);
+  }
+}
+
+.hero-btn-glow {
+  animation: hero-btn-glow-pulse 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── Stats Ticker Gold Glow Line ─── */
+@keyframes ticker-glow-shift {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.stats-ticker-glow-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(229, 190, 74, 0.08) 15%,
+    rgba(229, 190, 74, 0.35) 40%,
+    rgba(245, 231, 200, 0.5) 50%,
+    rgba(229, 190, 74, 0.35) 60%,
+    rgba(229, 190, 74, 0.08) 85%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ticker-glow-shift 4s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(229, 190, 74, 0.1), 0 0 2px rgba(229, 190, 74, 0.15);
+}
+
+/* ─── Champions Crown Float ─── */
+@keyframes champions-crown-bob {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translateX(-50%) translateY(-8px) rotate(5deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(-50%) translateY(2px) rotate(-3deg);
+    opacity: 0.5;
+  }
+}
+
+.champions-crown-float {
+  animation: champions-crown-bob 4s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── Champion Name Shine Effect ─── */
+@keyframes champion-name-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.champion-name-shine {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffffff 40%,
+    #f5d77a 50%,
+    #ffffff 60%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: champion-name-shimmer 4s ease-in-out infinite;
+}
+
+/* ─── Champion Member Card Hover Glow ─── */
+.champion-member-card {
+  transition: all 0.2s ease;
+}
+
+.champion-member-card:hover {
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.15);
+}
+
+/* ─── MVP Pulsing Glow Ring (Male — cyan) ─── */
+@keyframes mvp-ring-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.2), 0 0 40px rgba(34, 211, 238, 0.1);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.3), 0 0 60px rgba(34, 211, 238, 0.15);
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+.mvp-glow-ring {
+  border: 2px solid rgba(34, 211, 238, 0.25);
+  border-radius: 50%;
+  animation: mvp-ring-pulse 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── MVP Pulsing Glow Ring (Female — purple) ─── */
+@keyframes mvp-ring-pulse-female {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+    box-shadow: 0 0 20px rgba(192, 132, 252, 0.2), 0 0 40px rgba(192, 132, 252, 0.1);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+    box-shadow: 0 0 40px rgba(192, 132, 252, 0.3), 0 0 60px rgba(192, 132, 252, 0.15);
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+.mvp-glow-ring-female {
+  border: 2px solid rgba(192, 132, 252, 0.25);
+  border-radius: 50%;
+  animation: mvp-ring-pulse-female 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* ─── MVP Text Animated Gradient ─── */
+@keyframes mvp-text-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.mvp-text-animated {
+  background: linear-gradient(90deg, #e5be4a, #f5d77a, #d4a853, #f5d77a, #e5be4a);
+  background-size: 300% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mvp-text-gradient 3s ease-in-out infinite;
+}
+
+/* ─── MVP Stats Enhanced — subtle panel glow ─── */
+.mvp-stats-enhanced {
+  background: linear-gradient(135deg, rgba(229, 190, 74, 0.03) 0%, rgba(229, 190, 74, 0.01) 50%, transparent 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(229, 190, 74, 0.06);
+}
+
+/* ─── Club Card Hover Glow ─── */
+.club-card-hover:hover {
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.12), 0 8px 24px rgba(0, 0, 0, 0.3);
 }

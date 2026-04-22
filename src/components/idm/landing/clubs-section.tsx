@@ -166,8 +166,8 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                                   })),
                                 })}
                               >
-                                <div className={`club-card-shimmer relative rounded-xl bg-white/[0.06] border p-3 pb-4 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
-                                  isChampion ? 'border-idm-gold-warm/30 shadow-[0_0_20px_rgba(212,168,83,0.1)]' : 'border-white/[0.06]'
+                                <div className={`club-card-shimmer club-card-hover relative rounded-xl bg-white/[0.06] border p-3 pb-4 text-center transition-all duration-300 overflow-hidden hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:scale-[1.03] ${
+                                  isChampion ? 'border-idm-gold-warm/30 shadow-[0_0_20px_rgba(212,168,83,0.1)]' : 'border-white/[0.06] hover:border-idm-gold-warm/20'
                                 }`}>
                                   {/* Champion badge */}
                                   {isChampion && (

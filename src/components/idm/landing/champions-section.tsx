@@ -38,6 +38,10 @@ export function ChampionsSection({
     <>
       {/* ========== SEASON CHAMPION — Smooth Reveal ========== */}
       <section id="champions" role="region" aria-label="Season Champions" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Crown animation at top center */}
+        <div className="champions-crown-float absolute top-8 left-1/2 -translate-x-1/2 z-20" aria-hidden="true">
+          <Crown className="w-6 h-6 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 12px rgba(212,168,83,0.3))' }} />
+        </div>
         {/* Background — Celebratory bilateral glow with subtle gold shimmer */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
         {/* Subtle cross-line pattern — hall of fame wallpaper */}
@@ -122,7 +126,7 @@ export function ChampionsSection({
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-2xl sm:text-3xl font-black text-white tracking-wide">{leagueData.ligaChampion.name}</h4>
+                        <h4 className="champion-name-shine text-2xl sm:text-3xl font-black text-white tracking-wide">{leagueData.ligaChampion.name}</h4>
                         <p className="text-sm text-idm-gold-warm/80 font-semibold mt-1">Liga IDM Season {leagueData.ligaChampion.seasonNumber} Champion</p>
                         <p className="text-xs text-muted-foreground mt-1">Club terbaik di Liga IDM Season {leagueData.ligaChampion.seasonNumber}</p>
                         {/* Member count by division */}
@@ -152,10 +156,10 @@ export function ChampionsSection({
                             key={member.id}
                             className="group/member relative flex flex-col items-center"
                           >
-                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 hover:scale-110 cursor-default ${
+                            <div className={`champion-member-card w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 hover:scale-110 cursor-default ${
                               member.division === 'male'
-                                ? 'border-cyan-500/20 hover:border-cyan-500/40'
-                                : 'border-purple-500/20 hover:border-purple-500/40'
+                                ? 'border-cyan-500/20 hover:border-cyan-500/40 hover:shadow-[0_0_16px_rgba(34,211,238,0.15)]'
+                                : 'border-purple-500/20 hover:border-purple-500/40 hover:shadow-[0_0_16px_rgba(192,132,252,0.15)]'
                             } ${member.role === 'captain' ? 'ring-2 ring-idm-gold-warm/50 border-idm-gold-warm/30' : ''}`}>
                               <Image
                                 src={getAvatarUrl(member.gamertag, member.division as 'male' | 'female', member.avatar)}

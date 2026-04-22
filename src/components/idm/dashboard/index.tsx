@@ -46,7 +46,8 @@ import { ActivityFeed } from '../activity-feed';
 import { StatsTab } from './stats-tab';
 import { QuickStatsBar } from './quick-stats-bar';
 import { TopDonorsWidget } from './top-donors-widget';
-import { DivisionRivalry } from './division-rivalry';
+import { DivisionRivalryWidget } from './division-rivalry-widget';
+import { LiveMatchCounter } from './live-match-counter';
 import { MatchDayCountdown } from './match-day-countdown';
 
 /* ─── Main Dashboard Component ─── */
@@ -237,6 +238,9 @@ export function Dashboard() {
       {/* ========== QUICK STATS BAR — At-a-glance summary ========== */}
       <QuickStatsBar data={data} division={division} />
 
+      {/* ========== LIVE MATCH COUNTER — Real-time match status ========== */}
+      <LiveMatchCounter />
+
       {/* ========== COUNTDOWN / STATUS + PRIZE POOL ========== */}
       <div className="stagger-item-subtle stagger-d1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
         {t?.scheduledAt && t.status !== 'completed' ? (
@@ -315,7 +319,7 @@ export function Dashboard() {
 
       {/* ========== DIVISION RIVALRY — Top 2 Head-to-Head ========== */}
       <div className="stagger-item-subtle stagger-d2">
-        <DivisionRivalry setSelectedPlayer={handleSelectPlayer} />
+        <DivisionRivalryWidget setSelectedPlayer={handleSelectPlayer} />
       </div>
 
       {/* ========== MATCH DAY COUNTDOWN ========== */}

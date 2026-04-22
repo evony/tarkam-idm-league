@@ -17,6 +17,7 @@ import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { getAvatarUrl, hashString, clubToString } from '@/lib/utils';
 import { AchievementList } from './achievement-badge';
+import { SocialShareButton } from './social-share-button';
 
 interface PlayerProfileProps {
   player: {
@@ -305,6 +306,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap }: PlayerProfileP
                     <h2 className="text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">{player.gamertag}</h2>
                   </SkinName>
                   {playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
+                  <SocialShareButton playerGamertag={player.gamertag} playerId={player.id} />
                 </div>
                 <p className="text-xs text-white/60 mt-0.5">{player.city ? <><MapPin className="w-3 h-3 inline -mt-0.5 mr-0.5" />{player.city}</> : player.name}</p>
                 <div className="flex items-center gap-2 mt-1.5">

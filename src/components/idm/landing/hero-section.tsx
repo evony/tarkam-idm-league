@@ -125,6 +125,9 @@ export function HeroSection({
           </>
         ) : null /* No CMS media set — gradient dark background from overlay layers serves as cinematic base */}
 
+        {/* Animated Gradient Mesh Background — adds visual depth to dark hero */}
+        <div className="hero-landing-mesh absolute inset-0" aria-hidden="true" />
+
         {/* Layer 2: Mid-depth gold haze */}
         <motion.div
           className="absolute inset-0"
@@ -144,16 +147,19 @@ export function HeroSection({
           backgroundSize: '60px 60px',
         }} />
 
+        {/* Vignette Effect — darkens edges for cinematic depth */}
+        <div className="hero-vignette absolute inset-0 pointer-events-none" aria-hidden="true" />
+
         {/* Ambient Orbit Light */}
         <div className="ambient-light" style={{ top: '30%', left: '20%' }} />
         <div className="ambient-light" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
 
-        {/* Floating Particles */}
+        {/* Floating Particles — gold/cyan colors for visual richness */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           {particles.map((p) => (
             <div
               key={p.id}
-              className={p.alt ? 'particle-alt' : 'particle'}
+              className={`hero-particle ${p.alt ? 'hero-particle-cyan' : 'hero-particle-gold'}`}
               style={{
                 left: p.left,
                 width: `${p.size}px`,
@@ -255,7 +261,7 @@ export function HeroSection({
               {cmsHeroTagline}
             </motion.p>
 
-            {/* Hero CTA — Register Button */}
+            {/* Hero CTA — Register Button with glowing border animation */}
             <motion.div variants={fadeUp} className="flex items-center justify-center">
               <motion.button
                 onClick={onRegister}
@@ -264,6 +270,8 @@ export function HeroSection({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
+                {/* Glowing border animation behind button */}
+                <div className="hero-btn-glow absolute inset-0 rounded-sm" aria-hidden="true" />
                 <div className="relative px-5 py-3 sm:px-10 sm:py-5 border-2 border-idm-gold-warm/60 rounded-sm transform -rotate-3 transition-all duration-300 group-hover:rotate-0 group-hover:scale-105 group-hover:border-idm-gold-warm/80">
                   <div className="absolute inset-0 bg-idm-gold-warm/5 group-hover:bg-idm-gold-warm/10 transition-colors duration-300" />
                   <div className="relative z-10">
