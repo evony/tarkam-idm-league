@@ -12,6 +12,7 @@ import type { StatsData } from '@/types/stats';
 
 // Section components
 import { HeroSection } from './landing/hero-section';
+import { StatsTicker } from './landing/stats-ticker';
 import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
@@ -185,7 +186,7 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden landing-scroll pb-24 sm:pb-0">
+    <div className="relative min-h-screen bg-background overflow-hidden landing-scroll pb-24 sm:pb-0">
 
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -326,6 +327,13 @@ export function LandingPage() {
         particles={particles}
         onRegister={() => setRegistrationModalOpen(true)}
         onVideoPlay={openVideoModal}
+      />
+
+      {/* Stats Ticker — Animated scrolling platform stats */}
+      <StatsTicker
+        maleData={maleData}
+        femaleData={femaleData}
+        leagueData={leagueData}
       />
 
       {/* About / Cerita Kami */}

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Crown, Star, Swords, TrendingUp, Users, Zap } from 'lucide-react';
 import { clubToString } from '@/lib/utils';
+import { ActivityFeed } from '@/components/idm/activity-feed';
 
 export function Dashboard() {
   const { division } = useAppStore();
@@ -123,6 +124,9 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* ── Activity Feed ── */}
+      <ActivityFeed />
 
       {/* ── Two Column — Top Players + Weekly Champions ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

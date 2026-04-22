@@ -68,6 +68,12 @@ export function StatCard({ icon: Icon, value, label, delay }: {
   label: string;
   delay: number;
 }) {
+  // Extract numeric part for count-up animation
+  const numericMatch = value.match(/^(\d+)/);
+  const numericValue = numericMatch ? parseInt(numericMatch[1], 10) : 0;
+  const suffix = numericMatch ? value.slice(numericMatch[0].length) : value;
+  const isNumeric = numericMatch !== null && numericValue > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16, scale: 0.95 }}
@@ -76,12 +82,30 @@ export function StatCard({ icon: Icon, value, label, delay }: {
       transition={{ delay, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="group relative"
     >
-      <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl glass border-0 card-shine card-border-glow text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]">
-        <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-          <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-idm-gold-warm" />
+      <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-idm-gold-warm/10 bg-white/[0.03] backdrop-blur-md text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)] hover:border-idm-gold-warm/20">
+        {/* Glassmorphism shine effect */}
+        <div className="absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/[0.04] to-transparent" />
         </div>
-        <p className="text-lg sm:text-2xl font-black text-gradient-fury">{value}</p>
-        <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 uppercase tracking-wider">{label}</p>
+        <div className="relative z-10">
+          <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-lg sm:rounded-xl bg-idm-gold-warm/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-idm-gold-warm" />
+          </div>
+          <p className="text-lg sm:text-2xl font-black text-gradient-fury">
+            {isNumeric ? (
+              <span
+                className="stat-count-up inline-block"
+                style={{ '--count-target': numericValue } as React.CSSProperties}
+                data-suffix={suffix}
+              >
+                {numericValue}{suffix}
+              </span>
+            ) : (
+              value
+            )}
+          </p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 uppercase tracking-wider">{label}</p>
+        </div>
       </div>
     </motion.div>
   );

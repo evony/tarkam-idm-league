@@ -41,6 +41,7 @@ import { DonationModal } from '../donation-modal';
 import { PlayerQuickSearch, addRecentlyViewed, getRecentlyViewed, type RecentlyViewedPlayer } from '../player-quick-search';
 import { PlayerAccountModal } from '../player-account-modal';
 import { MyAccountCard } from '../my-account-card';
+import { ActivityFeed } from '../activity-feed';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -296,6 +297,11 @@ export function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ========== ACTIVITY FEED — Live Platform Activity ========== */}
+      <div className="stagger-item-subtle stagger-d2">
+        <ActivityFeed />
       </div>
 
       {/* ========== AKUN SAYA — My Account Card (when logged in) ========== */}

@@ -66,6 +66,10 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
       <div className="relative z-10 max-w-4xl mx-auto">
         <AnimatedSection>
           <SectionHeader icon={Heart} label={sectionSubtitle} title={sectionTitle} subtitle={sectionDescription} />
+          {/* Typewriter cursor after subtitle */}
+          <div className="flex justify-center -mt-6 mb-2">
+            <span className="inline-block w-[2px] h-4 bg-idm-gold-warm/60 typewriter-cursor" />
+          </div>
         </AnimatedSection>
 
         {/* Origin Story */}
@@ -85,6 +89,10 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
                   <h3 className="text-lg font-black text-white">Awal Mula</h3>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">The Origin Story</p>
                 </div>
+                {/* Borneo Pride Badge */}
+                <span className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] text-[10px] text-idm-gold-warm/70 font-semibold tracking-wide">
+                  Borneo Pride 🏝️
+                </span>
               </div>
 
               <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
@@ -119,7 +127,7 @@ export function AboutSection({ cmsSections, cmsSettings }: AboutSectionProps) {
             const colorIdx = idx % 3;
             return (
               <AnimatedSection key={card.id || idx} variant={idx === 0 ? 'fadeLeft' : idx === 2 ? 'fadeRight' : 'fadeUp'}>
-                <div className={`relative rounded-2xl border ${accentBorders[colorIdx]} ${accentBgs[colorIdx]} p-5 text-center group ${accentHoverBorders[colorIdx]} ${accentHoverBgs[colorIdx]} transition-all duration-300`}>
+                <div className={`relative rounded-2xl border ${accentBorders[colorIdx]} ${accentBgs[colorIdx]} p-5 text-center group ${accentHoverBorders[colorIdx]} ${accentHoverBgs[colorIdx]} transition-all duration-300 milestone-card-${colorIdx}`}>
                   <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent ${accentLineColors[colorIdx]} to-transparent`} />
                   <div className={`w-12 h-12 mx-auto rounded-xl ${accentBgs[colorIdx]} border border-current/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ${accentTexts[colorIdx]}`}>
                     <Icon className="w-6 h-6" />

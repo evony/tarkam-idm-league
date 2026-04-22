@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 interface LandingFooterProps {
   cmsFooterText: string;
@@ -27,7 +28,16 @@ export function LandingFooter({ cmsFooterText, cmsFooterTagline, cmsLogo, cmsSit
   const hasAnySocial = hasDiscord || hasInstagram || hasYouTube || hasWhatsApp;
   return (<>
       {/* ========== FOOTER — Premium ========== */}
-      <footer className="relative py-12 px-4 border-t border-idm-gold-warm/10 bg-[#0c0a06]/50 overflow-hidden">
+      <footer className="relative py-12 px-4 bg-[#0c0a06]/50 overflow-hidden">
+        {/* Animated gradient border at the very top */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden">
+          <div
+            className="h-full w-[200%] footer-gradient-border"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #d4a853, #f5e6c8, #d4a853, transparent, #d4a853, #f5e6c8, #d4a853, transparent)',
+            }}
+          />
+        </div>
         {/* Subtle top glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-24 pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.04) 0%, transparent 70%)' }} />
 
@@ -59,9 +69,10 @@ export function LandingFooter({ cmsFooterText, cmsFooterTagline, cmsLogo, cmsSit
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
-                    className="text-[11px] text-muted-foreground/80 hover:text-idm-gold-warm transition-colors cursor-pointer py-2"
+                    className="group relative text-[11px] text-muted-foreground/80 hover:text-idm-gold-warm transition-colors cursor-pointer py-2"
                   >
                     {item.label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-idm-gold-warm/60 transition-all duration-300 group-hover:w-full" />
                   </button>
                 ))}
               </div>
@@ -97,9 +108,18 @@ export function LandingFooter({ cmsFooterText, cmsFooterTagline, cmsLogo, cmsSit
             <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/10 to-transparent mb-6" />
 
             {/* Bottom row: Tagline + Copyright */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-[11px] text-idm-gold-warm/40 font-semibold tracking-wider uppercase">{cmsFooterTagline}</p>
-              <p className="text-[10px] text-muted-foreground/50">{cmsFooterText}</p>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+                <p className="text-[11px] text-idm-gold-warm/40 font-semibold tracking-wider uppercase">{cmsFooterTagline}</p>
+                <p className="text-[10px] text-muted-foreground/50">{cmsFooterText}</p>
+              </div>
+              {/* Made with ❤️ in Borneo + Version */}
+              <div className="flex items-center justify-center gap-4 mt-2">
+                <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
+                  Made with <span className="text-red-500/70 animate-pulse">❤️</span> in Borneo
+                </span>
+                <span className="text-[9px] text-idm-gold-warm/20 font-mono">v1.0.0</span>
+              </div>
             </div>
           </div>
         </div>
