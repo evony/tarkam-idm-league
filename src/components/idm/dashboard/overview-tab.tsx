@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 import {
-  Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp,
+  Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp, Swords,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -12,10 +12,12 @@ import { TierBadge } from '../tier-badge';
 import { WeekNavigator } from '../week-navigator';
 import { DanceMatchCard } from '../match-card';
 import { SectionCard, MatchRow } from './shared';
+import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { Card } from '@/components/ui/card';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { formatCurrency } from '@/lib/utils';
+import { PlayerComparison } from '../player-comparison';
 import type { StatsData } from '@/types/stats';
 
 interface OverviewTabProps {
@@ -38,11 +40,29 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
   const [topPlayerTab, setTopPlayerTab] = useState<'top3' | 'champion' | 'mvp'>('top3');
   const [selectedChampionWeek, setSelectedChampionWeek] = useState<number>(1);
   const [selectedMvpWeek, setSelectedMvpWeek] = useState<number>(1);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const t = data.activeTournament;
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+
+      {/* ★ Compare Players Button */}
+      <div className="stagger-item-subtle">
+        <button
+          onClick={() => setCompareOpen(true)}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${dt.casinoCard} border ${dt.border} transition-all hover:bg-muted/20 hover:border-idm-gold/20 cursor-pointer group`}
+        >
+          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center shrink-0`}>
+            <Swords className={`w-4 h-4 text-amber-400`} />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-xs font-semibold">Bandingkan Pemain</p>
+            <p className="text-[10px] text-muted-foreground">Bandingkan statistik dua pemain secara head-to-head</p>
+          </div>
+          <Badge className={`${dt.casinoBadge} text-[9px]`}>VS</Badge>
+        </button>
+      </div>
 
       {/* ★ Top Players — HERO MOMENT */}
       <div className="stagger-item-subtle stagger-d0">
@@ -126,11 +146,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                 ))}
               </div>
             ) : (
-              <div className={`p-6 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                <Users className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-                <p className="text-sm text-muted-foreground">Belum ada peserta terdaftar</p>
-                <p className="text-[10px] text-muted-foreground/80 mt-1">Peserta akan muncul setelah pendaftaran</p>
-              </div>
+              <AnimatedEmptyState
+              icon={Users}
+              message="Belum ada peserta terdaftar"
+              hint="Peserta akan muncul setelah pendaftaran"
+            />
             )}
           </>
         )}
@@ -326,11 +346,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
       ) : (
         <div className="stagger-item-subtle stagger-d1">
           <SectionCard title="Hasil Terbaru" icon={Radio} badge="LIVE">
-            <div className={`p-6 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-              <Music className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-              <p className="text-sm text-muted-foreground">Belum ada hasil match</p>
-              <p className="text-[10px] text-muted-foreground/80 mt-1">Match yang sudah selesai akan muncul di sini</p>
-            </div>
+            <AnimatedEmptyState
+              icon={Music}
+              message="Belum ada hasil match"
+              hint="Match yang sudah selesai akan muncul di sini"
+            />
           </SectionCard>
         </div>
       )}
@@ -359,11 +379,11 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
                 </div>
               ))
             ) : (
-              <div className={`p-6 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                <Gift className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-                <p className="text-sm text-muted-foreground">Belum ada donasi</p>
-                <p className="text-[10px] text-muted-foreground/80 mt-1">Donasi akan muncul di sini</p>
-              </div>
+            <AnimatedEmptyState
+              icon={Gift}
+              message="Belum ada donasi"
+              hint="Donasi akan muncul di sini"
+            />
             )}
           </div>
         </SectionCard>
@@ -395,6 +415,9 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
           </div>
         </SectionCard>
       </div>
+
+      {/* Player Comparison Modal */}
+      <PlayerComparison open={compareOpen} onClose={() => setCompareOpen(false)} />
 
       {/* Featured Match — DanceMatchCard style */}
       {t?.matches?.filter(m => m.status === 'completed').length ? (

@@ -45,16 +45,22 @@ export function Dashboard() {
       <div
         className="stagger-item perspective-card relative rounded-2xl overflow-hidden border border-border"
       >
-        {/* Gradient background */}
+        {/* Animated mesh gradient background */}
+        <div className={`absolute inset-0 ${isMale ? 'hero-mesh-bg-male' : 'hero-mesh-bg-female'}`} />
+
+        {/* Static gradient overlay for depth */}
         <div className={`absolute inset-0 ${isMale
           ? 'bg-gradient-to-br from-amber-500/10 via-transparent to-yellow-600/5'
           : 'bg-gradient-to-br from-pink-500/10 via-transparent to-rose-600/5'
         }`} />
 
-        <div className="relative p-5 sm:p-7">
+        {/* Shimmer/shine sweep across banner */}
+        <div className="hero-shimmer-sweep" />
+
+        <div className="relative z-10 p-5 sm:p-7">
           {/* Top row — badges */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <Badge className={`${accentBg} ${accentText} border-0 text-xs`}>
+            <Badge className={`${accentBg} ${accentText} border-0 text-xs ${isMale ? 'division-badge-glow-male' : 'division-badge-glow-female'}`}>
               {division === 'male' ? '🕺' : '💃'} {division.charAt(0).toUpperCase() + division.slice(1)} Division
             </Badge>
             <Badge variant="outline" className="text-[10px]">{data.season.name}</Badge>

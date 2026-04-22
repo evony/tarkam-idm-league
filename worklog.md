@@ -231,3 +231,152 @@ The project is **stable and feature-rich**. Core functionality (tournament manag
 3. Add player comparison tool feature
 4. Improve mobile navigation UX
 5. Add dark/light mode toggle
+
+---
+Task ID: 3
+Agent: Dashboard Styling Agent
+Task: Improve dashboard styling with enhanced visuals
+
+Work Log:
+- Read worklog.md for project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read all relevant files: dashboard.tsx, overview-tab.tsx, activity-feed.tsx, shared.tsx, globals.css, use-division-theme.ts, existing animated-empty-state.tsx
+- Identified that existing AnimatedEmptyState at /src/components/idm/dashboard/animated-empty-state.tsx had CSS class references (empty-glow-ring, empty-icon-float, etc.) but no matching CSS animations defined in globals.css
+- Created enhanced AnimatedEmptyState component at /src/components/idm/ui/animated-empty-state.tsx:
+  - Floating icon with bob + gentle rotation (CSS-only empty-icon-bob animation)
+  - Pulsing glow ring behind icon (empty-glow-pulse animation with blur)
+  - 4 sparkle/dot decorations with staggered blink animations
+  - Gradient text message with animated background-position shift
+  - All animations CSS-only for performance, no framer-motion
+- Updated overview-tab.tsx import to use new AnimatedEmptyState from '../ui/animated-empty-state'
+- Enhanced dashboard hero banner (dashboard.tsx):
+  - Added animated mesh gradient background (hero-mesh-bg-male/female classes with drifting radial gradients)
+  - Added shimmer/shine sweep effect across banner (hero-shimmer-sweep with diagonal highlight)
+  - Added division badge glow effect (division-badge-glow-male/female with pulsing box-shadow)
+  - Added z-10 to content div to ensure content stays above effects
+- Enhanced activity feed (activity-feed.tsx):
+  - Added glass shimmer effect to each activity card (activity-card-glass class with ::after pseudo-element)
+  - Added visual hierarchy with age-based opacity (getAgeOpacity function: <1h=100%, <6h=90%, <24h=75%, older=60%)
+  - Added scroll-to-top button that appears when feed is scrolled down >120px
+  - Scroll-to-top uses CSS animation (scroll-top-btn-enter) and positioned absolutely within feed
+- Added all CSS animations to globals.css:
+  - empty-icon-bob: Floating icon with subtle bob + rotation
+  - empty-glow-pulse: Pulsing glow ring expansion/fade
+  - empty-sparkle-blink-1/2/3/4: Twinkling sparkle dots with staggered delays
+  - empty-gradient-shift: Gradient text position animation
+  - hero-mesh-drift: Animated mesh gradient position cycling
+  - hero-mesh-bg-male/female: Division-tinted mesh gradient backgrounds
+  - hero-shimmer-sweep: Diagonal highlight sweep across banner
+  - division-badge-glow-male/female: Pulsing glow on division badge
+  - activity-card-shimmer: Glass shimmer sweep on activity cards
+  - scroll-top-btn-enter: Entrance animation for scroll-to-top button
+- Updated prefers-reduced-motion section in globals.css to include all new animation classes
+- Ran lint on modified files — zero errors (pre-existing error in player-comparison.tsx is unrelated)
+- Verified dev server running and responding (HTTP 200)
+
+Stage Summary:
+- AnimatedEmptyState component created at /src/components/idm/ui/ with floating icon, pulsing glow ring, 4 sparkle dots, and animated gradient text
+- Dashboard hero banner enhanced with animated mesh gradient, shimmer sweep, and division badge glow
+- Activity feed enhanced with glass shimmer effect on cards, age-based opacity hierarchy, and scroll-to-top button
+- All CSS animations respect prefers-reduced-motion and use contain: layout style for GPU optimization
+- Overview tab import updated to use new AnimatedEmptyState path
+- All modified files pass lint checks, dev server operational
+
+---
+Task ID: 6
+Agent: Feature Agent
+Task: Add Season Statistics Dashboard with Charts
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read dashboard/index.tsx to understand tab structure (4 existing tabs: Beranda, Peringkat, Pertandingan, Peserta)
+- Read prisma/schema.prisma to understand Player, Club, Tournament, LeagueMatch, Participation models
+- Read /api/stats/route.ts for API patterns (division param, season lookup, parallel queries, caching)
+- Read use-division-theme.ts for casino card styling tokens (casinoCard, casinoBar, casinoGlow, casinoBadge, neonText, etc.)
+- Read shared.tsx for SectionCard and existing UI patterns
+- Read overview-tab.tsx for component structure reference
+- Created API endpoint /src/app/api/stats/charts/route.ts:
+  - GET /api/stats/charts?division=male
+  - Returns tierDistribution (array of {tier, count} for S/A/B/C/D)
+  - Returns clubPerformance (array of {club, points, wins, members} — top 8 clubs)
+  - Returns weeklyTrend (array of {week, registrations, matches})
+  - Returns topPerformers (array of {gamertag, points, wins, mvp} — top 5)
+  - Uses Prisma with db from '@/lib/db', parallel queries, handles empty tables gracefully
+  - Same caching strategy as /api/stats (CDN s-maxage=10, stale-while-revalidate=30)
+  - Follows season lookup pattern: find latest active season, fallback to season with clubs
+- Created /src/components/idm/dashboard/stats-tab.tsx:
+  - Tier Distribution PieChart with donut style (S=red, A=amber, B=green, C=blue, D=gray)
+  - Tier legend sidebar on desktop with colored indicators
+  - Club Performance BarChart (points + wins bars, top 8 clubs)
+  - Weekly Trend LineChart (registrations + matches lines with division-colored accents)
+  - Top Performers horizontal progress bars (top 5 players, ranked with gold/silver/bronze styling)
+  - Uses useDivisionTheme() hook for casino card styling (casinoCard, casinoBar, neonText, etc.)
+  - Glassmorphism effects via casino-shimmer class
+  - Custom ChartTooltip component with card/95 background and backdrop-blur
+  - @tanstack/react-query with 60s staleTime
+  - Loading skeleton state (3 card skeletons matching chart layout)
+  - Empty states with AnimatedEmptyState component
+  - Responsive 2-column grid for Tier + Club charts, full-width for Trend + Top Performers
+  - Accent colors: male=cyan (#22d3ee), female=purple (#c084fc), gold (#e5be4a)
+- Integrated Statistik tab into dashboard/index.tsx:
+  - Added BarChart3 import from lucide-react
+  - Added StatsTab import from './stats-tab'
+  - Added 'stats' tab to tab array: { value: 'stats', label: 'Statistik', icon: BarChart3 }
+  - Added TabsContent for stats tab rendering <StatsTab />
+- Ran `bun run lint` — passed with zero errors
+- Tested /api/stats/charts?division=male — returns 200 with all chart data
+- Tested /api/stats/charts?division=female — returns 200 with all chart data
+- Dev server compiling and serving correctly
+
+Stage Summary:
+- API endpoint created at /api/stats/charts returning 4 chart data sets (tier distribution, club performance, weekly trend, top performers)
+- StatsTab component created with 4 recharts visualizations (PieChart, BarChart, LineChart, horizontal bars)
+- Statistik tab integrated as 5th tab in dashboard navigation
+- All styling matches existing casino/dark theme with division-aware colors
+- All lint checks pass, dev server operational
+
+---
+Task ID: 7
+Agent: Feature Agent
+Task: Add Player Comparison Tool
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Verified all three components of the Player Comparison Tool already exist and are fully implemented:
+  1. API /api/players/compare/route.ts — Complete endpoint:
+     - GET /api/players/compare?player1=ID1&player2=ID2
+     - Returns both players with gamertag, avatar, tier, points, totalWins, totalMvp, matches, streak, maxStreak, club, achievements, rank, tierScore
+     - Uses Prisma with db from '@/lib/db', parallel queries for both players
+     - Handles missing players with 404, same-player comparison with 400, missing params with 400
+     - Computes rank within division and tierScore (S=3, A=2, B=1)
+     - Includes club membership and achievement data
+  2. Component /src/components/idm/player-comparison.tsx — Complete UI:
+     - PlayerSearchDropdown sub-component with autocomplete from /api/players/search
+     - Side-by-side avatar cards with player info when both selected
+     - ComparisonRadar: recharts RadarChart comparing Points, Wins, MVP, Matches, Streak, Tier
+     - ComparisonBarChart: Horizontal bar chart for head-to-head comparison
+     - StatComparisonRow: Individual stat comparison with winner highlighting (green/colored ▲ indicator)
+     - ComparisonVerdict: Overall verdict badge showing category wins and winner
+     - Achievement comparison section
+     - useDivisionTheme() for division-aware colors (male=cyan, female=purple, vs amber)
+     - @tanstack/react-query for fetching with 30s staleTime
+     - framer-motion for modal open/close and content animations
+     - Dark theme (#0c0a06 backgrounds) with casino card styling
+     - shadcn/ui Card, Badge, Button components
+     - Body scroll lock when modal open
+  3. Integration in /src/components/idm/dashboard/overview-tab.tsx — Complete:
+     - "Bandingkan Pemain" button with Swords icon and VS badge
+     - compareOpen state toggle
+     - PlayerComparison modal rendered at bottom of component
+     - Import already in place
+- Tested API endpoints:
+  - /api/players/search?q=a&division=male — returns 200 with player data
+  - /api/players/compare?player1=ID1&player2=ID2 — returns 200 with full comparison data
+- Ran `bun run lint` — passed with zero errors
+- Dev server running and compiling successfully (no errors in dev.log)
+
+Stage Summary:
+- Player Comparison Tool is fully implemented and operational
+- API endpoint at /api/players/compare returns comprehensive comparison data for two players
+- PlayerComparison component features radar chart, horizontal bar chart, stat rows, verdict badge, and achievement comparison
+- Integration in overview-tab.tsx with "Bandingkan" button opening comparison modal
+- All lint checks pass, dev server operational, API endpoints verified

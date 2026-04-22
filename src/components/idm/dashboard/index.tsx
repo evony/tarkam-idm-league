@@ -8,6 +8,7 @@ import {
   Heart, MapPin, Users, Trophy, Clock, Flame,
   Shield, Music,
   Gamepad2, Wallet, Target, Gift, ChevronRight,
+  BarChart3,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -42,6 +43,7 @@ import { PlayerQuickSearch, addRecentlyViewed, getRecentlyViewed, type RecentlyV
 import { PlayerAccountModal } from '../player-account-modal';
 import { MyAccountCard } from '../my-account-card';
 import { ActivityFeed } from '../activity-feed';
+import { StatsTab } from './stats-tab';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -414,6 +416,7 @@ export function Dashboard() {
                 { value: 'standings', label: 'Peringkat', icon: Shield },
                 { value: 'matches', label: 'Pertandingan', icon: Music },
                 { value: 'participants', label: 'Peserta', icon: Gamepad2 },
+                { value: 'stats', label: 'Statistik', icon: BarChart3 },
               ].map(tab => (
                 <TabsTrigger
                   key={tab.value}
@@ -469,6 +472,11 @@ export function Dashboard() {
               />
             </div>
           </div>
+        </TabsContent>
+
+        {/* ═══════════════ STATS TAB — Season Statistics Dashboard ═══════════════ */}
+        <TabsContent value="stats" className="mt-3 sm:mt-4 lg:mt-6">
+          <StatsTab />
         </TabsContent>
 
 

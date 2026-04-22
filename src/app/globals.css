@@ -274,6 +274,216 @@
   transition: transform 0.1s ease;
 }
 
+/* ============================================
+   ANIMATED EMPTY STATE — Dashboard sections
+   CSS-only for performance, respects prefers-reduced-motion
+   ============================================ */
+
+/* Floating icon — subtle bob + gentle rotation */
+@keyframes empty-icon-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(3deg); }
+  75% { transform: translateY(2px) rotate(-2deg); }
+}
+.empty-icon-float {
+  animation: empty-icon-bob 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Pulsing glow ring — expands and fades */
+@keyframes empty-glow-pulse {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 0.15; }
+  100% { transform: scale(0.8); opacity: 0.4; }
+}
+.empty-glow-ring {
+  width: 64px;
+  height: 64px;
+  filter: blur(12px);
+  animation: empty-glow-pulse 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Sparkle dots — tiny twinkling particles around icon */
+@keyframes empty-sparkle-blink-1 {
+  0%, 100% { opacity: 0.6; transform: translate(0, 0) scale(1); }
+  50% { opacity: 0.2; transform: translate(2px, -3px) scale(0.6); }
+}
+@keyframes empty-sparkle-blink-2 {
+  0%, 100% { opacity: 0.3; transform: translate(0, 0) scale(1); }
+  50% { opacity: 0.7; transform: translate(-2px, 2px) scale(1.3); }
+}
+@keyframes empty-sparkle-blink-3 {
+  0%, 100% { opacity: 0.5; transform: translate(0, 0) scale(1); }
+  33% { opacity: 0.2; transform: translate(1px, -2px) scale(0.7); }
+  66% { opacity: 0.8; transform: translate(-1px, 3px) scale(1.2); }
+}
+@keyframes empty-sparkle-blink-4 {
+  0%, 100% { opacity: 0.3; transform: translate(0, 0) scale(0.8); }
+  50% { opacity: 0.6; transform: translate(3px, 1px) scale(1.1); }
+}
+
+.empty-sparkle-1 {
+  top: -4px;
+  right: -6px;
+  animation: empty-sparkle-blink-1 2s ease-in-out infinite;
+}
+.empty-sparkle-2 {
+  top: -8px;
+  left: 2px;
+  animation: empty-sparkle-blink-2 2.5s ease-in-out infinite 0.3s;
+}
+.empty-sparkle-3 {
+  bottom: -2px;
+  right: -8px;
+  animation: empty-sparkle-blink-3 2.2s ease-in-out infinite 0.6s;
+}
+.empty-sparkle-4 {
+  bottom: 2px;
+  left: -4px;
+  animation: empty-sparkle-blink-4 2.8s ease-in-out infinite 0.9s;
+}
+
+/* Gradient text subtle shimmer for empty state */
+@keyframes empty-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.empty-gradient-text {
+  background-size: 200% auto;
+  animation: empty-gradient-shift 4s ease-in-out infinite;
+}
+
+/* ============================================
+   HERO BANNER — Dashboard enhancements
+   ============================================ */
+
+/* Animated mesh gradient for hero banner background */
+@keyframes hero-mesh-drift {
+  0%, 100% {
+    background-position: 0% 50%, 100% 50%, 50% 0%;
+  }
+  25% {
+    background-position: 50% 0%, 0% 50%, 100% 50%;
+  }
+  50% {
+    background-position: 100% 50%, 50% 100%, 0% 50%;
+  }
+  75% {
+    background-position: 50% 100%, 100% 50%, 50% 0%;
+  }
+}
+
+.hero-mesh-bg-male {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(8, 145, 178, 0.06) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: hero-mesh-drift 12s ease-in-out infinite;
+}
+
+.hero-mesh-bg-female {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(192, 132, 252, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(147, 51, 234, 0.06) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: hero-mesh-drift 12s ease-in-out infinite;
+}
+
+/* Shimmer/shine sweep across the hero banner */
+@keyframes hero-shimmer-sweep {
+  0% { transform: translateX(-100%) rotate(15deg); }
+  100% { transform: translateX(200%) rotate(15deg); }
+}
+
+.hero-shimmer-sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(229, 190, 74, 0.03) 40%,
+    rgba(229, 190, 74, 0.07) 50%,
+    rgba(229, 190, 74, 0.03) 60%,
+    transparent 100%
+  );
+  animation: hero-shimmer-sweep 6s ease-in-out infinite;
+}
+
+/* Division badge glow — prominent pulsing accent */
+@keyframes division-badge-glow-male {
+  0%, 100% { box-shadow: 0 0 8px rgba(34, 211, 238, 0.2), 0 0 16px rgba(34, 211, 238, 0.1); }
+  50% { box-shadow: 0 0 12px rgba(34, 211, 238, 0.4), 0 0 24px rgba(34, 211, 238, 0.2), 0 0 36px rgba(34, 211, 238, 0.05); }
+}
+@keyframes division-badge-glow-female {
+  0%, 100% { box-shadow: 0 0 8px rgba(192, 132, 252, 0.2), 0 0 16px rgba(192, 132, 252, 0.1); }
+  50% { box-shadow: 0 0 12px rgba(192, 132, 252, 0.4), 0 0 24px rgba(192, 132, 252, 0.2), 0 0 36px rgba(192, 132, 252, 0.05); }
+}
+
+.division-badge-glow-male {
+  animation: division-badge-glow-male 2.5s ease-in-out infinite;
+}
+.division-badge-glow-female {
+  animation: division-badge-glow-female 2.5s ease-in-out infinite;
+}
+
+/* ============================================
+   ACTIVITY FEED — Dashboard enhancements
+   ============================================ */
+
+/* Glass shimmer on activity cards — subtle diagonal highlight */
+@keyframes activity-card-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.activity-card-glass {
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-card-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.02) 45%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.02) 55%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: activity-card-shimmer 4s ease-in-out infinite;
+}
+
+/* Scroll-to-top button for activity feed */
+@keyframes scroll-top-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.scroll-top-btn-enter {
+  animation: scroll-top-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Disable infinite animations for reduced-motion users */
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-slow,
@@ -287,7 +497,20 @@
   .animate-wiggle,
   .parallax-bg,
   .parallax-layer,
-  .perspective-card {
+  .perspective-card,
+  .empty-icon-float,
+  .empty-glow-ring,
+  .empty-sparkle-1,
+  .empty-sparkle-2,
+  .empty-sparkle-3,
+  .empty-sparkle-4,
+  .empty-gradient-text,
+  .hero-mesh-bg-male,
+  .hero-mesh-bg-female,
+  .hero-shimmer-sweep::after,
+  .division-badge-glow-male,
+  .division-badge-glow-female,
+  .activity-card-glass::after {
     animation: none;
     transform: none !important;
   }
@@ -3862,4 +4085,249 @@ html {
   .milestone-card-2:hover {
     box-shadow: none;
   }
+}
+
+/* ============================================
+   DASHBOARD ENHANCEMENT ANIMATIONS
+   Empty states, hero banner, player rows, activity feed
+   ============================================ */
+
+/* ── Animated Empty State ── */
+
+/* Pulsing glow ring behind empty state icon */
+@keyframes empty-glow-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+}
+.empty-glow-ring {
+  animation: empty-glow-pulse 3s ease-in-out infinite;
+}
+
+/* Floating icon animation — CSS only */
+@keyframes empty-icon-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(2px) rotate(-1deg);
+  }
+}
+.empty-icon-float {
+  animation: empty-icon-float 4s ease-in-out infinite;
+}
+
+/* Sparkle dots around empty state icon */
+@keyframes empty-sparkle-1 {
+  0%, 100% { opacity: 0; transform: scale(0.5) translate(0, 0); }
+  50% { opacity: 1; transform: scale(1) translate(4px, -6px); }
+}
+@keyframes empty-sparkle-2 {
+  0%, 100% { opacity: 0; transform: scale(0.5) translate(0, 0); }
+  50% { opacity: 1; transform: scale(1) translate(-5px, -4px); }
+}
+@keyframes empty-sparkle-3 {
+  0%, 100% { opacity: 0; transform: scale(0.5) translate(0, 0); }
+  50% { opacity: 1; transform: scale(1) translate(3px, 5px); }
+}
+.empty-sparkle-1 { animation: empty-sparkle-1 2.5s ease-in-out infinite; }
+.empty-sparkle-2 { animation: empty-sparkle-2 3s ease-in-out infinite 0.5s; }
+.empty-sparkle-3 { animation: empty-sparkle-3 2.8s ease-in-out infinite 1s; }
+
+/* ── Hero Banner Enhancements ── */
+
+/* Animated mesh gradient background for hero */
+@keyframes hero-mesh-shift {
+  0%, 100% {
+    background-position: 0% 50%, 100% 50%, 50% 0%;
+  }
+  33% {
+    background-position: 50% 0%, 0% 50%, 100% 100%;
+  }
+  66% {
+    background-position: 100% 50%, 50% 100%, 0% 0%;
+  }
+}
+.hero-mesh-bg {
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  animation: hero-mesh-shift 8s ease-in-out infinite;
+}
+
+/* Shimmer/shine sweep across hero banner */
+@keyframes hero-shine-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+.hero-shine-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  animation: hero-shine-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Division badge glow effect */
+@keyframes badge-glow-breathe {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--idm-glow), 0 0 16px rgba(229, 190, 74, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 12px var(--idm-glow), 0 0 24px rgba(229, 190, 74, 0.2);
+  }
+}
+.badge-glow-breathe {
+  animation: badge-glow-breathe 3s ease-in-out infinite;
+}
+
+/* Floating particle dots in hero banner */
+@keyframes hero-particle-1 {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  50% { transform: translateY(-8px) translateX(4px); opacity: 0.7; }
+}
+@keyframes hero-particle-2 {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+  50% { transform: translateY(-12px) translateX(-3px); opacity: 0.6; }
+}
+@keyframes hero-particle-3 {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.4; }
+  50% { transform: translateY(-6px) translateX(6px); opacity: 0.8; }
+}
+.hero-particle { pointer-events: none; position: absolute; border-radius: 50%; }
+.hero-particle-1 { animation: hero-particle-1 4s ease-in-out infinite; }
+.hero-particle-2 { animation: hero-particle-2 5s ease-in-out infinite 0.5s; }
+.hero-particle-3 { animation: hero-particle-3 3.5s ease-in-out infinite 1s; }
+
+/* Breathing progress bar glow */
+@keyframes progress-breathe {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(229, 190, 74, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(229, 190, 74, 0.5), 0 0 20px rgba(229, 190, 74, 0.15);
+  }
+}
+.progress-breathe {
+  animation: progress-breathe 3s ease-in-out infinite;
+}
+
+/* ── Player List Row Enhancements ── */
+
+/* Left-border accent reveal on hover */
+.player-row-accent {
+  position: relative;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.player-row-accent:hover {
+  border-left-color: var(--idm-gold);
+  background: linear-gradient(90deg, rgba(229, 190, 74, 0.04), transparent);
+}
+
+/* Rank-specific border colors */
+.player-row-rank-1 { border-left-color: #fbbf24; } /* gold */
+.player-row-rank-2 { border-left-color: #9ca3af; } /* silver */
+.player-row-rank-3 { border-left-color: #d97706; } /* bronze */
+.player-row-rank-1:hover { border-left-color: #fbbf24; background: linear-gradient(90deg, rgba(251, 191, 36, 0.06), transparent); }
+.player-row-rank-2:hover { border-left-color: #9ca3af; background: linear-gradient(90deg, rgba(156, 163, 175, 0.06), transparent); }
+.player-row-rank-3:hover { border-left-color: #d97706; background: linear-gradient(90deg, rgba(217, 119, 6, 0.06), transparent); }
+
+/* Count-up animation for points */
+@keyframes count-up-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.points-count-up {
+  animation: count-up-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Activity Feed Enhancements ── */
+
+/* Glass shimmer on activity cards */
+@keyframes activity-card-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.activity-card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.activity-card-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 45%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 55%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: activity-card-shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Ripple effect on new activity items */
+@keyframes activity-ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.activity-ripple-enter {
+  animation: activity-ripple 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reduced motion for dashboard enhancement animations */
+@media (prefers-reduced-motion: reduce) {
+  .empty-glow-ring,
+  .empty-icon-float,
+  .empty-sparkle-1,
+  .empty-sparkle-2,
+  .empty-sparkle-3,
+  .hero-mesh-bg,
+  .hero-shine-sweep::after,
+  .badge-glow-breathe,
+  .hero-particle-1,
+  .hero-particle-2,
+  .hero-particle-3,
+  .progress-breathe,
+  .points-count-up,
+  .activity-card-shimmer::before,
+  .activity-ripple-enter {
+    animation: none;
+    transform: none;
+  }
+  .empty-glow-ring { opacity: 0.3; }
+  .hero-shine-sweep::after { display: none; }
+  .activity-card-shimmer::before { display: none; }
 }

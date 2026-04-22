@@ -1,8 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Clock, Loader2 } from 'lucide-react';
+import { Activity, Clock, Loader2, ArrowUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Activity {
@@ -29,6 +30,18 @@ function formatRelativeTime(dateStr: string): string {
   if (diffHours < 24) return `${diffHours} jam lalu`;
   if (diffDays < 7) return `${diffDays} hari lalu`;
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
+
+/** Get opacity class based on activity age for visual hierarchy */
+function getAgeOpacity(timestamp: string): string {
+  const now = new Date();
+  const date = new Date(timestamp);
+  const diffHours = (now.getTime() - date.getTime()) / 3600000;
+
+  if (diffHours < 1) return 'opacity-100';       // Fresh — full opacity
+  if (diffHours < 6) return 'opacity-90';         // Recent — slightly dimmed
+  if (diffHours < 24) return 'opacity-75';        // Older — more dimmed
+  return 'opacity-60';                             // Stale — most dimmed
 }
 
 const typeStyles = {
@@ -77,11 +90,12 @@ const itemVariants = {
 
 function ActivityItem({ activity }: { activity: Activity }) {
   const style = typeStyles[activity.type];
+  const ageOpacity = getAgeOpacity(activity.timestamp);
 
   return (
     <motion.div
       variants={itemVariants}
-      className={`group relative flex gap-3 p-3 rounded-lg ${style.bg} ${style.border} border transition-all hover:shadow-md ${style.glow}`}
+      className={`activity-card-glass group relative flex gap-3 p-3 rounded-lg ${style.bg} ${style.border} border transition-all hover:shadow-md ${style.glow} ${ageOpacity}`}
     >
       {/* Timeline dot & line */}
       <div className="flex flex-col items-center shrink-0 pt-0.5">
@@ -121,13 +135,9 @@ function EmptyState() {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center justify-center py-12 text-center"
     >
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="mb-4"
-      >
+      <div className="animate-float-subtle mb-4">
         <Activity className="w-10 h-10 text-muted-foreground/30" />
-      </motion.div>
+      </div>
       <p className="text-sm text-muted-foreground/60 font-medium">Belum ada aktivitas</p>
       <p className="text-xs text-muted-foreground/40 mt-1">Aktivitas terbaru akan muncul di sini</p>
     </motion.div>
@@ -164,9 +174,28 @@ export function ActivityFeed() {
   });
 
   const activities: Activity[] = data?.activities ?? [];
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    if (scrollRef.current) {
+      setShowScrollTop(scrollRef.current.scrollTop > 120);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  const scrollToTop = useCallback(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   return (
-    <Card className="perspective-card overflow-hidden">
+    <Card className="perspective-card overflow-hidden relative">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Activity className="w-4 h-4 text-amber-400" />
@@ -182,7 +211,7 @@ export function ActivityFeed() {
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         {isLoading ? (
           <LoadingState />
         ) : isError ? (
@@ -193,20 +222,33 @@ export function ActivityFeed() {
         ) : activities.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="max-h-96 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activities.map(a => a.id).join(',')}
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="flex flex-col gap-2"
+          <div className="relative">
+            <div ref={scrollRef} className="max-h-96 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activities.map(a => a.id).join(',')}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="flex flex-col gap-2"
+                >
+                  {activities.map((activity) => (
+                    <ActivityItem key={activity.id} activity={activity} />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Scroll to top button — appears when feed is scrolled down */}
+            {showScrollTop && (
+              <button
+                onClick={scrollToTop}
+                aria-label="Scroll to top of activity feed"
+                className="scroll-top-btn-enter absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-idm-gold-warm/15 border border-idm-gold-warm/30 flex items-center justify-center text-idm-gold-warm hover:bg-idm-gold-warm/25 hover:border-idm-gold-warm/50 transition-all duration-200 cursor-pointer"
               >
-                {activities.map((activity) => (
-                  <ActivityItem key={activity.id} activity={activity} />
-                ))}
-              </motion.div>
-            </AnimatePresence>
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         )}
       </CardContent>
