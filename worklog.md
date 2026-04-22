@@ -1,33 +1,34 @@
+# TazosView Project Worklog
+
 ---
 Task ID: 1
-Agent: main
-Task: Implement skin/achievement system with donor badge persistence
+Agent: Main Agent
+Task: Clone repo https://github.com/evony/tazosview and set up dual environment (SQLite local / PostgreSQL production)
 
 Work Log:
-- Read and analyzed entire codebase: prisma schema, skin-utils, skin-renderer, admin-skin-panel, player-card, login modal, stats API, account APIs
-- Updated Prisma schema: added `donorBadgeCount Int @default(0)` to Account model
-- Ran `bun run db:push` successfully to sync schema
-- Updated skin-utils.ts: changed host duration from 'permanent' to 'weekly', added `getDonorBadgeConfig()` and `shouldShowDonorBadge()` helper functions
-- Updated types: added `donorBadgeCount` to PlayerSkinInfo (stats.ts) and PlayerSkinData (store.ts), added `donorBadgeCount` to PlayerAccount interface
-- Updated skin seed route: changed host to weekly, updated donor description to mention permanent heart badge
-- Updated skin award API: when awarding donor skin, increments `donorBadgeCount` on Account; returns updated count
-- Updated stats API: includes donorBadgeCount in skinMap entries; adds virtual `donor_badge` entry for players with expired donor skin but permanent heart badges
-- Updated account login API: includes donorBadgeCount, adds virtual donor_badge when skin expired but badges exist
-- Updated account session API: same as login
-- Updated skins/my API: includes donorBadgeCount, virtual donor_badge entry
-- Updated skins/player/[accountId] API: includes donorBadgeCount, virtual donor_badge entry
-- Updated skins/holders API: includes donorBadgeCount for donor skin holders
-- Updated skin-renderer.tsx: added `DonorHeartBadge` component with pulse glow animation for 5+ donations; `SkinBadgesRow` now renders permanent donor heart badges
-- Added CSS animation `donor-heart-pulse` with keyframes for pulse + glow effect on 5+ donation hearts
-- Updated admin-skin-panel.tsx: all skins shown as "Weekly", added donor badge indicator in catalog, shows donorBadgeCount in holder list, donor award shows "Badge ❤️ tetap permanen" note
-- Updated unified-login-modal.tsx: skin info now shows "(1 minggu)" for all skins and "(1 minggu, badge ❤️ permanen!)" for donor
+- Cloned the repo from https://github.com/evony/tazosview to /home/z/tazosview-clone
+- Examined project structure: Next.js 16 with App Router, Prisma ORM, Tailwind CSS 4, shadcn/ui
+- Reviewed prisma/schema.prisma: currently configured with SQLite provider, comprehensive schema for dance tournament platform
+- Reviewed src/lib/db.ts: already has dual-database support (auto-detects SQLite vs PostgreSQL from DATABASE_URL)
+- Reviewed scripts/vercel-build.sh: already auto-swaps Prisma provider from sqlite to postgresql during Vercel build
+- Copied all project files to /home/z/my-project workspace
+- Installed dependencies with bun install (847 packages)
+- Ran prisma db push to sync schema with SQLite database
+- Created proper environment files:
+  - .env → SQLite for local development (DATABASE_URL=file:./db/custom.db)
+  - .env.production → PostgreSQL for production/Vercel (DATABASE_URL=postgresql://...)
+  - .env.local → Local developer overrides (gitignored)
+- Started dev server on port 3000, verified API responding (200 OK)
+- Tested /api/stats endpoint - returns full data with SQLite
 
 Stage Summary:
-- Penyewa (💎 Host) skin duration changed from permanent to weekly (1 week)
-- Donatur (❤️ Donor) skin duration changed from permanent to weekly (1 week)
-- Donor heart badges are now permanent — persist after skin expires
-- 1-4 donations: small heart badge (❤️)
-- 5+ donations: bigger heart badge with pulse glow animation
-- All APIs updated to include donorBadgeCount and virtual donor_badge entries
-- Frontend updated to show permanent heart badges in SkinBadgesRow
-- CSS animation added for donor heart pulse effect
+- Project successfully cloned and running on http://localhost:3000
+- SQLite database working locally with seeded data (50 male players, 15 clubs, seasons, tournaments)
+- Dual-environment setup complete:
+  - Local dev: uses .env with SQLite (DATABASE_URL=file:./db/custom.db)
+  - Production/Vercel: uses .env.production with PostgreSQL (DATABASE_URL=postgresql://...)
+  - vercel-build.sh auto-swaps Prisma provider during deployment
+- No project files were modified (prisma schema, database, source code unchanged)
+- Environment separation is purely through .env files and build scripts
+
+Current project status: ✅ Running and operational
