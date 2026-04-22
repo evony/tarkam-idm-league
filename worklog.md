@@ -233,6 +233,80 @@ The project is **stable and feature-rich**. Core functionality (tournament manag
 5. Add dark/light mode toggle
 
 ---
+Task ID: 9
+Agent: Main Agent (Cron Round 3)
+Task: QA assessment, bug fixes, styling improvements, and new features
+
+Work Log:
+- Read worklog.md for full project context — stable, many features already implemented
+- Reviewed dev log: Cloudinary 404 errors still occurring, all APIs returning 200
+- QA assessment via code review (agent-browser rate-limited, performed manual review instead)
+- Fixed Cloudinary 404 bug: Updated ClubLogoImage component to always use `unoptimized={true}` for external URLs (Cloudinary, etc.) to avoid server-side 404 errors from Next.js image optimization proxy
+- Enhanced Dream/CTA section styling:
+  - Season Highlights cards now have hover glow effects (radial gradient appears on hover)
+  - Icon scales up on hover with group-hover transition
+  - stat-count-up class added to values for entrance animation
+  - Donation button enhanced with animated shimmer sweep effect on hover
+  - CTA section enhanced with 6 animated floating gold particles
+- Created QuickStatsBar component (`/src/components/idm/dashboard/quick-stats-bar.tsx`):
+  - 7 stat cards in horizontal scroll (mobile) / 3-column grid (desktop)
+  - Stats: Total Players, Total Clubs, Prize Pool, Season Progress, Tournament Status (LIVE/OFF), Top Player, Division MVPs
+  - Glassmorphism cards with backdrop-blur, division-colored icons
+  - Primary card marked with gold border-left and Zap icon watermark
+  - LIVE badge with animated red ping dot
+  - Staggered entrance animations
+- Created PlayerSpotlight component (`/src/components/idm/landing/player-spotlight.tsx`):
+  - Featured #1 ranked player from each division (Male/Female)
+  - Large avatar with animated conic-gradient ring (division-colored)
+  - Crown badge overlay
+  - 2x2 stats grid: Points, Wins, MVP, Streak
+  - Tier badge + Division badge
+  - Club name display
+  - "Lihat Profil" button to open player profile
+  - Glassmorphism cards with hover glow and scale effects
+  - Skeleton loading state and empty state
+- Integrated QuickStatsBar into dashboard (after hero banner)
+- Integrated PlayerSpotlight into landing page (after MVP section)
+- Added "spotlight" to landing page section observer and navigation
+- Added CSS animations for float-particle, spotlight-glow (male/female), spotlight-avatar-ring
+- All CSS animations respect prefers-reduced-motion
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Cloudinary 404 bug fixed — club logos now bypass Next.js image optimization
+- Dream/CTA section enhanced with hover glow, shimmer effects, floating particles
+- New QuickStatsBar dashboard component — 7 stat cards with glassmorphism
+- New PlayerSpotlight landing page component — featured #1 players from each division
+- 3 new CSS animations (float-particle, spotlight-glow, spotlight-avatar-ring)
+- All lint checks pass, dev server operational
+
+## Current Project Status
+
+### Assessment
+The project is **feature-rich and visually polished**. The IDM League tournament platform has comprehensive functionality including tournament management, player registration, league system, admin panel, CMS, live activity feed, stats dashboard with charts, player comparison tool, achievements showcase, player spotlight, and quick stats bar.
+
+### Completed in This Round (Task ID 9)
+- Fixed Cloudinary 404 bug — external image URLs now use unoptimized mode
+- Enhanced Dream/CTA section with hover glow, shimmer, floating particles
+- New QuickStatsBar component on dashboard (7 stat cards)
+- New PlayerSpotlight component on landing page (featured #1 players)
+- 3 new CSS animations added
+
+### Unresolved Issues / Risks
+1. **Framer-motion scroll warning** persists (harmless, from useInView internal check)
+2. **No completed matches** in database — Activity Feed and some dashboard sections show empty states
+3. **MVP section** on landing page shows "MVP Belum Dipilih" since no MVP data exists yet
+4. **Some sections may be empty** until actual tournament data is seeded
+
+### Priority Recommendations for Next Phase
+1. Seed more tournament data (matches, MVP awards) to populate empty sections
+2. Add tournament bracket visualization improvements
+3. Add notification system for real-time tournament updates
+4. Improve admin panel UX with batch operations
+5. Add social sharing features for player profiles
+
+---
 Task ID: 3
 Agent: Dashboard Styling Agent
 Task: Improve dashboard styling with enhanced visuals

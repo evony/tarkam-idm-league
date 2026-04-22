@@ -135,17 +135,19 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
             </div>
           )}
 
-          {/* Season Highlights */}
+          {/* Season Highlights — Enhanced with glow + count-up effect */}
           <div className="stagger-item-fast mt-10 grid grid-cols-3 gap-3 sm:gap-4" style={{ animationDelay: '180ms' }}>
             {[
-              { icon: Shield, value: `${clubsCompeting}`, label: 'Club Bertanding', accent: 'border-idm-gold-warm/15' },
-              { icon: Swords, value: `${matchesPlayed}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]' },
-              { icon: Users, value: `${totalParticipants}`, label: 'Peserta Total', accent: 'border-idm-gold-warm/15' },
+              { icon: Shield, value: `${clubsCompeting}`, label: 'Club Bertanding', accent: 'border-idm-gold-warm/15', glow: 'rgba(212,168,83,0.06)' },
+              { icon: Swords, value: `${matchesPlayed}`, label: 'Match Dimainkan', accent: 'border-white/[0.08]', glow: 'rgba(255,255,255,0.03)' },
+              { icon: Users, value: `${totalParticipants}`, label: 'Peserta Total', accent: 'border-idm-gold-warm/15', glow: 'rgba(212,168,83,0.06)' },
             ].map((s, i) => (
-              <div key={s.label} className={`perspective-card rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.06]`}>
-                <s.icon className="w-4 h-4 text-idm-gold-warm mx-auto mb-2" />
-                <p className="text-lg sm:text-2xl font-black text-white truncate">{s.value}</p>
-                <p className="text-[10px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1">{s.label}</p>
+              <div key={s.label} className={`perspective-card rounded-2xl bg-white/[0.06] border ${s.accent} p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.08] hover:scale-[1.03] hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] group/stat`}>
+                {/* Subtle radial glow behind icon */}
+                <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover/stat:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(ellipse at 50% 30%, ${s.glow}, transparent 70%)` }} />
+                <s.icon className="w-4 h-4 text-idm-gold-warm mx-auto mb-2 relative z-10 group-hover/stat:scale-110 transition-transform duration-300" />
+                <p className="text-lg sm:text-2xl font-black text-white truncate relative z-10 stat-count-up">{s.value}</p>
+                <p className="text-[10px] sm:text-[10px] text-muted-foreground/80 uppercase tracking-wider mt-1 relative z-10">{s.label}</p>
               </div>
             ))}
           </div>
@@ -194,8 +196,11 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
           </div>
 
           <div className="stagger-item-fast mt-8" style={{ animationDelay: '360ms' }}>
-            <button onClick={() => openDonationModal('season')} className="hover-scale-md px-7 py-4 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-shadow cursor-pointer">
-              <Gift className="w-4 h-4 inline mr-2" />Dukung Liga IDM Season {nextSeason}
+            <button onClick={() => openDonationModal('season')} className="hover-scale-md group/donate relative px-7 py-4 rounded-2xl bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-[#0c0a06] font-black text-sm tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.2)] hover:shadow-[0_0_60px_rgba(212,168,83,0.4)] transition-all cursor-pointer overflow-hidden">
+              {/* Animated shimmer sweep across button */}
+              <div className="absolute inset-0 -translate-x-full group-hover/donate:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <Gift className="w-4 h-4 inline mr-2 relative z-10" />
+              <span className="relative z-10">Dukung Liga IDM Season {nextSeason}</span>
             </button>
           </div>
         </div>
@@ -206,6 +211,22 @@ export function DreamSection({ maleData, femaleData, leagueData, nextSeason, com
         <div className="absolute inset-0">
           <Image src="/bg-section.jpg" alt="" fill sizes="100vw" className="object-cover opacity-10" aria-hidden="true" />
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 50%)' }} />
+        </div>
+
+        {/* Animated floating particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-idm-gold-warm/20"
+              style={{
+                left: `${15 + i * 15}%`,
+                top: `${20 + (i % 3) * 25}%`,
+                animation: `float-particle ${8 + i * 2}s ease-in-out infinite`,
+                animationDelay: `${i * -1.5}s`,
+              }}
+            />
+          ))}
         </div>
 
         {/* Decorative corner accents */}

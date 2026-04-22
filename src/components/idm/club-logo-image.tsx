@@ -76,7 +76,11 @@ export function ClubLogoImage({
     );
   }
 
-  const shouldUnoptimize = isPlaceholder || errorStage >= 1;
+  // Always use unoptimized for external URLs (Cloudinary, etc.) to avoid
+  // server-side 404 errors from Next.js image optimization proxy.
+  // Data URI placeholders also can't be optimized by Next.js.
+  const isExternalUrl = src.startsWith('http');
+  const shouldUnoptimize = isPlaceholder || isExternalUrl || errorStage >= 1;
 
   if (fill) {
     return (

@@ -4774,3 +4774,82 @@ html {
   pointer-events: none;
   opacity: 0.3;
 }
+
+/* ============================================
+   TASK 9 — FLOAT PARTICLE & PLAYER SPOTLIGHT
+   CTA section floating particles + spotlight card glow
+   ============================================ */
+
+/* Floating particle for CTA section */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translateY(-20px) translateX(5px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-10px) translateX(-3px);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translateY(-25px) translateX(8px);
+    opacity: 0.6;
+  }
+}
+
+/* Spotlight card glow — division-colored pulse */
+@keyframes spotlight-glow-male {
+  0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.08), 0 0 40px rgba(6, 182, 212, 0.04); }
+  50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.15), 0 0 60px rgba(6, 182, 212, 0.08); }
+}
+
+@keyframes spotlight-glow-female {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.08), 0 0 40px rgba(168, 85, 247, 0.04); }
+  50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.08); }
+}
+
+.spotlight-glow-male {
+  animation: spotlight-glow-male 3s ease-in-out infinite;
+}
+
+.spotlight-glow-female {
+  animation: spotlight-glow-female 3s ease-in-out infinite;
+}
+
+/* Spotlight avatar ring — animated conic gradient ring */
+@keyframes spotlight-ring-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spotlight-avatar-ring {
+  position: relative;
+}
+
+.spotlight-avatar-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    var(--ring-color, rgba(229, 190, 74, 0.5)) 25%,
+    transparent 50%,
+    var(--ring-color, rgba(229, 190, 74, 0.5)) 75%,
+    transparent 100%
+  );
+  animation: spotlight-ring-rotate 4s linear infinite;
+  z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-glow-male,
+  .spotlight-glow-female,
+  .spotlight-avatar-ring::before {
+    animation: none;
+  }
+}

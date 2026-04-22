@@ -17,6 +17,7 @@ import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
 import { AchievementsSection } from './landing/achievements-section';
+import { PlayerSpotlight } from './landing/player-spotlight';
 import { ChampionsSection } from './landing/champions-section';
 import { MvpSection } from './landing/mvp-section';
 import { DreamSection } from './landing/dream-section';
@@ -170,7 +171,7 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'clubs', 'achievements', 'dream'];
+    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'achievements', 'dream'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -379,6 +380,16 @@ export function LandingPage() {
         femaleData={femaleData}
         isDataLoading={isDataLoading}
         cmsSections={cmsSections}
+        setSelectedPlayer={setSelectedPlayer}
+      />
+
+      <div className="section-divider max-w-4xl mx-auto" />
+
+      {/* Player Spotlight — Featured #1 players */}
+      <PlayerSpotlight
+        maleData={maleData}
+        femaleData={femaleData}
+        isDataLoading={isDataLoading}
         setSelectedPlayer={setSelectedPlayer}
       />
 

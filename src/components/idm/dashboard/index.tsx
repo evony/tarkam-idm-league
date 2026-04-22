@@ -44,6 +44,7 @@ import { PlayerAccountModal } from '../player-account-modal';
 import { MyAccountCard } from '../my-account-card';
 import { ActivityFeed } from '../activity-feed';
 import { StatsTab } from './stats-tab';
+import { QuickStatsBar } from './quick-stats-bar';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -229,6 +230,9 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ========== QUICK STATS BAR — At-a-glance summary ========== */}
+      <QuickStatsBar data={data} division={division} />
 
       {/* ========== COUNTDOWN / STATUS + PRIZE POOL ========== */}
       <div className="stagger-item-subtle stagger-d1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
