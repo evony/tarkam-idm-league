@@ -12,7 +12,6 @@ import type { StatsData } from '@/types/stats';
 
 // Section components
 import { HeroSection } from './landing/hero-section';
-import { StatsTicker } from './landing/stats-ticker';
 import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
@@ -366,15 +365,6 @@ export function LandingPage() {
         onRegister={() => setRegistrationModalOpen(true)}
         onVideoPlay={openVideoModal}
       />
-
-      {/* Stats Ticker — Animated scrolling platform stats */}
-      <div className="section-reveal">
-      <StatsTicker
-        maleData={maleData}
-        femaleData={femaleData}
-        leagueData={leagueData}
-      />
-      </div>
 
       {/* Season Timeline — Visual progression of all seasons */}
       <div className="section-reveal">

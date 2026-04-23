@@ -1369,3 +1369,27 @@ The project is **feature-rich and visually polished**. The IDM League tournament
 3. Consolidate mobile bottom nav (group sections, use scrollable nav)
 4. Add tournament bracket visualization
 5. Add notification system for real-time tournament updates
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix marquee not scrolling + merge 2 marquees into 1 unified ticker
+
+Work Log:
+- Diagnosed marquee not scrolling: CSS animations overridden by Tailwind v4 CSS layer system
+- Fixed both marquees by switching from CSS animation to JS requestAnimationFrame-driven scroll
+- User requested merging 2 separate marquees into 1 unified scrolling bar
+- MarqueeTicker (hero section, feed items) + StatsTicker (stats section, platform stats) → combined into single UnifiedMarqueeTicker
+- New unified MarqueeTicker shows: 6 stat cards (Players, Clubs, Prize Pool, Matches, Season, Champion) + feed items (champions, MVPs, donations, scores, transfers, registrations)
+- Stats cards have gold-tinted styling to differentiate from feed items, with count-up animation
+- Feed items show division dots and time badges as before
+- Removed separate StatsTicker section from landing page
+- Removed StatsTicker import from landing-page.tsx
+- All lint checks pass, dev server running clean
+
+Stage Summary:
+- 2 marquees merged into 1 clean unified marquee in hero section
+- JS-driven requestAnimationFrame scroll (not CSS animation) — guaranteed to work with Tailwind v4
+- Stats + Feed items interleaved with diamond separators
+- Hover to pause, seamless infinite loop
+- Old stats-ticker.tsx file kept but no longer imported

@@ -340,9 +340,9 @@ export function HeroSection({
         </motion.div>
       </section>
 
-      {/* ========== LIVE INFO TICKER — Marquee Banner ========== */}
+      {/* ========== UNIFIED MARQUEE — Stats + Live Feed ========== */}
       <div className="relative z-40 py-2.5 bg-background/60 backdrop-blur-md border-y border-idm-gold-warm/10">
-        <MarqueeTicker />
+        <MarqueeTicker maleData={maleData} femaleData={undefined} leagueData={leagueData} />
       </div>
     </>
   );

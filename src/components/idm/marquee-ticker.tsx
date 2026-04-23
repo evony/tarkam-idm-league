@@ -2,19 +2,22 @@
 
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Users, Shield, Wallet, Swords, Trophy, Calendar } from 'lucide-react';
 import Pusher from 'pusher-js';
-import { hexToRgba } from '@/lib/utils';
+import { hexToRgba, formatCurrency } from '@/lib/utils';
+import type { StatsData } from '@/types/stats';
 
 /* ========== Feed Item Types ========== */
 interface FeedItem {
   id: string;
-  type: 'transfer' | 'donation' | 'score' | 'champion' | 'mvp' | 'registration';
+  type: 'transfer' | 'donation' | 'score' | 'champion' | 'mvp' | 'registration' | 'stat';
   icon: string;
   title: string;
   subtitle: string;
   timestamp: string;
   division?: string;
   accent: string;
+  numericValue?: number;
 }
 
 /* ========== Time Formatter ========== */
@@ -56,16 +59,49 @@ const TYPE_ACCENT: Record<FeedItem['type'], string> = {
   score: '#06b6d4',
   transfer: '#a855f7',
   registration: '#22d3ee',
+  stat: '#d4a853',
 };
+
+/* ========== Count-up hook for stat values ========== */
+function useCountUp(target: number, duration = 1200, delay = 200) {
+  const [current, setCurrent] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started || target <= 0) return;
+    const startTime = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [started, target, duration]);
+
+  return { current };
+}
 
 /* ========== Single Feed Card ========== */
 function FeedCard({ item }: { item: FeedItem }) {
   const accent = item.accent || TYPE_ACCENT[item.type] || '#d4a853';
+  const isStat = item.type === 'stat';
+  const { current } = useCountUp(item.numericValue || 0, 1200, 0);
 
   return (
     <div
-      className="flex items-center gap-2.5 px-4 py-2 rounded-lg shrink-0 border transition-all duration-300 hover:scale-[1.02] cursor-default select-none"
-      style={{
+      className={`flex items-center gap-2.5 px-4 py-2 rounded-lg shrink-0 border transition-all duration-300 cursor-default select-none ${
+        isStat
+          ? 'bg-idm-gold-warm/[0.06] border-idm-gold-warm/20 hover:border-idm-gold-warm/35 hover:shadow-[0_0_16px_rgba(212,168,83,0.1)]'
+          : 'hover:scale-[1.02]'
+      }`}
+      style={isStat ? {} : {
         background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x03)} 100%)`,
         borderColor: hexToRgba(accent, 0x20),
       }}
@@ -80,29 +116,42 @@ function FeedCard({ item }: { item: FeedItem }) {
 
       {/* Content */}
       <div className="flex items-center gap-2 min-w-0">
-        <p className="text-[11px] sm:text-xs font-bold text-foreground truncate max-w-[180px] sm:max-w-[240px]">
-          {item.title}
-        </p>
-        {item.subtitle && (
+        {isStat ? (
+          <div className="flex flex-col">
+            <span className="text-sm font-black text-gradient-fury whitespace-nowrap">
+              {item.numericValue && item.numericValue > 0 ? current : item.title}
+            </span>
+            <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider whitespace-nowrap">{item.subtitle}</span>
+          </div>
+        ) : (
           <>
-            <span className="text-muted-foreground/20 shrink-0 text-[8px]">◆</span>
-            <p className="text-[10px] text-muted-foreground/70 truncate max-w-[100px] sm:max-w-[140px] hidden sm:block">
-              {item.subtitle}
+            <p className="text-[11px] sm:text-xs font-bold text-foreground truncate max-w-[180px] sm:max-w-[240px]">
+              {item.title}
             </p>
+            {item.subtitle && (
+              <>
+                <span className="text-muted-foreground/20 shrink-0 text-[8px]">◆</span>
+                <p className="text-[10px] text-muted-foreground/70 truncate max-w-[100px] sm:max-w-[140px] hidden sm:block">
+                  {item.subtitle}
+                </p>
+              </>
+            )}
           </>
         )}
       </div>
 
-      {/* Time badge */}
-      <span
-        className="text-[9px] font-medium shrink-0 tabular-nums px-1.5 py-0.5 rounded"
-        style={{ color: hexToRgba(accent, 0xaa), background: hexToRgba(accent, 0x10) }}
-      >
-        {formatTimeAgo(item.timestamp)}
-      </span>
+      {/* Time badge — only for feed items */}
+      {!isStat && (
+        <span
+          className="text-[9px] font-medium shrink-0 tabular-nums px-1.5 py-0.5 rounded"
+          style={{ color: hexToRgba(accent, 0xaa), background: hexToRgba(accent, 0x10) }}
+        >
+          {formatTimeAgo(item.timestamp)}
+        </span>
+      )}
 
-      {/* Division dot */}
-      {item.division && (
+      {/* Division dot — only for feed items */}
+      {!isStat && item.division && (
         <span
           className="w-2 h-2 rounded-full shrink-0 ring-1 ring-offset-1 ring-offset-background"
           style={{
@@ -116,15 +165,22 @@ function FeedCard({ item }: { item: FeedItem }) {
   );
 }
 
-/* ========== Separator Diamond ========== */
+/* ========== Separator ========== */
 function Separator() {
   return (
-    <span className="text-[8px] text-idm-gold-warm/30 shrink-0 mx-1 select-none">◆</span>
+    <span className="text-[8px] text-idm-gold-warm/25 shrink-0 mx-1 select-none">◆</span>
   );
 }
 
-/* ========== Main MarqueeTicker — JS-driven Infinite Scroll + Real-time Pusher ========== */
-export function MarqueeTicker() {
+/* ========== Combined Marquee Props ========== */
+interface UnifiedMarqueeProps {
+  maleData?: StatsData;
+  femaleData?: StatsData;
+  leagueData?: any;
+}
+
+/* ========== Unified Marquee — Stats + Feed in one scrolling bar ========== */
+export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqueeProps = {}) {
   const qc = useQueryClient();
   const trackRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
@@ -132,7 +188,6 @@ export function MarqueeTicker() {
   const pausedRef = useRef(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Keep ref in sync with state
   useEffect(() => { pausedRef.current = isPaused; }, [isPaused]);
 
   const { data } = useQuery<{ items: FeedItem[] }>({
@@ -148,11 +203,10 @@ export function MarqueeTicker() {
     refetchOnReconnect: true,
   });
 
-  // Subscribe to Pusher for real-time feed updates
+  // Pusher real-time
   useEffect(() => {
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
     const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
-
     if (!pusherKey || !pusherCluster) return;
 
     const pusher = new Pusher(pusherKey, {
@@ -163,7 +217,6 @@ export function MarqueeTicker() {
     });
 
     const channel = pusher.subscribe('idm-feed');
-
     channel.bind('feed-updated', () => {
       qc.invalidateQueries({ queryKey: ['feed'] });
     });
@@ -175,24 +228,44 @@ export function MarqueeTicker() {
     };
   }, [qc]);
 
-  const items = useMemo(() => {
-    if (data?.items && data.items.length > 0) return data.items;
-    return DEMO_ITEMS;
-  }, [data?.items]);
+  // Build combined items: stats first, then feed items
+  const combinedItems = useMemo(() => {
+    const stats: FeedItem[] = [];
 
-  // Build the track: items + separators, doubled for seamless loop
-  const buildTrack = (trackItems: FeedItem[]) => {
+    // Calculate aggregate stats
+    const totalPlayers = (maleData?.totalPlayers || 0) + (femaleData?.totalPlayers || 0);
+    const totalClubs = leagueData?.stats?.totalClubs || Math.max(maleData?.clubs?.length || 0, femaleData?.clubs?.length || 0);
+    const totalPrizePool = (maleData?.totalPrizePool || 0) + (femaleData?.totalPrizePool || 0);
+    const totalMatches = leagueData?.stats?.totalMatches || (maleData?.recentMatches?.length || 0) + (femaleData?.recentMatches?.length || 0);
+    const seasonInfo = leagueData?.ligaChampion
+      ? `Season ${leagueData.ligaChampion.seasonNumber}`
+      : leagueData?.preSeason ? 'Pre-Season' : 'Season 1';
+
+    stats.push(
+      { id: 'stat-players', type: 'stat', icon: '👥', title: `${totalPlayers}`, subtitle: 'Total Players', timestamp: new Date().toISOString(), accent: '#22d3ee', numericValue: totalPlayers },
+      { id: 'stat-clubs', type: 'stat', icon: '🛡️', title: `${totalClubs}`, subtitle: 'Total Clubs', timestamp: new Date().toISOString(), accent: '#d4a853', numericValue: totalClubs },
+      { id: 'stat-prize', type: 'stat', icon: '💰', title: formatCurrency(totalPrizePool), subtitle: 'Prize Pool', timestamp: new Date().toISOString(), accent: '#22c55e', numericValue: totalPrizePool },
+      { id: 'stat-matches', type: 'stat', icon: '⚔️', title: `${totalMatches}`, subtitle: 'Matches', timestamp: new Date().toISOString(), accent: '#a855f7', numericValue: totalMatches },
+      { id: 'stat-season', type: 'stat', icon: '📅', title: seasonInfo, subtitle: 'Current Season', timestamp: new Date().toISOString(), accent: '#f59e0b' },
+      { id: 'stat-champ', type: 'stat', icon: '🏆', title: leagueData?.ligaChampion?.name || 'TBD', subtitle: 'Reigning Champion', timestamp: new Date().toISOString(), accent: '#d4a853' },
+    );
+
+    const feedItems = (data?.items && data.items.length > 0) ? data.items : DEMO_ITEMS;
+
+    return [...stats, ...feedItems];
+  }, [data?.items, maleData, femaleData, leagueData]);
+
+  // Build the track with separators
+  const trackContent = useMemo(() => {
     const elements: React.ReactNode[] = [];
-    trackItems.forEach((item, i) => {
+    combinedItems.forEach((item, i) => {
       elements.push(<FeedCard key={`card-${item.id}-${i}`} item={item} />);
-      if (i < trackItems.length - 1) {
+      if (i < combinedItems.length - 1) {
         elements.push(<Separator key={`sep-${i}`} />);
       }
     });
     return elements;
-  };
-
-  const trackContent = useMemo(() => buildTrack(items), [items]);
+  }, [combinedItems]);
 
   // JS-driven infinite scroll
   useEffect(() => {
@@ -206,10 +279,7 @@ export function MarqueeTicker() {
         offsetRef.current -= 0.5;
       }
 
-      // Width of one set of items (half = one full cycle)
       const totalWidth = trackRef.current.scrollWidth / 2;
-
-      // Reset offset when scrolled past one full set
       if (Math.abs(offsetRef.current) >= totalWidth) {
         offsetRef.current += totalWidth;
       }
@@ -224,7 +294,7 @@ export function MarqueeTicker() {
     };
   }, []);
 
-  if (items.length === 0) return null;
+  if (combinedItems.length === 0) return null;
 
   return (
     <div
@@ -232,7 +302,7 @@ export function MarqueeTicker() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Fade edges — premium gradient mask */}
+      {/* Fade edges */}
       <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 z-10 pointer-events-none"
         style={{ background: 'linear-gradient(to right, hsl(var(--background)), transparent)' }}
       />
@@ -240,7 +310,7 @@ export function MarqueeTicker() {
         style={{ background: 'linear-gradient(to left, hsl(var(--background)), transparent)' }}
       />
 
-      {/* Scrolling track — 2x duplicated for seamless infinite loop */}
+      {/* Scrolling track — 2x for seamless loop */}
       <div
         ref={trackRef}
         className="flex items-center shrink-0"
