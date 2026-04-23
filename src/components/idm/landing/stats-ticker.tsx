@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Users, Shield, Wallet, Swords, Trophy, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
@@ -53,8 +53,8 @@ function TickerCard({ item, index }: { item: TickerItem; index: number }) {
   const hasNumeric = item.numericValue > 0;
 
   return (
-    <div className="stats-ticker-card flex-shrink-0 flex items-center gap-3 px-5 py-2.5 rounded-xl border border-idm-gold-warm/10 bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-idm-gold-warm/25 hover:shadow-[0_0_20px_rgba(212,168,83,0.1)]">
-      <div className={`w-8 h-8 rounded-lg bg-idm-gold-warm/[0.08] flex items-center justify-center ${item.accent} transition-transform duration-300 group-hover:scale-110`}>
+    <div className="flex-shrink-0 flex items-center gap-3 px-5 py-2.5 rounded-xl border border-idm-gold-warm/10 bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-idm-gold-warm/25 hover:shadow-[0_0_20px_rgba(212,168,83,0.1)]">
+      <div className={`w-8 h-8 rounded-lg bg-idm-gold-warm/[0.08] flex items-center justify-center ${item.accent}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="flex flex-col">
@@ -68,6 +68,9 @@ function TickerCard({ item, index }: { item: TickerItem; index: number }) {
 }
 
 export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerProps) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
   // Calculate aggregate stats across both divisions
   const totalPlayers = (maleData?.totalPlayers || 0) + (femaleData?.totalPlayers || 0);
   const totalClubs = leagueData?.stats?.totalClubs || Math.max(maleData?.clubs?.length || 0, femaleData?.clubs?.length || 0);
@@ -88,11 +91,54 @@ export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerPro
     { icon: Trophy, value: leagueData?.ligaChampion?.name || 'TBD', label: 'Reigning Champion', accent: 'text-idm-gold-warm', numericValue: 0 },
   ];
 
-  // Triplicate items for seamless infinite scroll (3 copies ensures smooth loop)
-  const tickerItems = [...items, ...items, ...items];
+  // Duplicate items for seamless loop — JS-driven scroll
+  const tickerItems = [...items, ...items];
+
+  // JS-driven infinite scroll using requestAnimationFrame
+  const offsetRef = useRef(0);
+  const rafRef = useRef<number>(0);
+  const pausedRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => { pausedRef.current = isPaused; }, [isPaused]);
+
+  useEffect(() => {
+    const animate = () => {
+      if (!trackRef.current) {
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      // Speed: pixels per frame at 60fps ≈ 40px/s
+      if (!pausedRef.current) {
+        offsetRef.current -= 0.65;
+      }
+
+      // Get width of one set of items (half the total)
+      const totalWidth = trackRef.current.scrollWidth / 2;
+
+      // Reset offset when we've scrolled past one full set
+      if (Math.abs(offsetRef.current) >= totalWidth) {
+        offsetRef.current += totalWidth;
+      }
+
+      trackRef.current.style.transform = `translateX(${offsetRef.current}px)`;
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
-    <section className="relative py-4 overflow-hidden" aria-label="Platform statistics ticker">
+    <section
+      className="relative py-4 overflow-hidden"
+      aria-label="Platform statistics ticker"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06] via-idm-gold-warm/[0.03] to-[#0c0a06]" />
 
@@ -106,11 +152,9 @@ export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerPro
 
       <div className="relative z-10">
         <div
+          ref={trackRef}
           className="flex items-center gap-6"
-          style={{
-            width: 'max-content',
-            animation: 'stats-ticker-scroll 30s linear infinite',
-          }}
+          style={{ width: 'max-content', willChange: 'transform' }}
         >
           {tickerItems.map((item, idx) => (
             <TickerCard key={idx} item={item} index={idx % items.length} />
