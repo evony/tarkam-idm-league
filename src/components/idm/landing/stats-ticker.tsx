@@ -88,8 +88,8 @@ export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerPro
     { icon: Trophy, value: leagueData?.ligaChampion?.name || 'TBD', label: 'Reigning Champion', accent: 'text-idm-gold-warm', numericValue: 0 },
   ];
 
-  // Duplicate items for seamless infinite scroll
-  const tickerItems = [...items, ...items];
+  // Triplicate items for seamless infinite scroll (3 copies ensures smooth loop)
+  const tickerItems = [...items, ...items, ...items];
 
   return (
     <section className="relative py-4 overflow-hidden" aria-label="Platform statistics ticker">
@@ -105,7 +105,13 @@ export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerPro
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0c0a06] to-transparent z-10 pointer-events-none" />
 
       <div className="relative z-10">
-        <div className="stats-ticker-track flex items-center gap-6">
+        <div
+          className="flex items-center gap-6"
+          style={{
+            width: 'max-content',
+            animation: 'stats-ticker-scroll 30s linear infinite',
+          }}
+        >
           {tickerItems.map((item, idx) => (
             <TickerCard key={idx} item={item} index={idx % items.length} />
           ))}
