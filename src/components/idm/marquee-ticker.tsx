@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useReducedMotion } from 'framer-motion';
 import Pusher from 'pusher-js';
 import { hexToRgba } from '@/lib/utils';
 
@@ -124,10 +123,17 @@ function Separator() {
   );
 }
 
-/* ========== Main MarqueeTicker — Pro Infinite Scroll + Real-time Pusher ========== */
+/* ========== Main MarqueeTicker — JS-driven Infinite Scroll + Real-time Pusher ========== */
 export function MarqueeTicker() {
-  const prefersReducedMotion = useReducedMotion();
   const qc = useQueryClient();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(0);
+  const rafRef = useRef<number>(0);
+  const pausedRef = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Keep ref in sync with state
+  useEffect(() => { pausedRef.current = isPaused; }, [isPaused]);
 
   const { data } = useQuery<{ items: FeedItem[] }>({
     queryKey: ['feed'],
@@ -137,7 +143,7 @@ export function MarqueeTicker() {
       return res.json();
     },
     staleTime: 0,
-    refetchInterval: 30000, // Reduced polling: 30s fallback (Pusher handles real-time)
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   });
@@ -159,7 +165,6 @@ export function MarqueeTicker() {
     const channel = pusher.subscribe('idm-feed');
 
     channel.bind('feed-updated', () => {
-      // Invalidate feed query to trigger immediate refetch
       qc.invalidateQueries({ queryKey: ['feed'] });
     });
 
@@ -175,12 +180,7 @@ export function MarqueeTicker() {
     return DEMO_ITEMS;
   }, [data?.items]);
 
-  if (items.length === 0) return null;
-
-  // Duration based on item count — smooth & readable
-  const duration = Math.max(30, items.length * 4);
-
-  // Build the track: items + separators, tripled for seamless loop
+  // Build the track: items + separators, doubled for seamless loop
   const buildTrack = (trackItems: FeedItem[]) => {
     const elements: React.ReactNode[] = [];
     trackItems.forEach((item, i) => {
@@ -192,10 +192,46 @@ export function MarqueeTicker() {
     return elements;
   };
 
-  const trackContent = buildTrack(items);
+  const trackContent = useMemo(() => buildTrack(items), [items]);
+
+  // JS-driven infinite scroll
+  useEffect(() => {
+    const animate = () => {
+      if (!trackRef.current) {
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      if (!pausedRef.current) {
+        offsetRef.current -= 0.5;
+      }
+
+      // Width of one set of items (half = one full cycle)
+      const totalWidth = trackRef.current.scrollWidth / 2;
+
+      // Reset offset when scrolled past one full set
+      if (Math.abs(offsetRef.current) >= totalWidth) {
+        offsetRef.current += totalWidth;
+      }
+
+      trackRef.current.style.transform = `translateX(${offsetRef.current}px)`;
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  if (items.length === 0) return null;
 
   return (
-    <div className="w-full overflow-hidden relative group">
+    <div
+      className="w-full overflow-hidden relative group"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       {/* Fade edges — premium gradient mask */}
       <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 z-10 pointer-events-none"
         style={{ background: 'linear-gradient(to right, hsl(var(--background)), transparent)' }}
@@ -204,32 +240,15 @@ export function MarqueeTicker() {
         style={{ background: 'linear-gradient(to left, hsl(var(--background)), transparent)' }}
       />
 
-      {/* Scrolling track — 3x duplicated for seamless infinite loop */}
+      {/* Scrolling track — 2x duplicated for seamless infinite loop */}
       <div
-        className="flex items-center shrink-0 ticker-track"
-        style={{
-          animationName: 'ticker-scroll',
-          animationDuration: `${duration}s`,
-          animationTimingFunction: 'linear',
-          animationIterationCount: 'infinite',
-          animationPlayState: prefersReducedMotion ? 'paused' : 'running',
-        }}
+        ref={trackRef}
+        className="flex items-center shrink-0"
+        style={{ width: 'max-content', willChange: 'transform' }}
       >
         {trackContent}
         {trackContent}
-        {trackContent}
       </div>
-
-      {/* Hover pause overlay */}
-      <style jsx>{`
-        .ticker-track:hover {
-          animation-play-state: paused !important;
-        }
-        @keyframes ticker-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-      `}</style>
     </div>
   );
 }
