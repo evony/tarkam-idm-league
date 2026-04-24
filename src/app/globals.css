@@ -1005,45 +1005,6 @@ div.group:hover .donor-rank-badge {
     0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-/* ============================================
-   COMMUNITY FEED — Landing page
-   ============================================ */
-
-/* Feed card staggered entrance — slide from left with fade */
-@keyframes community-feed-card-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-.community-feed-card {
-  animation: community-feed-card-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  contain: layout style;
-}
-
-/* Community feed container — custom scrollbar styling */
-.community-feed-container {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(229, 190, 74, 0.15) transparent;
-}
-.community-feed-container::-webkit-scrollbar {
-  width: 4px;
-}
-.community-feed-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-.community-feed-container::-webkit-scrollbar-thumb {
-  background: rgba(229, 190, 74, 0.15);
-  border-radius: 4px;
-}
-.community-feed-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(229, 190, 74, 0.3);
-}
-
 /* Noise texture overlay on dark backgrounds */
 .noise-texture {
   position: relative;
@@ -1177,10 +1138,9 @@ div.group:hover .donor-rank-badge {
   .mvp-text-animated,
   .mvp-stats-enhanced,
   .club-card-hover,
-  /* Live Match Indicator & Community Feed */
+  /* Live Match Indicator */
   .live-indicator-result-card,
   .live-match-indicator-card,
-  .community-feed-card,
   /* Featured Matches */
   .featured-match-card,
   /* Visual Polish Enhancement (Task 4) additions */

@@ -16,7 +16,6 @@ import { HeroSection } from './landing/hero-section';
 import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
-import { CommunityFeed } from './landing/community-feed';
 import { ClubLeaderboard } from './landing/club-leaderboard';
 import { PlayerSpotlight } from './landing/player-spotlight';
 import { ChampionsSection } from './landing/champions-section';
@@ -171,7 +170,7 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'leaderboard', 'community', 'dream'];
+    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'leaderboard', 'dream'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -233,7 +232,6 @@ export function LandingPage() {
               { id: 'mvp', label: 'MVP' },
               { id: 'clubs', label: 'Club' },
               { id: 'leaderboard', label: 'Peringkat' },
-              { id: 'community', label: 'Komunitas' },
               { id: 'dream', label: 'Liga IDM' },
             ].map(item => (
               <button
@@ -474,13 +472,6 @@ export function LandingPage() {
           }
         }}
       />
-      </div>
-
-      <SectionDivider />
-
-      {/* Community Feed */}
-      <div className="section-reveal">
-      <CommunityFeed />
       </div>
 
       <SectionDivider />
