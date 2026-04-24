@@ -4,7 +4,6 @@ import React from 'react';
 import {
   Users,
   TrendingUp,
-  Crown,
   Zap,
 } from 'lucide-react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
@@ -29,8 +28,6 @@ interface QuickStatsBarProps {
 export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
   const dt = useDivisionTheme();
 
-  const topPlayer = data.topPlayers?.[0];
-
   const stats: StatCardConfig[] = [
     {
       icon: Users,
@@ -43,18 +40,12 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
       value: `${data.seasonProgress?.percentage ?? 0}%`,
       label: 'Season Progress',
     },
-    {
-      icon: Crown,
-      value: topPlayer ? topPlayer.gamertag : '—',
-      label: topPlayer ? `${topPlayer.points} pts` : 'Top Player',
-    },
-
   ];
 
   return (
     <div
       className="
-        grid grid-cols-3 gap-2
+        grid grid-cols-2 gap-2
         sm:gap-3
         lg:gap-4
       "

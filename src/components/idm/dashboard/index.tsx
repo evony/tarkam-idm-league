@@ -46,6 +46,7 @@ import { LiveMatchIndicator } from './live-match-indicator';
 import { MatchDayCountdown } from './match-day-countdown';
 import { StreakWidget } from './streak-widget';
 import { MatchResultsSummary } from './match-results-summary';
+import { TopPlayerCard } from './top-player-card';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
@@ -312,6 +313,11 @@ export function Dashboard() {
 
           {/* Live Match Counter */}
           <LiveMatchCounter />
+
+          {/* Top Player — right below match status */}
+          <div className="stagger-item-subtle stagger-d1">
+            <TopPlayerCard data={data} division={division} />
+          </div>
 
           {/* Activity Feed */}
           <div className="stagger-item-subtle stagger-d2">
