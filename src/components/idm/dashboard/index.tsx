@@ -387,12 +387,7 @@ export function Dashboard() {
 
         {/* ═══════════════ MATCHES TAB — Now includes match-related widgets ═══════════════ */}
         <TabsContent value="matches" className="mt-3 sm:mt-4 lg:mt-6 space-y-3 sm:space-y-4 lg:space-y-6">
-          {/* Match Results Summary */}
-          <div className="stagger-item-subtle stagger-d3">
-            <MatchResultsSummary />
-          </div>
-
-          {/* Existing Matches Tab Content */}
+          {/* Bracket — shown first for quick access from hero landing */}
           <MatchesTab
             data={data}
             recentMatches={recentMatches}
@@ -401,6 +396,11 @@ export function Dashboard() {
             upcomingByWeek={upcomingByWeek}
             clubs={data.clubs}
           />
+
+          {/* Match Results Summary — below bracket */}
+          <div className="stagger-item-subtle stagger-d3">
+            <MatchResultsSummary />
+          </div>
         </TabsContent>
 
         {/* ═══════════════ PARTICIPANTS TAB — Tournament Poster Grid ═══════════════ */}
