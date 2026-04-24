@@ -214,16 +214,16 @@ export function Dashboard() {
 
             {/* Bottom: Info chips */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5">
-              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Flame className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Trophy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
-              {t?.bpm && <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-xs lg:text-sm text-muted-foreground border border-white/5"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span>}
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-xs lg:text-sm text-muted-foreground border border-white/5"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/50 text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Flame className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/50 text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/50 text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Trophy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+              {t?.bpm && <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/50 text-xs lg:text-sm text-muted-foreground border border-white/5"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span>}
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/50 text-xs lg:text-sm text-muted-foreground border border-white/5"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
             </div>
           </div>
 
           {/* ─── RIGHT ZONE: Prize Pool + Sawer — glass panel ─── */}
-          <div className="hidden sm:flex flex-col items-center justify-center gap-3 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 bg-black/30 backdrop-blur-md p-4 lg:p-6">
+          <div className="hidden sm:flex flex-col items-center justify-center gap-3 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 bg-black/60 p-4 lg:p-6">
             {/* Prize Pool */}
             <div className="text-center">
               <p className="text-[9px] lg:text-xs text-muted-foreground uppercase tracking-widest font-medium mb-1">Prize Pool</p>
@@ -243,7 +243,7 @@ export function Dashboard() {
         </div>
 
         {/* Mobile-only: Prize + Sawer floating bar at bottom */}
-        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-t from-black/80 via-black/60 to-transparent backdrop-blur-sm">
+        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-2 px-4 py-2.5 bg-black/70">
           <div className="flex items-center gap-2">
             <span className="text-idm-gold-warm text-xs font-bold">💰 {formatCurrency(data.totalPrizePool)}</span>
           </div>
