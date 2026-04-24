@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-// framer-motion removed — replaced with CSS animations
 import {
   UserPlus, X, Loader2, MapPin, Phone, Users, Music, CheckCircle2, AlertTriangle, Ban, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
@@ -9,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
 
 interface SimilarPlayer {
@@ -35,13 +35,14 @@ interface RegistrationModalProps {
 }
 
 export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
+  const dt = useDivisionTheme();
   const [division, setDivision] = useState<'male' | 'female'>('male');
   const [formData, setFormData] = useState({
     name: '',
     joki: '',
     phone: '',
     city: '',
-    clubId: '',
+    clubProfileId: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApprovedList, setShowApprovedList] = useState(false);
@@ -63,7 +64,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
     similarPlayers: SimilarPlayer[];
   } | null>(null);
 
-  // Fetch clubs for dropdown
+  // Fetch stats for season info
   const { data: stats } = useQuery({
     queryKey: ['stats', division],
     queryFn: async () => {
@@ -72,15 +73,14 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
     },
   });
 
-  const { data: clubs } = useQuery({
-    queryKey: ['register-clubs', division, stats?.season?.id],
+  // Fetch ClubProfiles (global, not season-specific) for the dropdown
+  const { data: clubProfiles } = useQuery({
+    queryKey: ['register-club-profiles'],
     queryFn: async () => {
-      const seasonId = stats?.season?.id;
-      if (!seasonId) return [];
-      const res = await fetch(`/api/clubs?seasonId=${seasonId}`);
-      return res.json();
+      const res = await fetch('/api/clubs?unified=true');
+      const data = await res.json();
+      return data as Array<{ id: string; name: string; logo: string | null; memberCount: number }>;
     },
-    enabled: !!stats?.season?.id,
   });
 
   // Fetch approved participants for the active tournament
@@ -108,7 +108,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
   });
 
   const handleSubmit = async (force = false) => {
-    if (!formData.name.trim() || !formData.city.trim()) return;
+    if (!formData.name.trim() || !formData.city.trim() || !formData.phone.trim()) return;
 
     setIsSubmitting(true);
     try {
@@ -120,7 +120,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
           joki: formData.joki || null,
           phone: formData.phone || null,
           city: formData.city,
-          clubId: formData.clubId || null,
+          clubProfileId: formData.clubProfileId || null,
           division,
           force,
         }),
@@ -145,7 +145,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
         return;
       }
 
-      // Handle re-registration available response (approved player or rejected/inactive)
+      // Handle re-registration available response
       if (data.canReRegister) {
         setWarningState({
           show: true,
@@ -183,9 +183,9 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
         setSubmitResult({
           success: true,
           message: data.message,
-          gamertag: data.player?.gamertag,
+          gamertag: data.player?.gamertag || data.tournament?.name,
         });
-        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+        setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
       } else {
         setSubmitResult({
@@ -226,7 +226,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
           joki: formData.joki || null,
           phone: formData.phone || null,
           city: formData.city,
-          clubId: formData.clubId || null,
+          clubProfileId: formData.clubProfileId || null,
           division,
           reRegister: true,
           reRegisterPlayerId,
@@ -240,9 +240,9 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
         setSubmitResult({
           success: true,
           message: data.message,
-          gamertag: data.player?.gamertag,
+          gamertag: data.player?.gamertag || data.tournament?.name,
         });
-        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+        setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
       } else {
         setSubmitResult({
@@ -265,7 +265,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
   };
 
   const handleClose = () => {
-    setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+    setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
     setSubmitResult(null);
     setWarningState(null);
     onClose();
@@ -291,12 +291,12 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
             aria-modal="true"
             aria-label="Form Pendaftaran Peserta"
           >
-            <Card className="border-idm-gold-warm/20 bg-background shadow-2xl">
+            <Card className={`border-idm-gold-warm/20 bg-background shadow-2xl ${dt.casinoCard}`}>
               {/* Header */}
               <div className="sticky top-0 bg-background border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${division === 'male' ? 'bg-[#06b6d4]/10' : 'bg-[#a855f7]/10'}`}>
-                    <UserPlus className={`w-5 h-5 ${division === 'male' ? 'text-[#22d3ee]' : 'text-[#c084fc]'}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
+                    <UserPlus className={`w-5 h-5 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-gradient-fury">Daftar Peserta</h2>
@@ -315,45 +315,45 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
               <CardContent className="p-5 space-y-4">
                 {/* Success State */}
                 {submitResult && (
-                  <div className="stagger-item-subtle text-center py-6">
+                  <div className="text-center py-6">
                     {submitResult.success ? (
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
                           <CheckCircle2 className="w-8 h-8 text-green-500" />
                         </div>
-                          <h3 className="text-lg font-bold text-green-500 mb-2">Pendaftaran Berhasil!</h3>
-                          {submitResult.gamertag && (
-                            <p className="text-base font-medium mb-2">
-                              Gamertag kamu: <span className={`${division === 'male' ? 'text-[#22d3ee]' : 'text-[#c084fc]'} font-bold`}>{submitResult.gamertag}</span>
-                            </p>
-                          )}
-                          <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
-                          <Button
-                            onClick={handleClose}
-                            className="bg-idm-gold-warm hover:bg-idm-gold-warm/90 text-[#0c0a06] font-bold"
-                          >
-                            Tutup
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <X className="w-8 h-8 text-red-500 mx-auto mb-3" />
-                          <h3 className="text-lg font-bold text-red-500 mb-2">Gagal Mendaftar</h3>
-                          <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
-                          <Button
-                            variant="outline"
-                            onClick={() => setSubmitResult(null)}
-                          >
-                            Coba Lagi
-                          </Button>
-                        </>
-                      )}
+                        <h3 className="text-lg font-bold text-green-500 mb-2">Pendaftaran Berhasil!</h3>
+                        {submitResult.gamertag && (
+                          <p className="text-base font-medium mb-2">
+                            Gamertag kamu: <span className={`${division === 'male' ? 'text-idm-male' : 'text-idm-female'} font-bold`}>{submitResult.gamertag}</span>
+                          </p>
+                        )}
+                        <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
+                        <Button
+                          onClick={handleClose}
+                          className="bg-idm-gold-warm hover:bg-idm-gold-warm/90 text-[#0c0a06] font-bold"
+                        >
+                          Tutup
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-8 h-8 text-red-500 mx-auto mb-3" />
+                        <h3 className="text-lg font-bold text-red-500 mb-2">Gagal Mendaftar</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setSubmitResult(null)}
+                        >
+                          Coba Lagi
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
 
                 {/* Warning Dialog */}
                 {warningState?.show && (
-                  <div className="stagger-item-subtle p-4 rounded-xl border"
+                  <div className="p-4 rounded-xl border"
                       style={{
                         borderColor: warningState.isBlocked
                           ? warningState.alreadyInTournament
@@ -493,7 +493,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         </div>
                       )}
 
-                      {/* Approved player re-register info (daftar ulang turnamen) */}
+                      {/* Approved player re-register info */}
                       {warningState.canReRegister && warningState.isApprovedPlayer && (
                         <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                           <div className="flex items-start gap-2">
@@ -505,13 +505,13 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         </div>
                       )}
 
-                      {/* Re-registration info (rejected/inactive player) */}
+                      {/* Re-registration info */}
                       {warningState.canReRegister && !warningState.isApprovedPlayer && (
                         <div className="mb-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
                           <div className="flex items-start gap-2">
                             <UserPlus className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                             <div className="text-xs text-cyan-400">
-                              <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke &quot;Menunggu Persetujuan&quot;. Admin akan memilihkan tier untuk Anda.</p>
+                              <p><strong>Daftar Ulang:</strong> Data Anda akan diperbarui dan status dikembalikan ke &quot;Menunggu Persetujuan&quot;. Anda juga otomatis terdaftar di turnamen minggu ini.</p>
                               <p className="mt-1 text-muted-foreground">Tier akan di-reset ke B dan admin akan menentukan tier yang sesuai.</p>
                             </div>
                           </div>
@@ -542,7 +542,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         </div>
                       )}
 
-                      {/* Blocked message (pending in queue) */}
+                      {/* Blocked message */}
                       {warningState.isBlocked && !warningState.alreadyInTournament && (
                         <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                           <div className="flex items-start gap-2">
@@ -622,10 +622,10 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                       <div className="flex items-center bg-muted rounded-xl p-1 gap-1">
                         <button
                           type="button"
-                          onClick={() => { setDivision('male'); setFormData(p => ({ ...p, clubId: '' })); }}
+                          onClick={() => { setDivision('male'); setFormData(p => ({ ...p, clubProfileId: '' })); }}
                           className={`flex-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 ${
                             division === 'male'
-                              ? 'bg-[#06b6d4] text-white shadow-md'
+                              ? 'bg-idm-male text-white shadow-md'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -633,10 +633,10 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setDivision('female'); setFormData(p => ({ ...p, clubId: '' })); }}
+                          onClick={() => { setDivision('female'); setFormData(p => ({ ...p, clubProfileId: '' })); }}
                           className={`flex-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 ${
                             division === 'female'
-                              ? 'bg-[#a855f7] text-white shadow-md'
+                              ? 'bg-idm-female text-white shadow-md'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -656,7 +656,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           placeholder="Masukkan nama atau nickname kamu"
                           value={formData.name}
                           onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
-                          className="pl-9"
+                          className="pl-9 glass"
                           maxLength={30}
                         />
                       </div>
@@ -671,6 +671,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         placeholder="Nama joki jika dimainkan orang lain"
                         value={formData.joki}
                         onChange={(e) => setFormData(p => ({ ...p, joki: e.target.value }))}
+                        className="glass"
                         maxLength={30}
                       />
                       <p className="text-[10px] text-muted-foreground mt-1">Diisi jika player dijokikan oleh player lain</p>
@@ -687,7 +688,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           placeholder="08xxxxxxxxxx"
                           value={formData.phone}
                           onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
-                          className="pl-9"
+                          className="pl-9 glass"
                           type="tel"
                           maxLength={15}
                         />
@@ -705,7 +706,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                           placeholder="Contoh: Makassar, Jakarta, Bandung"
                           value={formData.city}
                           onChange={(e) => setFormData(p => ({ ...p, city: e.target.value }))}
-                          className="pl-9"
+                          className="pl-9 glass"
                           maxLength={30}
                         />
                       </div>
@@ -719,15 +720,15 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                         <Select
-                          value={formData.clubId}
-                          onValueChange={(val) => setFormData(p => ({ ...p, clubId: val === '_none' ? '' : val }))}
+                          value={formData.clubProfileId}
+                          onValueChange={(val) => setFormData(p => ({ ...p, clubProfileId: val === '_none' ? '' : val }))}
                         >
-                          <SelectTrigger className="pl-9">
+                          <SelectTrigger className="pl-9 glass">
                             <SelectValue placeholder="Pilih Club" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="_none">Tanpa Club</SelectItem>
-                            {clubs?.map((c: { id: string; name: string }) => (
+                            {clubProfiles?.map((c) => (
                               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                             ))}
                           </SelectContent>
@@ -737,10 +738,10 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
 
                     {/* Submit */}
                     <Button
-                      className={`w-full font-bold ${
+                      className={`w-full font-semibold ${
                         division === 'male'
-                          ? 'bg-[#06b6d4] hover:bg-[#06b6d4]/90 text-white'
-                          : 'bg-[#a855f7] hover:bg-[#a855f7]/90 text-white'
+                          ? 'bg-idm-male hover:bg-idm-male/90 text-white'
+                          : 'bg-idm-female hover:bg-idm-female/90 text-white'
                       }`}
                       size="lg"
                       disabled={!formData.name.trim() || !formData.city.trim() || !formData.phone.trim() || isSubmitting}

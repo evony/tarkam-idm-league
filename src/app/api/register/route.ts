@@ -52,7 +52,13 @@ function areNamesSimilar(name1: string, name2: string): boolean {
 
 function normalizePhone(phone: string | null): string {
   if (!phone) return '';
-  return phone.replace(/\D/g, '');
+  let digits = phone.replace(/\D/g, '');
+  // Normalize Indonesian phone numbers to local format (08xx)
+  // +62812... or 62812... → 0812...
+  if (digits.startsWith('62') && digits.length >= 10) {
+    digits = '0' + digits.slice(2);
+  }
+  return digits;
 }
 
 function normalizeCity(city: string): string {
@@ -745,6 +751,137 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
 
+    // ====== FINAL SAFEGUARD: Direct DB phone uniqueness check ======
+    // This catches any edge cases the in-memory check might miss
+    const normalizedInputPhone = normalizePhone(trimmedPhone);
+    if (normalizedInputPhone && normalizedInputPhone.length >= 8) {
+      // Manually check all players with phones for a match (since we need normalized comparison)
+      const allPlayersWithPhone = await db.player.findMany({
+        where: { phone: { not: null } },
+        select: { id: true, name: true, gamertag: true, division: true, city: true, phone: true, registrationStatus: true, isActive: true },
+      });
+
+      for (const p of allPlayersWithPhone) {
+        const pNorm = normalizePhone(p.phone);
+        if (pNorm === normalizedInputPhone ||
+          (pNorm.length >= 8 && normalizedInputPhone.length >= 8 &&
+            (normalizedInputPhone.endsWith(pNorm.slice(-8)) || pNorm.endsWith(normalizedInputPhone.slice(-8)))
+          )
+        ) {
+          // Check if this is the same person (same name) or different person
+          const sameName = p.name.toLowerCase().trim() === trimmedName.toLowerCase().trim();
+
+          if (sameName) {
+            // Same name + same phone = re-registration attempt
+            const existingParticipation = activeTournamentParticipations.find(tp => tp.playerId === p.id);
+
+            if (existingParticipation) {
+              return NextResponse.json({
+                blocked: true,
+                error: `Nomor WhatsApp ini sudah terdaftar di turnamen minggu ini atas nama "${p.name}" (status: ${existingParticipation.status}).`,
+                alreadyInTournament: true,
+                similarPlayers: [{
+                  id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                  city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                  matchType: 'phone_match' as const,
+                  matchDetails: { nameMatch: true, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: false },
+                }],
+              }, { status: 409 });
+            }
+
+            if (p.registrationStatus === 'pending') {
+              return NextResponse.json({
+                blocked: true,
+                error: `Pendaftaran diblokir! Nomor WhatsApp ini sudah dalam antrian persetujuan admin atas nama "${p.name}".`,
+                alreadyInTournament: false,
+                similarPlayers: [{
+                  id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                  city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                  matchType: 'phone_match' as const,
+                  matchDetails: { nameMatch: true, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: false },
+                }],
+              }, { status: 409 });
+            }
+
+            if (p.registrationStatus === 'rejected' || !p.isActive) {
+              return NextResponse.json({
+                canReRegister: true,
+                isApprovedPlayer: false,
+                isHighRisk: false,
+                reRegisterPlayerId: p.id,
+                message: `Nomor WhatsApp ini sudah terdaftar dengan nama "${p.name}" tapi ditolak/nonaktif. Anda bisa mendaftar ulang.`,
+                similarPlayers: [{
+                  id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                  city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                  matchType: 'phone_match' as const,
+                  matchDetails: { nameMatch: true, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: false },
+                }],
+              }, { status: 200 });
+            }
+
+            // Approved and active — daftar ulang
+            return NextResponse.json({
+              canReRegister: true,
+              isApprovedPlayer: true,
+              isHighRisk: false,
+              reRegisterPlayerId: p.id,
+              message: `Nomor WhatsApp ini sudah terdaftar atas nama "${p.name}" (gamertag: "${p.gamertag}"). Klik "Daftar Ulang" untuk mendaftar di turnamen minggu ini.`,
+              similarPlayers: [{
+                id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                matchType: 'phone_match' as const,
+                matchDetails: { nameMatch: true, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: false },
+              }],
+            }, { status: 200 });
+          } else {
+            // Different name + same phone = BLOCKED (one phone = one person)
+            const existingParticipation = activeTournamentParticipations.find(tp => tp.playerId === p.id);
+
+            if (existingParticipation) {
+              return NextResponse.json({
+                blocked: true,
+                error: `Nomor WhatsApp ini sudah terdaftar di turnamen minggu ini atas nama "${p.name}" (status: ${existingParticipation.status}). Satu nomor WhatsApp hanya untuk satu peserta.`,
+                alreadyInTournament: true,
+                similarPlayers: [{
+                  id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                  city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                  matchType: 'phone_match' as const,
+                  matchDetails: { nameMatch: false, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: true },
+                }],
+              }, { status: 409 });
+            }
+
+            if (p.registrationStatus === 'pending') {
+              return NextResponse.json({
+                blocked: true,
+                error: `Pendaftaran diblokir! Nomor WhatsApp ini sudah dalam antrian persetujuan admin atas nama "${p.name}". Satu nomor WhatsApp hanya untuk satu peserta.`,
+                alreadyInTournament: false,
+                similarPlayers: [{
+                  id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                  city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                  matchType: 'phone_match' as const,
+                  matchDetails: { nameMatch: false, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: true },
+                }],
+              }, { status: 409 });
+            }
+
+            // Any active/approved/rejected — all blocked if name is different
+            return NextResponse.json({
+              blocked: true,
+              error: `Nomor WhatsApp ini sudah terdaftar atas nama "${p.name}" (gamertag: "${p.gamertag}"). Satu nomor WhatsApp hanya untuk satu peserta. Hubungi admin jika ada kendala.`,
+              alreadyInTournament: false,
+              similarPlayers: [{
+                id: p.id, name: p.name, gamertag: p.gamertag, division: p.division,
+                city: p.city, phone: p.phone, registrationStatus: p.registrationStatus, isActive: p.isActive,
+                matchType: 'phone_match' as const,
+                matchDetails: { nameMatch: false, cityMatch: p.city.toLowerCase().trim() === trimmedCity.toLowerCase().trim(), phoneMatch: true, nameDifferent: true },
+              }],
+            }, { status: 409 });
+          }
+        }
+      }
+    }
+
     // Generate unique gamertag from name
     const baseTag = trimmedName.replace(/\s+/g, '');
     let gamertag = baseTag;
@@ -764,6 +901,9 @@ export async function POST(request: Request) {
       }
     }
 
+    // Normalize phone before storing (ensure consistent format)
+    const phoneToStore = normalizePhone(trimmedPhone) || trimmedPhone;
+
     // Create player with pending registration status
     const player = await db.player.create({
       data: {
@@ -773,7 +913,7 @@ export async function POST(request: Request) {
         tier: 'B',
         city: trimmedCity,
         joki: joki?.trim() || null,
-        phone: trimmedPhone,
+        phone: phoneToStore,
         registrationStatus: 'pending',
         isActive: true,
       },

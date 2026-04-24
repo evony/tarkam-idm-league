@@ -2208,3 +2208,38 @@ Stage Summary:
 - Same WhatsApp number + same name = can re-register (existing flow)
 - Cross-division duplicate phone detection now works
 - Tested: POST /api/register returns 409 for duplicate WA with different name
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Consolidate two registration forms and fix WhatsApp duplicate filtering
+
+Work Log:
+- Investigated two different registration forms:
+  - RegistrationModal (landing page hero) — used old `clubId`, hardcoded colors, fetched clubs from `/api/clubs?seasonId=...`
+  - RegistrationForm (dashboard) — used new `clubProfileId`, theme tokens, fetched from `/api/clubs?unified=true`
+- Rewrote RegistrationModal to match RegistrationForm logic:
+  - Changed `clubId` → `clubProfileId` in formData state
+  - Changed club fetch from `/api/clubs?seasonId=...` → `/api/clubs?unified=true`
+  - Added `useDivisionTheme()` hook for consistent theming
+  - Changed hardcoded hex colors (`bg-[#06b6d4]`, `bg-[#a855f7]`) → theme tokens (`bg-idm-male`, `bg-idm-female`)
+  - Added `glass` class to input fields for consistency
+  - Both forms now send identical data structure to `/api/register`
+- Fixed WhatsApp duplicate filtering in `/api/register/route.ts`:
+  - Enhanced `normalizePhone()` to normalize Indonesian phone formats (628xx → 08xx, +628xx → 08xx)
+  - Added FINAL SAFEGUARD: Direct DB phone uniqueness check before player creation
+    - Queries all players with phone numbers and performs normalized comparison
+    - Handles both same-name + same-phone (re-registration) and different-name + same-phone (BLOCKED)
+    - Returns appropriate blocked/canReRegister/warning responses
+  - Phone numbers now stored in normalized format for consistent future comparisons
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server compiling successfully
+
+Stage Summary:
+- RegistrationModal consolidated with RegistrationForm — both now use clubProfileId, unified clubs, and theme tokens
+- WhatsApp duplicate filtering strengthened with:
+  - Indonesian phone number normalization (62xxx → 08xxx format)
+  - Final DB-level phone uniqueness check as belt-and-suspenders safeguard
+  - Normalized phone storage for consistent future comparisons
+- Both forms now consistent: same fields, same API calls, same theming
+- All lint checks pass, dev server operational
