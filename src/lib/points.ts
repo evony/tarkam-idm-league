@@ -6,13 +6,13 @@ import { db } from '@/lib/db';
 
 // ===== TIER UPGRADE THRESHOLDS =====
 // Based on accumulated points, players can be promoted:
-// B → A: 15 points
-// A → S: 35 points
+// B → A: 150 points
+// A → S: 350 points
 // S is the highest tier, no further upgrade
 
 export const TIER_THRESHOLDS = {
-  B_TO_A: 15,
-  A_TO_S: 35,
+  B_TO_A: 150,
+  A_TO_S: 350,
 } as const;
 
 export const TIER_ORDER = { S: 3, A: 2, B: 1 } as const;

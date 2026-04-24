@@ -134,7 +134,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
 
   const tierSummary = rankings?.tierSummary || { S: 0, A: 0, B: 0 };
   const pendingUpgrades = rankings?.pendingUpgrades || [];
-  const thresholds = rankings?.thresholds || { B_TO_A: 15, A_TO_S: 35 };
+  const thresholds = rankings?.thresholds || { B_TO_A: 150, A_TO_S: 350 };
   const allRankings = rankings?.rankings || [];
 
   // Filter

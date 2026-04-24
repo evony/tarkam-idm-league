@@ -2458,3 +2458,29 @@ Stage Summary:
 - All 14 tournament manager mutations now use safe JSON parsing via `apiFetch()` helper
 - No more "Unexpected end of JSON input" errors on empty server responses
 - All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Investigate marimo's points and adjust tier upgrade thresholds from 15/35 to 150/350
+
+Work Log:
+- User asked why marimo had so many points (26) from a single tournament
+- Investigated tournament TARKAM YUKS... (cmod6ghe7006bu9722r7g82m6) point breakdown
+- marimo's 26 points came from: +1 participation, +2 match win (R1M1), +23 prize Juara 2
+- Root cause: Prize-to-points formula `Math.floor(prizeAmount / 1000 / recipientCount)` converts Rp 70,000 Juara 2 prize into 23 points per player — massively disproportionate to match performance points (+2 per win)
+- Discussed with user: Rather than changing the prize formula, increase tier upgrade thresholds so that prize points feel rewarding but don't trivially cause tier upgrades
+- User chose Option 1: B→A: 150, A→S: 350 (estimated 6-7 consistent tournament wins for upgrade)
+- Updated src/lib/points.ts: TIER_THRESHOLDS from {B_TO_A: 15, A_TO_S: 35} to {B_TO_A: 150, A_TO_S: 350}
+- Updated src/components/idm/ranking-panel.tsx: Hardcoded fallback from {B_TO_A: 15, A_TO_S: 35} to {B_TO_A: 150, A_TO_S: 350}
+- Updated src/components/idm/ui/tier-progress.tsx: Visual thresholds from {D:0, C:100, B:300, A:600, S:1000} to {D:0, C:50, B:100, A:150, S:350} to match new backend thresholds
+- Fixed 27 players in database who had incorrect tiers due to old low thresholds (e.g., players with 1 point were S tier, players with 26 points were A tier — all reverted to B tier)
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Tier upgrade thresholds increased: B→A from 15→150, A→S from 35→350
+- Prize points remain unchanged — still feel rewarding but no longer cause instant tier upgrades
+- All 3 files with threshold references updated consistently
+- 27 players downgraded from incorrect tiers to correct B tier based on new thresholds
+- All lint checks pass, dev server operational

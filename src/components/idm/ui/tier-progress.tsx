@@ -26,10 +26,10 @@ const TIER_ORDER: Array<'D' | 'C' | 'B' | 'A' | 'S'> = ['D', 'C', 'B', 'A', 'S']
 
 const TIER_THRESHOLDS: Record<string, number> = {
   D: 0,
-  C: 100,
-  B: 300,
-  A: 600,
-  S: 1000,
+  C: 50,
+  B: 100,
+  A: 150,
+  S: 350,
 };
 
 interface TierColorSet {
