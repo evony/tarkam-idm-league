@@ -1393,3 +1393,68 @@ Stage Summary:
 - Stats + Feed items interleaved with diamond separators
 - Hover to pause, seamless infinite loop
 - Old stats-ticker.tsx file kept but no longer imported
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Add week selector to Season Champion section
+
+Work Log:
+- Read worklog.md for full project context and reviewed champions-section.tsx
+- Identified that the component only showed the last week's champion (champions[champions.length - 1]) with no way to browse other weeks
+- Refactored champions-section.tsx with major changes:
+  1. Extracted `DivisionChampionCard` as a standalone component with independent week navigation state
+  2. Added `reorderPlayersByTier()` function: S-tier center, A-tier left, B-tier right
+  3. Added week selector UI with:
+     - Horizontal row of week pills (W1, W2, W3, etc.)
+     - Pagination with prev/next ChevronLeft/ChevronRight arrows (5 weeks per page)
+     - Active week pill highlighted with division accent color + glow effect
+     - Phase labels (Early Phase / Mid Phase / Late Phase) based on week position
+     - Week progress counter ("X / Y weeks")
+     - Selected week info bar showing completion date, tournament name, and MVP
+  4. Updated avatar display to use tier-based position indicator (S, A, B badges) instead of numeric position
+  5. Added S-tier center indicator badge ("★ S-Tier") above the center player
+  6. CPT (Captain) badge now shows on the S-tier center player instead of the first player
+  7. Default selection is the latest week (champions.length - 1)
+  8. Week page auto-scrolls to show the latest week on initial load
+- Added useState hooks for selectedWeekIdx and weekPage per division
+- Added useCallback for handleWeekSelect
+- Imports added: useState, useCallback from React; ChevronLeft, ChevronRight from lucide-react; WeeklyChampion type from @/types/stats
+- Ran `bun run lint` — passed with zero errors
+- Verified via agent-browser + VLM:
+  - Division champion cards visible for Male and Female
+  - Week selector pills present and functional (W3, W14 visible)
+  - 3 player avatars per team displayed correctly
+  - No page errors
+  - Layout is clean and cohesive
+
+Stage Summary:
+- Week selector fully implemented with paginated week pills, prev/next navigation, phase labels, and week info bar
+- DivisionChampionCard extracted as independent component with its own week navigation state
+- Players reordered by tier (S center, A left, B right) with tier badges and S-Tier indicator
+- All lint checks pass, dev server operational, VLM visual QA confirmed working
+
+## Current Project Status
+
+### Assessment
+The project is **feature-rich and visually polished**. The Season Champion section now has a fully functional week selector with pagination, tier-based player ordering, and smooth navigation.
+
+### Completed in This Round (Task ID 15)
+- Week selector for Season Champion division cards
+- Tier-based player reordering (S center, A left, B right)
+- Paginated week pills with prev/next navigation
+- Phase labels and week progress indicators
+- Selected week info bar with date, tournament name, MVP
+
+### Unresolved Issues / Risks
+1. **MVP section** still needs enhancement (fallback MVP data display)
+2. **3 avatars per team** now showing correctly with tier-based ordering
+3. **Framer-motion scroll warning** persists (harmless)
+4. **Some sections may be empty** until more tournament data is seeded
+
+### Priority Recommendations for Next Phase
+1. Enhance MVP section with better fallback when no admin-assigned MVP exists
+2. Add animated transitions when switching between weeks
+3. Add "View All Weeks" expanded mode
+4. Improve mobile responsiveness of week selector
+5. Add season selector to switch between different seasons

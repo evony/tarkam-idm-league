@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Trophy, Music, Users, Shield, Crown, Wallet, Flame, Play,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +13,7 @@ import { TierBadge } from '../tier-badge';
 import { SectionHeader } from './shared';
 import { getAvatarUrl, hexToRgba } from '@/lib/utils';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
-import type { StatsData } from '@/types/stats';
+import type { StatsData, WeeklyChampion } from '@/types/stats';
 
 interface ChampionsSectionProps {
   maleData: StatsData | undefined;
@@ -22,6 +24,350 @@ interface ChampionsSectionProps {
   championVideoUrl?: string;
   onVideoPlay?: (url: string, title: string) => void;
   setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
+}
+
+const WEEKS_PER_PAGE = 5;
+
+/** Reorder players: S-tier center, A-tier left, B-tier right */
+function reorderPlayersByTier(players: WeeklyChampion['winnerTeam']['players']) {
+  if (!players || players.length <= 1) return players || [];
+  const tierOrder: Record<string, number> = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+  const sorted = [...players].sort((a, b) => (tierOrder[a.tier] ?? 5) - (tierOrder[b.tier] ?? 5));
+  if (sorted.length === 3) {
+    return [sorted[1], sorted[0], sorted[2]]; // A left, S center, B right
+  }
+  return sorted;
+}
+
+/** Division Champion Card — with independent week selector */
+function DivisionChampionCard({
+  division,
+  data,
+  DivisionIcon,
+  setSelectedPlayer,
+}: {
+  division: 'male' | 'female';
+  data: StatsData;
+  DivisionIcon: typeof Music;
+  setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
+}) {
+  const champions = data.weeklyChampions;
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState(champions.length - 1);
+  const [weekPage, setWeekPage] = useState(Math.floor((champions.length - 1) / WEEKS_PER_PAGE));
+
+  const isMale = division === 'male';
+  const accent = isMale ? '#06b6d4' : '#a855f7';
+  const accentLight = isMale ? '#22d3ee' : '#c084fc';
+  const accentFaint = isMale ? '#67e8f9' : '#e9d5ff';
+
+  const totalPages = Math.ceil(champions.length / WEEKS_PER_PAGE);
+  const pageStart = weekPage * WEEKS_PER_PAGE;
+  const pageEnd = Math.min(pageStart + WEEKS_PER_PAGE, champions.length);
+  const visibleWeeks = champions.slice(pageStart, pageEnd);
+
+  const selected = champions[selectedWeekIdx];
+  const orderedPlayers = selected?.winnerTeam?.players ? reorderPlayersByTier(selected.winnerTeam.players) : [];
+
+  const handleWeekSelect = useCallback((idx: number) => {
+    setSelectedWeekIdx(idx);
+  }, []);
+
+  // Empty state
+  if (!champions.length) {
+    return (
+      <Card className="champion-rotating-border overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
+        <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
+        <CardContent className="p-0">
+          <div className="relative h-16 sm:h-20 overflow-hidden">
+            <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x04)} 50%, transparent 100%)` }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
+            <div className="absolute top-3 left-3 w-8 h-8 border-t border-l" style={{ borderColor: hexToRgba(accent, 0x20) }} aria-hidden="true" />
+            <div className="absolute top-3 right-3 w-8 h-8 border-t border-r" style={{ borderColor: hexToRgba(accent, 0x20) }} aria-hidden="true" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div className="empty-state-icon animate-float-medium">
+                <Crown className="w-14 h-14" style={{ color: hexToRgba(accent, 0x25), filter: `drop-shadow(0 0 24px ${hexToRgba(accent, 0x20)})` }} />
+              </div>
+            </div>
+            <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: hexToRgba(accent, 0x15) }}>
+                  <DivisionIcon className="w-4 h-4" style={{ color: accentLight }} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase tracking-wider" style={{ color: accentLight }}>{division} Division</h3>
+                  <p className="text-[10px] font-semibold text-white/80">SEASON CHAMPION</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/25 to-transparent" />
+          <div className="p-6 text-center space-y-4">
+            <div>
+              <p className="text-sm font-bold text-white/80">Musim Baru Dimulai</p>
+              <p className="text-xs text-muted-foreground/80 mt-1">Season baru segera dimulai — jadilah champion pertama!</p>
+            </div>
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="w-24 h-16 rounded-xl border border-dashed flex items-center justify-center card-shine" style={{ borderColor: hexToRgba(accent, 0x20), background: `linear-gradient(135deg, ${hexToRgba(accent, 0x06)} 0%, transparent 50%, ${hexToRgba(accent, 0x04)} 100%)` }}>
+                  <span className="text-[10px] font-bold" style={{ color: hexToRgba(accent, 0x35) }}>#{i}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="champion-rotating-border perspective-card overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
+      {/* Gold accent line */}
+      <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
+      <CardContent className="p-0">
+        {/* Banner Header */}
+        <div className="relative h-16 sm:h-20 overflow-hidden">
+          <img
+            src="/bg-section.jpg"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-15 transition-transform duration-500 group-hover:scale-110"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x30)} 0%, ${hexToRgba(accent, 0x15)} 50%, transparent 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 70% 40%, ${hexToRgba(accent, 0x35)}, transparent 60%)` }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
+          {/* Crown Glow */}
+          <div className="absolute top-4 right-6">
+            <div className="animate-float-subtle">
+              <Crown className="w-8 h-8 trophy-float" style={{ color: accentLight, filter: `drop-shadow(0 0 16px ${hexToRgba(accent, 0x80)})` }} />
+            </div>
+          </div>
+          {/* Division + Week Badges */}
+          <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: hexToRgba(accent, 0x25) }}>
+                <DivisionIcon className="w-4 h-4" style={{ color: accentLight }} />
+              </div>
+              <div>
+                <h3 className="text-base font-black uppercase tracking-wider" style={{ color: accentLight }}>{division} Division</h3>
+                <p className="text-[10px] font-semibold text-white/80">SEASON CHAMPION</p>
+              </div>
+            </div>
+            <Badge style={{ backgroundColor: hexToRgba(accent, 0x25), color: accentLight, borderColor: hexToRgba(accent, 0x40) }} className="text-[10px] border px-2.5 py-0.5">
+              <Crown className="w-3 h-3 mr-1" />Week {selected.weekNumber}
+            </Badge>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Team Info */}
+          <div className="relative flex items-center justify-between flex-wrap gap-2">
+            <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-32 h-16 rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.08) 0%, transparent 70%)' }} aria-hidden="true" />
+            <div className="relative flex items-center gap-2.5">
+              <Trophy className="w-5 h-5" style={{ color: accentLight }} />
+              <span className="text-xl sm:text-2xl font-black text-white">{selected.winnerTeam?.name || 'TBD'}</span>
+            </div>
+            <div className="relative flex items-center gap-2">
+              {selected.prizePool > 0 && (
+                <span className="text-[11px] font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/15 to-idm-gold-warm/5 px-3 py-1.5 rounded-lg flex items-center gap-1 border border-idm-gold-warm/20"><Wallet className="w-3.5 h-3.5" />{selected.prizePool.toLocaleString()}</span>
+              )}
+              {selected.mvp && (
+                <span className="mvp-badge-premium glow-pulse text-xs font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-idm-gold-warm/25">
+                  <Crown className="w-5 h-5" />MVP {selected.mvp.gamertag}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Gold divider line */}
+          <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" />
+
+          {/* 3 Player Avatars — reordered by tier */}
+          {selected.winnerTeam && orderedPlayers.length > 0 ? (
+            <div className="relative flex rounded-2xl overflow-hidden border" style={{ height: '260px', borderColor: hexToRgba(accent, 0x15) }}>
+              {/* CHAMPION gold watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
+                <span className="text-4xl font-black uppercase tracking-widest select-none" style={{ color: 'rgba(212,168,83,0.04)', WebkitTextStroke: '1px rgba(212,168,83,0.06)' }}>CHAMPION</span>
+              </div>
+              {/* Diamond badge */}
+              <div className="absolute top-3 right-3 z-20 champion-diamond-badge" aria-label="Champion badge">
+                <Crown className="w-3.5 h-3.5 text-[#0c0a06]" />
+              </div>
+              {/* S-tier center indicator */}
+              {orderedPlayers.length >= 3 && (
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+                  <div className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: 'rgba(212,168,83,0.25)', color: '#e5be4a', border: '1px solid rgba(212,168,83,0.3)' }}>
+                    ★ S-Tier
+                  </div>
+                </div>
+              )}
+              {orderedPlayers.slice(0, 3).map((player, pIdx) => {
+                const tierOrder: Record<string, number> = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+                const isCenter = pIdx === 1 && orderedPlayers.length >= 3 && (tierOrder[orderedPlayers[1].tier] ?? 5) === 0;
+                return (
+                  <div
+                    key={player.id}
+                    role="button"
+                    tabIndex={0}
+                    className={`relative flex-1 cursor-pointer group/avatar overflow-hidden ${isCenter ? 'z-10' : ''}`}
+                    onClick={() => {
+                      const found = data.topPlayers?.find(tp => tp.id === player.id);
+                      if (found) setSelectedPlayer({ ...found, division });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        const found = data.topPlayers?.find(tp => tp.id === player.id);
+                        if (found) setSelectedPlayer({ ...found, division });
+                      }
+                    }}
+                  >
+                    <Image src={getAvatarUrl(player.gamertag, division as 'male' | 'female', player.avatar)} alt={player.gamertag} fill sizes="33vw" className="object-cover object-center transition-transform duration-500 group-hover/avatar:scale-110" />
+                    {/* Bottom gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/5 to-transparent" />
+                    {/* Top gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06]/5 via-transparent to-transparent" />
+                    {/* Divider lines between players */}
+                    {pIdx < 2 && <div className="absolute right-0 top-4 bottom-4 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0.15) }} />}
+                    {/* Tier position indicator */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black" style={{ backgroundColor: hexToRgba(accent, 0.30), color: accentLight }}>
+                        {player.tier}
+                      </div>
+                    </div>
+                    {/* Player info at bottom */}
+                    <div className="absolute bottom-0 inset-x-0 px-2.5 pb-2.5 pt-6 z-10" style={{ background: 'linear-gradient(to top, rgba(12,10,6,0.85) 0%, transparent 100%)' }}>
+                      <p className="text-xs sm:text-sm font-black text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{player.gamertag}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <TierBadge tier={player.tier} />
+                        {isCenter && <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ color: accentLight, backgroundColor: hexToRgba(accent, 0.25) }}>CPT</span>}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] font-bold" style={{ color: accentFaint }}>{player.points}pts</span>
+                        <span className="text-[10px] font-bold text-green-400">{player.totalWins}W</span>
+                        <span className="text-[10px] font-bold text-orange-400 flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" />{player.streak}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-sm text-muted-foreground rounded-xl border border-dashed" style={{ borderColor: hexToRgba(accent, 0x15) }}>Belum ada data week ini</div>
+          )}
+
+          {/* ─── Week Selector ─── */}
+          <div className="space-y-2">
+            {/* Phase labels */}
+            {champions.length > 3 && (
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(accent, 0.50) }}>
+                  {weekPage === 0 ? 'Early Phase' : weekPage === totalPages - 1 ? 'Late Phase' : 'Mid Phase'}
+                </span>
+                <span className="text-[9px] font-semibold text-muted-foreground">
+                  {selectedWeekIdx + 1} / {champions.length} weeks
+                </span>
+              </div>
+            )}
+
+            {/* Week pills row */}
+            <div className="flex items-center gap-1.5">
+              {/* Prev page button */}
+              {totalPages > 1 && (
+                <button
+                  onClick={() => {
+                    const newPage = Math.max(0, weekPage - 1);
+                    setWeekPage(newPage);
+                    // Select last item of new page
+                    const newIdx = Math.min(selectedWeekIdx, (newPage + 1) * WEEKS_PER_PAGE - 1);
+                    setSelectedWeekIdx(newIdx);
+                  }}
+                  disabled={weekPage === 0}
+                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed hover:scale-110"
+                  style={{ backgroundColor: hexToRgba(accent, 0.10), color: accentLight }}
+                  aria-label="Previous weeks"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {/* Week pills */}
+              <div className="flex-1 flex items-center gap-1 overflow-x-auto custom-scrollbar px-1">
+                {visibleWeeks.map((wk, i) => {
+                  const globalIdx = pageStart + i;
+                  const isActive = globalIdx === selectedWeekIdx;
+                  return (
+                    <button
+                      key={wk.weekNumber}
+                      onClick={() => handleWeekSelect(globalIdx)}
+                      className={`shrink-0 h-8 px-2.5 rounded-lg text-[11px] font-bold transition-all duration-200 ${
+                        isActive
+                          ? 'scale-105 shadow-lg'
+                          : 'hover:scale-105 opacity-50 hover:opacity-80'
+                      }`}
+                      style={isActive ? {
+                        backgroundColor: hexToRgba(accent, 0.30),
+                        color: accentLight,
+                        border: `1px solid ${hexToRgba(accent, 0.50)}`,
+                        boxShadow: `0 0 12px ${hexToRgba(accent, 0.25)}`,
+                      } : {
+                        backgroundColor: hexToRgba(accent, 0.08),
+                        color: hexToRgba(accent, 0.60),
+                        border: `1px solid ${hexToRgba(accent, 0.10)}`,
+                      }}
+                      aria-label={`Week ${wk.weekNumber}`}
+                      aria-pressed={isActive}
+                    >
+                      W{wk.weekNumber}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next page button */}
+              {totalPages > 1 && (
+                <button
+                  onClick={() => {
+                    const newPage = Math.min(totalPages - 1, weekPage + 1);
+                    setWeekPage(newPage);
+                    // Select first item of new page
+                    const newIdx = Math.max(selectedWeekIdx, newPage * WEEKS_PER_PAGE);
+                    setSelectedWeekIdx(newIdx);
+                  }}
+                  disabled={weekPage === totalPages - 1}
+                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed hover:scale-110"
+                  style={{ backgroundColor: hexToRgba(accent, 0.10), color: accentLight }}
+                  aria-label="Next weeks"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Selected week info bar */}
+            <div className="flex items-center justify-between gap-2 mt-1 px-1">
+              <div className="flex items-center gap-2">
+                {selected.completedAt && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(selected.completedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+                {selected.tournamentName && (
+                  <span className="text-[10px] text-muted-foreground/60 truncate max-w-[140px]">
+                    {selected.tournamentName}
+                  </span>
+                )}
+              </div>
+              {selected.mvp && (
+                <div className="flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-idm-gold-warm" />
+                  <span className="text-[10px] font-bold text-idm-gold-warm">{selected.mvp.gamertag}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function ChampionsSection({
@@ -42,21 +388,20 @@ export function ChampionsSection({
         <div className="champions-crown-float absolute top-8 left-1/2 -translate-x-1/2 z-20" aria-hidden="true">
           <Crown className="w-6 h-6 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 12px rgba(212,168,83,0.3))' }} />
         </div>
-        {/* Background — Celebratory bilateral glow with subtle gold shimmer */}
+        {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
-        {/* Subtle cross-line pattern — hall of fame wallpaper */}
+        {/* Subtle cross-line pattern */}
         <div className="absolute inset-0 opacity-[0.01]" style={{ backgroundImage: 'linear-gradient(rgba(212,168,83,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.2) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
-        {/* Bilateral ambient glows — cyan left, purple right */}
+        {/* Bilateral ambient glows */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 60%)' }} />
           <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
-          {/* Central gold spotlight for Liga IDM champion card */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.06) 0%, transparent 60%)' }} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
-          {/* Section Header — Fade in from below */}
+          {/* Section Header */}
           <div className="stagger-item">
             <SectionHeader icon={Crown} label={cmsSections.champions?.subtitle || "Aula Champion"} title={cmsSections.champions?.title || "Season Champion"} subtitle={cmsSections.champions?.description || "Juara terbaru dari setiap divisi — 1 tim, 3 pemain, 1 gelar"} />
           </div>
@@ -68,17 +413,13 @@ export function ChampionsSection({
               style={{ animationDelay: '100ms' }}
             >
               <div className="perspective-card relative rounded-2xl overflow-hidden border border-idm-gold-warm/30" style={{ background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 25%, #0d0a06 50%, #1a0f05 75%, #0c0a06 100%)' }}>
-                {/* Gold shimmer overlay */}
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(var(--idm-gold-warm) 1px, transparent 1px), linear-gradient(90deg, var(--idm-gold-warm) 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-                {/* Radial gold glow */}
                 <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(212,168,83,0.12) 0%, transparent 50%)' }} />
                 <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 20% 60%, rgba(212,168,83,0.05) 0%, transparent 40%), radial-gradient(ellipse at 80% 60%, rgba(212,168,83,0.05) 0%, transparent 40%)' }} />
 
-                {/* Top gold accent line */}
                 <div className="h-1 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent" />
 
                 <div className="relative z-10 p-6 sm:p-8">
-                  {/* Video Play Button — bottom-right, compact icon */}
                   {championVideoUrl && onVideoPlay && (
                     <button
                       onClick={() => onVideoPlay(championVideoUrl, 'Champion Showcase')}
@@ -104,23 +445,18 @@ export function ChampionsSection({
                         </h3>
                       </div>
                     </div>
-                    {/* Trophy animation */}
-                    <div
-                      className="animate-float-medium hidden sm:block"
-                    >
+                    <div className="animate-float-medium hidden sm:block">
                       <Crown className="w-10 h-10 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 20px rgba(212,168,83,0.3))' }} />
                     </div>
                   </div>
 
                   {/* Champion Club Display */}
                   <div className="flex flex-col sm:flex-row items-center gap-6">
-                    {/* Club Logo + Name */}
                     <div className="flex flex-col items-center text-center sm:text-left sm:flex-row gap-4 flex-1">
                       <div className="relative champion-trophy-pedestal">
                         <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-idm-gold-warm/30 bg-idm-gold-warm/5" style={{ boxShadow: '0 0 50px rgba(212,168,83,0.2)' }}>
                           <ClubLogoImage clubName={leagueData.ligaChampion.name} dbLogo={leagueData.ligaChampion.logo} alt={leagueData.ligaChampion.name} width={112} height={112} className="w-full h-full object-cover" />
                         </div>
-                        {/* Champion badge overlay — diamond badge */}
                         <div className="absolute -top-2 -right-2 champion-diamond-badge" aria-label="Champion badge">
                           <Crown className="w-4 h-4 text-[#0c0a06]" />
                         </div>
@@ -129,7 +465,6 @@ export function ChampionsSection({
                         <h4 className="champion-name-shine text-2xl sm:text-3xl font-black text-white tracking-wide">{leagueData.ligaChampion.name}</h4>
                         <p className="text-sm text-idm-gold-warm/80 font-semibold mt-1">Liga IDM Season {leagueData.ligaChampion.seasonNumber} Champion</p>
                         <p className="text-xs text-muted-foreground mt-1">Club terbaik di Liga IDM Season {leagueData.ligaChampion.seasonNumber}</p>
-                        {/* Member count by division */}
                         <div className="flex items-center gap-3 mt-3">
                           <Badge className="bg-cyan-500/10 text-cyan-400 text-[10px] border-cyan-500/20 px-2.5 py-1">
                             <Users className="w-3 h-3 mr-1" />
@@ -147,15 +482,12 @@ export function ChampionsSection({
                       </div>
                     </div>
 
-                    {/* Members Preview — 5 representatives with bigger avatars */}
+                    {/* Members Preview */}
                     <div className="flex-1 w-full sm:w-auto">
                       <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-semibold mb-3 text-center sm:text-left">Skuad Champion</p>
                       <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                         {leagueData.ligaChampion.members.slice(0, 5).map((member: { id: string; gamertag: string; division: string; role: string; avatar?: string | null }, i: number) => (
-                          <div
-                            key={member.id}
-                            className="group/member relative flex flex-col items-center"
-                          >
+                          <div key={member.id} className="group/member relative flex flex-col items-center">
                             <div className={`champion-member-card w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 hover:scale-110 cursor-default ${
                               member.division === 'male'
                                 ? 'border-cyan-500/20 hover:border-cyan-500/40 hover:shadow-[0_0_16px_rgba(34,211,238,0.15)]'
@@ -169,14 +501,12 @@ export function ChampionsSection({
                                 className="w-full h-full object-cover"
                                 unoptimized
                               />
-                              {/* Captain badge */}
                               {member.role === 'captain' && (
                                 <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-idm-gold-warm flex items-center justify-center z-10">
                                   <Crown className="w-2.5 h-2.5 text-[#0c0a06]" />
                                 </div>
                               )}
                             </div>
-                            {/* Gamertag label below avatar */}
                             <p className="text-[10px] font-bold mt-1 truncate max-w-[64px] text-center text-white/80">{member.gamertag}</p>
                             <p className="text-[10px] font-medium capitalize" style={{ color: member.division === 'male' ? '#22d3ee' : '#c084fc' }}>{member.division}</p>
                           </div>
@@ -219,10 +549,19 @@ export function ChampionsSection({
                 <ChampionCardSkeleton accent="#a855f7" division="female" />
               </>
             ) : ([['male', maleData, Music], ['female', femaleData, Shield]] as const).map(([division, data, DivisionIcon], divIdx) => {
-              const isMale = division === 'male';
-              const accent = isMale ? '#06b6d4' : '#a855f7';
-              const accentLight = isMale ? '#22d3ee' : '#c084fc';
-              const accentFaint = isMale ? '#67e8f9' : '#e9d5ff';
+              if (!data || !data.weeklyChampions?.length) {
+                // Render empty state with the card still visible
+                return (
+                  <div key={division} className="stagger-item-fast perspective-container" style={{ animationDelay: `${divIdx * 100}ms` }}>
+                    <DivisionChampionCard
+                      division={division as 'male' | 'female'}
+                      data={{ ...data!, weeklyChampions: [] } as StatsData}
+                      DivisionIcon={DivisionIcon as typeof Music}
+                      setSelectedPlayer={setSelectedPlayer}
+                    />
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -235,183 +574,12 @@ export function ChampionsSection({
                   <div className="champion-sparkle champion-sparkle-2" aria-hidden="true" />
                   <div className="champion-sparkle champion-sparkle-3" aria-hidden="true" />
                   <div className="champion-sparkle champion-sparkle-4" aria-hidden="true" />
-                  {(!data || !data.weeklyChampions?.length) ? (
-                    <Card className="champion-rotating-border overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
-                      <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
-                      <CardContent className="p-0">
-                        <div className="relative h-16 sm:h-20 overflow-hidden">
-                          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x04)} 50%, transparent 100%)` }} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
-                          {/* Decorative gold corner lines */}
-                          <div className="absolute top-3 left-3 w-8 h-8 border-t border-l" style={{ borderColor: hexToRgba(accent, 0x20) }} aria-hidden="true" />
-                          <div className="absolute top-3 right-3 w-8 h-8 border-t border-r" style={{ borderColor: hexToRgba(accent, 0x20) }} aria-hidden="true" />
-                          {/* Elegant trophy float animation */}
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <div
-                              className="empty-state-icon animate-float-medium"
-                            >
-                              <Crown className="w-14 h-14" style={{ color: hexToRgba(accent, 0x25), filter: `drop-shadow(0 0 24px ${hexToRgba(accent, 0x20)})` }} />
-                            </div>
-                          </div>
-                          <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: hexToRgba(accent, 0x15) }}>
-                                <DivisionIcon className="w-4 h-4" style={{ color: accentLight }} />
-                              </div>
-                              <div>
-                                <h3 className="text-base font-black uppercase tracking-wider" style={{ color: accentLight }}>{division} Division</h3>
-                                <p className="text-[10px] font-semibold text-white/80">SEASON CHAMPION</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Gold divider line */}
-                        <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/25 to-transparent" />
-                        <div className="p-6 text-center space-y-4">
-                          <div>
-                            <p className="text-sm font-bold text-white/80">Musim Baru Dimulai</p>
-                            <p className="text-xs text-muted-foreground/80 mt-1">Season baru segera dimulai — jadilah champion pertama!</p>
-                          </div>
-                          <div className="flex justify-center gap-2">
-                            {[1, 2, 3].map(i => (
-                              <div key={i} className="w-24 h-16 rounded-xl border border-dashed flex items-center justify-center card-shine" style={{ borderColor: hexToRgba(accent, 0x20), background: `linear-gradient(135deg, ${hexToRgba(accent, 0x06)} 0%, transparent 50%, ${hexToRgba(accent, 0x04)} 100%)` }}>
-                                <span className="text-[10px] font-bold" style={{ color: hexToRgba(accent, 0x35) }}>#{i}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (() => {
-                    const champions = data.weeklyChampions;
-                    const selected = champions[champions.length - 1];
-                    return (
-                      <Card className="champion-rotating-border perspective-card overflow-hidden border card-shine champion-gold-frame card-border-glow group transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,168,83,0.2)]" style={{ borderColor: hexToRgba(accent, 0x20) }}>
-                        {/* Gold accent line — thicker, more premium */}
-                        <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
-                        <CardContent className="p-0">
-                          {/* Banner Header — compact gradient to give more space to avatars */}
-                          <div className="relative h-16 sm:h-20 overflow-hidden">
-                            <img
-                              src="/bg-section.jpg"
-                              alt=""
-                              className="absolute inset-0 w-full h-full object-cover opacity-15 transition-transform duration-500 group-hover:scale-110"
-                              aria-hidden="true"
-                            />
-                            {/* Division color tint */}
-                            <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x30)} 0%, ${hexToRgba(accent, 0x15)} 50%, transparent 100%)` }} />
-                            <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 70% 40%, ${hexToRgba(accent, 0x35)}, transparent 60%)` }} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
-                            {/* Crown Glow — gentle float */}
-                            <div className="absolute top-4 right-6">
-                              <div className="animate-float-subtle">
-                                <Crown className="w-8 h-8 trophy-float" style={{ color: accentLight, filter: `drop-shadow(0 0 16px ${hexToRgba(accent, 0x80)})` }} />
-                              </div>
-                            </div>
-                            {/* Division + Week Badges */}
-                            <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: hexToRgba(accent, 0x25) }}>
-                                  <DivisionIcon className="w-4 h-4" style={{ color: accentLight }} />
-                                </div>
-                                <div>
-                                  <h3 className="text-base font-black uppercase tracking-wider" style={{ color: accentLight }}>{division} Division</h3>
-                                  <p className="text-[10px] font-semibold text-white/80">SEASON CHAMPION</p>
-                                </div>
-                              </div>
-                              <Badge style={{ backgroundColor: hexToRgba(accent, 0x25), color: accentLight, borderColor: hexToRgba(accent, 0x40) }} className="text-[10px] border px-2.5 py-0.5">
-                                <Crown className="w-3 h-3 mr-1" />Week {selected.weekNumber}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="p-5 space-y-4">
-                            {/* Team Info */}
-                            <div className="relative flex items-center justify-between">
-                              {/* Subtle gold radial glow behind team name */}
-                              <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-32 h-16 rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.08) 0%, transparent 70%)' }} aria-hidden="true" />
-                              <div className="relative flex items-center gap-2.5">
-                                <Trophy className="w-5 h-5" style={{ color: accentLight }} />
-                                <span className="text-xl sm:text-2xl font-black text-white">{selected.winnerTeam?.name || 'TBD'}</span>
-                              </div>
-                              <div className="relative flex items-center gap-2">
-                                {selected.prizePool > 0 && (
-                                  <span className="text-[11px] font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/15 to-idm-gold-warm/5 px-3 py-1.5 rounded-lg flex items-center gap-1 border border-idm-gold-warm/20"><Wallet className="w-3.5 h-3.5" />{selected.prizePool.toLocaleString()}</span>
-                                )}
-                                {selected.mvp && (
-                                  <span className="mvp-badge-premium glow-pulse text-xs font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-idm-gold-warm/25">
-                                    <Crown className="w-5 h-5" />MVP {selected.mvp.gamertag}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {/* Gold divider line between team info and avatars */}
-                            <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" />
-
-                            {/* 3 Player Avatars — taller hero layout */}
-                            {selected.winnerTeam && selected.winnerTeam.players.length > 0 ? (
-                              <div className="relative flex rounded-2xl overflow-hidden border" style={{ height: '260px', borderColor: hexToRgba(accent, 0x15) }}>
-                                {/* CHAMPION gold watermark behind avatars */}
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
-                                  <span className="text-4xl font-black uppercase tracking-widest select-none" style={{ color: 'rgba(212,168,83,0.04)', WebkitTextStroke: '1px rgba(212,168,83,0.06)' }}>CHAMPION</span>
-                                </div>
-                                {/* Diamond badge overlay */}
-                                <div className="absolute top-3 right-3 z-20 champion-diamond-badge" aria-label="Champion badge">
-                                  <Crown className="w-3.5 h-3.5 text-[#0c0a06]" />
-                                </div>
-                                {selected.winnerTeam.players.slice(0, 3).map((player: { id: string; gamertag: string; avatar: string | null; tier: string; points: number; totalWins: number; streak: number }, pIdx: number) => (
-                                  <div
-                                    key={player.id}
-                                    role="button"
-                                    tabIndex={0}
-                                    className="relative flex-1 cursor-pointer group/avatar overflow-hidden"
-                                    onClick={() => {
-                                      const found = data.topPlayers?.find(tp => tp.id === player.id);
-                                      if (found) setSelectedPlayer({ ...found, division });
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' || e.key === ' ') {
-                                        const found = data.topPlayers?.find(tp => tp.id === player.id);
-                                        if (found) setSelectedPlayer({ ...found, division });
-                                      }
-                                    }}
-                                  >
-                                    <Image src={getAvatarUrl(player.gamertag, division as 'male' | 'female', player.avatar)} alt={player.gamertag} fill sizes="33vw" className="object-cover object-center transition-transform duration-500 group-hover/avatar:scale-110" />
-                                    {/* Bottom gradient — compact for shorter card */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/5 to-transparent" />
-                                    {/* Top gradient — minimal, just slight edge */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06]/5 via-transparent to-transparent" />
-                                    {pIdx < 2 && <div className="absolute right-0 top-4 bottom-4 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0x15) }} />}
-                                    <div className="absolute top-2 left-2 z-10">
-                                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black" style={{ backgroundColor: hexToRgba(accent, 0x30), color: accentLight }}>
-                                        {pIdx + 1}
-                                      </div>
-                                    </div>
-                                    <div className="absolute bottom-0 inset-x-0 px-2.5 pb-2.5 pt-6 z-10" style={{ background: 'linear-gradient(to top, rgba(12,10,6,0.85) 0%, transparent 100%)' }}>
-                                      <p className="text-xs sm:text-sm font-black text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{player.gamertag}</p>
-                                      <div className="flex items-center gap-1.5 mt-0.5">
-                                        <TierBadge tier={player.tier} />
-                                        {pIdx === 0 && <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ color: accentLight, backgroundColor: hexToRgba(accent, 0x25) }}>CPT</span>}
-                                      </div>
-                                      <div className="flex items-center gap-1.5 mt-0.5">
-                                        <span className="text-[10px] font-bold" style={{ color: accentFaint }}>{player.points}pts</span>
-                                        <span className="text-[10px] font-bold text-green-400">{player.totalWins}W</span>
-                                        <span className="text-[10px] font-bold text-orange-400 flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" />{player.streak}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="p-6 text-center text-sm text-muted-foreground rounded-xl border border-dashed" style={{ borderColor: hexToRgba(accent, 0x15) }}>Belum ada data week ini</div>
-                            )}
-
-
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })()}
+                  <DivisionChampionCard
+                    division={division as 'male' | 'female'}
+                    data={data}
+                    DivisionIcon={DivisionIcon as typeof Music}
+                    setSelectedPlayer={setSelectedPlayer}
+                  />
                 </div>
               );
             })}
