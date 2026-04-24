@@ -279,7 +279,12 @@ export function AdminPanel() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-cms-settings'] }); toast.success('Setting pembayaran disimpan!'); },
+    onSuccess: () => {
+      // Reset local form state so fields show fresh data from server after refetch
+      setPaymentForm(null);
+      qc.invalidateQueries({ queryKey: ['admin-cms-settings'] });
+      toast.success('Setting pembayaran disimpan!');
+    },
   });
 
   // Pending registrations
@@ -422,7 +427,13 @@ export function AdminPanel() {
   // State
   const [newDonation, setNewDonation] = useState({ donorName: '', amount: '', message: '', type: 'season' });
   const [paymentFormState, setPaymentForm] = useState<Record<string, string> | null>(null);
-  const paymentForm = paymentFormState ?? (cmsSettings || {});
+  const cmsSettingsBase = cmsSettings || {};
+  const paymentForm = paymentFormState ?? cmsSettingsBase;
+  // When setting a payment form field, always merge from the latest CMS settings base
+  // This ensures fields not yet edited by admin are preserved from server data
+  const updatePaymentForm = (updates: Partial<Record<string, string>>) => {
+    setPaymentForm(prev => ({ ...cmsSettingsBase, ...prev, ...updates }));
+  };
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileCategory, setMobileCategory] = useState('dashboard');
 
@@ -1313,7 +1324,7 @@ export function AdminPanel() {
                       <span className="w-2 h-2 rounded-full bg-idm-gold-warm" /> QRIS (Universal)
                     </label>
                     <div className="flex items-center gap-2">
-                      <Input value={paymentForm.donation_qris_image || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_qris_image: e.target.value }))} className="text-xs flex-1" placeholder="URL gambar QR code" />
+                      <Input value={paymentForm.donation_qris_image || ''} onChange={(e) => updatePaymentForm({ donation_qris_image: e.target.value })} className="text-xs flex-1" placeholder="URL gambar QR code" />
                       <Button type="button" variant="outline" size="sm" className="h-8 text-[10px] shrink-0" onClick={() => setQrisPickerOpen(true)}>Upload</Button>
                     </div>
                     {paymentForm.donation_qris_image && (
@@ -1331,21 +1342,21 @@ export function AdminPanel() {
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-[#108ee9]" /> DANA
                     </label>
-                    <Input value={paymentForm.donation_dana_number || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_dana_number: e.target.value }))} className="text-sm" placeholder="Contoh: 081234567890" />
+                    <Input value={paymentForm.donation_dana_number || ''} onChange={(e) => updatePaymentForm({ donation_dana_number: e.target.value })} className="text-sm" placeholder="Contoh: 081234567890" />
                   </div>
                   {/* OVO — phone number */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-[#4c3494]" /> OVO
                     </label>
-                    <Input value={paymentForm.donation_ovo_number || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_ovo_number: e.target.value }))} className="text-sm" placeholder="Contoh: 081234567890" />
+                    <Input value={paymentForm.donation_ovo_number || ''} onChange={(e) => updatePaymentForm({ donation_ovo_number: e.target.value })} className="text-sm" placeholder="Contoh: 081234567890" />
                   </div>
                   {/* ShopeePay — phone number */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-[#ee4d2d]" /> ShopeePay
                     </label>
-                    <Input value={paymentForm.donation_shopeepay_number || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_shopeepay_number: e.target.value }))} className="text-sm" placeholder="Contoh: 081234567890" />
+                    <Input value={paymentForm.donation_shopeepay_number || ''} onChange={(e) => updatePaymentForm({ donation_shopeepay_number: e.target.value })} className="text-sm" placeholder="Contoh: 081234567890" />
                   </div>
 
                   <div className="h-px bg-border/20" />
@@ -1353,12 +1364,12 @@ export function AdminPanel() {
                   {/* Holder */}
                   <div>
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Nama Penerima (a.n.)</label>
-                    <Input value={paymentForm.donation_payment_holder || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_payment_holder: e.target.value }))} className="text-sm" placeholder="Contoh: Admin IDM League" />
+                    <Input value={paymentForm.donation_payment_holder || ''} onChange={(e) => updatePaymentForm({ donation_payment_holder: e.target.value })} className="text-sm" placeholder="Contoh: Admin IDM League" />
                   </div>
                   {/* Notes */}
                   <div>
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Catatan Pembayaran</label>
-                    <Textarea value={paymentForm.donation_payment_notes || ''} onChange={(e) => setPaymentForm(p => ({ ...p, donation_payment_notes: e.target.value }))} className="text-sm" placeholder="Contoh: Konfirmasi ke admin via WhatsApp" rows={2} />
+                    <Textarea value={paymentForm.donation_payment_notes || ''} onChange={(e) => updatePaymentForm({ donation_payment_notes: e.target.value })} className="text-sm" placeholder="Contoh: Konfirmasi ke admin via WhatsApp" rows={2} />
                   </div>
                 </div>
                 <Button size="sm" className="text-[10px] bg-idm-gold-warm hover:bg-[#b8912e] text-black"
@@ -1393,7 +1404,7 @@ export function AdminPanel() {
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <MessageCircle className="w-3 h-3 text-green-500" /> Link WhatsApp Admin
                     </label>
-                    <Input value={paymentForm.registration_admin_wa_link || ''} onChange={(e) => setPaymentForm(p => ({ ...p, registration_admin_wa_link: e.target.value }))} className="text-sm" placeholder="Contoh: https://wa.me/6281234567890" />
+                    <Input value={paymentForm.registration_admin_wa_link || ''} onChange={(e) => updatePaymentForm({ registration_admin_wa_link: e.target.value })} className="text-sm" placeholder="Contoh: https://wa.me/6281234567890" />
                     <p className="text-[10px] text-muted-foreground">Link WA admin untuk peserta mengirim bukti pembayaran. Format: https://wa.me/62xxxxxxxxxx</p>
                   </div>
 
@@ -1402,7 +1413,7 @@ export function AdminPanel() {
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <FileText className="w-3 h-3 text-idm-gold-warm" /> Instruksi Pembayaran
                     </label>
-                    <Textarea value={paymentForm.registration_payment_instructions || ''} onChange={(e) => setPaymentForm(p => ({ ...p, registration_payment_instructions: e.target.value }))} className="text-sm" placeholder="Instruksi untuk peserta setelah mendaftar..." rows={3} />
+                    <Textarea value={paymentForm.registration_payment_instructions || ''} onChange={(e) => updatePaymentForm({ registration_payment_instructions: e.target.value })} className="text-sm" placeholder="Instruksi untuk peserta setelah mendaftar..." rows={3} />
                     <p className="text-[10px] text-muted-foreground">Instruksi yang ditampilkan setelah pendaftaran berhasil. Jangan tuliskan nominal — cukup "sesuai ketentuan yang berlaku".</p>
                   </div>
                 </div>
@@ -1627,7 +1638,7 @@ export function AdminPanel() {
       <CloudinaryPicker
         open={qrisPickerOpen}
         onClose={() => setQrisPickerOpen(false)}
-        onSelect={(url) => setPaymentForm(p => ({ ...p, donation_qris_image: url }))}
+        onSelect={(url) => updatePaymentForm({ donation_qris_image: url })}
         uploadFolder="cms/payment"
       />
     </div>

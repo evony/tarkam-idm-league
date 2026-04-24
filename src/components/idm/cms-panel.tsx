@@ -518,7 +518,12 @@ export function CmsPanel() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-settings'] }); toast.success('Setting berhasil disimpan!'); },
+    onSuccess: () => {
+      // Reset local form state so fields show fresh data from server after refetch
+      setSettingsForm(null);
+      qc.invalidateQueries({ queryKey: ['cms-settings'] });
+      toast.success('Setting berhasil disimpan!');
+    },
     onError: (e: Error) => { toast.error(e.message); },
   });
 
@@ -554,7 +559,13 @@ export function CmsPanel() {
 
   /* ========== Settings Form State ========== */
   const [settingsFormState, setSettingsForm] = useState<Record<string, string> | null>(null);
-  const settingsForm = settingsFormState ?? (settingsData?.map || {});
+  const settingsDataBase = settingsData?.map || {};
+  const settingsForm = settingsFormState ?? settingsDataBase;
+  // When setting a settings form field, always merge from the latest server data
+  // This ensures fields not yet edited by admin are preserved from server data
+  const updateSettingsForm = (updates: Partial<Record<string, string>>) => {
+    setSettingsForm(prev => ({ ...settingsDataBase, ...prev, ...updates }));
+  };
 
   /* ========== New Section State ========== */
   const [newSection, setNewSection] = useState({ slug: '', title: '' });
@@ -609,7 +620,7 @@ export function CmsPanel() {
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Judul Situs</label>
                         <Input
                           value={settingsForm.site_title || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, site_title: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ site_title: e.target.value })}
                           className="text-sm"
                           placeholder="IDM League"
                         />
@@ -617,7 +628,7 @@ export function CmsPanel() {
                       <CloudinaryImageField
                         label="Logo"
                         value={settingsForm.logo_url}
-                        onChange={(url) => setSettingsForm(p => ({ ...p, logo_url: url }))}
+                        onChange={(url) => updateSettingsForm({ logo_url: url })}
                         folder="cms/logos"
                       />
                     </div>
@@ -654,7 +665,7 @@ export function CmsPanel() {
                           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Judul Hero</label>
                           <Input
                             value={settingsForm.hero_title || ''}
-                            onChange={(e) => setSettingsForm(p => ({ ...p, hero_title: e.target.value }))}
+                            onChange={(e) => updateSettingsForm({ hero_title: e.target.value })}
                             className="text-sm"
                             placeholder="Idol Meta"
                           />
@@ -663,7 +674,7 @@ export function CmsPanel() {
                           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Subtitle Hero</label>
                           <Input
                             value={settingsForm.hero_subtitle || ''}
-                            onChange={(e) => setSettingsForm(p => ({ ...p, hero_subtitle: e.target.value }))}
+                            onChange={(e) => updateSettingsForm({ hero_subtitle: e.target.value })}
                             className="text-sm"
                             placeholder="Fan Made Edition"
                           />
@@ -674,7 +685,7 @@ export function CmsPanel() {
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tagline Hero</label>
                         <Textarea
                           value={settingsForm.hero_tagline || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, hero_tagline: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ hero_tagline: e.target.value })}
                           className="text-sm"
                           placeholder="Tempat dancer terbaik berkompetisi..."
                         />
@@ -684,13 +695,13 @@ export function CmsPanel() {
                         <CloudinaryImageField
                           label="Background Desktop"
                           value={settingsForm.hero_bg_desktop}
-                          onChange={(url) => setSettingsForm(p => ({ ...p, hero_bg_desktop: url }))}
+                          onChange={(url) => updateSettingsForm({ hero_bg_desktop: url })}
                           folder="cms/backgrounds"
                         />
                         <CloudinaryImageField
                           label="Background Mobile"
                           value={settingsForm.hero_bg_mobile}
-                          onChange={(url) => setSettingsForm(p => ({ ...p, hero_bg_mobile: url }))}
+                          onChange={(url) => updateSettingsForm({ hero_bg_mobile: url })}
                           folder="cms/backgrounds"
                         />
                       </div>
@@ -698,7 +709,7 @@ export function CmsPanel() {
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Video Background (Opsional)</label>
                         <Input
                           value={settingsForm.hero_bg_video || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, hero_bg_video: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ hero_bg_video: e.target.value })}
                           className="text-sm"
                           placeholder="URL video YouTube/MP4 — jika diisi, menggantikan gambar"
                         />
@@ -740,7 +751,7 @@ export function CmsPanel() {
                         rows={6}
                         placeholder="Cerita awal mula IDM League... (pisahkan paragraf dengan baris kosong)"
                         value={settingsForm.about_origin_story || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, about_origin_story: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ about_origin_story: e.target.value })}
                         className="text-xs resize-y"
                       />
                     </div>
@@ -750,7 +761,7 @@ export function CmsPanel() {
                         rows={3}
                         placeholder="Teks tentang keberhasilan Season 1..."
                         value={settingsForm.about_season1_text || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, about_season1_text: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ about_season1_text: e.target.value })}
                         className="text-xs resize-y"
                       />
                     </div>
@@ -759,7 +770,7 @@ export function CmsPanel() {
                       <Input
                         placeholder="Contoh: By Players, For Players"
                         value={settingsForm.about_tagline || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, about_tagline: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ about_tagline: e.target.value })}
                         className="text-xs"
                       />
                     </div>
@@ -793,7 +804,7 @@ export function CmsPanel() {
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Male (Opsional)</label>
                         <Input
                           value={settingsForm.kompetisi_male_video_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_male_video_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ kompetisi_male_video_url: e.target.value })}
                           className="text-sm"
                           placeholder="URL YouTube/MP4 — tombol play di card Male"
                         />
@@ -803,7 +814,7 @@ export function CmsPanel() {
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Female (Opsional)</label>
                         <Input
                           value={settingsForm.kompetisi_female_video_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, kompetisi_female_video_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ kompetisi_female_video_url: e.target.value })}
                           className="text-sm"
                           placeholder="URL YouTube/MP4 — tombol play di card Female"
                         />
@@ -840,7 +851,7 @@ export function CmsPanel() {
                         rows={3}
                         placeholder="Season {season} telah berlangsung dengan meriah — {champion} tampil sebagai champion..."
                         value={settingsForm.dream_description_completed || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_completed: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ dream_description_completed: e.target.value })}
                         className="text-xs resize-y"
                       />
                     </div>
@@ -850,7 +861,7 @@ export function CmsPanel() {
                         rows={3}
                         placeholder="{clubs} club bertanding, peserta bebas mix dari divisi male dan female..."
                         value={settingsForm.dream_description_active || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_description_active: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ dream_description_active: e.target.value })}
                         className="text-xs resize-y"
                       />
                     </div>
@@ -860,7 +871,7 @@ export function CmsPanel() {
                         rows={3}
                         placeholder="Season {season} sudah terbukti — champion dinobatkan, club bertanding..."
                         value={settingsForm.dream_season_next_text || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, dream_season_next_text: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ dream_season_next_text: e.target.value })}
                         className="text-xs resize-y"
                       />
                     </div>
@@ -876,7 +887,7 @@ export function CmsPanel() {
                           type="number"
                           min="0"
                           value={settingsForm.dream_clubs_competing || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_clubs_competing: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ dream_clubs_competing: e.target.value })}
                           className="text-sm"
                           placeholder="Otomatis"
                         />
@@ -887,7 +898,7 @@ export function CmsPanel() {
                           type="number"
                           min="0"
                           value={settingsForm.dream_matches_played || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_matches_played: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ dream_matches_played: e.target.value })}
                           className="text-sm"
                           placeholder="Otomatis"
                         />
@@ -898,7 +909,7 @@ export function CmsPanel() {
                           type="number"
                           min="0"
                           value={settingsForm.dream_total_participants || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, dream_total_participants: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ dream_total_participants: e.target.value })}
                           className="text-sm"
                           placeholder="Otomatis"
                         />
@@ -913,7 +924,7 @@ export function CmsPanel() {
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Video Champion (Opsional)</label>
                         <Input
                           value={settingsForm.champion_video_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, champion_video_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ champion_video_url: e.target.value })}
                           className="text-sm"
                           placeholder="URL video YouTube/MP4 — tombol play di card champion"
                         />
@@ -929,7 +940,7 @@ export function CmsPanel() {
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Teks Tombol Male</label>
                         <Input
                           value={settingsForm.nav_cta_male_text || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, nav_cta_male_text: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ nav_cta_male_text: e.target.value })}
                           className="text-sm"
                         />
                       </div>
@@ -937,7 +948,7 @@ export function CmsPanel() {
                         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Teks Tombol Female</label>
                         <Input
                           value={settingsForm.nav_cta_female_text || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, nav_cta_female_text: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ nav_cta_female_text: e.target.value })}
                           className="text-sm"
                         />
                       </div>
@@ -952,7 +963,7 @@ export function CmsPanel() {
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Label</label>
                         <Input
                           value={settingsForm.countdown_label || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_label: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ countdown_label: e.target.value })}
                           className="text-sm"
                           placeholder="Match Day Berikutnya"
                         />
@@ -962,7 +973,7 @@ export function CmsPanel() {
                         <Input
                           type="datetime-local"
                           value={settingsForm.countdown_target_date || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, countdown_target_date: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ countdown_target_date: e.target.value })}
                           className="text-sm"
                         />
                       </div>
@@ -1008,7 +1019,7 @@ export function CmsPanel() {
                         </label>
                         <Input
                           value={settingsForm.social_discord_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, social_discord_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ social_discord_url: e.target.value })}
                           className="text-sm"
                           placeholder="https://discord.gg/..."
                         />
@@ -1020,7 +1031,7 @@ export function CmsPanel() {
                         </label>
                         <Input
                           value={settingsForm.social_instagram_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, social_instagram_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ social_instagram_url: e.target.value })}
                           className="text-sm"
                           placeholder="https://instagram.com/..."
                         />
@@ -1032,7 +1043,7 @@ export function CmsPanel() {
                         </label>
                         <Input
                           value={settingsForm.social_youtube_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, social_youtube_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ social_youtube_url: e.target.value })}
                           className="text-sm"
                           placeholder="https://youtube.com/..."
                         />
@@ -1044,7 +1055,7 @@ export function CmsPanel() {
                         </label>
                         <Input
                           value={settingsForm.social_whatsapp_url || ''}
-                          onChange={(e) => setSettingsForm(p => ({ ...p, social_whatsapp_url: e.target.value }))}
+                          onChange={(e) => updateSettingsForm({ social_whatsapp_url: e.target.value })}
                           className="text-sm"
                           placeholder="https://chat.whatsapp.com/..."
                         />
@@ -1079,7 +1090,7 @@ export function CmsPanel() {
                       <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Teks Footer</label>
                       <Textarea
                         value={settingsForm.footer_text || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, footer_text: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ footer_text: e.target.value })}
                         className="text-sm"
                       />
                     </div>
@@ -1087,7 +1098,7 @@ export function CmsPanel() {
                       <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tagline Footer</label>
                       <Input
                         value={settingsForm.footer_tagline || ''}
-                        onChange={(e) => setSettingsForm(p => ({ ...p, footer_tagline: e.target.value }))}
+                        onChange={(e) => updateSettingsForm({ footer_tagline: e.target.value })}
                         className="text-sm"
                       />
                     </div>

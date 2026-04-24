@@ -2319,3 +2319,28 @@ Stage Summary:
 - Generic "Biaya Registrasi" label added to payment info (no exact nominal)
 - Toast notifications added to both registration forms
 - All changes are backward-compatible and lint-clean
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix admin panel form fields losing data after save
+
+Work Log:
+- Identified root cause: When admin edits a field, setPaymentForm(p => ({...p, field: value})) is called
+  - But on first edit, p is null (from useState<null>), so ...p spreads nothing
+  - Result: only the edited field exists in local state, all other fields are lost
+- Created updatePaymentForm() helper in admin-panel.tsx:
+  - Always merges from cmsSettingsBase first, then prev state, then new updates
+  - Ensures all fields not yet edited are preserved from server data
+- Created updateSettingsForm() helper in cms-panel.tsx with same pattern
+- Replaced all setPaymentForm(p => ({...p, X})) calls with updatePaymentForm({ X })
+- Replaced all setSettingsForm(p => ({...p, X})) calls with updateSettingsForm({ X })
+- Added setPaymentForm(null) / setSettingsForm(null) after successful save
+  - Resets local state so fields show fresh data from server after refetch
+  - Prevents stale local state from overriding refetched server data
+- All lint checks pass, dev server operational
+
+Stage Summary:
+- Admin Keuangan tab: fields now retain values after save (no more disappearing data)
+- CMS Settings panel: same fix applied for all settings form fields
+- Root cause was null spread on first edit + no server data merge
+- Both panels now use merge-from-server-data pattern for form state management
