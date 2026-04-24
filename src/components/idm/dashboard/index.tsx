@@ -228,8 +228,8 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* ─── RIGHT ZONE: Sawer button only (prize pool moved to top-right) ─── */}
-          <div className="hidden sm:flex flex-col items-center justify-center gap-4 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6">
+          {/* ─── RIGHT ZONE: Sawer button (prize pool at top-right) ─── */}
+          <div className="hidden sm:flex flex-col items-center justify-end gap-4 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6 pb-6 lg:pb-8">
             {/* Sawer Button */}
             <button
               onClick={() => setDonationOpen(true)}
@@ -241,8 +241,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Mobile-only: Sawer floating bar at bottom (prize pool moved to top-right) */}
-        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center px-4 py-2 bg-gradient-to-t from-black/50 to-transparent">
+        <div className="sm:hidden absolute bottom-0 right-0 z-20 p-3">
           <button
             onClick={() => setDonationOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
