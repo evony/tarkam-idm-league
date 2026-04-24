@@ -206,7 +206,7 @@ export function Dashboard() {
                   />
                   <StatusBadge status={t?.status || 'registration'} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] font-bold text-idm-gold-warm">💰 {formatCurrency(data.totalPrizePool)}</span>
+                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] font-bold text-idm-gold-warm">💰 {formatCurrency(t?.prizePool || data.totalPrizePool)}</span>
               </div>
             </div>
 
@@ -243,7 +243,7 @@ export function Dashboard() {
             {/* Center: Prize Pool */}
             <div className="text-center">
               <p className="text-[9px] lg:text-xs text-white/50 uppercase tracking-widest font-medium mb-2">Prize Pool</p>
-              <p className="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(data.totalPrizePool)}</p>
+              <p className="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(t?.prizePool || data.totalPrizePool)}</p>
             </div>
 
             {/* Bottom: Sawer Button */}
