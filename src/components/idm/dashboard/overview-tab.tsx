@@ -6,7 +6,6 @@ import {
   Radio, Music, Swords,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { DanceMatchCard } from '../match-card';
 import { SectionCard, MatchRow } from './shared';
 import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
@@ -87,31 +86,6 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
 
       {/* Player Comparison Modal */}
       <PlayerComparison open={compareOpen} onClose={() => setCompareOpen(false)} />
-
-      {/* Featured Match — DanceMatchCard style */}
-      {t?.matches?.filter(m => m.status === 'completed').length ? (
-        <div className="stagger-item-subtle stagger-d3">
-          <div className="flex items-center gap-2 mb-3">
-            <div className={`w-7 h-7 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
-              <Music className={`w-3.5 h-3.5 ${dt.neonText}`} />
-            </div>
-            <h3 className="text-sm font-semibold">Match Unggulan</h3>
-            <Badge className={`${dt.casinoBadge} ml-auto`}>HASIL</Badge>
-          </div>
-          {t!.matches.filter(m => m.status === 'completed').slice(-1).map(m => (
-            <DanceMatchCard
-              key={m.id}
-              team1={m.team1}
-              team2={m.team2}
-              score1={m.score1}
-              score2={m.score2}
-              status={m.status}
-              week={t!.weekNumber}
-              mvpPlayer={m.mvpPlayer}
-            />
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

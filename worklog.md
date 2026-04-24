@@ -2701,3 +2701,23 @@ Stage Summary:
 - Both cards stretch to equal height with flex-col + h-full layout
 - WeekNavigator CSS fixed for mobile: no overflow, better font rendering, wrapping support
 - All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Move Match Unggulan above Rivalitas Puncak (Division Rivalry)
+
+Work Log:
+- Read dashboard/index.tsx to understand current layout order
+- Read overview-tab.tsx — found "Match Unggulan" section was inside OverviewTab (after Season Timeline, at the bottom)
+- Extracted Match Unggulan section from OverviewTab and placed it in dashboard index.tsx, above DivisionRivalryWidget
+- Removed DanceMatchCard import from overview-tab.tsx (no longer used there)
+- Added DanceMatchCard import to dashboard/index.tsx
+- New layout order in overview tab: QuickStatsBar → LiveMatchIndicator → LiveMatchCounter → TopPlayersSection → ActivityFeed+TopDonors → **Match Unggulan** → DivisionRivalry → StreakWidget → OverviewTab
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server running with no errors
+
+Stage Summary:
+- Match Unggulan (featured match with DanceMatchCard) moved from inside OverviewTab to above Division Rivalry
+- Component order: Activity+Donors → Match Unggulan → Rivalitas Puncak → Streak
+- Clean lint, dev server operational
