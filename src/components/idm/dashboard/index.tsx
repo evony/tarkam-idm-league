@@ -296,8 +296,8 @@ export function Dashboard() {
             <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
               {[
                 { value: 'overview', label: 'Beranda', icon: Trophy },
-                { value: 'standings', label: 'Peringkat', icon: Shield },
                 { value: 'matches', label: 'Pertandingan', icon: Music },
+                { value: 'standings', label: 'Peringkat', icon: Shield },
                 { value: 'participants', label: 'Peserta', icon: Users },
                 { value: 'stats', label: 'Statistik', icon: BarChart3 },
               ].map(tab => (
@@ -376,16 +376,7 @@ export function Dashboard() {
           />
         </TabsContent>
 
-        {/* ═══════════════ STANDINGS TAB — Toornament Style ═══════════════ */}
-        <TabsContent value="standings" className="mt-3 sm:mt-4 lg:mt-6 space-y-3 sm:space-y-4 lg:space-y-6">
-          <StandingsTab
-            data={data}
-            setSelectedPlayer={handleSelectPlayer}
-            setSelectedClub={setSelectedClub}
-          />
-        </TabsContent>
-
-        {/* ═══════════════ MATCHES TAB — Now includes match-related widgets ═══════════════ */}
+        {/* ═══════════════ MATCHES TAB — Bracket + Hasil Match ═══════════════ */}
         <TabsContent value="matches" className="mt-3 sm:mt-4 lg:mt-6 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Bracket — shown first for quick access from hero landing */}
           <MatchesTab
@@ -401,6 +392,15 @@ export function Dashboard() {
           <div className="stagger-item-subtle stagger-d3">
             <MatchResultsSummary />
           </div>
+        </TabsContent>
+
+        {/* ═══════════════ STANDINGS TAB — Toornament Style ═══════════════ */}
+        <TabsContent value="standings" className="mt-3 sm:mt-4 lg:mt-6 space-y-3 sm:space-y-4 lg:space-y-6">
+          <StandingsTab
+            data={data}
+            setSelectedPlayer={handleSelectPlayer}
+            setSelectedClub={setSelectedClub}
+          />
         </TabsContent>
 
         {/* ═══════════════ PARTICIPANTS TAB — Tournament Poster Grid ═══════════════ */}
