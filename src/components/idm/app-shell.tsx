@@ -134,7 +134,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
 
   return (
     <aside
-      className={`hidden lg:flex flex-col border-r border-border/60 ${dt.glassStrong} sticky top-0 h-screen overflow-hidden shadow-lg shadow-black/5 transition-[width] duration-150 ease-in-out ${
+      className={`hidden lg:flex flex-col border-r border-border/60 ${dt.glassStrong} shrink-0 h-full overflow-hidden shadow-lg shadow-black/5 transition-[width] duration-150 ease-in-out ${
         collapsed ? 'w-16' : 'w-72'
       }`}
     >
@@ -509,7 +509,7 @@ export function AppShell() {
         </div>
       )}
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar — Collapsible */}
         <DesktopSidebar onOpenAccountModal={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} onOpenAdminModal={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); }} />
 
