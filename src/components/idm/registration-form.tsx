@@ -72,14 +72,13 @@ export function RegistrationForm() {
   });
 
   const { data: clubs } = useQuery({
-    queryKey: ['register-clubs', division, stats?.season?.id],
+    queryKey: ['register-clubs'],
     queryFn: async () => {
-      const seasonId = stats?.season?.id;
-      if (!seasonId) return [];
-      const res = await fetch(`/api/clubs?seasonId=${seasonId}`);
-      return res.json();
+      // Clubs are in Liga season, not Tarkam season — fetch by division=liga
+      const res = await fetch('/api/clubs?division=liga');
+      const data = await res.json();
+      return data;
     },
-    enabled: !!stats?.season?.id,
   });
 
   // Fetch approved participants for the active tournament
@@ -748,8 +747,8 @@ export function RegistrationForm() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="_none">Tanpa Club</SelectItem>
-                      {clubs?.map((c: { id: string; name: string }) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      {clubs?.map((c: { id: string; name?: string; profile?: { name: string } }) => (
+                        <SelectItem key={c.id} value={c.id}>{c.profile?.name || c.name || 'Unknown'}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
