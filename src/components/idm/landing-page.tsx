@@ -293,9 +293,8 @@ export function LandingPage() {
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
             { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
             { id: 'champions', label: 'Champion', icon: Crown, special: true },
-            { id: 'leaderboard', label: 'Peringkat', icon: Trophy, special: false },
             { id: 'clubs', label: 'Club', icon: Users, special: false },
-            { id: 'dream', label: 'Liga', icon: Radio, special: false },
+            { id: 'leaderboard', label: 'Peringkat', icon: Trophy, special: false },
           ].map(item => {
             const isActive = (activeSection === 'champions' || activeSection === 'mvp') && item.id === 'champions' || activeSection === item.id;
             return (
