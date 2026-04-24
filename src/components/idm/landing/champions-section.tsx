@@ -303,14 +303,7 @@ function DivisionChampionCard({
               <div className="absolute top-3 right-3 z-20 champion-diamond-badge" aria-label="Champion badge">
                 <Crown className="w-3.5 h-3.5 text-[#0c0a06]" />
               </div>
-              {/* S-tier center indicator */}
-              {orderedPlayers.length >= 3 && (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-                  <div className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: 'rgba(212,168,83,0.25)', color: '#e5be4a', border: '1px solid rgba(212,168,83,0.3)' }}>
-                    ★ S-Tier
-                  </div>
-                </div>
-              )}
+
               {orderedPlayers.slice(0, 3).map((player, pIdx) => {
                 const tierOrder: Record<string, number> = { S: 0, A: 1, B: 2, C: 3, D: 4 };
                 const isCenter = pIdx === 1 && orderedPlayers.length >= 3 && (tierOrder[orderedPlayers[1].tier] ?? 5) === 0;
@@ -338,12 +331,7 @@ function DivisionChampionCard({
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06]/5 via-transparent to-transparent" />
                     {/* Divider lines between players */}
                     {pIdx < 2 && <div className="absolute right-0 top-4 bottom-4 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0.15) }} />}
-                    {/* Tier position indicator */}
-                    <div className="absolute top-2 left-2 z-10">
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black" style={{ backgroundColor: hexToRgba(accent, 0.30), color: accentLight }}>
-                        {player.tier}
-                      </div>
-                    </div>
+
                     {/* Player info at bottom */}
                     <div className="absolute bottom-0 inset-x-0 px-2.5 pb-2.5 pt-6 z-10" style={{ background: 'linear-gradient(to top, rgba(12,10,6,0.85) 0%, transparent 100%)' }}>
                       <p className="text-xs sm:text-sm font-black text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{player.gamertag}</p>
