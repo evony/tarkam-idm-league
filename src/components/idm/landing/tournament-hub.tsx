@@ -189,7 +189,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
         <AnimatedSection variant="fadeUp">
           <button
             onClick={() => document.getElementById('dream')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.09] transition-all duration-300 cursor-pointer liga-cta-shimmer"
+            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.09] transition-all duration-300 cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">
