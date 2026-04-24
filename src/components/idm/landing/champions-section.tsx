@@ -281,8 +281,8 @@ function DivisionChampionCard({
                     setSelectedWeekIdx(newIdx);
                   }}
                   disabled={weekPage === 0}
-                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed hover:scale-110"
-                  style={{ backgroundColor: hexToRgba(accent, 0.10), color: accentLight }}
+                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed hover:scale-110 cursor-pointer"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.70)', border: '1px solid rgba(255,255,255,0.10)' }}
                   aria-label="Previous weeks"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ function DivisionChampionCard({
               )}
 
               {/* Week pills */}
-              <div className="flex-1 flex items-center gap-1 overflow-x-auto custom-scrollbar px-1">
+              <div className="flex-1 flex items-center gap-1.5 overflow-x-auto custom-scrollbar px-1">
                 {visibleWeeks.map((wk, i) => {
                   const globalIdx = pageStart + i;
                   const isActive = globalIdx === selectedWeekIdx;
@@ -298,20 +298,20 @@ function DivisionChampionCard({
                     <button
                       key={wk.weekNumber}
                       onClick={() => handleWeekSelect(globalIdx)}
-                      className={`shrink-0 h-8 px-2.5 rounded-lg text-[11px] font-bold transition-all duration-200 ${
+                      className={`shrink-0 h-8 px-3 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer ${
                         isActive
-                          ? 'scale-105 shadow-lg'
-                          : 'hover:scale-105 opacity-50 hover:opacity-80'
+                          ? 'scale-110'
+                          : 'hover:scale-105'
                       }`}
                       style={isActive ? {
-                        backgroundColor: hexToRgba(accent, 0.30),
+                        backgroundColor: hexToRgba(accent, 0.35),
                         color: accentLight,
-                        border: `1px solid ${hexToRgba(accent, 0.50)}`,
-                        boxShadow: `0 0 12px ${hexToRgba(accent, 0.25)}`,
+                        border: `1px solid ${hexToRgba(accent, 0.60)}`,
+                        boxShadow: `0 0 14px ${hexToRgba(accent, 0.30)}, inset 0 1px 0 ${hexToRgba(accent, 0.20)}`,
                       } : {
-                        backgroundColor: hexToRgba(accent, 0.08),
-                        color: hexToRgba(accent, 0.60),
-                        border: `1px solid ${hexToRgba(accent, 0.10)}`,
+                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        color: 'rgba(255,255,255,0.70)',
+                        border: '1px solid rgba(255,255,255,0.12)',
                       }}
                       aria-label={`Week ${wk.weekNumber}`}
                       aria-pressed={isActive}
@@ -333,8 +333,8 @@ function DivisionChampionCard({
                     setSelectedWeekIdx(newIdx);
                   }}
                   disabled={weekPage === totalPages - 1}
-                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed hover:scale-110"
-                  style={{ backgroundColor: hexToRgba(accent, 0.10), color: accentLight }}
+                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed hover:scale-110 cursor-pointer"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.70)', border: '1px solid rgba(255,255,255,0.10)' }}
                   aria-label="Next weeks"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
