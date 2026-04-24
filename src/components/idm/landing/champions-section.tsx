@@ -28,6 +28,7 @@ interface ChampionsSectionProps {
 }
 
 const WEEKS_PER_PAGE = 5;
+const SEASONS_PER_PAGE = 5;
 
 /** Reorder players: S-tier center, A-tier left, B-tier right */
 function reorderPlayersByTier(players: WeeklyChampion['winnerTeam']['players']) {
@@ -40,54 +41,92 @@ function reorderPlayersByTier(players: WeeklyChampion['winnerTeam']['players']) 
   return sorted;
 }
 
-/** Season Selector — dropdown/tabs for switching between seasons */
+/** Season Selector — paginated tabs for switching between seasons */
 function SeasonSelector({
   seasons,
   selectedSeasonId,
   onSelect,
   accent,
   accentLight,
+  seasonPage,
+  onSeasonPageChange,
 }: {
   seasons: SeasonInfo[];
   selectedSeasonId: string;
   onSelect: (id: string) => void;
   accent: string;
   accentLight: string;
+  seasonPage: number;
+  onSeasonPageChange: (page: number) => void;
 }) {
   if (seasons.length <= 1) return null;
 
+  const totalSeasonPages = Math.ceil(seasons.length / SEASONS_PER_PAGE);
+  const spStart = seasonPage * SEASONS_PER_PAGE;
+  const spEnd = Math.min(spStart + SEASONS_PER_PAGE, seasons.length);
+  const visibleSeasons = seasons.slice(spStart, spEnd);
+
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
-      {seasons.map((s) => {
-        const isActive = s.id === selectedSeasonId;
-        const isCompleted = s.status === 'completed';
-        return (
-          <button
-            key={s.id}
-            onClick={() => onSelect(s.id)}
-            className={`shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer ${
-              isActive ? 'scale-105' : 'hover:scale-105'
-            }`}
-            style={isActive ? {
-              backgroundColor: hexToRgba(accent, 0.30),
-              color: accentLight,
-              border: `1px solid ${hexToRgba(accent, 0.50)}`,
-              boxShadow: `0 0 12px ${hexToRgba(accent, 0.25)}`,
-            } : {
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.60)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-            aria-label={`Season ${s.number}`}
-            aria-pressed={isActive}
-          >
-            <Calendar className="w-3 h-3" />
-            <span>S{s.number}</span>
-            {isCompleted && <CheckCircle2 className="w-3 h-3 opacity-60" />}
-            <span className="text-[9px] font-normal opacity-60">({s.tournamentCount}w)</span>
-          </button>
-        );
-      })}
+    <div className="flex items-center gap-1.5">
+      {/* Prev page */}
+      {totalSeasonPages > 1 && (
+        <button
+          onClick={() => onSeasonPageChange(Math.max(0, seasonPage - 1))}
+          disabled={seasonPage === 0}
+          className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed hover:scale-110 cursor-pointer"
+          style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.70)', border: '1px solid rgba(255,255,255,0.10)' }}
+          aria-label="Previous seasons"
+        >
+          <ChevronLeft className="w-3 h-3" />
+        </button>
+      )}
+
+      {/* Season tabs */}
+      <div className="flex-1 flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+        {visibleSeasons.map((s) => {
+          const isActive = s.id === selectedSeasonId;
+          const isCompleted = s.status === 'completed';
+          return (
+            <button
+              key={s.id}
+              onClick={() => onSelect(s.id)}
+              className={`shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                isActive ? 'scale-105' : 'hover:scale-105'
+              }`}
+              style={isActive ? {
+                backgroundColor: hexToRgba(accent, 0.30),
+                color: accentLight,
+                border: `1px solid ${hexToRgba(accent, 0.50)}`,
+                boxShadow: `0 0 12px ${hexToRgba(accent, 0.25)}`,
+              } : {
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                color: 'rgba(255,255,255,0.60)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+              aria-label={`Season ${s.number}`}
+              aria-pressed={isActive}
+            >
+              <Calendar className="w-3 h-3" />
+              <span>S{s.number}</span>
+              {isCompleted && <CheckCircle2 className="w-3 h-3 opacity-60" />}
+              <span className="text-[9px] font-normal opacity-60">({s.tournamentCount}w)</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Next page */}
+      {totalSeasonPages > 1 && (
+        <button
+          onClick={() => onSeasonPageChange(Math.min(totalSeasonPages - 1, seasonPage + 1))}
+          disabled={seasonPage === totalSeasonPages - 1}
+          className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed hover:scale-110 cursor-pointer"
+          style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.70)', border: '1px solid rgba(255,255,255,0.10)' }}
+          aria-label="Next seasons"
+        >
+          <ChevronRight className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 }
@@ -135,6 +174,12 @@ function DivisionChampionCard({
     return Math.floor(Math.max(0, champs.length - 1) / WEEKS_PER_PAGE);
   });
 
+  // Season pagination — default to page containing the selected season
+  const [seasonPage, setSeasonPage] = useState(() => {
+    const idx = allSeasons.findIndex(s => s.id === defaultSeasonId);
+    return Math.floor(Math.max(0, idx) / SEASONS_PER_PAGE);
+  });
+
   const isMale = division === 'male';
   const accent = isMale ? '#06b6d4' : '#a855f7';
   const accentLight = isMale ? '#22d3ee' : '#c084fc';
@@ -156,7 +201,10 @@ function DivisionChampionCard({
     const newIdx = Math.max(0, newChampions.length - 1);
     setSelectedWeekIdx(newIdx);
     setWeekPage(Math.floor(newIdx / WEEKS_PER_PAGE));
-  }, [championsBySeason]);
+    // Auto-navigate season page to include selected season
+    const sIdx = allSeasons.findIndex(s => s.id === seasonId);
+    if (sIdx >= 0) setSeasonPage(Math.floor(sIdx / SEASONS_PER_PAGE));
+  }, [championsBySeason, allSeasons]);
 
   const handleWeekSelect = useCallback((idx: number) => {
     setSelectedWeekIdx(idx);
@@ -264,6 +312,8 @@ function DivisionChampionCard({
             onSelect={handleSeasonChange}
             accent={accent}
             accentLight={accentLight}
+            seasonPage={seasonPage}
+            onSeasonPageChange={setSeasonPage}
           />
 
           {/* No champions for this season */}
