@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { SEASON_TOTAL_WEEKS } from '@/lib/constants';
 import { awardPoints, processTierUpgrade } from '@/lib/points';
 import { checkTournamentAchievements } from '@/lib/achievements';
 import { autoAwardTournamentSkins } from '@/lib/skin-auto-award';
@@ -284,7 +285,6 @@ export async function POST(
   });
 
   // ===== AUTO-CLOSE SEASON if week 10 finalized =====
-  const SEASON_MAX_WEEKS = 10;
   try {
     const completedCount = await db.tournament.count({
       where: {
@@ -293,7 +293,7 @@ export async function POST(
       },
     });
 
-    if (completedCount >= SEASON_MAX_WEEKS) {
+    if (completedCount >= SEASON_TOTAL_WEEKS) {
       // Determine season champion: club with most points in this season
       const topClub = await db.club.findFirst({
         where: { seasonId: tournament.seasonId },

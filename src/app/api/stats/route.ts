@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { SEASON_TOTAL_WEEKS } from '@/lib/constants';
 import { NextResponse } from 'next/server';
 
 // Force dynamic — this route is never statically rendered
@@ -28,13 +29,14 @@ export async function GET(request: Request) {
   const allSeasons = await db.season.findMany({
     where: { division, status: { in: ['active', 'completed'] } },
     orderBy: { number: 'desc' },
+    include: { _count: { select: { tournaments: true } } },
   });
 
   // Use the latest season for this division as the primary reference
   const season = allSeasons[0];
 
   if (!season) {
-    return NextResponse.json({ hasData: false, division }, {
+    return NextResponse.json({ hasData: false, division, allSeasons: [], weeklyChampions: [] }, {
       headers: STATS_CACHE_HEADERS_SHORT,
     });
   }
@@ -315,16 +317,23 @@ export async function GET(request: Request) {
   // Completed tournaments — filtered in-memory from already-fetched list
   const completedTournaments = tournaments.filter(t => t.status === 'completed');
 
+  // Build season lookup for tournament → season mapping
+  const seasonLookup = new Map(allSeasons.map((s: { id: string; number: number; status: string }) => [s.id, s]));
+
   // Weekly champions — derived from completedTournaments (no new query)
   const weeklyChampions = completedTournaments.map(t => {
     const winnerTeam = t.teams[0]; // Only 1 winning team
     const mvpParticipation = t.participations.find(p => p.isMvp); // Admin-assigned MVP
     const mvpPlayer = mvpParticipation?.player;
+    const tournamentSeason = seasonLookup.get(t.seasonId);
     return {
       weekNumber: t.weekNumber,
       tournamentName: t.name,
       prizePool: t.prizePool,
       completedAt: t.completedAt,
+      seasonId: t.seasonId,
+      seasonNumber: tournamentSeason?.number ?? 1,
+      seasonStatus: tournamentSeason?.status ?? 'active',
       winnerTeam: winnerTeam ? {
         name: winnerTeam.name,
         players: winnerTeam.teamPlayers.map(tp => ({
@@ -343,8 +352,7 @@ export async function GET(request: Request) {
     };
   });
 
-  // Season progress — 1 season = 10 weeks (fixed)
-  const SEASON_TOTAL_WEEKS = 10;
+  // Season progress
   const completedWeeks = tournaments.filter(t => t.status === 'completed').length;
 
   // MVP Hall of Fame — computed in-memory from tournament participations instead of a separate query
@@ -368,10 +376,23 @@ export async function GET(request: Request) {
     .sort((a, b) => +b._sortKey - +a._sortKey)
     .map(({ _sortKey, ...rest }) => rest);
 
+  // All seasons info for season selector
+  const allSeasonsInfo = allSeasons.map((s: { id: string; name: string; number: number; status: string; startDate: Date | null; endDate: Date | null; championClubId: string | null; _count?: { tournaments?: number } }) => ({
+    id: s.id,
+    name: s.name,
+    number: s.number,
+    status: s.status,
+    startDate: s.startDate,
+    endDate: s.endDate,
+    tournamentCount: s._count?.tournaments ?? 0,
+    championClubId: s.championClubId,
+  }));
+
   return NextResponse.json({
     hasData: true,
     division,
     season,
+    allSeasons: allSeasonsInfo,
     seasonForClubs, // Season that has clubs — used by admin club management
     activeTournament,
     totalPlayers,

@@ -662,7 +662,7 @@ export function MyTournamentCard() {
                       <StatusBadge status={overview.tournament.status} division={division} />
                     </div>
                     <p className="text-[9px] text-muted-foreground">
-                      Week {overview.tournament.weekNumber} • {overview.tournament.season?.name || `Season 1`}
+                      Week {overview.tournament.weekNumber} • {overview.tournament.season?.name || `Current Season`}
                     </p>
                   </div>
                 </div>

@@ -1522,3 +1522,70 @@ The project is **stable and feature-rich** with proper data integrity. Season ma
 3. Improve mobile responsiveness of week selector
 4. Add notification/toast system for real-time updates
 5. Add social sharing features for player profiles
+
+---
+Task ID: 17-c
+Agent: Main Agent
+Task: Continue remaining todolist — season selector, constants, responsive fixes
+
+Work Log:
+- Added `seasonId`, `seasonNumber`, `seasonStatus` fields to `WeeklyChampion` type in `/src/types/stats.ts`
+- Added `SeasonInfo` interface and `allSeasons` field to `StatsData` type
+- Modified `/src/app/api/stats/route.ts`:
+  - Added `_count: { select: { tournaments: true } }` to allSeasons query
+  - Built `seasonLookup` Map for tournament → season mapping
+  - Added `seasonId`, `seasonNumber`, `seasonStatus` to each weeklyChampion entry
+  - Added `allSeasonsInfo` array to API response with tournamentCount per season
+  - Added `allSeasons: []` to hasData:false response to prevent frontend breakage
+  - Replaced local `SEASON_TOTAL_WEEKS = 10` with imported constant from `@/lib/constants`
+- Rewrote `/src/components/idm/landing/champions-section.tsx`:
+  - Added `SeasonSelector` component — horizontal row of season tabs with active highlight, completed indicator, and tournament count
+  - Updated `DivisionChampionCard` to group weeklyChampions by season using `useMemo`
+  - Added independent season navigation state (selectedSeasonId) per division
+  - Season change resets week selector to last week of new season
+  - AnimatePresence key now includes seasonId for smooth transitions
+  - Header badge shows "SEASON X CHAMPION • Completed" for completed seasons
+  - Empty state per season when no completed tournaments exist
+- Created `/src/lib/constants.ts` with shared constants:
+  - `SEASON_TOTAL_WEEKS = 10`
+  - `DIVISION` object with MALE/FEMALE
+  - `DIVISION_COLORS` with male/female accent color hex values
+  - `GOLD` brand colors
+  - `TIER_ORDER` mapping
+  - `TOURNAMENT_STATUS` and `SEASON_STATUS` enums
+- Updated `/src/app/api/tournaments/route.ts` to use `SEASON_TOTAL_WEEKS` from constants
+- Updated `/src/app/api/tournaments/[id]/finalize/route.ts` to use `SEASON_TOTAL_WEEKS` from constants
+- Fixed typo in tournament creation error message ("Buatt" → "Buat")
+- All lint checks pass, dev server operational, all APIs returning 200
+
+Stage Summary:
+- Season selector fully implemented in champions section — users can switch between S1, S2, etc.
+- weeklyChampions now include season metadata for proper grouping
+- Constants centralized in `/src/lib/constants.ts` (SEASON_TOTAL_WEEKS, DIVISION, DIVISION_COLORS)
+- 3 API routes updated to use shared constant instead of duplicated `10`
+- All lint checks pass, dev server operational
+
+## Current Project Status
+
+### Assessment
+The project is **stable and feature-rich** with proper season management. The Season Selector allows users to browse champions across multiple seasons independently per division.
+
+### Completed in This Round (Task ID 17-c)
+- Season selector in champions section with per-division navigation
+- WeeklyChampion type extended with season metadata
+- Stats API enhanced with allSeasons response and season info per champion
+- Constants file created and 3 API routes updated
+- Typo fix in tournament creation error
+
+### Unresolved Issues / Risks
+1. **Division accent colors** still hardcoded in 20+ components (constants created but not yet consumed)
+2. **Cloudinary URLs** hardcoded in seed/sync/demo routes (maintenance risk)
+3. **"Season 1" string** fallbacks in 8+ UI components (should use API data)
+4. **No demo match data** — some sections show empty states
+
+### Priority Recommendations for Next Phase
+1. Refactor components to use `DIVISION_COLORS` from constants
+2. Replace "Season 1" fallback strings with dynamic season data
+3. Add more demo match/tournament data to populate empty sections
+4. Add notification/toast system for real-time updates
+5. Add social sharing features for player profiles

@@ -1,8 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { SEASON_TOTAL_WEEKS } from '@/lib/constants';
 import { NextResponse } from 'next/server';
-
-const SEASON_MAX_WEEKS = 10;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -75,10 +74,10 @@ export async function POST(request: Request) {
     where: { seasonId },
   });
 
-  if (existingTournaments >= SEASON_MAX_WEEKS) {
+  if (existingTournaments >= SEASON_TOTAL_WEEKS) {
     return NextResponse.json({
-      error: `Season ${season.name} sudah penuh (${SEASON_MAX_WEEKS} weeks). Week berikutnya harus masuk ke season baru.`,
-      hint: 'Buatt season baru terlebih dahulu, lalu assign tournament ke season tersebut.',
+      error: `Season ${season.name} sudah penuh (${SEASON_TOTAL_WEEKS} weeks). Week berikutnya harus masuk ke season baru.`,
+      hint: 'Buat season baru terlebih dahulu, lalu assign tournament ke season tersebut.',
     }, { status: 400 });
   }
 

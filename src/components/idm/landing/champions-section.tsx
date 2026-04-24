@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Trophy, Music, Users, Shield, Crown, Wallet, Flame, Play,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Calendar, CheckCircle2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { TierBadge } from '../tier-badge';
 import { SectionHeader } from './shared';
 import { getAvatarUrl, hexToRgba } from '@/lib/utils';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
-import type { StatsData, WeeklyChampion } from '@/types/stats';
+import type { StatsData, WeeklyChampion, SeasonInfo } from '@/types/stats';
 
 interface ChampionsSectionProps {
   maleData: StatsData | undefined;
@@ -40,7 +40,59 @@ function reorderPlayersByTier(players: WeeklyChampion['winnerTeam']['players']) 
   return sorted;
 }
 
-/** Division Champion Card — with independent week selector */
+/** Season Selector — dropdown/tabs for switching between seasons */
+function SeasonSelector({
+  seasons,
+  selectedSeasonId,
+  onSelect,
+  accent,
+  accentLight,
+}: {
+  seasons: SeasonInfo[];
+  selectedSeasonId: string;
+  onSelect: (id: string) => void;
+  accent: string;
+  accentLight: string;
+}) {
+  if (seasons.length <= 1) return null;
+
+  return (
+    <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+      {seasons.map((s) => {
+        const isActive = s.id === selectedSeasonId;
+        const isCompleted = s.status === 'completed';
+        return (
+          <button
+            key={s.id}
+            onClick={() => onSelect(s.id)}
+            className={`shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+              isActive ? 'scale-105' : 'hover:scale-105'
+            }`}
+            style={isActive ? {
+              backgroundColor: hexToRgba(accent, 0.30),
+              color: accentLight,
+              border: `1px solid ${hexToRgba(accent, 0.50)}`,
+              boxShadow: `0 0 12px ${hexToRgba(accent, 0.25)}`,
+            } : {
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.60)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            aria-label={`Season ${s.number}`}
+            aria-pressed={isActive}
+          >
+            <Calendar className="w-3 h-3" />
+            <span>S{s.number}</span>
+            {isCompleted && <CheckCircle2 className="w-3 h-3 opacity-60" />}
+            <span className="text-[9px] font-normal opacity-60">({s.tournamentCount}w)</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Division Champion Card — with independent season + week selector */
 function DivisionChampionCard({
   division,
   data,
@@ -52,9 +104,36 @@ function DivisionChampionCard({
   DivisionIcon: typeof Music;
   setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
 }) {
-  const champions = data.weeklyChampions;
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState(champions.length - 1);
-  const [weekPage, setWeekPage] = useState(Math.floor((champions.length - 1) / WEEKS_PER_PAGE));
+  const allChampions = data.weeklyChampions;
+  const allSeasons = data.allSeasons || [];
+
+  // Group champions by season
+  const championsBySeason = useMemo(() => {
+    const map = new Map<string, WeeklyChampion[]>();
+    for (const c of allChampions) {
+      if (!map.has(c.seasonId)) map.set(c.seasonId, []);
+      map.get(c.seasonId)!.push(c);
+    }
+    // Sort each season's champions by week number
+    for (const [, champs] of map) {
+      champs.sort((a, b) => a.weekNumber - b.weekNumber);
+    }
+    return map;
+  }, [allChampions]);
+
+  // Default to latest season (allSeasons is sorted desc by number)
+  const defaultSeasonId = allSeasons[0]?.id || (allChampions.length > 0 ? allChampions[allChampions.length - 1].seasonId : '');
+  const [selectedSeasonId, setSelectedSeasonId] = useState(defaultSeasonId);
+  const champions = championsBySeason.get(selectedSeasonId) || [];
+
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState(() => {
+    const champs = championsBySeason.get(defaultSeasonId) || [];
+    return Math.max(0, champs.length - 1);
+  });
+  const [weekPage, setWeekPage] = useState(() => {
+    const champs = championsBySeason.get(defaultSeasonId) || [];
+    return Math.floor(Math.max(0, champs.length - 1) / WEEKS_PER_PAGE);
+  });
 
   const isMale = division === 'male';
   const accent = isMale ? '#06b6d4' : '#a855f7';
@@ -69,12 +148,22 @@ function DivisionChampionCard({
   const selected = champions[selectedWeekIdx];
   const orderedPlayers = selected?.winnerTeam?.players ? reorderPlayersByTier(selected.winnerTeam.players) : [];
 
+  const selectedSeasonInfo = allSeasons.find(s => s.id === selectedSeasonId);
+
+  const handleSeasonChange = useCallback((seasonId: string) => {
+    setSelectedSeasonId(seasonId);
+    const newChampions = championsBySeason.get(seasonId) || [];
+    const newIdx = Math.max(0, newChampions.length - 1);
+    setSelectedWeekIdx(newIdx);
+    setWeekPage(Math.floor(newIdx / WEEKS_PER_PAGE));
+  }, [championsBySeason]);
+
   const handleWeekSelect = useCallback((idx: number) => {
     setSelectedWeekIdx(idx);
   }, []);
 
-  // Empty state
-  if (!champions.length) {
+  // Empty state — no champions at all
+  if (!allChampions.length) {
     return (
       <Card className="champion-rotating-border overflow-hidden border card-shine champion-gold-frame" style={{ borderColor: hexToRgba(accent, 0x20) }}>
         <div className="h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: accent }} />
@@ -150,25 +239,50 @@ function DivisionChampionCard({
               </div>
               <div>
                 <h3 className="text-base font-black uppercase tracking-wider" style={{ color: accentLight }}>{division} Division</h3>
-                <p className="text-[10px] font-semibold text-white/80">SEASON CHAMPION</p>
+                <p className="text-[10px] font-semibold text-white/80">
+                  SEASON {selectedSeasonInfo?.number || '?'} CHAMPION
+                  {selectedSeasonInfo?.status === 'completed' && <span className="ml-1 text-idm-gold-warm">• Completed</span>}
+                </p>
               </div>
             </div>
-            <Badge style={{ backgroundColor: hexToRgba(accent, 0x25), color: accentLight, borderColor: hexToRgba(accent, 0x40) }} className="text-[10px] border px-2.5 py-0.5">
-              <Crown className="w-3 h-3 mr-1" />Week {selected.weekNumber}
-            </Badge>
+            {selected && (
+              <Badge style={{ backgroundColor: hexToRgba(accent, 0x25), color: accentLight, borderColor: hexToRgba(accent, 0x40) }} className="text-[10px] border px-2.5 py-0.5">
+                <Crown className="w-3 h-3 mr-1" />Week {selected.weekNumber}
+              </Badge>
+            )}
           </div>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={selectedWeekIdx}
+            key={`${selectedSeasonId}-${selectedWeekIdx}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="p-5 space-y-4"
           >
+          {/* Season Selector */}
+          <SeasonSelector
+            seasons={allSeasons}
+            selectedSeasonId={selectedSeasonId}
+            onSelect={handleSeasonChange}
+            accent={accent}
+            accentLight={accentLight}
+          />
+
+          {/* No champions for this season */}
+          {!selected && champions.length === 0 && (
+            <div className="p-6 text-center text-sm text-muted-foreground rounded-xl border border-dashed" style={{ borderColor: hexToRgba(accent, 0x15) }}>
+              <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" style={{ color: accent }} />
+              <p>Belum ada champion di season ini</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Tournament belum difinalisasi</p>
+            </div>
+          )}
+
           {/* Team Info */}
+          {selected && (
+          <>
           <div className="relative flex items-center justify-between flex-wrap gap-2">
             <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-32 h-16 rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.08) 0%, transparent 70%)' }} aria-hidden="true" />
             <div className="relative flex items-center gap-2.5">
@@ -262,8 +376,11 @@ function DivisionChampionCard({
           ) : (
             <div className="p-6 text-center text-sm text-muted-foreground rounded-xl border border-dashed" style={{ borderColor: hexToRgba(accent, 0x15) }}>Belum ada data week ini</div>
           )}
+          </>
+          )}
 
           {/* ─── Week Selector ─── */}
+          {champions.length > 0 && (
           <div className="space-y-2">
             {/* Phase labels */}
             {champions.length > 3 && (
@@ -285,7 +402,6 @@ function DivisionChampionCard({
                   onClick={() => {
                     const newPage = Math.max(0, weekPage - 1);
                     setWeekPage(newPage);
-                    // Select last item of new page
                     const newIdx = Math.min(selectedWeekIdx, (newPage + 1) * WEEKS_PER_PAGE - 1);
                     setSelectedWeekIdx(newIdx);
                   }}
@@ -298,14 +414,14 @@ function DivisionChampionCard({
                 </button>
               )}
 
-              {/* Week pills */}
+              {/* Week Pills */}
               <div className="flex-1 flex items-center gap-1.5 overflow-x-auto custom-scrollbar px-1">
                 {visibleWeeks.map((wk, i) => {
                   const globalIdx = pageStart + i;
                   const isActive = globalIdx === selectedWeekIdx;
                   return (
                     <button
-                      key={wk.weekNumber}
+                      key={`${selectedSeasonId}-W${wk.weekNumber}`}
                       onClick={() => handleWeekSelect(globalIdx)}
                       className={`shrink-0 h-8 px-3 rounded-lg text-[11px] font-bold transition-all duration-200 cursor-pointer ${
                         isActive
@@ -337,7 +453,6 @@ function DivisionChampionCard({
                   onClick={() => {
                     const newPage = Math.min(totalPages - 1, weekPage + 1);
                     setWeekPage(newPage);
-                    // Select first item of new page
                     const newIdx = Math.max(selectedWeekIdx, newPage * WEEKS_PER_PAGE);
                     setSelectedWeekIdx(newIdx);
                   }}
@@ -352,6 +467,7 @@ function DivisionChampionCard({
             </div>
 
             {/* Selected week info bar */}
+            {selected && (
             <div className="flex items-center justify-between gap-2 mt-1 px-1">
               <div className="flex items-center gap-2">
                 {selected.completedAt && (
@@ -372,7 +488,9 @@ function DivisionChampionCard({
                 </div>
               )}
             </div>
+            )}
           </div>
+          )}
           </motion.div>
         </AnimatePresence>
       </CardContent>
@@ -565,7 +683,7 @@ export function ChampionsSection({
                   <div key={division} className="stagger-item-fast perspective-container" style={{ animationDelay: `${divIdx * 100}ms` }}>
                     <DivisionChampionCard
                       division={division as 'male' | 'female'}
-                      data={{ ...data!, weeklyChampions: [] } as StatsData}
+                      data={{ ...data!, weeklyChampions: [], allSeasons: [] } as StatsData}
                       DivisionIcon={DivisionIcon as typeof Music}
                       setSelectedPlayer={setSelectedPlayer}
                     />

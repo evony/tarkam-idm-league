@@ -40,7 +40,7 @@ export function SeasonTimeline({ data }: SeasonTimelineProps) {
       position: 0,
       completed: true,
       current: false,
-      detail: data.season?.name || 'Season 1',
+      detail: data.season?.name || 'Current Season',
     },
     {
       id: 'registration',
@@ -106,7 +106,7 @@ export function SeasonTimeline({ data }: SeasonTimelineProps) {
           {/* Progress bar */}
           <div>
             <div className="flex items-center justify-between text-[10px] mb-1.5">
-              <span className="text-muted-foreground">{data.season?.name || 'Season 1'}</span>
+              <span className="text-muted-foreground">{data.season?.name || 'Current Season'}</span>
               <span className={`font-semibold ${dt.neonText}`}>{completedWeeks}/{totalWeeks} Weeks</span>
             </div>
             <Progress value={percentage} className="h-2" />

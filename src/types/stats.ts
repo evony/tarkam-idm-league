@@ -127,6 +127,10 @@ export interface WeeklyChampion {
   tournamentName: string;
   prizePool: number;
   completedAt: string | null;
+  /** Which season this champion week belongs to */
+  seasonId: string;
+  seasonNumber: number;
+  seasonStatus: string;
   winnerTeam: {
     name: string;
     players: {
@@ -170,10 +174,23 @@ export interface TournamentSummary {
  * Main StatsData interface — matches /api/stats response.
  * All optional enrichment fields are marked as optional.
  */
+export interface SeasonInfo {
+  id: string;
+  name: string;
+  number: number;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+  tournamentCount: number;
+  championClubId: string | null;
+}
+
 export interface StatsData {
   hasData: boolean;
   division: string;
   season: SeasonData;
+  /** All seasons for this division (for season selector) */
+  allSeasons: SeasonInfo[];
   activeTournament: ActiveTournament | null;
   totalPlayers: number;
   totalPrizePool: number;

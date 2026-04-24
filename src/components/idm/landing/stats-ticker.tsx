@@ -80,7 +80,7 @@ export function StatsTicker({ maleData, femaleData, leagueData }: StatsTickerPro
     ? `Season ${leagueData.ligaChampion.seasonNumber}`
     : leagueData?.preSeason
       ? 'Pre-Season'
-      : 'Season 1';
+      : 'Current Season';
 
   const items: TickerItem[] = [
     { icon: Users, value: `${totalPlayers}`, label: 'Total Players', accent: 'text-cyan-400', numericValue: totalPlayers },

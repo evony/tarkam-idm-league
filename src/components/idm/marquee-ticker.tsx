@@ -239,7 +239,7 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     const totalMatches = leagueData?.stats?.totalMatches || (maleData?.recentMatches?.length || 0) + (femaleData?.recentMatches?.length || 0);
     const seasonInfo = leagueData?.ligaChampion
       ? `Season ${leagueData.ligaChampion.seasonNumber}`
-      : leagueData?.preSeason ? 'Pre-Season' : 'Season 1';
+      : leagueData?.preSeason ? 'Pre-Season' : 'Current Season';
 
     stats.push(
       { id: 'stat-players', type: 'stat', icon: '👥', title: `${totalPlayers}`, subtitle: 'Total Players', timestamp: new Date().toISOString(), accent: '#22d3ee', numericValue: totalPlayers },
