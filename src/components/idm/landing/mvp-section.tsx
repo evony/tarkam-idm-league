@@ -241,7 +241,7 @@ function DivisionMVPCard({
             </div>
           ) : (
             <div
-              className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group border transition-all duration-300 mvp-card-glow champion-gold-frame"
+              className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group border transition-all duration-300 mvp-card-glow champion-gold-frame min-h-[420px] sm:min-h-[520px]"
               style={{ borderColor: hexToRgba(accent, 0.15), boxShadow: `0 0 40px ${hexToRgba(accent, 0.08)}` }}
               role="button"
               tabIndex={0}
@@ -259,12 +259,11 @@ function DivisionMVPCard({
             >
               {/* Gold shimmer accent line */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-current to-transparent z-20" style={{ color: accent }} />
-              {/* Avatar as full background — object-contain so no cropping */}
-              <div className="absolute inset-0 bg-[#0c0a06]" />
-              <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="50vw" className="object-contain object-top group-hover:scale-105 transition-transform duration-700" />
+              {/* Full-Bleed Avatar — cover fills card, positioned to show upper body */}
+              <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="50vw" className="object-cover object-center group-hover:scale-105 transition-transform duration-700" />
               {/* Multi-layer Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/30 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/60 via-transparent to-transparent" />
               <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 80% 80%, ${hexToRgba(accent, 0.12)}, transparent 60%)` }} />
 
               {/* Top Badges */}
