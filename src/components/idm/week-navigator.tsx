@@ -111,15 +111,15 @@ export function WeekNavigator({
               <button
                 key={phase.key}
                 onClick={() => setManualPhase(phase.key)}
-                className={`rounded-md text-[10px] font-semibold transition-all ${
-                  isXs ? 'px-1.5 py-0.5 text-[8px]' :
-                  isSm ? 'px-2 py-0.5' : 'px-2.5 py-1'
+                className={`rounded-md font-semibold transition-all ${
+                  isXs ? 'px-1.5 py-0.5 text-[9px]' :
+                  isSm ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[10px]'
                 } ${
                   isActive
                     ? 'text-white shadow-sm'
                     : 'text-muted-foreground hover:text-foreground bg-transparent'
                 }`}
-                style={isActive ? { backgroundColor: hexToRgba(accent, 0x25), color: accentLight } : undefined}
+                style={isActive ? { backgroundColor: hexToRgba(accent, 0x40), color: accentLight } : undefined}
               >
                 <span className="mr-0.5">{phase.emoji}</span>
                 {phase.label}
@@ -131,38 +131,37 @@ export function WeekNavigator({
 
       {/* Week Dots */}
       <div className="flex items-center gap-1">
-        <span className={`text-[9px] font-semibold mr-0.5 ${isXs ? 'text-[7px]' : isSm ? 'text-[8px]' : ''}`} style={{ color: hexToRgba(accentLight, 0x50) }}>
+        <span className={`font-semibold mr-0.5 ${isXs ? 'text-[8px]' : isSm ? 'text-[9px]' : 'text-[9px]'}`} style={{ color: accentLight, opacity: 0.5 }}>
           W
         </span>
         {phaseWeeks.map(w => {
           const isSelected = selectedWeek === w.weekNumber;
           const isCompleted = w.status === 'completed';
           const isLive = w.status === 'live';
-          const isUpcoming = w.status === 'upcoming';
 
           return (
             <button
               key={w.weekNumber}
               onClick={() => onWeekChange(w.weekNumber)}
-              className={`relative flex items-center justify-center transition-all duration-200 ${
-                isXs ? 'w-5 h-5' : isSm ? 'w-6 h-6' : 'w-7 h-7'
-              } rounded-full ${
-                isXs ? 'text-[7px]' : 'text-[9px]'
-              } font-black ${
+              className={`relative flex items-center justify-center transition-all duration-200 rounded-full font-black ${
+                isXs ? 'w-5 h-5 text-[7px]' : isSm ? 'w-6 h-6 text-[8px]' : 'w-7 h-7 text-[9px]'
+              } ${
                 isSelected
                   ? 'text-white shadow-md'
                   : isLive
                     ? 'text-white'
                     : isCompleted
-                      ? ''
-                      : 'opacity-40'
+                      ? 'text-white/70'
+                      : 'text-white/30'
               }`}
               style={
                 isSelected
-                  ? { backgroundColor: accent, boxShadow: `0 0 12px ${hexToRgba(accent, 0x80)}` }
+                  ? { backgroundColor: accent, boxShadow: `0 0 8px ${hexToRgba(accent, 0x60)}` }
                   : isLive
-                    ? { backgroundColor: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.5)' }
-                    : { backgroundColor: hexToRgba(accent, 0x10), color: hexToRgba(accentLight, 0x60) }
+                    ? { backgroundColor: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.5)' }
+                    : isCompleted
+                      ? { backgroundColor: hexToRgba(accent, 0x30) }
+                      : { backgroundColor: 'rgba(255,255,255,0.06)' }
               }
             >
               {w.weekNumber}
@@ -170,7 +169,7 @@ export function WeekNavigator({
               {isLive && !isSelected && (
                 <span className={`absolute -top-0.5 -right-0.5 rounded-full bg-red-500 animate-pulse ${isXs ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
               )}
-              {/* Completed check */}
+              {/* Completed indicator */}
               {isCompleted && !isSelected && !isLive && (
                 <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ backgroundColor: accent }} />
               )}
