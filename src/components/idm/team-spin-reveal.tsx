@@ -38,12 +38,14 @@ const TIER_CONFIG: Record<string, { color: string; bg: string; border: string; e
 const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'Round 3' };
 
 // Slot machine roller constants
-const ITEM_H = 44;
-const VISIBLE_COUNT = 3;
-const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 132px
-const STRIP_REPS = 6; // More repetitions for longer, more dramatic spin
-const SPIN_DURATION = 3.0; // seconds — extended for better visual effect
-const SPIN_EASE: [number, number, number, number] = [0.1, 0.6, 0.05, 1.0]; // dramatic slow-down at end
+const ITEM_H = 48; // height of each name row (px)
+const VISIBLE_COUNT = 3; // 3 names visible in viewport
+const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 144px
+
+// Spin animation timing (in milliseconds)
+const SPIN_TOTAL_DURATION = 4500; // total spin duration
+const SPIN_FAST_DURATION = 2000; // fast spinning phase
+const SPIN_DECEL_DURATION = 2500; // deceleration phase
 
 // Fisher-Yates shuffle — unbiased, in-place
 function shuffle<T>(arr: T[]): T[] {
@@ -52,6 +54,16 @@ function shuffle<T>(arr: T[]): T[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+// Easing function: ease-out cubic for smooth deceleration
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// Easing: custom deceleration that starts moderate and slows dramatically at the end
+function easeOutQuint(t: number): number {
+  return 1 - Math.pow(1 - t, 5);
 }
 
 export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, division, tournamentId }: TeamSpinRevealProps) {
@@ -64,40 +76,43 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
 
-  // Slot roller state
+  // Slot roller state — JS-driven animation
+  const [rollerY, setRollerY] = useState(0);
   const [rollerStrip, setRollerStrip] = useState<SpinPlayer[]>([]);
-  const [rollerTargetY, setRollerTargetY] = useState(0);
-  const [spinKey, setSpinKey] = useState(0);
+  const [spinBlur, setSpinBlur] = useState(0);
 
-  // Random selection tracking — ensures truly random picks instead of predetermined
-  const [assignedPlayers, setAssignedPlayers] = useState<Record<string, Set<string>>>({}); // tier -> set of player IDs
-  const [randomSelection, setRandomSelection] = useState<Record<number, SpinPlayer>>({}); // step -> randomly selected player
+  // Random selection tracking
+  const [assignedPlayers, setAssignedPlayers] = useState<Record<string, Set<string>>>({});
+  const [randomSelection, setRandomSelection] = useState<Record<number, SpinPlayer>>({});
 
-  // Refs for avoiding stale closures in timers
+  // Refs for animation and avoiding stale closures
   const autoPlayRef = useRef(false);
   const currentStepRef = useRef(0);
   const isSpinningRef = useRef(false);
   const mountedRef = useRef(true);
   const spinCompletedRef = useRef(false);
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const randomSelectionRef = useRef<Record<number, SpinPlayer>>({});
 
   // Keep refs in sync
   useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
   useEffect(() => { autoPlayRef.current = autoPlay; }, [autoPlay]);
   useEffect(() => { isSpinningRef.current = isSpinning; }, [isSpinning]);
+  useEffect(() => { randomSelectionRef.current = randomSelection; }, [randomSelection]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       mountedRef.current = false;
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, []);
 
-  // Sort spinRevealOrder by teamIndex within tier groups — sequential placement (Team 1, 2, 3...)
+  // Sort spinRevealOrder by teamIndex within tier groups
   const orderedRevealOrder = useMemo(() => {
     const result: SpinRevealItem[] = [];
-    // Group by tier
     const groups: SpinRevealItem[][] = [];
     let currentTier = '';
     for (const item of spinRevealOrder) {
@@ -107,14 +122,13 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       }
       groups[groups.length - 1].push(item);
     }
-    // Sort each tier group by teamIndex (sequential: Tim 1 → Tim 2 → Tim 3...)
     for (const group of groups) {
       result.push(...[...group].sort((a, b) => a.teamIndex - b.teamIndex));
     }
     return result;
   }, [spinRevealOrder]);
 
-  // Group steps by tier for round display (uses ordered reveal)
+  // Group steps by tier for round display
   const roundGroups = useMemo(() => {
     const groups: { tier: string; steps: number[] }[] = [];
     let currentTier = '';
@@ -129,7 +143,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     return groups;
   }, [orderedRevealOrder]);
 
-  // Total steps uses ordered reveal
   const totalSteps = orderedRevealOrder.length;
 
   // Initialize team slots
@@ -141,28 +154,21 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     setTeamSlots(slots);
   }, [teamCount]);
 
-  // Get available players for cycling (exclude already assigned in same tier)
-  const getAvailablePlayers = useCallback((stepIdx: number) => {
-    const item = orderedRevealOrder[stepIdx];
-    const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
-    const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
-    return available.length > 0 ? available : item.allPlayersInTier;
-  }, [orderedRevealOrder, assignedPlayers]);
-
-  // Ref for startSpin to avoid hoisting issues
+  // Refs for avoiding hoisting/circular dependency issues
   const startSpinRef = useRef<(step: number) => void>(() => {});
+  const handleSpinCompleteRef = useRef<(step: number) => void>(() => {});
+  const advanceToNextStepRef = useRef<(completedStep: number) => void>(() => {});
 
   // Start the slot machine animation for a given step
   const startSpin = useCallback((step: number) => {
     if (step >= totalSteps || !mountedRef.current) return;
 
     const item = orderedRevealOrder[step];
-    // Get available players excluding already assigned
     const alreadyAssigned = assignedPlayers[item.tier] || new Set<string>();
     const available = item.allPlayersInTier.filter(p => !alreadyAssigned.has(p.id));
     const pool = available.length > 0 ? available : item.allPlayersInTier;
 
-    // RANDOMLY SELECT from available pool (NOT the predetermined item.player)
+    // RANDOMLY SELECT from available pool
     const randomIdx = Math.floor(Math.random() * pool.length);
     const targetPlayer = pool[randomIdx];
 
@@ -176,39 +182,157 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     });
 
     // Store the randomly selected player for this step
-    setRandomSelection(prev => ({ ...prev, [step]: targetPlayer }));
+    setRandomSelection(prev => {
+      const updated = { ...prev, [step]: targetPlayer };
+      randomSelectionRef.current = updated;
+      return updated;
+    });
 
-    // Shuffle available players so the visual cycling appears random each spin
-    const shuffledAvailable = shuffle([...pool]);
-
-    // Build the name strip — repeat players multiple times for long scroll
+    // Build the visual strip — many repetitions for long scroll effect
+    // We want to show names cycling rapidly then slowing down
+    const STRIP_REPS = 12; // More reps = longer visual scroll
+    const shuffledForStrip = shuffle([...pool]);
     const strip: SpinPlayer[] = [];
     for (let r = 0; r < STRIP_REPS; r++) {
-      for (let i = 0; i < shuffledAvailable.length; i++) {
-        strip.push(shuffledAvailable[i]);
+      for (let i = 0; i < shuffledForStrip.length; i++) {
+        strip.push(shuffledForStrip[i]);
       }
     }
 
-    // Calculate where the target player should land (center item of viewport for 3 visible)
-    // Target lands in the last quarter of the strip for maximum visual drama
-    const targetRep = STRIP_REPS - 2;
-    const targetIdxInPlayers = shuffledAvailable.findIndex(p => p.id === targetPlayer.id);
-    const targetGlobalIdx = targetRep * shuffledAvailable.length + targetIdxInPlayers;
-    // Center item position: middle of viewport
-    const centerOffset = Math.floor(VISIBLE_COUNT / 2) * ITEM_H;
-    const targetY = -(targetGlobalIdx * ITEM_H) + centerOffset;
+    // Place the target player in the last repetition at a specific position
+    // so the animation naturally lands on it
+    const lastRepStart = (STRIP_REPS - 1) * shuffledForStrip.length;
+    const targetPosInLastRep = Math.floor(shuffledForStrip.length / 2); // middle of last rep
+    // Find target in last rep and swap it to targetPosInLastRep
+    const currentTargetIdx = strip.findIndex((p, i) => i >= lastRepStart && p.id === targetPlayer.id);
+    if (currentTargetIdx !== -1 && currentTargetIdx !== lastRepStart + targetPosInLastRep) {
+      // Swap to desired position
+      const desiredIdx = lastRepStart + targetPosInLastRep;
+      [strip[currentTargetIdx], strip[desiredIdx]] = [strip[desiredIdx], strip[currentTargetIdx]];
+    }
 
-    // Set state and start animation
+    // Calculate the final Y position — center the target item in the viewport
+    const targetGlobalIdx = lastRepStart + targetPosInLastRep;
+    const centerOffset = Math.floor(VISIBLE_COUNT / 2) * ITEM_H;
+    const finalY = -(targetGlobalIdx * ITEM_H) + centerOffset;
+
+    // Set strip and start JS animation
     spinCompletedRef.current = false;
     setRollerStrip(strip);
-    setRollerTargetY(targetY);
+    setRollerY(0); // Start from top
     setIsSpinning(true);
     isSpinningRef.current = true;
     setShowReveal(false);
-    setSpinKey(prev => prev + 1);
-  }, [orderedRevealOrder, totalSteps, assignedPlayers, getAvailablePlayers]);
+    setSpinBlur(2); // Start with blur during fast spin
+
+    // Cancel any existing animation
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+    }
+
+    // Animate using requestAnimationFrame
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      if (!mountedRef.current) return;
+
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / SPIN_TOTAL_DURATION, 1);
+
+      // Two-phase animation:
+      // Phase 1 (0 → SPIN_FAST_DURATION): Fast constant-speed scrolling
+      // Phase 2 (SPIN_FAST_DURATION → SPIN_TOTAL_DURATION): Deceleration
+
+      let currentY: number;
+      let currentBlur: number;
+
+      if (elapsed < SPIN_FAST_DURATION) {
+        // Phase 1: Fast scrolling — move through 70% of total distance
+        const fastProgress = elapsed / SPIN_FAST_DURATION;
+        const fastY = finalY * 0.7 * fastProgress; // linear fast scroll
+        currentY = fastY;
+        currentBlur = 2 - (fastProgress * 0.5); // slight blur reduction
+      } else {
+        // Phase 2: Deceleration — slow down through remaining 30%
+        const decelElapsed = elapsed - SPIN_FAST_DURATION;
+        const decelProgress = Math.min(decelElapsed / SPIN_DECEL_DURATION, 1);
+        const easedProgress = easeOutQuint(decelProgress);
+        const startY = finalY * 0.7;
+        const remainingY = finalY - startY;
+        currentY = startY + remainingY * easedProgress;
+
+        // Blur reduces as we slow down
+        currentBlur = Math.max(0, 1.5 * (1 - decelProgress));
+
+        // Add subtle bounce at the very end
+        if (decelProgress > 0.92) {
+          const bounceProgress = (decelProgress - 0.92) / 0.08;
+          const bounce = Math.sin(bounceProgress * Math.PI) * 3; // tiny bounce
+          currentY += bounce;
+        }
+      }
+
+      setRollerY(currentY);
+      setSpinBlur(currentBlur);
+
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        // Animation complete — set final position and trigger completion
+        setRollerY(finalY);
+        setSpinBlur(0);
+
+        // Small delay before showing reveal for dramatic effect
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          handleSpinCompleteRef.current(step);
+        }, 200);
+      }
+    };
+
+    animFrameRef.current = requestAnimationFrame(animate);
+  }, [orderedRevealOrder, totalSteps, assignedPlayers]);
+
+  // Internal spin completion handler (called from animation)
+  const handleSpinCompleteInternal = useCallback((step: number) => {
+    if (spinCompletedRef.current || !isSpinningRef.current || !mountedRef.current) return;
+    spinCompletedRef.current = true;
+
+    if (step >= totalSteps) return;
+
+    const item = orderedRevealOrder[step];
+    const tierKey = item.tier.toLowerCase() as 's' | 'a' | 'b';
+
+    // Use the randomly selected player
+    const selectedPlayer = randomSelectionRef.current[step] || item.player;
+
+    setIsSpinning(false);
+    isSpinningRef.current = false;
+    setShowReveal(true);
+
+    // Update team slot with RANDOM selection
+    setTeamSlots(prev => {
+      const updated = { ...prev };
+      const slot = { ...updated[item.teamIndex] };
+      slot[tierKey] = selectedPlayer;
+      if (tierKey === 's') {
+        slot.name = `Tim ${selectedPlayer.gamertag}`;
+      }
+      updated[item.teamIndex] = slot;
+      return updated;
+    });
+
+    // After reveal, advance to next step
+    revealTimerRef.current = setTimeout(() => {
+      if (!mountedRef.current) return;
+      advanceToNextStepRef.current(step);
+    }, 1500);
+  }, [orderedRevealOrder, totalSteps]);
 
   // Keep ref in sync
+  useEffect(() => { handleSpinCompleteRef.current = handleSpinCompleteInternal; }, [handleSpinCompleteInternal]);
+
+  // Keep startSpinRef in sync
   useEffect(() => { startSpinRef.current = startSpin; }, [startSpin]);
 
   // Save team results to backend after all spins complete
@@ -216,7 +340,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     if (!spinRevealOrder || spinRevealOrder.length === 0 || !tournamentId) return;
 
     try {
-      // Build the team assignments from teamSlots for persistence
       const teamAssignments = [];
       for (let i = 0; i < teamCount; i++) {
         const slot = teamSlots[i];
@@ -256,7 +379,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       setIsComplete(true);
       setAutoPlay(false);
       autoPlayRef.current = false;
-      // Save results after all spins are done
       saveTeamResults();
     } else {
       setCurrentStep(nextStep);
@@ -264,60 +386,23 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       setShowReveal(false);
 
       if (autoPlayRef.current) {
-        // Auto-play: start next spin after delay (reveal + pause)
         revealTimerRef.current = setTimeout(() => {
           if (!mountedRef.current || !autoPlayRef.current) return;
           startSpinRef.current(nextStep);
         }, 1200);
-      } else {
-        // Manual: ready for next Play click
       }
     }
   }, [totalSteps, saveTeamResults]);
 
-  // Handle slot machine animation completion
-  const handleSpinComplete = useCallback(() => {
-    if (spinCompletedRef.current || !isSpinningRef.current || !mountedRef.current) return;
-    spinCompletedRef.current = true;
-
-    const step = currentStepRef.current;
-    if (step >= totalSteps) return;
-
-    const item = orderedRevealOrder[step];
-    const tierKey = item.tier.toLowerCase() as 's' | 'a' | 'b';
-
-    // Use the randomly selected player instead of item.player
-    const selectedPlayer = randomSelection[step] || item.player;
-
-    setIsSpinning(false);
-    isSpinningRef.current = false;
-    setShowReveal(true);
-
-    // Update team slot with RANDOM selection
-    setTeamSlots(prev => {
-      const updated = { ...prev };
-      const slot = { ...updated[item.teamIndex] };
-      slot[tierKey] = selectedPlayer;
-      if (tierKey === 's') {
-        slot.name = `Tim ${selectedPlayer.gamertag}`;
-      }
-      updated[item.teamIndex] = slot;
-      return updated;
-    });
-
-    // After reveal, advance to next step
-    revealTimerRef.current = setTimeout(() => {
-      if (!mountedRef.current) return;
-      advanceToNextStep(step);
-    }, 1500);
-  }, [orderedRevealOrder, totalSteps, advanceToNextStep, randomSelection]);
+  // Keep advanceToNextStepRef in sync
+  useEffect(() => { advanceToNextStepRef.current = advanceToNextStep; }, [advanceToNextStep]);
 
   // Public doSpin for Play button click
   const doSpin = useCallback(() => {
     startSpin(currentStepRef.current);
   }, [startSpin]);
 
-  // Current step data (uses ordered reveal)
+  // Current step data
   const currentItem = currentStep < totalSteps ? orderedRevealOrder[currentStep] : null;
   const currentTier = currentItem?.tier || 'S';
   const tierConf = TIER_CONFIG[currentTier] || TIER_CONFIG.S;
@@ -338,6 +423,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     autoPlayRef.current = false;
     setOverlayVisible(false);
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     onComplete();
   };
 
@@ -463,48 +549,58 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     </p>
                   </div>
 
-                  {/* ===== SLOT MACHINE ROLLER ===== */}
+                  {/* ===== SLOT MACHINE ROLLER — JS-DRIVEN ===== */}
                   <div
                     className={`relative mx-auto w-80 lg:w-96 rounded-2xl border-2 overflow-hidden transition-shadow duration-500
-                      ${isSpinning ? `border-idm-gold-warm/50 animate-slot-pulse ${tierConf.bg}` :
+                      ${isSpinning ? `border-idm-gold-warm/50 ${tierConf.bg}` :
                         showReveal ? `border-idm-gold-warm/60 ${tierConf.bg}` :
                         `${tierConf.border} ${tierConf.bg}`}`}
-                    style={{ height: VIEWPORT_H, boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none' }}
+                    style={{
+                      height: VIEWPORT_H,
+                      boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none',
+                    }}
                   >
                     {/* Top gradient mask — fades top item */}
-                    <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
                     {/* Bottom gradient mask — fades bottom item */}
-                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/80 lg:from-card/80 to-transparent z-10 pointer-events-none" />
 
-                    {/* Center highlight line — highlights middle item for 3 visible */}
+                    {/* Center highlight line */}
                     <div
                       className={`absolute inset-x-2 z-10 pointer-events-none rounded border-y-2 transition-colors duration-300
                         ${showReveal ? 'border-idm-gold-warm/60 bg-idm-gold-warm/5' : `border-white/10 lg:border-idm-gold-warm/10`}`}
                       style={{ top: Math.floor(VISIBLE_COUNT / 2) * ITEM_H, height: ITEM_H }}
                     />
 
-                    {/* Roller content */}
+                    {/* Pulsing glow while spinning */}
+                    {isSpinning && (
+                      <div
+                        className="absolute inset-0 z-5 pointer-events-none"
+                        style={{
+                          animation: 'slot-pulse 0.6s ease-in-out infinite',
+                        }}
+                      />
+                    )}
+
+                    {/* Roller content — JS-driven translateY */}
                     {rollerStrip.length > 0 ? (
                       <div
-                        key={spinKey}
-                        className={`animate-spin-roller ${isSpinning ? 'blur-[0.5px]' : ''} transition-blur duration-300`}
                         style={{
-                          '--roller-target': `${rollerTargetY}px`,
+                          transform: `translateY(${rollerY}px)`,
+                          filter: spinBlur > 0 ? `blur(${spinBlur}px)` : 'none',
                           willChange: 'transform',
-                        } as React.CSSProperties}
-                        onAnimationEnd={handleSpinComplete}
+                          transition: 'none', // No CSS transition — JS controls everything
+                        }}
                       >
                         {rollerStrip.map((player, i) => {
-                          // Check if this is the center item at the final position
+                          // Check if this is the selected player during reveal
                           const selectedPlayerForStep = randomSelection[currentStep] || currentItem?.player;
-                          const isTargetItem = showReveal && selectedPlayerForStep && player.id === selectedPlayerForStep.id
-                            && i >= (STRIP_REPS - 3) * Math.floor(rollerStrip.length / STRIP_REPS)
-                            && i <= STRIP_REPS * Math.floor(rollerStrip.length / STRIP_REPS);
+                          const isTargetItem = showReveal && selectedPlayerForStep && player.id === selectedPlayerForStep.id;
 
                           return (
                             <div
-                              key={`${spinKey}-${i}`}
+                              key={`${currentStep}-${i}`}
                               className="flex items-center justify-center"
                               style={{ height: ITEM_H }}
                             >
@@ -536,7 +632,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       <div
                         className="absolute inset-0 pointer-events-none z-20 animate-fade-out"
                       >
-                        {[...Array(8)].map((_, i) => (
+                        {[...Array(12)].map((_, i) => (
                           <div
                             key={i}
                             className="absolute w-1.5 h-1.5 rounded-full animate-sparkle-explode"
@@ -544,8 +640,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               left: '50%',
                               top: '50%',
                               backgroundColor: i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#f59e0b' : '#ffffff',
-                              '--sparkle-x': `${(Math.random() - 0.5) * 200}px`,
-                              '--sparkle-y': `${(Math.random() - 0.5) * 120}px`,
+                              '--sparkle-x': `${(Math.random() - 0.5) * 240}px`,
+                              '--sparkle-y': `${(Math.random() - 0.5) * 140}px`,
                               animationDelay: `${i * 0.03}s`,
                             } as React.CSSProperties}
                           />
@@ -553,6 +649,27 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       </div>
                     )}
                   </div>
+
+                  {/* Speed indicator during spin */}
+                  {isSpinning && (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex gap-0.5">
+                        {[0, 1, 2].map((i) => (
+                          <div
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full bg-idm-gold-warm"
+                            style={{
+                              animation: 'pulse-scale 0.4s ease-in-out infinite',
+                              animationDelay: `${i * 0.15}s`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40 ml-1">
+                        {tierConf.emoji} Tier {currentTier} Tim {currentItem.teamIndex + 1} sedang diacak...
+                      </p>
+                    </div>
+                  )}
 
                   {/* Reveal info (badge + points) */}
                   {showReveal && (
@@ -565,7 +682,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     </div>
                   )}
 
-                  {/* ===== PLAY BUTTON — always visible, disabled during spin ===== */}
+                  {/* ===== PLAY BUTTON ===== */}
                   {!isComplete && (
                     <div className="flex flex-col items-center gap-2">
                       <Button
@@ -585,16 +702,6 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       </Button>
 
                       {/* Helper text */}
-                      {isSpinning && (
-                        <div className="flex items-center gap-1.5">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full bg-idm-gold-warm animate-pulse-scale"
-                          />
-                          <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40">
-                            {tierConf.emoji} Tier {currentTier} Tim {currentItem.teamIndex + 1} sedang diacak...
-                          </p>
-                        </div>
-                      )}
                       {!isSpinning && !showReveal && (
                         <p className="text-[10px] text-white/30 lg:text-idm-gold-warm/30">
                           Klik untuk mengacak {tierConf.emoji} Tier {currentTier} Tim {currentItem.teamIndex + 1}
@@ -682,7 +789,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                 </div>
               )}
 
-              {/* ===== TEAM GRID — Compact, scrollable ===== */}
+              {/* ===== TEAM GRID ===== */}
               {!isComplete && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
