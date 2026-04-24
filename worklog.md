@@ -2124,3 +2124,36 @@ Stage Summary:
 - Shows helpful empty state when no clubs exist
 - Fixed API error preventing club creation (revalidateTag 'layout' → 'max')
 - All lint checks pass, dev server operational
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Split Liga tab into separate sub-tabs: Season, Club, Poin, Skor
+
+Work Log:
+- Analyzed current Liga tab structure — had 5 sections stacked vertically:
+  1. AdminSeasonPanel (Season management)
+  2. ClubManagement (Club CRUD)
+  3. RankingPanel (Player points/rankings)
+  4. Skor League Match (inline card)
+  5. Skor Playoff Match (inline card)
+- Updated `categoryTabMap` in admin-panel.tsx:
+  - Changed `league: ['liga']` → `league: ['liga-season', 'liga-club', 'liga-poin', 'liga-skor']`
+- Added tab config entries for both mobile and desktop navigation:
+  - `'liga-season': { icon: Calendar, label: 'Season' }`
+  - `'liga-club': { icon: Shield, label: 'Club' }`
+  - `'liga-poin': { icon: Star, label: 'Poin' }`
+  - `'liga-skor': { icon: Trophy, label: 'Skor' }`
+- Added `Star` import to lucide-react imports
+- Replaced single `<TabsContent value="liga">` with 4 separate TabsContent blocks:
+  - `liga-season` → AdminSeasonPanel (mode="liga")
+  - `liga-club` → ClubManagement component
+  - `liga-poin` → RankingPanel component
+  - `liga-skor` → League Match + Playoff Match scoring cards
+- All lint checks pass, dev server operational
+
+Stage Summary:
+- Liga category now has 4 sub-tabs matching the tournament category pattern
+- Each sub-tab focuses on a specific function: Season, Club, Poin, Skor
+- Navigation follows the same pattern as other categories (mobile: category + sub-tab strip, desktop: same)
+- No leftover references to old 'liga' tab value

@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
   Crown, X, Loader2, Clock, MapPin, Phone, Globe, Camera, Pencil, Trash2, Search,
-  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight, Calendar
+  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight, Calendar, Star
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -428,7 +428,7 @@ export function AdminPanel() {
   const categoryTabMap: Record<string, string[]> = {
     dashboard: ['dashboard'],
     tournament: ['pemain', 'season-tarkam', 'turnamen'],
-    league: ['liga'],
+    league: ['liga-season', 'liga-club', 'liga-poin', 'liga-skor'],
     system: ['konten', 'keuangan', 'pengaturan'],
   };
 
@@ -594,7 +594,10 @@ export function AdminPanel() {
                 pemain: { icon: Users, label: 'Pemain', count: playerCount },
                 'season-tarkam': { icon: Calendar, label: 'Season' },
                 turnamen: { icon: Music, label: 'Turnamen' },
-                liga: { icon: Crown, label: 'Liga' },
+                'liga-season': { icon: Calendar, label: 'Season' },
+                'liga-club': { icon: Shield, label: 'Club' },
+                'liga-poin': { icon: Star, label: 'Poin' },
+                'liga-skor': { icon: Trophy, label: 'Skor' },
                 konten: { icon: Globe, label: 'Konten' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
@@ -663,7 +666,10 @@ export function AdminPanel() {
                 pemain: { icon: Users, label: 'Pemain', count: playerCount },
                 'season-tarkam': { icon: Calendar, label: 'Season' },
                 turnamen: { icon: Music, label: 'Turnamen' },
-                liga: { icon: Crown, label: 'Liga' },
+                'liga-season': { icon: Calendar, label: 'Season' },
+                'liga-club': { icon: Shield, label: 'Club' },
+                'liga-poin': { icon: Star, label: 'Poin' },
+                'liga-skor': { icon: Trophy, label: 'Skor' },
                 konten: { icon: Globe, label: 'Konten' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
@@ -1038,19 +1044,31 @@ export function AdminPanel() {
           </div>
         </TabsContent>
 
-        {/* ====== LIGA TAB ====== */}
-        <TabsContent value="liga" className="admin-tab-enter">
+        {/* ====== LIGA SEASON TAB ====== */}
+        <TabsContent value="liga-season" className="admin-tab-enter">
           <div className="space-y-4">
-            {/* Season Management — Liga only */}
             <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} mode="liga" />
+          </div>
+        </TabsContent>
 
-            {/* Club Management */}
+        {/* ====== LIGA CLUB TAB ====== */}
+        <TabsContent value="liga-club" className="admin-tab-enter">
+          <div className="space-y-4">
             <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.seasonForClubs?.id || stats?.season?.id} setConfirmDialog={setConfirmDialog} />
+          </div>
+        </TabsContent>
 
-            {/* Rankings */}
+        {/* ====== LIGA POIN TAB ====== */}
+        <TabsContent value="liga-poin" className="admin-tab-enter">
+          <div className="space-y-4">
             <RankingPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
+          </div>
+        </TabsContent>
 
-            {/* League Match Scoring — moved from old matches tab */}
+        {/* ====== LIGA SKOR TAB ====== */}
+        <TabsContent value="liga-skor" className="admin-tab-enter">
+          <div className="space-y-4">
+            {/* League Match Scoring */}
             <Card className={dt.casinoCard}>
               <div className={dt.casinoBar} />
               <CardContent className="p-4 relative z-10">
@@ -1111,7 +1129,7 @@ export function AdminPanel() {
               </CardContent>
             </Card>
 
-            {/* Playoff Match Scoring — moved from old matches tab */}
+            {/* Playoff Match Scoring */}
             <Card className={dt.casinoCard}>
               <div className={dt.casinoBar} />
               <CardContent className="p-4 relative z-10">
