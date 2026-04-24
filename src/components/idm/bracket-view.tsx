@@ -863,10 +863,18 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
     const attempts = [50, 200, 500, 1000];
     const timers = attempts.map(delay => setTimeout(calculateConnectors, delay));
     const handleResize = () => calculateConnectors();
+
+    // Also recalculate when the scrollable container is scrolled
+    // (cards shift position relative to viewport, need to update SVG)
+    const scrollContainer = containerRef.current?.parentElement;
+    const handleScroll = () => calculateConnectors();
+
     window.addEventListener('resize', handleResize);
+    scrollContainer?.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       timers.forEach(clearTimeout);
       window.removeEventListener('resize', handleResize);
+      scrollContainer?.removeEventListener('scroll', handleScroll);
     };
   }, [calculateConnectors]);
 
@@ -899,13 +907,13 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
 
   /* ─── Bracket content (shared for single/double elimination) ─── */
   const bracketContent = (
-    <div className="relative" ref={containerRef}>
-      {/* SVG connector overlay */}
-      {connectors.length > 0 && <BracketConnectors paths={connectors} />}
+    <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
+      <div className="relative min-w-max px-1" ref={containerRef}>
+        {/* SVG connector overlay — inside scrollable area so lines move with cards */}
+        {connectors.length > 0 && <BracketConnectors paths={connectors} />}
 
-      {/* Bracket columns — MPL horizontal layout */}
-      <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
-        <div className="flex gap-10 min-w-max px-1">
+        {/* Bracket columns — MPL horizontal layout */}
+        <div className="flex gap-10">
           {roundsData.map((round, roundIdx) => {
             // Calculate vertical spacing for proper bracket alignment
             const gapMultiplier = Math.pow(2, roundIdx);

@@ -2816,3 +2816,26 @@ Stage Summary:
 - No more disconnected lines between feeder matches and next round matches
 - Cleaner visual rendering with proper SVG circles at junction points
 - All lint checks pass, dev server operational
+
+---
+Task ID: 18
+Agent: Main Agent
+Task: Fix bracket connector lines not following cards on mobile drag/scroll
+
+Work Log:
+- Identified root cause: SVG connector overlay was positioned OUTSIDE the `overflow-x-auto` scrollable container
+- When user scrolled/dragged horizontally, cards moved but SVG stayed static (absolute positioned within viewport-sized parent)
+- Restructured bracket layout:
+  - Before: `<div relative containerRef> → <SVG absolute> → <div overflow-x-auto> → <div flex cards>`
+  - After:  `<div overflow-x-auto> → <div relative containerRef min-w-max> → <SVG absolute> → <div flex cards>`
+- SVG is now inside the scrollable area, so it moves together with the cards
+- Added scroll event listener on the scrollable container for edge cases (lazy load, layout shifts)
+- ZoomableContainer's CSS transform still works correctly — both SVG and cards are children of the same transformed element
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Bracket connector lines now properly follow cards when scrolled/dragged on mobile
+- SVG overlay repositioned inside the scrollable content area
+- Added scroll event listener for recalculation on scroll events
+- All lint checks pass, dev server operational
