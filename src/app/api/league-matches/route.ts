@@ -15,8 +15,8 @@ export async function GET(request: Request) {
     where,
     orderBy: [{ week: 'asc' }],
     include: {
-      club1: true,
-      club2: true,
+      club1: { include: { profile: { select: { name: true, logo: true } } } },
+      club2: { include: { profile: { select: { name: true, logo: true } } } },
     },
   });
 

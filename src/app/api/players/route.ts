@@ -18,9 +18,10 @@ export async function GET(request: Request) {
     orderBy: { points: 'desc' },
     include: {
       clubMembers: {
+        where: { leftAt: null },
         include: {
-          club: {
-            select: { id: true, name: true }
+          profile: {
+            select: { id: true, name: true, logo: true }
           }
         }
       },
@@ -66,13 +67,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // If club is provided, add as member
+    // If club is provided, add as member via ClubProfile
     if (clubId) {
       const club = await db.club.findUnique({ where: { id: clubId } });
       if (club) {
         await db.clubMember.create({
           data: {
-            clubId,
+            profileId: club.profileId,
             playerId: player.id,
             role: 'member',
           },

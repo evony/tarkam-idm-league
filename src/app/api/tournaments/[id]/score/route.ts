@@ -19,20 +19,29 @@ async function updateClubStatsForPlayer(
   type: 'win' | 'loss' | 'draw',
   gameDiff: number
 ) {
-  // Find the player's club in the same division and season
+  // Find the player's club season entry in the same division and season
   const membership = await db.clubMember.findFirst({
     where: {
       playerId,
-      club: { division: tournamentDivision, seasonId },
+      leftAt: null,
+      profile: {
+        seasonEntries: {
+          some: { division: tournamentDivision, seasonId },
+        },
+      },
     },
-    include: { club: true },
+    include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
   });
 
   if (!membership) return;
 
+  // Get the Club season entry to update stats
+  const clubEntry = membership.profile.seasonEntries[0];
+  if (!clubEntry) return;
+
   if (type === 'win') {
     await db.club.update({
-      where: { id: membership.clubId },
+      where: { id: clubEntry.id },
       data: {
         wins: { increment: 1 },
         points: { increment: 2 },
@@ -42,7 +51,7 @@ async function updateClubStatsForPlayer(
   } else if (type === 'loss') {
     const lossPoints = gameDiff > -Math.abs(gameDiff) ? 1 : 0; // +1 point if they won at least 1 game
     await db.club.update({
-      where: { id: membership.clubId },
+      where: { id: clubEntry.id },
       data: {
         losses: { increment: 1 },
         points: { increment: Math.max(0, lossPoints) },
@@ -51,7 +60,7 @@ async function updateClubStatsForPlayer(
     });
   } else if (type === 'draw') {
     await db.club.update({
-      where: { id: membership.clubId },
+      where: { id: clubEntry.id },
       data: {
         points: { increment: 1 },
       },
@@ -1016,12 +1025,17 @@ export async function PUT(
 
             // Rollback club stats
             const membership = await tx.clubMember.findFirst({
-              where: { playerId: tp.playerId, club: { division: tournamentDivision, seasonId } },
+              where: {
+                playerId: tp.playerId,
+                leftAt: null,
+                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
+              },
+              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
             });
-            if (membership) {
+            if (membership && membership.profile.seasonEntries[0]) {
               const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
               await tx.club.update({
-                where: { id: membership.clubId },
+                where: { id: membership.profile.seasonEntries[0].id },
                 data: {
                   wins: { decrement: 1 },
                   points: { decrement: 2 },
@@ -1051,13 +1065,18 @@ export async function PUT(
             });
 
             // Rollback club stats for loss
-            const membership = await tx.clubMember.findFirst({
-              where: { playerId: tp.playerId, club: { division: tournamentDivision, seasonId } },
+            const membershipLoss = await tx.clubMember.findFirst({
+              where: {
+                playerId: tp.playerId,
+                leftAt: null,
+                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
+              },
+              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
             });
-            if (membership) {
+            if (membershipLoss && membershipLoss.profile.seasonEntries[0]) {
               const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
               await tx.club.update({
-                where: { id: membership.clubId },
+                where: { id: membershipLoss.profile.seasonEntries[0].id },
                 data: {
                   losses: { decrement: 1 },
                   gameDiff: { increment: gameDiff }, // Reverse the negative gameDiff
@@ -1089,12 +1108,17 @@ export async function PUT(
             });
 
             // Rollback club stats for draw
-            const membership = await tx.clubMember.findFirst({
-              where: { playerId: tp.playerId, club: { division: tournamentDivision, seasonId } },
+            const membershipDraw = await tx.clubMember.findFirst({
+              where: {
+                playerId: tp.playerId,
+                leftAt: null,
+                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
+              },
+              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
             });
-            if (membership) {
+            if (membershipDraw && membershipDraw.profile.seasonEntries[0]) {
               await tx.club.update({
-                where: { id: membership.clubId },
+                where: { id: membershipDraw.profile.seasonEntries[0].id },
                 data: { points: { decrement: 1 } },
               });
             }

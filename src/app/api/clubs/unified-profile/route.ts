@@ -4,12 +4,12 @@ import { NextResponse } from 'next/server';
 /**
  * GET /api/clubs/unified-profile?clubId=xxx
  *
- * Given a club ID, find ALL clubs with the same name across both
- * male and female divisions, then return a unified profile with
+ * Given a club ID (Club or ClubProfile), return the unified profile with
  * combined members, stats, and division info.
  *
- * Clubs in IDM League are unified entities — a single club has
- * both male and female members, not separate clubs per division.
+ * Clubs in IDM League are unified entities — a single ClubProfile has
+ * members from both male and female divisions, with season-specific
+ * stats in Club entries.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,83 +19,86 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'clubId is required' }, { status: 400 });
   }
 
-  // Find the requested club to get its name
-  const primaryClub = await db.club.findUnique({
+  // Resolve to ClubProfile
+  let profileId = clubId;
+
+  const profile = await db.clubProfile.findUnique({
     where: { id: clubId },
-    include: {
-      season: { select: { id: true, name: true, number: true, division: true } },
-    },
   });
 
-  if (!primaryClub) {
-    return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
+  if (!profile) {
+    // Maybe it's a Club ID — look up the profile
+    const club = await db.club.findUnique({
+      where: { id: clubId },
+    });
+
+    if (!club) {
+      return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
+    }
+
+    profileId = club.profileId;
   }
 
-  // Find ALL clubs with the same name across both divisions
-  const sameNameClubs = await db.club.findMany({
-    where: { name: primaryClub.name },
+  // Fetch the full ClubProfile with members and season entries
+  const fullProfile = await db.clubProfile.findUnique({
+    where: { id: profileId },
     include: {
-      season: { select: { id: true, name: true, number: true, division: true } },
-    },
-  });
-
-  const clubIds = sameNameClubs.map(c => c.id);
-  const divisions = [...new Set(sameNameClubs.map(c => c.division))];
-
-  // Get all members from these clubs with player details
-  const members = await db.clubMember.findMany({
-    where: { clubId: { in: clubIds } },
-    include: {
-      player: {
-        select: {
-          id: true,
-          gamertag: true,
-          name: true,
-          division: true,
-          avatar: true,
-          tier: true,
-          points: true,
-          totalWins: true,
-          totalMvp: true,
-          streak: true,
-          maxStreak: true,
-          matches: true,
-          isActive: true,
-          city: true,
+      members: {
+        where: { leftAt: null },
+        include: {
+          player: {
+            select: {
+              id: true,
+              gamertag: true,
+              name: true,
+              division: true,
+              avatar: true,
+              tier: true,
+              points: true,
+              totalWins: true,
+              totalMvp: true,
+              streak: true,
+              maxStreak: true,
+              matches: true,
+              isActive: true,
+              city: true,
+            },
+          },
+        },
+        orderBy: [
+          { role: 'desc' }, // captains first
+          { player: { gamertag: 'asc' } },
+        ],
+      },
+      seasonEntries: {
+        include: {
+          season: { select: { id: true, name: true, number: true, division: true } },
         },
       },
-      club: {
-        select: { id: true, name: true, division: true },
-      },
     },
-    orderBy: [
-      { role: 'desc' }, // captains first
-      { player: { gamertag: 'asc' } },
-    ],
   });
 
-  // Deduplicate by player ID
-  const seen = new Set<string>();
-  const uniqueMembers = members.filter(m => {
-    if (seen.has(m.player.id)) return false;
-    seen.add(m.player.id);
-    return true;
-  });
+  if (!fullProfile) {
+    return NextResponse.json({ error: 'Club profile tidak ditemukan' }, { status: 404 });
+  }
 
-  // Combine stats from all divisions
+  const sameNameClubs = fullProfile.seasonEntries;
+  const divisions = [...new Set(sameNameClubs.map(c => c.division))];
+
+  // Combine stats from all season entries
   const totalWins = sameNameClubs.reduce((sum, c) => sum + c.wins, 0);
   const totalLosses = sameNameClubs.reduce((sum, c) => sum + c.losses, 0);
   const totalPoints = sameNameClubs.reduce((sum, c) => sum + c.points, 0);
   const totalGameDiff = sameNameClubs.reduce((sum, c) => sum + c.gameDiff, 0);
 
   // Count members per division
-  const maleMembers = uniqueMembers.filter(m => m.player.division === 'male').length;
-  const femaleMembers = uniqueMembers.filter(m => m.player.division === 'female').length;
+  const maleMembers = fullProfile.members.filter(m => m.player.division === 'male').length;
+  const femaleMembers = fullProfile.members.filter(m => m.player.division === 'female').length;
 
   // Check if this club is a Liga IDM Season champion
   const championSeasons = await db.season.findMany({
     where: {
-      championClubId: { in: clubIds },
+      championClubId: profileId,
       status: 'completed',
     },
     select: {
@@ -108,10 +111,10 @@ export async function GET(request: Request) {
   });
 
   return NextResponse.json({
-    id: primaryClub.id,
-    name: primaryClub.name,
-    logo: primaryClub.logo,
-    bannerImage: primaryClub.bannerImage,
+    id: profileId,
+    name: fullProfile.name,
+    logo: fullProfile.logo,
+    bannerImage: fullProfile.bannerImage,
     // Unified stats across all divisions
     wins: totalWins,
     losses: totalLosses,
@@ -126,7 +129,7 @@ export async function GET(request: Request) {
     // Club IDs per division for reference
     clubIds: sameNameClubs.map(c => ({ id: c.id, division: c.division })),
     // Members with division info
-    members: uniqueMembers.map(m => ({
+    members: fullProfile.members.map(m => ({
       id: m.player.id,
       gamertag: m.player.gamertag,
       name: m.player.name,
@@ -141,7 +144,6 @@ export async function GET(request: Request) {
       matches: m.player.matches,
       isActive: m.player.isActive,
       role: m.role,
-      clubDivision: m.club.division,
       city: m.player.city,
     })),
     // Per-division stats breakdown

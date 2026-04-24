@@ -1631,3 +1631,43 @@ Stage Summary:
 - Liga points = accumulated match result stats (both divisions)
 - ClubLeaderboard component has Tarkam/Liga tab switcher
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Update all API routes for new ClubProfile schema + improve podium UI
+
+Work Log:
+- Audited all API routes (21 files) that reference Club/ClubMember models
+- Identified critical schema changes: Club no longer has name/logo/bannerImage/members (on ClubProfile), ClubMember uses profileId instead of clubId
+- Fixed /api/clubs/[id]/route.ts — Complete rewrite: GET includes profile with members, PUT updates ClubProfile for name/logo/banner, DELETE only removes season entry (not profile)
+- Fixed /api/clubs/[id]/members/route.ts — Complete rewrite: Uses profileId instead of clubId, soft-delete with leftAt, re-activation for returning members
+- Fixed /api/clubs/[id]/captain/route.ts — Uses profileId for ClubMember queries
+- Fixed /api/clubs/champion-members/route.ts — Resolves both ClubProfile and Club IDs, gets members from profile
+- Fixed /api/clubs/unified-profile/route.ts — Uses ClubProfile as primary entity, championClubId references profileId
+- Fixed /api/clubs/update-logos/route.ts — Updates ClubProfile.logo instead of Club.logo
+- Fixed /api/league-matches/club/route.ts — Club includes profile for name/logo
+- Fixed /api/register/route.ts — ClubMember.create uses profileId instead of clubId
+- Fixed /api/players/route.ts — ClubMember include uses profile instead of club, active members filter (leftAt: null)
+- Fixed /api/players/[id]/route.ts — Same changes, soft-delete memberships on club change
+- Fixed /api/tournaments/[id]/score/route.ts — updateClubStatsForPlayer now queries via profile.seasonEntries
+- Fixed /api/tournaments/[id]/route.ts — Club stat rollback queries via ClubMember.profile.seasonEntries
+- Improved podium UI/UX in club-leaderboard.tsx:
+  - Crown/Medal icon per rank (Crown for #1, Medal for #2/#3) with drop-shadow glow
+  - Sparkle dots around #1 crown
+  - Animated glow ring behind #1 avatar (podium-champion-ring)
+  - Shimmer sweep effect on #1 card (podium-shimmer-effect)
+  - Step shimmer on #1 podium step (podium-step-shimmer)
+  - Win/Loss/GD display for Liga mode
+  - Larger avatar, points text, and overall card sizes
+  - Background blur glow behind #1
+- Added 6 new CSS animations (podium-shimmer, crown-bounce, sparkle-blink, champion-ring, step-shimmer)
+- Ran lint — zero errors
+- Tested all APIs: leaderboard, stats, league, unified clubs all returning 200
+
+Stage Summary:
+- 12+ API routes updated to use new ClubProfile schema
+- ClubMember now properly uses profileId with soft-delete (leftAt)
+- Club detail, members, captain, champion-members, unified-profile all working
+- Podium UI significantly enhanced with animated effects for #1 club
+- All lint checks pass, dev server operational

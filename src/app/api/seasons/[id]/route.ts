@@ -14,7 +14,7 @@ export async function GET(
       tournaments: { orderBy: { weekNumber: 'asc' } },
       clubs: { orderBy: { points: 'desc' } },
       donations: { orderBy: { createdAt: 'desc' } },
-      championClub: { select: { id: true, name: true, logo: true, division: true } },
+      championClub: { select: { id: true, name: true, logo: true } },
       _count: { select: { tournaments: true, clubs: true, donations: true } },
     },
   });
@@ -53,14 +53,15 @@ export async function PUT(
     return NextResponse.json({ error: 'Season tidak ditemukan' }, { status: 404 });
   }
 
-  // Validate championClubId if provided
+  // Validate championClubId if provided (now references ClubProfile)
   if (championClubId !== undefined && championClubId !== null) {
-    const club = await db.club.findUnique({ where: { id: championClubId } });
-    if (!club) {
+    const profile = await db.clubProfile.findUnique({ where: { id: championClubId } });
+    if (!profile) {
       return NextResponse.json({ error: 'Club champion tidak ditemukan' }, { status: 400 });
     }
-    // Verify club belongs to this season
-    if (club.seasonId !== id) {
+    // Verify club has an entry in this season
+    const seasonEntry = await db.club.findFirst({ where: { profileId: championClubId, seasonId: id } });
+    if (!seasonEntry) {
       return NextResponse.json({ error: 'Club bukan bagian dari season ini' }, { status: 400 });
     }
   }
@@ -97,7 +98,7 @@ export async function PUT(
     where: { id },
     data: updateData,
     include: {
-      championClub: { select: { id: true, name: true, logo: true, division: true } },
+      championClub: { select: { id: true, name: true, logo: true } },
       _count: { select: { tournaments: true, clubs: true } },
     },
   });

@@ -1,9 +1,9 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
-import { revalidatePath, revalidateTag, unstable_noStore as noStore } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
-// GET /api/clubs/[id] — Club detail with members
+// GET /api/clubs/[id] — Club detail with profile, members, and matches
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -12,20 +12,57 @@ export async function GET(
   const club = await db.club.findUnique({
     where: { id },
     include: {
-      members: {
-        include: { player: { select: { id: true, name: true, gamertag: true, division: true, tier: true, points: true, totalWins: true, totalMvp: true, streak: true, avatar: true } } },
-        orderBy: [{ role: 'desc' }, { player: { gamertag: 'asc' } }],
+      profile: {
+        include: {
+          members: {
+            where: { leftAt: null },
+            include: { player: { select: { id: true, name: true, gamertag: true, division: true, tier: true, points: true, totalWins: true, totalMvp: true, streak: true, avatar: true } } },
+            orderBy: [{ role: 'desc' }, { player: { gamertag: 'asc' } }],
+          },
+        },
       },
       season: { select: { id: true, name: true, division: true, status: true } },
-      homeMatches: { include: { club2: { select: { name: true } } }, orderBy: { week: 'asc' }, take: 5 },
-      awayMatches: { include: { club1: { select: { name: true } } }, orderBy: { week: 'asc' }, take: 5 },
+      homeMatches: { include: { club2: { include: { profile: { select: { name: true, logo: true } } } } }, orderBy: { week: 'asc' }, take: 5 },
+      awayMatches: { include: { club1: { include: { profile: { select: { name: true, logo: true } } } } }, orderBy: { week: 'asc' }, take: 5 },
     },
   });
   if (!club) return NextResponse.json({ error: 'Club not found' }, { status: 404 });
-  return NextResponse.json(club);
+
+  // Flatten for frontend compatibility
+  const flat = {
+    id: club.id,
+    profileId: club.profileId,
+    name: club.profile.name,
+    logo: club.profile.logo,
+    bannerImage: club.profile.bannerImage,
+    division: club.division,
+    seasonId: club.seasonId,
+    wins: club.wins,
+    losses: club.losses,
+    points: club.points,
+    gameDiff: club.gameDiff,
+    season: club.season,
+    members: club.profile.members.map(m => ({
+      id: m.id,
+      role: m.role,
+      joinedAt: m.joinedAt,
+      player: m.player,
+    })),
+    homeMatches: club.homeMatches.map(m => ({
+      ...m,
+      club2: { id: m.club2.id, name: m.club2.profile?.name, logo: m.club2.profile?.logo },
+    })),
+    awayMatches: club.awayMatches.map(m => ({
+      ...m,
+      club1: { id: m.club1.id, name: m.club1.profile?.name, logo: m.club1.profile?.logo },
+    })),
+    _count: { members: club.profile.members.length },
+  };
+
+  return NextResponse.json(flat);
 }
 
-// PUT /api/clubs/[id] — Edit club (name, logo)
+// PUT /api/clubs/[id] — Edit club (name, logo, banner → all on ClubProfile now)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -37,63 +74,62 @@ export async function PUT(
   const body = await request.json();
   const { name, logo, bannerImage } = body;
 
-  const club = await db.club.findUnique({ where: { id } });
+  const club = await db.club.findUnique({
+    where: { id },
+    include: { profile: true },
+  });
   if (!club) return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
 
-  // Check name uniqueness if renaming
-  if (name && name !== club.name) {
-    const existing = await db.club.findFirst({
-      where: { name, seasonId: club.seasonId, id: { not: id } },
-    });
-    if (existing) {
-      return NextResponse.json({ error: 'Nama club sudah digunakan di season ini' }, { status: 409 });
+  // ── Update ClubProfile (persistent identity: name, logo, banner) ──
+  if (name || logo !== undefined || bannerImage !== undefined) {
+    // Check name uniqueness if renaming
+    if (name && name !== club.profile.name) {
+      const existing = await db.clubProfile.findFirst({
+        where: { name, id: { not: club.profileId } },
+      });
+      if (existing) {
+        return NextResponse.json({ error: 'Nama club sudah digunakan' }, { status: 409 });
+      }
     }
+
+    await db.clubProfile.update({
+      where: { id: club.profileId },
+      data: {
+        ...(name && { name: name.trim() }),
+        ...(logo !== undefined && { logo }),
+        ...(bannerImage !== undefined && { bannerImage }),
+      },
+    });
   }
 
-  const updated = await db.club.update({
+  // Re-fetch updated club with profile
+  const updated = await db.club.findUnique({
     where: { id },
-    data: {
-      ...(name && { name: name.trim() }),
-      ...(logo !== undefined && { logo }),
-      ...(bannerImage !== undefined && { bannerImage }),
-    },
+    include: { profile: true },
   });
 
-  // ── Sync logo/banner across ALL seasons ──
-  // Clubs are per-season records (@@unique([name, seasonId])).
-  // When admin uploads a new logo for a club, we want it to propagate
-  // to the same-named club in EVERY season so the landing page always
-  // shows the latest logo regardless of which season's clubs are displayed.
-  if (logo !== undefined || bannerImage !== undefined) {
-    const syncData: { logo?: string | null; bannerImage?: string | null } = {};
-    if (logo !== undefined) syncData.logo = logo;
-    if (bannerImage !== undefined) syncData.bannerImage = bannerImage;
-
-    // Update all OTHER club records with the same name (different seasonId)
-    const syncResult = await db.club.updateMany({
-      where: {
-        name: updated.name,
-        id: { not: id }, // Don't re-update the one we just saved
-      },
-      data: syncData,
-    });
-
-    console.log(`[PUT /api/clubs/${id}] Synced logo/banner to ${syncResult.count} other season(s) for club "${updated.name}"`);
-  }
-
-  // Invalidate ALL Next.js/Vercel cache layers so landing page shows updated logo/banner
-  // 1. revalidatePath — invalidates Full Route Cache and Data Cache for these paths
+  // Invalidate ALL Next.js/Vercel cache layers
   revalidatePath('/');
   revalidatePath('/api/league');
-  // 2. revalidateTag — more targeted, works with fetch() tags and Vercel CDN
   revalidateTag('league-data', 'layout');
-  // 3. Also invalidate stats routes (club logos appear in standings)
   revalidatePath('/api/stats');
 
-  return NextResponse.json(updated);
+  return NextResponse.json({
+    id: updated!.id,
+    profileId: updated!.profileId,
+    name: updated!.profile.name,
+    logo: updated!.profile.logo,
+    bannerImage: updated!.profile.bannerImage,
+    division: updated!.division,
+    seasonId: updated!.seasonId,
+    wins: updated!.wins,
+    losses: updated!.losses,
+    points: updated!.points,
+    gameDiff: updated!.gameDiff,
+  });
 }
 
-// DELETE /api/clubs/[id] — Delete club
+// DELETE /api/clubs/[id] — Delete club (season entry only, not the profile)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -105,7 +141,10 @@ export async function DELETE(
 
   const club = await db.club.findUnique({
     where: { id },
-    include: { _count: { select: { members: true, homeMatches: true, awayMatches: true } } },
+    include: {
+      profile: { select: { id: true, name: true } },
+      _count: { select: { homeMatches: true, awayMatches: true } },
+    },
   });
   if (!club) return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
 
@@ -114,15 +153,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'Club tidak bisa dihapus karena sudah memiliki match' }, { status: 400 });
   }
 
-  // Remove all members first, then delete club
-  await db.clubMember.deleteMany({ where: { clubId: id } });
+  // Delete the season entry (Club record)
+  // Note: ClubMember is linked to ClubProfile, NOT Club, so deleting a Club
+  // doesn't remove members — they persist across seasons via ClubProfile
   await db.club.delete({ where: { id } });
 
-  // Invalidate ALL Next.js/Vercel cache layers so landing page updates after club deletion
+  // Invalidate cache
   revalidatePath('/');
   revalidatePath('/api/league');
   revalidateTag('league-data', 'layout');
   revalidatePath('/api/stats');
 
-  return NextResponse.json({ success: true, message: 'Club berhasil dihapus' });
+  return NextResponse.json({ success: true, message: `Club "${club.profile.name}" berhasil dihapus dari season ini. Profil club dan anggota tetap tersimpan.` });
 }

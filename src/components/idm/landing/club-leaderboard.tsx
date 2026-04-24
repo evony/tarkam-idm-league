@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Crown, Medal, ChevronRight, TrendingUp, Swords, Shield } from 'lucide-react';
+import { Trophy, Crown, Medal, ChevronRight, TrendingUp, Swords, Shield, Users, Flame } from 'lucide-react';
 import { SectionHeader } from './shared';
 import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
@@ -21,7 +21,6 @@ interface LeaderboardClub {
   maleMemberCount: number;
   femaleMemberCount: number;
   rank: number;
-  tier: string;
 }
 
 type LeaderboardType = 'tarkam' | 'liga';
@@ -53,20 +52,6 @@ function RankBadge({ rank }: { rank: number }) {
     <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.06] text-muted-foreground font-bold text-sm">
       {rank}
     </div>
-  );
-}
-
-/* ========== Tier Badge ========== */
-function TierBadge({ tier }: { tier: string }) {
-  const styles: Record<string, string> = {
-    S: 'bg-red-500/15 text-red-400 border-red-500/30',
-    A: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    B: 'bg-green-500/15 text-green-400 border-green-500/30',
-  };
-  return (
-    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${styles[tier] || styles.B}`}>
-      {tier}
-    </span>
   );
 }
 
@@ -125,6 +110,12 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
 
   const isEven = index % 2 === 0;
 
+  const memberLabel = club.maleMemberCount > 0 && club.femaleMemberCount > 0
+    ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
+    : club.memberCount > 0
+      ? `${club.memberCount} anggota`
+      : 'Belum ada anggota';
+
   return (
     <div
       className={`leaderboard-row-wrapper leaderboard-row-enhanced grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl border transition-all duration-300 hover:scale-[1.01] ${isEven ? 'leaderboard-row-even' : 'leaderboard-row-odd'} ${rowClass}`}
@@ -159,9 +150,7 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-[10px] text-muted-foreground">
-              {club.maleMemberCount > 0 && club.femaleMemberCount > 0
-                ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
-                : `${club.memberCount} anggota`}
+              {memberLabel}
             </p>
             {type === 'liga' && (
               <>
@@ -189,11 +178,8 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
         </div>
       </div>
 
-      {/* Points + Tier */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-black text-idm-gold-warm tabular-nums">{club.points}</span>
-        <TierBadge tier={club.tier} />
-      </div>
+      {/* Points */}
+      <span className="text-sm font-black text-idm-gold-warm tabular-nums">{club.points}</span>
 
       {/* Liga-specific columns (desktop) */}
       {type === 'liga' && (
@@ -220,115 +206,165 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
   );
 }
 
-/* ========== Podium — Top 3 Display (Eye-Catching) ========== */
+/* ========== Podium — Top 3 Display (Eye-Catching Champion Podium) ========== */
 function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 | 3; type: LeaderboardType }) {
   const isFirst = rank === 1;
+  const isSecond = rank === 2;
 
   // Config per rank
   const config = {
     1: {
-      containerClass: 'podium-card-gold',
-      ringClass: 'podium-ring-gold',
-      stepHeight: 'h-36',
+      stepHeight: 'h-28',
       order: 'order-2',
-      avatarSize: 'w-20 h-20',
-      nameSize: 'text-sm',
-      pointsSize: 'text-lg',
-      label: '🥇',
-      glowColor: 'shadow-[0_0_40px_rgba(250,204,21,0.25)]',
-      stepBg: 'bg-gradient-to-t from-yellow-500/30 via-yellow-500/15 to-yellow-500/5',
-      stepBorder: 'border-yellow-500/30',
-      cardBg: 'bg-gradient-to-b from-yellow-500/20 via-yellow-500/8 to-transparent',
-      cardBorder: 'border-yellow-500/25',
+      avatarSize: 'w-[72px] h-[72px]',
+      nameSize: 'text-base',
+      pointsSize: 'text-2xl',
+      glowColor: 'shadow-[0_0_60px_rgba(250,204,21,0.35),0_0_120px_rgba(250,204,21,0.15)]',
+      stepBg: 'bg-gradient-to-t from-yellow-500/50 via-yellow-500/25 to-yellow-400/10',
+      stepBorder: 'border-yellow-400/50',
+      cardBg: 'bg-gradient-to-b from-yellow-500/25 via-yellow-500/10 to-yellow-500/[0.03]',
+      cardBorder: 'border-yellow-400/40',
+      ringBorder: 'border-yellow-400',
+      numberColor: 'text-yellow-300',
+      badgeBg: 'bg-gradient-to-r from-yellow-500/30 to-amber-500/30',
+      badgeBorder: 'border-yellow-400/40',
+      medalIcon: Crown,
+      medalClass: 'text-yellow-300 drop-shadow-[0_0_12px_rgba(250,204,21,0.8)]',
     },
     2: {
-      containerClass: 'podium-card-silver',
-      ringClass: 'podium-ring-silver',
-      stepHeight: 'h-24',
+      stepHeight: 'h-20',
       order: 'order-1',
       avatarSize: 'w-16 h-16',
-      nameSize: 'text-xs',
-      pointsSize: 'text-base',
-      label: '🥈',
-      glowColor: 'shadow-[0_0_24px_rgba(156,163,175,0.15)]',
-      stepBg: 'bg-gradient-to-t from-gray-400/20 via-gray-400/10 to-transparent',
-      stepBorder: 'border-gray-400/20',
-      cardBg: 'bg-gradient-to-b from-gray-400/15 via-gray-400/5 to-transparent',
-      cardBorder: 'border-gray-400/20',
+      nameSize: 'text-sm',
+      pointsSize: 'text-lg',
+      glowColor: 'shadow-[0_0_40px_rgba(192,192,192,0.25)]',
+      stepBg: 'bg-gradient-to-t from-gray-300/40 via-gray-300/20 to-gray-200/10',
+      stepBorder: 'border-gray-300/40',
+      cardBg: 'bg-gradient-to-b from-gray-300/20 via-gray-300/8 to-gray-200/[0.03]',
+      cardBorder: 'border-gray-300/30',
+      ringBorder: 'border-gray-300',
+      numberColor: 'text-gray-200',
+      badgeBg: 'bg-gradient-to-r from-gray-300/20 to-gray-400/20',
+      badgeBorder: 'border-gray-300/30',
+      medalIcon: Medal,
+      medalClass: 'text-gray-200 drop-shadow-[0_0_8px_rgba(192,192,192,0.6)]',
     },
     3: {
-      containerClass: 'podium-card-bronze',
-      ringClass: 'podium-ring-bronze',
-      stepHeight: 'h-16',
+      stepHeight: 'h-14',
       order: 'order-3',
       avatarSize: 'w-14 h-14',
       nameSize: 'text-xs',
-      pointsSize: 'text-sm',
-      label: '🥉',
-      glowColor: 'shadow-[0_0_20px_rgba(180,83,9,0.15)]',
-      stepBg: 'bg-gradient-to-t from-amber-700/20 via-amber-700/10 to-transparent',
-      stepBorder: 'border-amber-700/20',
-      cardBg: 'bg-gradient-to-b from-amber-700/15 via-amber-700/5 to-transparent',
-      cardBorder: 'border-amber-700/20',
+      pointsSize: 'text-base',
+      glowColor: 'shadow-[0_0_30px_rgba(180,83,9,0.25)]',
+      stepBg: 'bg-gradient-to-t from-amber-600/40 via-amber-600/20 to-amber-500/10',
+      stepBorder: 'border-amber-600/40',
+      cardBg: 'bg-gradient-to-b from-amber-600/20 via-amber-600/8 to-amber-500/[0.03]',
+      cardBorder: 'border-amber-600/30',
+      ringBorder: 'border-amber-500',
+      numberColor: 'text-amber-400',
+      badgeBg: 'bg-gradient-to-r from-amber-600/20 to-amber-700/20',
+      badgeBorder: 'border-amber-600/30',
+      medalIcon: Medal,
+      medalClass: 'text-amber-400 drop-shadow-[0_0_8px_rgba(180,83,9,0.6)]',
     },
   }[rank];
 
+  const MedalIcon = config.medalIcon;
+
   const memberLabel = club.maleMemberCount > 0 && club.femaleMemberCount > 0
     ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
-    : `${club.memberCount} anggota`;
+    : club.memberCount > 0
+      ? `${club.memberCount} anggota`
+      : '-';
 
   return (
     <div className={`flex flex-col items-center ${config.order} ${isFirst ? 'z-10' : 'z-0'}`}>
       {/* Card above podium step */}
-      <div className={`flex flex-col items-center gap-2 p-4 rounded-2xl ${config.cardBg} border ${config.cardBorder} ${config.glowColor} transition-all duration-500 hover:scale-105 hover:${config.glowColor.replace('0.25', '0.4').replace('0.15', '0.25')} ${config.containerClass} ${isFirst ? 'min-w-[140px]' : 'min-w-[110px]'}`}>
-        {/* Rank label */}
-        <span className="text-2xl leading-none">{config.label}</span>
+      <div className={`flex flex-col items-center gap-3 p-5 rounded-2xl ${config.cardBg} border ${config.cardBorder} ${config.glowColor} transition-all duration-500 hover:scale-[1.06] ${isFirst ? 'min-w-[170px]' : 'min-w-[130px]'} relative overflow-hidden`}>
+        {/* Animated shimmer for #1 */}
+        {isFirst && (
+          <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+            <div className="absolute -inset-full top-0 podium-shimmer-effect" />
+          </div>
+        )}
 
-        {/* Avatar with animated ring */}
-        <div className={`relative ${config.avatarSize} rounded-full ${config.ringClass}`}>
-          {/* Animated ring behind avatar */}
-          <div className={`absolute inset-0 rounded-full ${config.ringClass}`} />
-          <div className={`relative w-full h-full rounded-full overflow-hidden bg-white/[0.08] border-2 ${isFirst ? 'border-yellow-400/60' : rank === 2 ? 'border-gray-300/50' : 'border-amber-600/50'}`}>
+        {/* Medal / Crown icon for rank */}
+        <div className="relative">
+          <MedalIcon className={`w-8 h-8 ${config.medalClass} ${isFirst ? 'podium-crown-bounce' : ''}`} />
+          {isFirst && (
+            <>
+              {/* Sparkle dots around crown */}
+              <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-yellow-300 podium-sparkle-dot" style={{ animationDelay: '0s' }} />
+              <span className="absolute top-0 -left-1 w-1 h-1 rounded-full bg-yellow-200 podium-sparkle-dot" style={{ animationDelay: '0.5s' }} />
+              <span className="absolute -bottom-0.5 right-0 w-1 h-1 rounded-full bg-amber-300 podium-sparkle-dot" style={{ animationDelay: '1s' }} />
+            </>
+          )}
+        </div>
+
+        {/* Avatar with animated ring for #1 */}
+        <div className={`relative ${config.avatarSize} rounded-full`}>
+          {/* Animated glow ring behind avatar for #1 */}
+          {isFirst && (
+            <div className="absolute inset-[-4px] rounded-full podium-champion-ring" />
+          )}
+          <div className={`relative w-full h-full rounded-full overflow-hidden bg-black/40 border-2 ${config.ringBorder} ${isFirst ? 'border-[3px]' : ''}`}>
             <ClubLogoImage
               clubName={club.name}
               dbLogo={club.logo}
               alt={club.name}
-              width={isFirst ? 80 : 56}
-              height={isFirst ? 80 : 56}
+              width={isFirst ? 72 : 56}
+              height={isFirst ? 72 : 56}
               className="w-full h-full object-contain p-1"
             />
           </div>
-          {/* Crown overlay for #1 */}
-          {isFirst && (
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-              <Crown className="w-5 h-5 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
-            </div>
-          )}
         </div>
 
         {/* Club name */}
-        <p className={`${config.nameSize} font-bold text-white text-center truncate max-w-[120px]`}>
+        <p className={`${config.nameSize} font-extrabold text-white text-center truncate max-w-[130px] tracking-tight`}>
           {club.name}
         </p>
 
-        {/* Points */}
+        {/* Points with trophy */}
         <div className="flex items-center gap-1.5">
-          <Trophy className={`${isFirst ? 'w-4 h-4' : 'w-3 h-3'} text-idm-gold-warm`} />
+          <Trophy className={`${isFirst ? 'w-5 h-5' : 'w-4 h-4'} text-idm-gold-warm`} />
           <span className={`${config.pointsSize} font-black text-idm-gold-warm tabular-nums`}>
             {club.points}
           </span>
         </div>
 
-        {/* Tier badge */}
-        <TierBadge tier={club.tier} />
-
         {/* Members info */}
-        <p className="text-[9px] text-muted-foreground/70">{memberLabel}</p>
+        <div className="flex items-center gap-1.5">
+          <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
+          <p className="text-[11px] text-muted-foreground/60 font-medium">{memberLabel}</p>
+        </div>
+
+        {/* Win/Loss for Liga mode */}
+        {type === 'liga' && (club.wins > 0 || club.losses > 0) && (
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="font-bold text-green-400">{club.wins}W</span>
+            <span className="text-muted-foreground/30">·</span>
+            <span className="font-bold text-red-400">{club.losses}L</span>
+            {club.gameDiff !== 0 && (
+              <>
+                <span className="text-muted-foreground/30">·</span>
+                <span className={`font-bold ${club.gameDiff > 0 ? 'text-green-300' : 'text-red-300'}`}>
+                  {club.gameDiff > 0 ? '+' : ''}{club.gameDiff} GD
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Podium step */}
-      <div className={`w-full ${config.stepHeight} rounded-t-xl ${config.stepBg} border-x border-t ${config.stepBorder} mt-1 flex items-start justify-center pt-3`}>
-        <span className={`font-black tabular-nums ${isFirst ? 'text-3xl text-yellow-400' : rank === 2 ? 'text-2xl text-gray-300' : 'text-xl text-amber-600'}`}>
+      <div className={`w-full ${config.stepHeight} rounded-t-xl ${config.stepBg} border-x border-t ${config.stepBorder} mt-0.5 flex items-start justify-center pt-2.5 relative overflow-hidden`}>
+        {/* Subtle stripe pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 10px)' }} />
+        {/* Gold/Silver/Bronze gradient shine */}
+        {isFirst && (
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent podium-step-shimmer" />
+        )}
+        <span className={`font-black tabular-nums relative ${isFirst ? 'text-4xl text-yellow-300 drop-shadow-[0_0_16px_rgba(250,204,21,0.6)]' : isSecond ? 'text-3xl text-gray-200 drop-shadow-[0_0_8px_rgba(192,192,192,0.4)]' : 'text-2xl text-amber-400 drop-shadow-[0_0_6px_rgba(180,83,9,0.4)]'}`}>
           {rank}
         </span>
       </div>
@@ -344,10 +380,16 @@ function Top3Podium({ clubs, maxPoints, type }: { clubs: LeaderboardClub[]; maxP
   const third = clubs.find(c => c.rank === 3);
 
   return (
-    <div className="flex items-end justify-center gap-3 sm:gap-5 mb-10 px-2">
-      {second && <PodiumCard club={second} rank={2} type={type} />}
-      {first && <PodiumCard club={first} rank={1} type={type} />}
-      {third && <PodiumCard club={third} rank={3} type={type} />}
+    <div className="relative mb-10 px-2">
+      {/* Background glow for #1 */}
+      {first && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[200px] rounded-full bg-yellow-500/[0.07] blur-3xl pointer-events-none" />
+      )}
+      <div className="relative flex items-end justify-center gap-3 sm:gap-5">
+        {second && <PodiumCard club={second} rank={2} type={type} />}
+        {first && <PodiumCard club={first} rank={1} type={type} />}
+        {third && <PodiumCard club={third} rank={3} type={type} />}
+      </div>
     </div>
   );
 }

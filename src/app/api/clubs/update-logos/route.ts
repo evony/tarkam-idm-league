@@ -6,16 +6,15 @@ import { NextResponse } from 'next/server';
  * POST /api/clubs/update-logos
  *
  * Sync club logos from Cloudinary into the database.
- * Supports per-division logos (some clubs have different logos for male/female).
- * Can be called with a JSON body or uses the built-in mapping.
+ * Now updates ClubProfile instead of Club (logos are persistent identity).
  *
  * Body format (optional):
- * { "logos": [{ "name": "MAXIMOUS", "division": "female", "logo": "https://..." }] }
+ * { "logos": [{ "name": "MAXIMOUS", "logo": "https://..." }] }
  */
 export async function POST(request: Request) {
   try {
     // Try to read logos from request body first
-    let logos: Array<{ name: string; division?: string; logo: string }>;
+    let logos: Array<{ name: string; logo: string }>;
 
     try {
       const body = await request.json();
@@ -29,23 +28,17 @@ export async function POST(request: Request) {
       logos = getDefaultLogos();
     }
 
-    const updatedClubs = [];
+    const updatedProfiles = [];
 
     for (const clubData of logos) {
-      // Build where clause — match by name AND division if both provided
-      const where: { name: string; division?: string } = { name: clubData.name };
-      if (clubData.division) {
-        where.division = clubData.division;
-      }
-
-      const result = await withDbRetry(() => db.club.updateMany({
-        where,
+      // Update ClubProfile by name (persistent identity)
+      const result = await withDbRetry(() => db.clubProfile.updateMany({
+        where: { name: clubData.name },
         data: { logo: clubData.logo },
       }));
 
-      updatedClubs.push({
+      updatedProfiles.push({
         name: clubData.name,
-        division: clubData.division || 'all',
         updated: result.count > 0,
         count: result.count,
       });
@@ -53,8 +46,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Updated ${updatedClubs.filter(c => c.updated).length}/${logos.length} club logos`,
-      updatedClubs,
+      message: `Updated ${updatedProfiles.filter(c => c.updated).length}/${logos.length} club profile logos`,
+      updatedProfiles,
     });
   } catch (e: unknown) {
     const error = e as Error;
@@ -65,38 +58,30 @@ export async function POST(request: Request) {
 
 /**
  * Default logo mapping from Cloudinary.
- * Some clubs share logos across divisions, others have different ones.
+ * These go into ClubProfile now (one logo per club, not per division).
  */
-function getDefaultLogos(): Array<{ name: string; division: string; logo: string }> {
+function getDefaultLogos(): Array<{ name: string; logo: string }> {
   return [
-    // Male division logos
-    { name: 'ALQA', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
-    { name: 'AVENUE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp' },
-    { name: 'CROWN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
-    { name: 'EUPHORIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
-    { name: 'EUPHORIC', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
-    { name: 'GYMSHARK', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
-    { name: 'GYMSHARK', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
-    { name: 'JASMINE', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg' },
-    { name: 'MAXIMOUS', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
-    { name: 'MAXIMOUS', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722447/idm/logos/ewl70fqyehvdhefxq76h.webp' },
-    { name: 'MYSTERY', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722423/idm/logos/gdvdqo4ul8filhyv2zrz.jpg' },
-    { name: 'ORPHIC', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722393/idm/logos/d1jroavrbfs7uwm8mx0t.jpg' },
-    { name: 'PARANOID', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
-    { name: 'PARANOID', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
-    { name: 'Plat R', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg' },
-    { name: 'PSALM', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722357/idm/logos/agyc2zkbafrvf1kjrc0b.jpg' },
-    { name: 'QUEEN', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839657/idm/logos/gzfny3tfdkxircyyxaxu.jpg' },
-    { name: 'RESTART', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg' },
-    { name: 'RESTART', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg' },
-    { name: 'RNB', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722517/idm/logos/migrego3avfcr0pganyq.jpg' },
-    { name: 'SALVADOR', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722437/idm/logos/ofcqjompuuqcmmqfoziu.webp' },
-    { name: 'SECRETS', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
-    { name: 'SECRETS', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
-    { name: 'SENSEI', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839508/idm/logos/r41d6jqucjorjnh1scro.jpg' },
-    { name: 'SOUTHERN', division: 'male', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
-    { name: 'SOUTHERN', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
-    { name: 'TOGETHER', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
-    { name: 'YAKUZA', division: 'female', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
+    { name: 'ALQA', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
+    { name: 'AVENUE', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp' },
+    { name: 'CROWN', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
+    { name: 'EUPHORIC', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp' },
+    { name: 'GYMSHARK', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp' },
+    { name: 'JASMINE', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg' },
+    { name: 'MAXIMOUS', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
+    { name: 'MYSTERY', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722423/idm/logos/gdvdqo4ul8filhyv2zrz.jpg' },
+    { name: 'ORPHIC', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722393/idm/logos/d1jroavrbfs7uwm8mx0t.jpg' },
+    { name: 'PARANOID', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp' },
+    { name: 'Plat R', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg' },
+    { name: 'PSALM', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722357/idm/logos/agyc2zkbafrvf1kjrc0b.jpg' },
+    { name: 'QUEEN', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839657/idm/logos/gzfny3tfdkxircyyxaxu.jpg' },
+    { name: 'RESTART', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg' },
+    { name: 'RNB', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722517/idm/logos/migrego3avfcr0pganyq.jpg' },
+    { name: 'SALVADOR', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722437/idm/logos/ofcqjompuuqcmmqfoziu.webp' },
+    { name: 'SECRETS', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg' },
+    { name: 'SENSEI', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839508/idm/logos/r41d6jqucjorjnh1scro.jpg' },
+    { name: 'SOUTHERN', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg' },
+    { name: 'TOGETHER', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg' },
+    { name: 'YAKUZA', logo: 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp' },
   ];
 }

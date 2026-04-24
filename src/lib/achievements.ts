@@ -40,7 +40,7 @@ export async function checkAndAwardAchievements(
         orderBy: { createdAt: 'asc' },
       },
       achievements: { include: { achievement: true } },
-      clubMembers: { include: { club: true } },
+      clubMembers: { include: { profile: true } },
     },
   });
 

@@ -138,16 +138,19 @@ export async function DELETE(
       const memberships = await db.clubMember.findMany({
         where: {
           playerId: { in: allPlayerIds },
-          club: { division: tournament.division, seasonId: tournament.seasonId },
+          leftAt: null,
+          profile: { seasonEntries: { some: { division: tournament.division, seasonId: tournament.seasonId } } },
         },
-        select: { playerId: true, clubId: true },
+        include: { profile: { include: { seasonEntries: { where: { division: tournament.division, seasonId: tournament.seasonId } } } } },
       });
 
       const winningPlayerIds = new Set(winningTeam.teamPlayers.map(tp => tp.playerId));
 
       for (const membership of memberships) {
+        const clubEntry = membership.profile.seasonEntries[0];
+        if (!clubEntry) continue;
         const isWinner = winningPlayerIds.has(membership.playerId);
-        const existing = clubStatChanges.get(membership.clubId) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
+        const existing = clubStatChanges.get(clubEntry.id) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
 
         if (isWinner) {
           existing.winsDelta -= 1;
@@ -157,7 +160,7 @@ export async function DELETE(
           existing.lossesDelta -= 1;
           existing.gameDiffDelta += gameDiff;
         }
-        clubStatChanges.set(membership.clubId, existing);
+        clubStatChanges.set(clubEntry.id, existing);
       }
     }
 
@@ -600,14 +603,17 @@ export async function PUT(
             const memberships = await db.clubMember.findMany({
               where: {
                 playerId: { in: allPlayerIds },
-                club: { division: currentTournament.division, seasonId: currentTournament.seasonId },
+                leftAt: null,
+                profile: { seasonEntries: { some: { division: currentTournament.division, seasonId: currentTournament.seasonId } } },
               },
-              select: { playerId: true, clubId: true },
+              include: { profile: { include: { seasonEntries: { where: { division: currentTournament.division, seasonId: currentTournament.seasonId } } } } },
             });
             const winningPlayerIds = new Set(winningTeam.teamPlayers.map(tp => tp.playerId));
             for (const membership of memberships) {
+              const clubEntry = membership.profile.seasonEntries[0];
+              if (!clubEntry) continue;
               const isWinner = winningPlayerIds.has(membership.playerId);
-              const existing = clubStatChanges.get(membership.clubId) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
+              const existing = clubStatChanges.get(clubEntry.id) || { winsDelta: 0, lossesDelta: 0, pointsDelta: 0, gameDiffDelta: 0 };
               if (isWinner) {
                 existing.winsDelta -= 1;
                 existing.pointsDelta -= 2;
@@ -616,7 +622,7 @@ export async function PUT(
                 existing.lossesDelta -= 1;
                 existing.gameDiffDelta += gameDiff;
               }
-              clubStatChanges.set(membership.clubId, existing);
+              clubStatChanges.set(clubEntry.id, existing);
             }
           }
 

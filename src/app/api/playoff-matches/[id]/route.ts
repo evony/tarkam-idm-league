@@ -15,7 +15,7 @@ export async function PUT(
 
   const match = await db.playoffMatch.findUnique({
     where: { id },
-    include: { club1: true, club2: true },
+    include: { club1: { include: { profile: { select: { name: true, logo: true } } } }, club2: { include: { profile: { select: { name: true, logo: true } } } } },
   });
   if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 });
 

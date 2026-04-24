@@ -10,138 +10,67 @@ export async function GET(request: Request) {
   const unified = searchParams.get('unified') === 'true';
 
   // ── Unified mode: return ALL clubs from ALL active seasons, deduplicated by name ──
-  // Clubs in IDM League belong to ALL divisions — a club is not "male" or "female".
-  // Even if a club only has members in one division, it should appear in all division tabs.
   if (unified) {
-    const allSeasons = await db.season.findMany({
-      where: { status: { in: ['active', 'completed'] } },
-      select: { id: true, division: true, name: true },
-    });
-
-    const allSeasonIds = allSeasons.map(s => s.id);
-
-    const allClubs = await db.club.findMany({
-      where: { seasonId: { in: allSeasonIds } },
-      orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
+    const clubProfiles = await db.clubProfile.findMany({
+      orderBy: { name: 'asc' },
       include: {
-        _count: { select: { members: true } },
-        season: { select: { name: true, division: true } },
+        members: { where: { leftAt: null } },
+        seasonEntries: {
+          where: { season: { status: { in: ['active', 'completed'] } } },
+          include: { season: { select: { name: true, division: true } } },
+        },
       },
     });
 
-    // Fallback logo/banner resolution
-    const clubsNeedingLogo = allClubs.filter(c => !c.logo);
-    if (clubsNeedingLogo.length > 0) {
-      const clubNames = clubsNeedingLogo.map(c => c.name);
-      const fallbackClubs = await db.club.findMany({
-        where: { name: { in: clubNames }, logo: { not: null } },
-        select: { name: true, logo: true },
-      });
-      const logoLookup = new Map<string, string>();
-      for (const fb of fallbackClubs) {
-        if (!logoLookup.has(fb.name) && fb.logo) logoLookup.set(fb.name, fb.logo);
+    const result = clubProfiles.map(profile => {
+      let totalWins = 0, totalLosses = 0, totalPoints = 0, totalGameDiff = 0;
+      for (const entry of profile.seasonEntries) {
+        totalWins += entry.wins;
+        totalLosses += entry.losses;
+        totalPoints += entry.points;
+        totalGameDiff += entry.gameDiff;
       }
-      for (const club of allClubs) {
-        if (!club.logo && logoLookup.has(club.name)) club.logo = logoLookup.get(club.name)!;
-      }
-    }
 
-    const clubsNeedingBanner = allClubs.filter(c => !c.bannerImage);
-    if (clubsNeedingBanner.length > 0) {
-      const clubNames = clubsNeedingBanner.map(c => c.name);
-      const fallbackClubs = await db.club.findMany({
-        where: { name: { in: clubNames }, bannerImage: { not: null } },
-        select: { name: true, bannerImage: true },
-      });
-      const bannerLookup = new Map<string, string>();
-      for (const fb of fallbackClubs) {
-        if (!bannerLookup.has(fb.name) && fb.bannerImage) bannerLookup.set(fb.name, fb.bannerImage);
-      }
-      for (const club of allClubs) {
-        if (!club.bannerImage && bannerLookup.has(club.name)) club.bannerImage = bannerLookup.get(club.name)!;
-      }
-    }
-
-    // Deduplicate by club name — merge same-named clubs across seasons
-    // For each unique club name, keep ALL season records (so admin can manage members per-division)
-    // but show as a single entry with combined stats
-    const clubMap = new Map<string, {
-      id: string; // primary ID (from the first record found, preferring the current division's season)
-      name: string;
-      logo: string | null;
-      bannerImage: string | null;
-      wins: number;
-      losses: number;
-      points: number;
-      gameDiff: number;
-      memberCount: number;
-      // Keep track of which seasons this club exists in
-      seasonRecords: Array<{ id: string; seasonId: string; division: string; memberCount: number }>;
-    }>();
-
-    for (const c of allClubs) {
-      const existing = clubMap.get(c.name);
-      const record = {
-        id: c.id,
-        seasonId: c.seasonId,
-        division: c.season.division,
-        memberCount: c._count.members,
+      return {
+        id: profile.id,
+        name: profile.name,
+        logo: profile.logo,
+        bannerImage: profile.bannerImage,
+        wins: totalWins,
+        losses: totalLosses,
+        points: totalPoints,
+        gameDiff: totalGameDiff,
+        memberCount: profile.members.length,
+        seasonRecords: profile.seasonEntries.map(e => ({
+          id: e.id,
+          seasonId: e.seasonId,
+          division: e.division,
+          memberCount: profile.members.length,
+        })),
       };
+    });
 
-      if (!existing) {
-        clubMap.set(c.name, {
-          id: c.id,
-          name: c.name,
-          logo: c.logo,
-          bannerImage: c.bannerImage,
-          wins: c.wins,
-          losses: c.losses,
-          points: c.points,
-          gameDiff: c.gameDiff,
-          memberCount: c._count.members,
-          seasonRecords: [record],
-        });
-      } else {
-        // Merge stats
-        existing.wins += c.wins;
-        existing.losses += c.losses;
-        existing.points += c.points;
-        existing.gameDiff += c.gameDiff;
-        existing.memberCount += c._count.members;
-        // Use logo/banner from whichever record has one
-        if (!existing.logo && c.logo) existing.logo = c.logo;
-        if (!existing.bannerImage && c.bannerImage) existing.bannerImage = c.bannerImage;
-        existing.seasonRecords.push(record);
-      }
-    }
-
-    // If a specific division is requested, sort so that the club's record
-    // in that division is the primary ID (for member management)
+    // If division specified, set primary ID to that division's entry
     if (division) {
-      for (const [, club] of clubMap) {
+      for (const club of result) {
         const divRecord = club.seasonRecords.find(r => r.division === division);
-        if (divRecord) {
-          club.id = divRecord.id; // Use the ID from the requested division's season
-        }
+        if (divRecord) club.id = divRecord.id;
       }
     }
 
-    return NextResponse.json(Array.from(clubMap.values()));
+    return NextResponse.json(result);
   }
 
   // ── Original mode: filter by seasonId or division ──
   const where: Record<string, unknown> = {};
   if (seasonId) where.seasonId = seasonId;
-
-  if (division) {
-    where.season = { division };
-  }
+  if (division) where.division = division;
 
   const clubs = await db.club.findMany({
     where,
     orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
     include: {
-      _count: { select: { members: true } },
+      profile: { select: { name: true, logo: true, bannerImage: true } },
       season: { select: { name: true, division: true } },
     },
   });
@@ -154,39 +83,29 @@ export async function POST(request: Request) {
   if (authResult instanceof NextResponse) return authResult;
 
   const body = await request.json();
-  const { name, division, logo, seasonId } = body;
+  const { name, logo, seasonId } = body;
 
   if (!name) {
     return NextResponse.json({ error: 'Club name is required' }, { status: 400 });
   }
 
-  // ── Auto-fill logo from previous seasons ──
-  let resolvedLogo = logo || null;
-  if (!resolvedLogo) {
-    const existingClub = await db.club.findFirst({
-      where: { name, logo: { not: null } },
-      select: { logo: true },
+  // ── Find or create the persistent ClubProfile ──
+  let profile = await db.clubProfile.findUnique({ where: { name } });
+
+  if (!profile) {
+    profile = await db.clubProfile.create({
+      data: { name, logo: logo || null },
     });
-    if (existingClub?.logo) {
-      resolvedLogo = existingClub.logo;
-      console.log(`[POST /api/clubs] Auto-filled logo for "${name}" from previous season`);
-    }
+    console.log(`[POST /api/clubs] Created ClubProfile for "${name}"`);
+  } else if (logo && !profile.logo) {
+    // Update logo if provided and profile doesn't have one
+    profile = await db.clubProfile.update({
+      where: { id: profile.id },
+      data: { logo },
+    });
   }
 
-  // ── Auto-fill bannerImage from previous seasons ──
-  let resolvedBanner: string | null = null;
-  const existingBanner = await db.club.findFirst({
-    where: { name, bannerImage: { not: null } },
-    select: { bannerImage: true },
-  });
-  if (existingBanner?.bannerImage) {
-    resolvedBanner = existingBanner.bannerImage;
-  }
-
-  // ── Create club in ALL active seasons (both male & female) ──
-  // A club in IDM League belongs to ALL divisions. When an admin creates
-  // a club, it should automatically appear in both male and female seasons.
-  // This ensures the club list is the same across all division tabs.
+  // ── Create Club season entries in ALL active seasons (both male & female) ──
   const activeSeasons = await db.season.findMany({
     where: { status: { in: ['active', 'completed'] } },
     select: { id: true, division: true },
@@ -197,46 +116,30 @@ export async function POST(request: Request) {
   for (const season of activeSeasons) {
     // Check if club already exists in this season
     const existing = await db.club.findUnique({
-      where: { name_seasonId: { name, seasonId: season.id } },
+      where: { profileId_seasonId_division: { profileId: profile.id, seasonId: season.id, division: season.division } },
     });
 
     if (existing) {
-      // Club already exists in this season — skip but include in response
       createdClubs.push(existing);
       continue;
     }
 
-    // Create club in this season
     const club = await db.club.create({
       data: {
-        name,
+        profileId: profile.id,
         division: season.division,
-        logo: resolvedLogo,
-        bannerImage: resolvedBanner,
         seasonId: season.id,
       },
     });
     createdClubs.push(club);
-    console.log(`[POST /api/clubs] Created "${name}" in ${season.division} season (${season.id})`);
+    console.log(`[POST /api/clubs] Created "${name}" entry in ${season.division} season (${season.id})`);
   }
 
-  // If no active seasons exist, fall back to the provided seasonId
-  if (activeSeasons.length === 0 && seasonId && division) {
-    const club = await db.club.create({
-      data: { name, division, logo: resolvedLogo, bannerImage: resolvedBanner, seasonId },
-    });
-    createdClubs.push(club);
-  }
-
-  // Invalidate Next.js server cache so landing page shows new club
+  // Invalidate cache
   revalidatePath('/');
   revalidatePath('/api/league');
   revalidateTag('league-data', 'layout');
 
-  // Return the club from the requested division (or the first one created)
-  const primaryClub = division
-    ? createdClubs.find(c => c.division === division) || createdClubs[0]
-    : createdClubs[0];
-
+  const primaryClub = createdClubs[0];
   return NextResponse.json(primaryClub, { status: 201 });
 }

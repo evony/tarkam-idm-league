@@ -22,13 +22,13 @@ export async function GET(request: Request) {
     orderBy: [{ points: 'desc' }, { totalWins: 'desc' }, { maxStreak: 'desc' }, { matches: 'asc' }],
     include: {
       participations: { include: { tournament: true }, orderBy: { createdAt: 'desc' } },
-      clubMembers: { include: { club: true } },
+      clubMembers: { where: { leftAt: null }, include: { profile: { select: { name: true } } } },
     },
   });
 
   const rankings = players.map((p, idx) => {
     const upgradeInfo = getTierUpgradeInfo(p.tier as 'S' | 'A' | 'B', p.points);
-    const club = (p.clubMembers as unknown as { club: { name: string } }[])?.[0]?.club?.name || null;
+    const club = (p.clubMembers as unknown as { profile: { name: string } }[])?.[0]?.profile?.name || null;
 
     // Point breakdown
     const pointBreakdown = {

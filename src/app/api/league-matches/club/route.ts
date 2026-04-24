@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Find the club
+    // Find the club with profile
     const club = await db.club.findUnique({
       where: { id: clubId },
-      select: { id: true, name: true, logo: true, seasonId: true },
+      include: { profile: { select: { name: true, logo: true } } },
     });
 
     if (!club) {
@@ -44,15 +44,17 @@ export async function GET(request: NextRequest) {
     const matches = await db.leagueMatch.findMany({
       where: matchWhere,
       include: {
-        club1: { select: { id: true, name: true, logo: true } },
-        club2: { select: { id: true, name: true, logo: true } },
+        club1: { include: { profile: { select: { name: true, logo: true } } } },
+        club2: { include: { profile: { select: { name: true, logo: true } } } },
       },
       orderBy: { week: 'asc' },
     });
 
     const formattedMatches = matches.map((m) => {
       const isHome = m.club1Id === clubId;
-      const opponent = isHome ? m.club2 : m.club1;
+      const opponent = isHome
+        ? { id: m.club2.id, name: m.club2.profile?.name, logo: m.club2.profile?.logo }
+        : { id: m.club1.id, name: m.club1.profile?.name, logo: m.club1.profile?.logo };
 
       let result: 'win' | 'loss' | 'upcoming' | null = null;
       if (m.status === 'completed' && m.score1 !== null && m.score2 !== null) {
@@ -80,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        club: { id: club.id, name: club.name, logo: club.logo },
+        club: { id: club.id, name: club.profile.name, logo: club.profile.logo },
         matches: formattedMatches,
       },
       { headers: CACHE_HEADERS }

@@ -36,7 +36,7 @@ export async function GET() {
       where: { status: 'completed', score1: { not: null }, score2: { not: null } },
       orderBy: { week: 'desc' },
       take: 8,
-      include: { club1: true, club2: true, season: true },
+      include: { club1: { include: { profile: true } }, club2: { include: { profile: true } }, season: true },
     }),
 
     // Latest completed tournaments with winner
@@ -59,11 +59,11 @@ export async function GET() {
 
     // Recent club member changes (transfers / new members)
     db.clubMember.findMany({
-      orderBy: { clubId: 'desc' }, // no createdAt, use clubId as proxy
+      orderBy: { joinedAt: 'desc' },
       take: 10,
       include: {
         player: true,
-        club: true,
+        profile: true,
       },
     }),
 
@@ -92,14 +92,16 @@ export async function GET() {
   for (const m of recentCompletedMatches) {
     const s1 = m.score1 ?? 0;
     const s2 = m.score2 ?? 0;
-    const winner = s1 > s2 ? m.club1.name : s2 > s1 ? m.club2.name : 'Seri';
+    const c1name = (m.club1 as any)?.profile?.name || '?';
+    const c2name = (m.club2 as any)?.profile?.name || '?';
+    const winner = s1 > s2 ? c1name : s2 > s1 ? c2name : 'Seri';
     feedItems.push({
       id: `score-${m.id}`,
       type: 'score',
       icon: '⚽',
-      title: `${m.club1.name} ${s1}–${s2} ${m.club2.name}`,
+      title: `${c1name} ${s1}–${s2} ${c2name}`,
       subtitle: `Week ${m.week} • ${winner !== 'Seri' ? winner + ' menang!' : 'Seri!'}`,
-      timestamp: new Date().toISOString(), // league matches don't have completedAt
+      timestamp: new Date().toISOString(),
       division: m.season?.division,
       accent: '#06b6d4',
     });
@@ -142,11 +144,11 @@ export async function GET() {
   // Group by player to detect "transfers" — if a player appears in multiple clubs
   const playerClubMap = new Map<string, { player: typeof recentClubMembers[0]['player']; clubs: string[] }>();
   for (const cm of recentClubMembers) {
-    const existing = playerClubMap.get(cm.player.id);
+      const existing = playerClubMap.get(cm.player.id);
     if (existing) {
-      existing.clubs.push(cm.club.name);
+      existing.clubs.push(cm.profile.name);
     } else {
-      playerClubMap.set(cm.player.id, { player: cm.player, clubs: [cm.club.name] });
+      playerClubMap.set(cm.player.id, { player: cm.player, clubs: [cm.profile.name] });
     }
   }
 

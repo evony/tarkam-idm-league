@@ -9,16 +9,17 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   try {
-    // Get top 2 male players (no seasonId on Player — just filter by division)
+    // Get top 2 male players
     const maleTop2 = await db.player.findMany({
       where: { division: 'male', isActive: true },
       orderBy: [{ points: 'desc' }, { totalWins: 'desc' }],
       take: 2,
       include: {
         clubMembers: {
+          where: { leftAt: null },
           take: 1,
           include: {
-            club: { select: { id: true, name: true, logo: true } },
+            profile: { select: { id: true, name: true, logo: true } },
           },
         },
       },
@@ -31,9 +32,10 @@ export async function GET() {
       take: 2,
       include: {
         clubMembers: {
+          where: { leftAt: null },
           take: 1,
           include: {
-            club: { select: { id: true, name: true, logo: true } },
+            profile: { select: { id: true, name: true, logo: true } },
           },
         },
       },
@@ -50,7 +52,7 @@ export async function GET() {
       streak: p.streak,
       maxStreak: p.maxStreak,
       matches: p.matches,
-      club: p.clubMembers?.[0]?.club ? { name: p.clubMembers[0].club.name, logo: p.clubMembers[0].club.logo } : null,
+      club: p.clubMembers?.[0]?.profile ? { name: p.clubMembers[0].profile.name, logo: p.clubMembers[0].profile.logo } : null,
     });
 
     // Count total players per division

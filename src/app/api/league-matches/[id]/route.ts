@@ -12,41 +12,53 @@ export async function GET(
     include: {
       club1: {
         include: {
-          members: {
+          profile: {
+            select: { name: true, logo: true },
             include: {
-              player: {
-                select: {
-                  id: true,
-                  gamertag: true,
-                  avatar: true,
-                  tier: true,
-                  points: true,
-                  totalWins: true,
-                  totalMvp: true,
+              members: {
+                where: { leftAt: null },
+                include: {
+                  player: {
+                    select: {
+                      id: true,
+                      gamertag: true,
+                      avatar: true,
+                      tier: true,
+                      points: true,
+                      totalWins: true,
+                      totalMvp: true,
+                    },
+                  },
                 },
+                orderBy: { role: 'desc' },
               },
             },
-            orderBy: { role: 'desc' }, // captain first
           },
         },
       },
       club2: {
         include: {
-          members: {
+          profile: {
+            select: { name: true, logo: true },
             include: {
-              player: {
-                select: {
-                  id: true,
-                  gamertag: true,
-                  avatar: true,
-                  tier: true,
-                  points: true,
-                  totalWins: true,
-                  totalMvp: true,
+              members: {
+                where: { leftAt: null },
+                include: {
+                  player: {
+                    select: {
+                      id: true,
+                      gamertag: true,
+                      avatar: true,
+                      tier: true,
+                      points: true,
+                      totalWins: true,
+                      totalMvp: true,
+                    },
+                  },
                 },
+                orderBy: { role: 'desc' },
               },
             },
-            orderBy: { role: 'desc' }, // captain first
           },
         },
       },
@@ -58,10 +70,8 @@ export async function GET(
   }
 
   // Try to find MVP player from tournament matches for this week
-  // LeagueMatch doesn't have MVP directly, but we can check tournament matches
   let mvpPlayer = null;
   if (match.status === 'completed') {
-    // Try to find a tournament match for this week that might have MVP
     const tournamentMatch = await db.match.findFirst({
       where: {
         status: 'completed',
@@ -99,9 +109,9 @@ export async function GET(
     mvpPlayer,
     club1: {
       id: match.club1.id,
-      name: match.club1.name,
-      logo: match.club1.logo,
-      members: match.club1.members.map(m => ({
+      name: match.club1.profile?.name || '',
+      logo: match.club1.profile?.logo || null,
+      members: (match.club1.profile?.members || []).map(m => ({
         id: m.player.id,
         gamertag: m.player.gamertag,
         avatar: m.player.avatar,
@@ -114,9 +124,9 @@ export async function GET(
     },
     club2: {
       id: match.club2.id,
-      name: match.club2.name,
-      logo: match.club2.logo,
-      members: match.club2.members.map(m => ({
+      name: match.club2.profile?.name || '',
+      logo: match.club2.profile?.logo || null,
+      members: (match.club2.profile?.members || []).map(m => ({
         id: m.player.id,
         gamertag: m.player.gamertag,
         avatar: m.player.avatar,

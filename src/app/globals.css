@@ -7345,3 +7345,74 @@ html {
   animation: podium-ring-bronze-rotate 3.5s ease-in-out infinite;
   contain: layout style;
 }
+
+/* ============================================
+   CHAMPION PODIUM — Club Leaderboard
+   Eye-catching animated podium for top 3 clubs
+   ============================================ */
+
+/* Champion card shimmer effect for #1 */
+@keyframes podium-shimmer-keyframes {
+  0% { transform: translateX(-100%) rotate(15deg); }
+  100% { transform: translateX(200%) rotate(15deg); }
+}
+.podium-shimmer-effect {
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(250, 204, 21, 0.05) 40%,
+    rgba(250, 204, 21, 0.12) 50%,
+    rgba(250, 204, 21, 0.05) 60%,
+    transparent 100%
+  );
+  animation: podium-shimmer-keyframes 3s ease-in-out infinite;
+}
+
+/* Crown bounce animation for #1 */
+@keyframes podium-crown-bounce-keyframes {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-1.5px); }
+}
+.podium-crown-bounce {
+  animation: podium-crown-bounce-keyframes 2s ease-in-out infinite;
+}
+
+/* Sparkle dots around the crown */
+@keyframes podium-sparkle-blink {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+.podium-sparkle-dot {
+  animation: podium-sparkle-blink 1.5s ease-in-out infinite;
+}
+
+/* Animated glow ring behind champion avatar */
+@keyframes podium-champion-ring-keyframes {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.3), 0 0 16px rgba(250, 204, 21, 0.15);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.5), 0 0 32px rgba(250, 204, 21, 0.25), 0 0 48px rgba(250, 204, 21, 0.08);
+    opacity: 1;
+  }
+}
+.podium-champion-ring {
+  border-radius: 50%;
+  border: 2px solid rgba(250, 204, 21, 0.3);
+  animation: podium-champion-ring-keyframes 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Podium step shimmer sweep for #1 */
+@keyframes podium-step-shimmer-keyframes {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.podium-step-shimmer {
+  animation: podium-step-shimmer-keyframes 4s ease-in-out infinite;
+}

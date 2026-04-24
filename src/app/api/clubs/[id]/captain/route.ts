@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
 
-// PUT /api/clubs/[id]/captain — Transfer captain role
+// PUT /api/clubs/[id]/captain — Transfer captain role (via ClubProfile)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,15 +18,20 @@ export async function PUT(
     return NextResponse.json({ error: 'New captain player ID wajib diisi' }, { status: 400 });
   }
 
-  // Validate club
-  const club = await db.club.findUnique({ where: { id: clubId } });
+  // Validate club and get profileId
+  const club = await db.club.findUnique({
+    where: { id: clubId },
+    include: { profile: true },
+  });
   if (!club) {
     return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 404 });
   }
 
-  // Validate new captain is a member
-  const newCaptainMembership = await db.clubMember.findUnique({
-    where: { clubId_playerId: { clubId, playerId: newCaptainId } },
+  const profileId = club.profileId;
+
+  // Validate new captain is an active member of this club profile
+  const newCaptainMembership = await db.clubMember.findFirst({
+    where: { profileId, playerId: newCaptainId, leftAt: null },
     include: { player: { select: { gamertag: true } } },
   });
 
@@ -36,7 +41,7 @@ export async function PUT(
 
   // Demote current captain
   const currentCaptain = await db.clubMember.findFirst({
-    where: { clubId, role: 'captain' },
+    where: { profileId, role: 'captain', leftAt: null },
   });
 
   if (currentCaptain) {

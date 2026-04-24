@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     db.club.findMany({
       where: { seasonId: activeSeasonId },
       orderBy: { points: 'desc' },
-      include: { _count: { select: { members: true } } },
+      include: { profile: { include: { _count: { select: { members: true } } } } },
     }),
 
     // Tournaments for this season (for weekly trend)
@@ -107,11 +107,11 @@ export async function GET(request: Request) {
     .map(tier => ({ tier, count: tierCountMap[tier] }));
 
   // ── Club Performance ──
-  const clubPerformance = clubs.slice(0, 8).map(club => ({
-    club: club.name,
+  const clubPerformance = clubs.slice(0, 8).map((club: any) => ({
+    club: club.profile?.name || '',
     points: club.points,
     wins: club.wins,
-    members: club._count?.members ?? 0,
+    members: club.profile?._count?.members ?? 0,
   }));
 
   // ── Weekly Trend ──

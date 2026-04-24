@@ -15,7 +15,15 @@ export async function GET(request: Request) {
     orderBy: [{ points: 'desc' }, { totalWins: 'desc' }, { maxStreak: 'desc' }],
     take: limit,
     include: {
-      clubMembers: seasonId ? { where: { club: { seasonId } }, include: { club: true } } : false,
+      clubMembers: {
+        where: { leftAt: null },
+        include: {
+          profile: {
+            select: { name: true },
+            ...(seasonId ? { seasonEntries: { where: { seasonId }, select: { id: true } } } : {}),
+          },
+        },
+      },
     },
   });
 
@@ -32,7 +40,7 @@ export async function GET(request: Request) {
     streak: p.streak,
     maxStreak: p.maxStreak,
     matches: p.matches,
-    club: (p.clubMembers as unknown as { club: { name: string } }[] | undefined)?.[0]?.club?.name || null,
+    club: (p.clubMembers as unknown as { profile: { name: string } }[] | undefined)?.[0]?.profile?.name || null,
   }));
 
   return NextResponse.json(leaderboard);

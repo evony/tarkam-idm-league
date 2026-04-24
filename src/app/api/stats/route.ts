@@ -99,7 +99,7 @@ export async function GET(request: Request) {
     db.club.findMany({
       where: { seasonId: activeSeasonId },
       orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
-      include: { _count: { select: { members: true } }, season: { select: { name: true, division: true } } },
+      include: { profile: { include: { _count: { select: { members: true } } } }, season: { select: { name: true, division: true } } },
     }),
 
     // Recent matches — use activeSeasonId for consistency with clubs
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
       where: { seasonId: activeSeasonId, status: 'completed' },
       orderBy: { week: 'desc' },
       take: 3,
-      include: { club1: true, club2: true },
+      include: { club1: { include: { profile: true } }, club2: { include: { profile: true } } },
     }),
 
     // Upcoming matches
@@ -115,13 +115,13 @@ export async function GET(request: Request) {
       where: { seasonId: activeSeasonId, status: 'upcoming' },
       orderBy: { week: 'asc' },
       take: 3,
-      include: { club1: true, club2: true },
+      include: { club1: { include: { profile: true } }, club2: { include: { profile: true } } },
     }),
 
     // Playoff matches
     db.playoffMatch.findMany({
       where: { seasonId: activeSeasonId },
-      include: { club1: true, club2: true },
+      include: { club1: { include: { profile: true } }, club2: { include: { profile: true } } },
       orderBy: { round: 'asc' },
     }),
 
@@ -147,59 +147,13 @@ export async function GET(request: Request) {
     db.leagueMatch.findMany({
       where: { seasonId: activeSeasonId },
       orderBy: [{ week: 'asc' }],
-      include: { club1: true, club2: true },
+      include: { club1: { include: { profile: true } }, club2: { include: { profile: true } } },
     }),
   ]);
 
-  // ── Fallback logo resolution for clubs ──
-  // Same pattern as /api/league — if a club in the current season has no logo,
-  // fall back to the most recent logo from any season with the same club name.
-  const clubsNeedingLogo = clubs.filter((c: { logo: string | null }) => !c.logo);
-  if (clubsNeedingLogo.length > 0) {
-    const clubNames = clubsNeedingLogo.map((c: { name: string }) => c.name);
-    const fallbackClubs = await db.club.findMany({
-      where: {
-        name: { in: clubNames },
-        logo: { not: null },
-      },
-      select: { name: true, logo: true },
-    });
-    const logoLookup = new Map<string, string>();
-    for (const fb of fallbackClubs) {
-      if (!logoLookup.has(fb.name) && fb.logo) {
-        logoLookup.set(fb.name, fb.logo);
-      }
-    }
-    for (const club of clubs) {
-      if (!club.logo && logoLookup.has(club.name)) {
-        club.logo = logoLookup.get(club.name)!;
-      }
-    }
-  }
-
-  // ── Fallback bannerImage resolution ──
-  const clubsNeedingBanner = clubs.filter((c: { bannerImage: string | null }) => !c.bannerImage);
-  if (clubsNeedingBanner.length > 0) {
-    const clubNames = clubsNeedingBanner.map((c: { name: string }) => c.name);
-    const fallbackClubs = await db.club.findMany({
-      where: {
-        name: { in: clubNames },
-        bannerImage: { not: null },
-      },
-      select: { name: true, bannerImage: true },
-    });
-    const bannerLookup = new Map<string, string>();
-    for (const fb of fallbackClubs) {
-      if (!bannerLookup.has(fb.name) && fb.bannerImage) {
-        bannerLookup.set(fb.name, fb.bannerImage);
-      }
-    }
-    for (const club of clubs) {
-      if (!club.bannerImage && bannerLookup.has(club.name)) {
-        club.bannerImage = bannerLookup.get(club.name)!;
-      }
-    }
-  }
+  // ── No more fallback logo/banner resolution needed ──
+  // ClubProfile is now persistent — logo/banner are always on the profile
+  // Clubs include their profile via { include: { profile: true } }
 
   // ── Compute derived values in-memory (no extra DB queries) ──
 
@@ -388,6 +342,38 @@ export async function GET(request: Request) {
     championClubId: s.championClubId,
   }));
 
+  // ── Flatten club data for frontend compatibility ──
+  // New schema: Club has profileId → ClubProfile (name, logo, bannerImage)
+  // Frontend expects: { id, name, logo, wins, losses, points, gameDiff, _count: { members } }
+  const flatClubs = clubs.map((c: any) => ({
+    id: c.id,
+    name: c.profile?.name || '',
+    logo: c.profile?.logo || null,
+    bannerImage: c.profile?.bannerImage || null,
+    division: c.division,
+    seasonId: c.seasonId,
+    wins: c.wins,
+    losses: c.losses,
+    points: c.points,
+    gameDiff: c.gameDiff,
+    _count: { members: c.profile?._count?.members || 0 },
+    profileId: c.profileId,
+  }));
+
+  // Flatten matches (club1/club2 now have nested profile)
+  const flatRecentMatches = recentMatches.map((m: any) => ({
+    ...m, club1: { id: m.club1?.id, name: m.club1?.profile?.name, logo: m.club1?.profile?.logo }, club2: { id: m.club2?.id, name: m.club2?.profile?.name, logo: m.club2?.profile?.logo },
+  }));
+  const flatUpcomingMatches = upcomingMatches.map((m: any) => ({
+    ...m, club1: { id: m.club1?.id, name: m.club1?.profile?.name, logo: m.club1?.profile?.logo }, club2: { id: m.club2?.id, name: m.club2?.profile?.name, logo: m.club2?.profile?.logo },
+  }));
+  const flatPlayoffMatches = playoffMatches.map((m: any) => ({
+    ...m, club1: { id: m.club1?.id, name: m.club1?.profile?.name, logo: m.club1?.profile?.logo }, club2: { id: m.club2?.id, name: m.club2?.profile?.name, logo: m.club2?.profile?.logo },
+  }));
+  const flatLeagueMatches = leagueMatches.map((m: any) => ({
+    ...m, club1: { id: m.club1?.id, name: m.club1?.profile?.name, logo: m.club1?.profile?.logo }, club2: { id: m.club2?.id, name: m.club2?.profile?.name, logo: m.club2?.profile?.logo },
+  }));
+
   return NextResponse.json({
     hasData: true,
     division,
@@ -400,13 +386,13 @@ export async function GET(request: Request) {
     seasonDonationTotal,
     topPlayers,
     skinMap,
-    clubs,
-    recentMatches,
-    upcomingMatches,
-    playoffMatches,
+    clubs: flatClubs,
+    recentMatches: flatRecentMatches,
+    upcomingMatches: flatUpcomingMatches,
+    playoffMatches: flatPlayoffMatches,
     tournaments,
     weeklyChampions,
-    leagueMatches,
+    leagueMatches: flatLeagueMatches,
     topDonors,
     mvpHallOfFame,
     seasonProgress: {

@@ -36,7 +36,10 @@ export async function GET(
     include: {
       teamPlayers: { include: { team: { include: { tournament: true } } } },
       participations: { include: { tournament: true } },
-      clubMembers: { include: { club: true } },
+      clubMembers: {
+        where: { leftAt: null },
+        include: { profile: { select: { id: true, name: true, logo: true } } },
+      },
     },
   });
 
@@ -85,14 +88,20 @@ export async function PUT(
 
   // Handle club membership change
   if (body.clubId !== undefined) {
-    // Remove existing club membership
-    await db.clubMember.deleteMany({ where: { playerId: id } });
+    // Soft-remove existing club memberships (set leftAt)
+    await db.clubMember.updateMany({
+      where: { playerId: id, leftAt: null },
+      data: { leftAt: new Date() },
+    });
 
     // Add new club membership if clubId is provided (not null/empty)
     if (body.clubId) {
-      await db.clubMember.create({
-        data: { playerId: id, clubId: body.clubId, role: 'member' },
-      });
+      const club = await db.club.findUnique({ where: { id: body.clubId } });
+      if (club) {
+        await db.clubMember.create({
+          data: { playerId: id, profileId: club.profileId, role: 'member' },
+        });
+      }
     }
   }
 
@@ -100,7 +109,10 @@ export async function PUT(
   const updatedPlayer = await db.player.findUnique({
     where: { id },
     include: {
-      clubMembers: { include: { club: true } },
+      clubMembers: {
+        where: { leftAt: null },
+        include: { profile: { select: { id: true, name: true, logo: true } } },
+      },
     },
   });
 
