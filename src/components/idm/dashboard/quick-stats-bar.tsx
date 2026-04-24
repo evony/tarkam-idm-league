@@ -3,12 +3,9 @@
 import React from 'react';
 import {
   Users,
-  Shield,
   Wallet,
   TrendingUp,
   Crown,
-  Award,
-  Radio,
   Zap,
 } from 'lucide-react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
@@ -35,8 +32,6 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
   const dt = useDivisionTheme();
 
   const topPlayer = data.topPlayers?.[0];
-  const isTournamentActive = data.activeTournament != null;
-  const mvpCount = data.mvpHallOfFame?.length ?? 0;
 
   const stats: StatCardConfig[] = [
     {
@@ -44,11 +39,6 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
       value: data.totalPlayers,
       label: 'Total Players',
       isPrimary: true,
-    },
-    {
-      icon: Shield,
-      value: data.clubs?.length ?? 0,
-      label: 'Total Clubs',
     },
     {
       icon: Wallet,
@@ -61,33 +51,11 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
       label: 'Season Progress',
     },
     {
-      icon: Radio,
-      value: isTournamentActive ? 'Active' : 'Inactive',
-      label: 'Tournament',
-      badge: isTournamentActive ? (
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-red-500/15 text-red-500 border border-red-500/30">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
-          </span>
-          LIVE
-        </span>
-      ) : (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-muted/30 text-muted-foreground border border-muted/30">
-          OFF
-        </span>
-      ),
-    },
-    {
       icon: Crown,
       value: topPlayer ? topPlayer.gamertag : '—',
       label: topPlayer ? `${topPlayer.points} pts` : 'Top Player',
     },
-    {
-      icon: Award,
-      value: mvpCount,
-      label: 'Division MVPs',
-    },
+
   ];
 
   return (
@@ -96,7 +64,7 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
         flex gap-3 overflow-x-auto snap-x snap-mandatory
         pb-2 -mx-1 px-1
         lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0
-        lg:grid lg:grid-cols-3 lg:gap-4
+        lg:grid lg:grid-cols-2 lg:gap-4
         custom-scrollbar
       "
       role="list"

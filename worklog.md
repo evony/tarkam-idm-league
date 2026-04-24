@@ -2615,3 +2615,24 @@ Stage Summary:
 - 6 redundant widgets removed (Quick Stats Pills, Live Match Banner, MyAccountCard, PlayerQuickSearch, Login Prompt, Recently Viewed Players)
 - Orphaned PlayerAccountModal cleaned up
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Remove Quick Stats: Active Turnamen, Division MVP, Total Clubs
+
+Work Log:
+- Read quick-stats-bar.tsx and identified the 3 stats to remove: Total Clubs, Tournament (Active/Inactive), Division MVPs
+- Removed Total Clubs stat (Shield icon, data.clubs?.length)
+- Removed Tournament stat (Radio icon, Active/Inactive with LIVE/OFF badge)
+- Removed Division MVPs stat (Award icon, mvpHallOfFame count)
+- Cleaned up unused imports (Shield, Award, Radio) and variables (isTournamentActive, mvpCount)
+- Updated grid layout from 3-column to 2-column since 4 cards remain (Total Players, Prize Pool, Season Progress, Top Player)
+- Removed Total Clubs from marquee-ticker.tsx as well (stat-clubs entry and totalClubs variable)
+- Ran lint — passed with zero errors
+
+Stage Summary:
+- Quick stats bar now shows 4 cards: Total Players, Prize Pool, Season Progress, Top Player
+- Grid layout updated to 2-column for better appearance with fewer cards
+- Marquee ticker also cleaned up — Total Clubs stat removed
+- All lint checks pass

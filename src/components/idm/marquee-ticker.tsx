@@ -234,7 +234,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
 
     // Calculate aggregate stats
     const totalPlayers = (maleData?.totalPlayers || 0) + (femaleData?.totalPlayers || 0);
-    const totalClubs = leagueData?.stats?.totalClubs || Math.max(maleData?.clubs?.length || 0, femaleData?.clubs?.length || 0);
     const totalPrizePool = (maleData?.totalPrizePool || 0) + (femaleData?.totalPrizePool || 0);
     const totalMatches = leagueData?.stats?.totalMatches || (maleData?.recentMatches?.length || 0) + (femaleData?.recentMatches?.length || 0);
     const seasonInfo = leagueData?.ligaChampion
@@ -243,7 +242,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
 
     stats.push(
       { id: 'stat-players', type: 'stat', icon: '👥', title: `${totalPlayers}`, subtitle: 'Total Players', timestamp: new Date().toISOString(), accent: '#22d3ee', numericValue: totalPlayers },
-      { id: 'stat-clubs', type: 'stat', icon: '🛡️', title: `${totalClubs}`, subtitle: 'Total Clubs', timestamp: new Date().toISOString(), accent: '#d4a853', numericValue: totalClubs },
       { id: 'stat-prize', type: 'stat', icon: '💰', title: formatCurrency(totalPrizePool), subtitle: 'Prize Pool', timestamp: new Date().toISOString(), accent: '#22c55e', numericValue: totalPrizePool },
       { id: 'stat-matches', type: 'stat', icon: '⚔️', title: `${totalMatches}`, subtitle: 'Matches', timestamp: new Date().toISOString(), accent: '#a855f7', numericValue: totalMatches },
       { id: 'stat-season', type: 'stat', icon: '📅', title: seasonInfo, subtitle: 'Current Season', timestamp: new Date().toISOString(), accent: '#f59e0b' },
