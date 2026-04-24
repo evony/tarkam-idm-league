@@ -130,30 +130,55 @@ function BracketConnectors({ paths }: { paths: ConnectorPath[] }) {
       className="absolute inset-0 pointer-events-none"
       style={{ width: '100%', height: '100%', overflow: 'visible' }}
     >
-      {paths.map((p) => (
-        <g key={p.key}>
-          {/* Glow layer */}
-          <path
-            d={p.d}
-            stroke={p.color}
-            strokeWidth="3"
-            fill="none"
-            opacity="0.15"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Main line */}
-          <path
-            d={p.d}
-            stroke={p.color}
-            strokeWidth="1.5"
-            fill="none"
-            opacity={p.isWinner ? "0.7" : "0.4"}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      ))}
+      {paths.map((p) => {
+        const isDot = p.key.endsWith('-dot');
+        const isRail = p.key.endsWith('-rail');
+        const isArm = p.key.endsWith('-arm1') || p.key.endsWith('-arm2');
+
+        if (isDot) {
+          // Junction dot — small filled circle
+          const match = p.d.match(/M ([\d.]+) ([\d.]+) h ([\d.]+)/);
+          if (match) {
+            const cx = parseFloat(match[1]) + parseFloat(match[3]) / 2;
+            const cy = parseFloat(match[2]);
+            return (
+              <circle
+                key={p.key}
+                cx={cx}
+                cy={cy}
+                r="3"
+                fill={p.color}
+                opacity="0.6"
+              />
+            );
+          }
+        }
+
+        return (
+          <g key={p.key}>
+            {/* Glow layer — thicker, faded */}
+            <path
+              d={p.d}
+              stroke={p.color}
+              strokeWidth={isArm ? "4" : isRail ? "4" : "4"}
+              fill="none"
+              opacity="0.12"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Main line */}
+            <path
+              d={p.d}
+              stroke={p.color}
+              strokeWidth={isArm ? "1.5" : isRail ? "1.5" : "1.5"}
+              fill="none"
+              opacity={p.isWinner ? "0.6" : "0.35"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -701,7 +726,13 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
     return sortedRounds;
   }, [matches, bracketType]);
 
-  /* Calculate SVG connector paths after layout — MPL Style */
+  /* Calculate SVG connector paths after layout — Clean MPL Style
+     Bracket connector pattern:
+     [Feeder 1] ──────┐
+                        ├────── [Next Match]
+     [Feeder 2] ──────┘
+     Segments: 1) Horizontal arms  2) Vertical rail  3) Horizontal to next  4) Junction dot
+  */
   const calculateConnectors = useCallback(() => {
     if (!containerRef.current || roundsData.length < 2) {
       setConnectors([]);
@@ -750,49 +781,74 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
         const p1 = getCenter(feederEl1);
         const p2 = getCenter(feederEl2);
 
-        // Midpoint X between feeder and next match
+        // Midpoint X between feeder and next match (the vertical rail position)
         const midX = nextX - (nextX - Math.max(p1.x, p2.x)) / 2;
 
-        // Check if feeder is winner to highlight path
-        const f1Winner = feederMatch1 && feederMatch1.score1 !== null && feederMatch1.score2 !== null &&
-          ((feederMatch1.score1! > feederMatch1.score2!) || (feederMatch1.score2! > feederMatch1.score1!));
-        const f2Winner = feederMatch2 && feederMatch2.score1 !== null && feederMatch2.score2 !== null &&
-          ((feederMatch2.score1! > feederMatch2.score2!) || (feederMatch2.score2! > feederMatch2.score1!));
+        // Check if feeder match has a winner (for highlighting)
+        const f1HasWinner = feederMatch1 && feederMatch1.score1 !== null && feederMatch1.score2 !== null &&
+          feederMatch1.score1 !== feederMatch1.score2;
+        const f2HasWinner = feederMatch2 && feederMatch2.score1 !== null && feederMatch2.score2 !== null &&
+          feederMatch2.score1 !== feederMatch2.score2;
 
-        // Feeder 1 → midX → merge point → next match
+        // ── Segment 1: Horizontal arm from Feeder 1 to midX ──
         if (feederEl1) {
-          const d1 = `M ${p1.x} ${p1.y} H ${midX} V ${nextY} H ${nextX}`;
           newConnectors.push({
-            key: `conn-${r}-${ni}-1`,
-            d: d1,
+            key: `conn-${r}-${ni}-arm1`,
+            d: `M ${p1.x} ${p1.y} H ${midX}`,
             color: strokeColor,
-            isWinner: f1Winner,
+            isWinner: f1HasWinner,
           });
         }
 
-        // Feeder 2 → midX (just the horizontal arm to the vertical line)
-        if (feederEl2 && feederEl1) {
-          const d2 = `M ${p2.x} ${p2.y} H ${midX}`;
+        // ── Segment 2: Horizontal arm from Feeder 2 to midX ──
+        if (feederEl2) {
           newConnectors.push({
-            key: `conn-${r}-${ni}-2`,
-            d: d2,
+            key: `conn-${r}-${ni}-arm2`,
+            d: `M ${p2.x} ${p2.y} H ${midX}`,
             color: strokeColor,
-            isWinner: f2Winner,
+            isWinner: f2HasWinner,
+          });
+        }
+
+        // ── Segment 3: Vertical rail at midX connecting both feeders ──
+        if (feederEl1 && feederEl2) {
+          const topY = Math.min(p1.y, p2.y);
+          const bottomY = Math.max(p1.y, p2.y);
+          newConnectors.push({
+            key: `conn-${r}-${ni}-rail`,
+            d: `M ${midX} ${topY} V ${bottomY}`,
+            color: strokeColor,
+            isWinner: f1HasWinner || f2HasWinner,
+          });
+        } else if (feederEl1 && !feederEl2) {
+          // Single feeder — vertical rail from feeder to nextY level
+          newConnectors.push({
+            key: `conn-${r}-${ni}-rail`,
+            d: `M ${midX} ${p1.y} V ${nextY}`,
+            color: strokeColor,
+            isWinner: f1HasWinner,
           });
         } else if (feederEl2 && !feederEl1) {
-          const d2 = `M ${p2.x} ${p2.y} H ${midX} V ${nextY} H ${nextX}`;
           newConnectors.push({
-            key: `conn-${r}-${ni}-2`,
-            d: d2,
+            key: `conn-${r}-${ni}-rail`,
+            d: `M ${midX} ${p2.y} V ${nextY}`,
             color: strokeColor,
-            isWinner: f2Winner,
+            isWinner: f2HasWinner,
           });
         }
 
-        // Small circle at junction point (MPL style)
+        // ── Segment 4: Horizontal from midX at nextY to next match ──
+        newConnectors.push({
+          key: `conn-${r}-${ni}-bridge`,
+          d: `M ${midX} ${nextY} H ${nextX}`,
+          color: strokeColor,
+          isWinner: f1HasWinner || f2HasWinner,
+        });
+
+        // ── Segment 5: Junction dot at merge point ──
         newConnectors.push({
           key: `conn-${r}-${ni}-dot`,
-          d: `M ${midX - 2} ${nextY} h 4`,
+          d: `M ${midX - 3} ${nextY} h 6`,
           color: strokeColor,
           isWinner: true,
         });
@@ -803,7 +859,8 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
   }, [roundsData, dt.color]);
 
   useEffect(() => {
-    const attempts = [100, 600];
+    // Multiple attempts to recalculate after layout settles
+    const attempts = [50, 200, 500, 1000];
     const timers = attempts.map(delay => setTimeout(calculateConnectors, delay));
     const handleResize = () => calculateConnectors();
     window.addEventListener('resize', handleResize);

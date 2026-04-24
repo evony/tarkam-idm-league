@@ -2787,3 +2787,32 @@ Stage Summary:
 - Dashboard is now full-width, matching other views (League, Match Day, Tour Saya)
 - Removed `max-w-7xl mx-auto` from 3 locations
 - All lint checks pass, dev server operational
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Fix disconnected bracket connector lines
+
+Work Log:
+- Analyzed bracket-view.tsx connector drawing logic
+- Found root cause: Feeder 2 only drew horizontal arm `M p2.x p2.y H midX` with NO vertical line to nextY, causing disconnected appearance
+- Feeder 1 drew a single continuous path `M p1.x p1.y H midX V nextY H nextX` which covered its horizontal arm + vertical + bridge to next
+- Rewrote entire connector calculation using a clean segment-based approach:
+  - Segment 1: Horizontal arm from Feeder 1 to midX
+  - Segment 2: Horizontal arm from Feeder 2 to midX
+  - Segment 3: Vertical rail at midX connecting both feeders (topY → bottomY)
+  - Segment 4: Horizontal bridge from midX at nextY to next match
+  - Segment 5: Junction dot at merge point (rendered as SVG circle)
+- Improved BracketConnectors SVG rendering:
+  - Junction dots now rendered as proper SVG `<circle>` elements instead of tiny lines
+  - Consistent glow + main line layer for all segments
+  - Better opacity for winner vs non-winner paths
+- Added more layout recalculation attempts (50, 200, 500, 1000ms) for better accuracy
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Bracket connector lines now properly connect all segments: horizontal arms → vertical rail → bridge → junction dot
+- No more disconnected lines between feeder matches and next round matches
+- Cleaner visual rendering with proper SVG circles at junction points
+- All lint checks pass, dev server operational
