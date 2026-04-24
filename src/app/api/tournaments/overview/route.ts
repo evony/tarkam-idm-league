@@ -175,7 +175,7 @@ export async function GET(request: Request) {
         players: team.teamPlayers.map(tp => ({
           id: tp.player.id,
           gamertag: tp.player.gamertag,
-          tier: tp.player.tier,
+          tier: tp.tier || tp.player.tier,
           points: tp.player.points,
         })),
       }));
@@ -225,7 +225,7 @@ export async function GET(request: Request) {
           players: winnerTeam.teamPlayers.map(tp => ({
             id: tp.player.id,
             gamertag: tp.player.gamertag,
-            tier: tp.player.tier,
+            tier: tp.tier || tp.player.tier,
           })),
         };
       }

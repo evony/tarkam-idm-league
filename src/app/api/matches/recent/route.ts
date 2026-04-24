@@ -60,7 +60,7 @@ export async function GET(request: Request) {
           id: tp.player.id,
           gamertag: tp.player.gamertag,
           avatar: tp.player.avatar,
-          tier: tp.player.tier,
+          tier: tp.tier || tp.player.tier,
         })) || [],
       },
       team2: {
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
           id: tp.player.id,
           gamertag: tp.player.gamertag,
           avatar: tp.player.avatar,
-          tier: tp.player.tier,
+          tier: tp.tier || tp.player.tier,
         })) || [],
       },
       winnerId: match.winnerId,

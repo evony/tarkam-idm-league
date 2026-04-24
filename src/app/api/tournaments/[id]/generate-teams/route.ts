@@ -125,11 +125,13 @@ export async function POST(
       },
     });
 
+    // Store each player's effective tier (respects admin tierOverride) on the TeamPlayer
     await db.teamPlayer.createMany({
-      data: playerIds.map((playerId) => ({
-        teamId: team.id,
-        playerId,
-      })),
+      data: [
+        { teamId: team.id, playerId: sPlayer.playerId, tier: sPlayer.effectiveTier },
+        { teamId: team.id, playerId: aPlayer.playerId, tier: aPlayer.effectiveTier },
+        { teamId: team.id, playerId: bPlayer.playerId, tier: bPlayer.effectiveTier },
+      ],
     });
 
     teams.push({ id: team.id, name: teamName, power, playerIds });
@@ -169,10 +171,10 @@ export async function POST(
         const weakest = sorted[sorted.length - 1];
 
         const bPlayerStrongest = strongest.teamPlayers.find(
-          (tp) => getEffectiveTier(tp.playerId) === 'B'
+          (tp) => tp.tier === 'B'
         );
         const bPlayerWeakest = weakest.teamPlayers.find(
-          (tp) => getEffectiveTier(tp.playerId) === 'B'
+          (tp) => tp.tier === 'B'
         );
 
         if (bPlayerStrongest && bPlayerWeakest) {
@@ -187,7 +189,7 @@ export async function POST(
           const newImbalance = newMaxPower - newMinPower;
 
           if (newImbalance < currentImbalance) {
-            // Swap B-tier player assignments
+            // Swap B-tier player assignments (keep tier field as 'B' since only B-tier players swap)
             await db.teamPlayer.update({
               where: { id: bPlayerStrongest.id },
               data: { playerId: bPlayerWeakest.playerId },
@@ -220,7 +222,7 @@ export async function POST(
     });
 
     for (const team of finalTeamsWithPlayers) {
-      const sPlayer = team.teamPlayers.find(tp => getEffectiveTier(tp.playerId) === 'S');
+      const sPlayer = team.teamPlayers.find(tp => tp.tier === 'S');
       if (sPlayer) {
         const correctName = `Tim ${sPlayer.player.gamertag}`;
         if (team.name !== correctName) {
@@ -274,7 +276,7 @@ export async function POST(
     // Collect ALL players in this tier across all teams for the spinning animation
     const allTierPlayers: { id: string; gamertag: string; tier: string; points: number }[] = [];
     for (const team of finalTeams) {
-      const tp = team.teamPlayers.find(p => getEffectiveTier(p.playerId) === tier);
+      const tp = team.teamPlayers.find(p => p.tier === tier);
       if (tp) {
         allTierPlayers.push({
           id: tp.player.id,
@@ -288,7 +290,7 @@ export async function POST(
     // For each team, add the spin reveal entry for this tier
     for (const team of finalTeams) {
       const teamIdx = teamIndexMap.get(team.id) ?? 0;
-      const tierPlayer = team.teamPlayers.find(p => getEffectiveTier(p.playerId) === tier);
+      const tierPlayer = team.teamPlayers.find(p => p.tier === tier);
       if (!tierPlayer) continue;
 
       spinRevealOrder.push({

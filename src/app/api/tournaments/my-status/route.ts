@@ -254,7 +254,7 @@ export async function GET(request: Request) {
             id: tp.player.id,
             name: tp.player.name,
             gamertag: tp.player.gamertag,
-            tier: tp.player.tier,
+            tier: tp.tier || tp.player.tier,
           })) || [],
         },
         myScore,
@@ -279,7 +279,7 @@ export async function GET(request: Request) {
           id: tp.player.id,
           name: tp.player.name,
           gamertag: tp.player.gamertag,
-          tier: tp.player.tier,
+          tier: tp.tier || tp.player.tier,
         })) || [],
       };
     }
@@ -315,7 +315,7 @@ export async function GET(request: Request) {
           id: tp.player.id,
           name: tp.player.name,
           gamertag: tp.player.gamertag,
-          tier: tp.player.tier,
+          tier: tp.tier || tp.player.tier,
           avatar: tp.player.avatar,
           isMe: tp.player.id === player.id,
         })),

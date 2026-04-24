@@ -2484,3 +2484,36 @@ Stage Summary:
 - All 3 files with threshold references updated consistently
 - 27 players downgraded from incorrect tiers to correct B tier based on new thresholds
 - All lint checks pass, dev server operational
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Fix tier display bug - teams show Player.tier instead of admin-assigned tierOverride
+
+Work Log:
+- User reported bug: when admin approves a player with tier override (e.g., tazos assigned tier S, but Player.tier is B), the team display shows the original tier B instead of the assigned tier S
+- Root cause: TeamPlayer model had no `tier` field — team generation correctly computed `effectiveTier = tierOverride || player.tier` but this wasn't persisted; all downstream UI and API used `tp.player.tier` (original)
+- Fix approach: Option B (Proper Fix) — Added `tier` field to TeamPlayer model
+- Step 1: Added `tier String @default("B")` to TeamPlayer in prisma/schema.prisma
+- Step 2: Ran `bun run db:push` to sync schema
+- Step 3: Updated generate-teams API to store effective tier on each TeamPlayer record during team creation
+- Step 4: Updated auto-balance swap code to use `tp.tier` instead of `getEffectiveTier(tp.playerId)`
+- Step 5: Updated spin reveal code to use `tp.tier` instead of `getEffectiveTier()`
+- Step 6: Fixed UI components:
+  - tournament-manager.tsx (2 locations): `tp.player.tier` → `tp.tier || tp.player.tier`
+  - tournament-view.tsx (2 locations): `tp.player.tier` → `tp.tier || tp.player.tier` and `p.player.tier` → `p.tierOverride || p.player.tier`
+- Step 7: Fixed API routes:
+  - /api/tournaments/overview/route.ts (2 locations)
+  - /api/tournaments/my-status/route.ts (3 locations)
+  - /api/matches/recent/route.ts (2 locations)
+  - /api/stats/route.ts (1 location)
+- Step 8: Fixed existing TeamPlayer records in database — 8 records had wrong tier "B" (default) instead of effective tier
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- TeamPlayer model now stores effective tier at time of team generation
+- All UI components and API routes now use `tp.tier` (stored effective tier) with fallback to `tp.player.tier`
+- 8 existing TeamPlayer records corrected in database
+- Tier display in teams now correctly shows admin-assigned tier instead of original Player.tier
+- All lint checks pass, dev server operational

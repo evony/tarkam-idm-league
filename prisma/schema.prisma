@@ -127,6 +127,7 @@ model TeamPlayer {
   id       String @id @default(cuid())
   teamId   String
   playerId String
+  tier     String @default("B") // Effective tier at time of team generation (respects admin tierOverride)
 
   team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)

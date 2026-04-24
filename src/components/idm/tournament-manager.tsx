@@ -1685,9 +1685,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         <span className={dt.neonText}>⚡ {t.power}</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string } }) => (
+                        {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string }; tier: string }) => (
                           <span key={tp.player.gamertag} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted/50 text-xs">
-                            <TierBadge tier={tp.player.tier}  /> {tp.player.gamertag}
+                            <TierBadge tier={tp.tier || tp.player.tier}  /> {tp.player.gamertag}
                           </span>
                         ))}
                       </div>
@@ -2206,9 +2206,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       <div>
                         <p className="text-xs font-semibold">{t.name}</p>
                         <div className="flex gap-1 mt-0.5">
-                          {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string } }) => (
+                          {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string }; tier: string }) => (
                             <span key={tp.player.gamertag} className="flex items-center gap-0.5 text-[9px]">
-                              <TierBadge tier={tp.player.tier}  /> {tp.player.gamertag}
+                              <TierBadge tier={tp.tier || tp.player.tier}  /> {tp.player.gamertag}
                             </span>
                           ))}
                         </div>
