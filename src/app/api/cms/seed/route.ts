@@ -34,6 +34,9 @@ export async function POST(request: Request) {
       { key: 'donation_shopeepay_number', value: '', type: 'text' },
       { key: 'donation_payment_holder', value: '', type: 'text' },
       { key: 'donation_payment_notes', value: '', type: 'text' },
+      // Registration payment settings
+      { key: 'registration_admin_wa_link', value: '', type: 'text' },
+      { key: 'registration_payment_instructions', value: 'Silakan transfer biaya pendaftaran sesuai ketentuan yang berlaku ke salah satu metode pembayaran di atas, lalu kirim bukti pembayaran ke admin via WhatsApp.', type: 'text' },
     ];
 
     for (const s of defaultSettings) {

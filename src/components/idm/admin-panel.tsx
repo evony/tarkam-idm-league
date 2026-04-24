@@ -6,7 +6,8 @@ import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
   Crown, X, Loader2, Clock, MapPin, Phone, Globe, Camera, Pencil, Trash2, Search,
-  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight, Calendar, Star
+  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight, Calendar, Star,
+  UserPlus, MessageCircle, FileText
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1368,10 +1369,43 @@ export function AdminPanel() {
                     savePaymentSetting.mutate({ key: 'donation_shopeepay_number', value: paymentForm.donation_shopeepay_number || '', type: 'text' });
                     savePaymentSetting.mutate({ key: 'donation_payment_holder', value: paymentForm.donation_payment_holder || '', type: 'text' });
                     savePaymentSetting.mutate({ key: 'donation_payment_notes', value: paymentForm.donation_payment_notes || '', type: 'text' });
+                    savePaymentSetting.mutate({ key: 'registration_admin_wa_link', value: paymentForm.registration_admin_wa_link || '', type: 'text' });
+                    savePaymentSetting.mutate({ key: 'registration_payment_instructions', value: paymentForm.registration_payment_instructions || '', type: 'text' });
                   }}
                   disabled={savePaymentSetting.isPending}>
                   {savePaymentSetting.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Simpan Pembayaran
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Registration Payment Settings */}
+            <Card className="border border-idm-gold-warm/20 bg-idm-gold-warm/[0.02]">
+              <CardContent className="p-4 space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-idm-gold-warm" /> Pembayaran Registrasi
+                  <Badge className="text-[8px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">Registration</Badge>
+                </h3>
+                <p className="text-[10px] text-muted-foreground">Pengaturan info pembayaran yang ditampilkan setelah peserta berhasil mendaftar. Metode pembayaran (DANA/OVO/ShopeePay/QRIS) menggunakan data dari kartu "Pembayaran Donasi" di atas.</p>
+
+                <div className="space-y-3">
+                  {/* Admin WhatsApp Link */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <MessageCircle className="w-3 h-3 text-green-500" /> Link WhatsApp Admin
+                    </label>
+                    <Input value={paymentForm.registration_admin_wa_link || ''} onChange={(e) => setPaymentForm(p => ({ ...p, registration_admin_wa_link: e.target.value }))} className="text-sm" placeholder="Contoh: https://wa.me/6281234567890" />
+                    <p className="text-[10px] text-muted-foreground">Link WA admin untuk peserta mengirim bukti pembayaran. Format: https://wa.me/62xxxxxxxxxx</p>
+                  </div>
+
+                  {/* Payment Instructions */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <FileText className="w-3 h-3 text-idm-gold-warm" /> Instruksi Pembayaran
+                    </label>
+                    <Textarea value={paymentForm.registration_payment_instructions || ''} onChange={(e) => setPaymentForm(p => ({ ...p, registration_payment_instructions: e.target.value }))} className="text-sm" placeholder="Instruksi untuk peserta setelah mendaftar..." rows={3} />
+                    <p className="text-[10px] text-muted-foreground">Instruksi yang ditampilkan setelah pendaftaran berhasil. Jangan tuliskan nominal — cukup "sesuai ketentuan yang berlaku".</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

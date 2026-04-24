@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
+import { RegistrationPaymentInfo } from './registration-payment-info';
 
 interface SimilarPlayer {
   id: string;
@@ -315,28 +316,36 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
               <CardContent className="p-5 space-y-4">
                 {/* Success State */}
                 {submitResult && (
-                  <div className="text-center py-6">
+                  <div className="py-4">
                     {submitResult.success ? (
                       <>
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
-                          <CheckCircle2 className="w-8 h-8 text-green-500" />
+                        <div className="text-center mb-4">
+                          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/10 mb-3">
+                            <CheckCircle2 className="w-7 h-7 text-green-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-green-500 mb-2">Pendaftaran Berhasil!</h3>
+                          {submitResult.gamertag && (
+                            <p className="text-sm font-medium mb-2">
+                              Gamertag kamu: <span className={`${division === 'male' ? 'text-idm-male' : 'text-idm-female'} font-bold`}>{submitResult.gamertag}</span>
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">{submitResult.message}</p>
                         </div>
-                        <h3 className="text-lg font-bold text-green-500 mb-2">Pendaftaran Berhasil!</h3>
-                        {submitResult.gamertag && (
-                          <p className="text-base font-medium mb-2">
-                            Gamertag kamu: <span className={`${division === 'male' ? 'text-idm-male' : 'text-idm-female'} font-bold`}>{submitResult.gamertag}</span>
-                          </p>
-                        )}
-                        <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
-                        <Button
-                          onClick={handleClose}
-                          className="bg-idm-gold-warm hover:bg-idm-gold-warm/90 text-[#0c0a06] font-bold"
-                        >
-                          Tutup
-                        </Button>
+
+                        {/* Payment Info */}
+                        <RegistrationPaymentInfo />
+
+                        <div className="mt-4 text-center">
+                          <Button
+                            onClick={handleClose}
+                            className="bg-idm-gold-warm hover:bg-idm-gold-warm/90 text-[#0c0a06] font-bold"
+                          >
+                            Tutup
+                          </Button>
+                        </div>
                       </>
                     ) : (
-                      <>
+                      <div className="text-center">
                         <X className="w-8 h-8 text-red-500 mx-auto mb-3" />
                         <h3 className="text-lg font-bold text-red-500 mb-2">Gagal Mendaftar</h3>
                         <p className="text-sm text-muted-foreground mb-4">{submitResult.message}</p>
@@ -346,7 +355,7 @@ export function RegistrationModal({ open, onClose }: RegistrationModalProps) {
                         >
                           Coba Lagi
                         </Button>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}

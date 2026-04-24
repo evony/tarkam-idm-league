@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
+import { RegistrationPaymentInfo } from './registration-payment-info';
 // animations import removed — using CSS stagger-item classes
 
 interface SimilarPlayer {
@@ -284,12 +285,13 @@ export function RegistrationForm() {
                 ? 'border-green-500/30 bg-green-500/5'
                 : 'border-red-500/30 bg-red-500/5'
             } ${dt.casinoCard}`}>
-            <CardContent className="p-5 text-center relative z-10">
+            <CardContent className="p-5 relative z-10">
               {submitResult.success ? (
                 <>
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10 mb-3">
-                    <CheckCircle2 className="w-7 h-7 text-green-500" />
-                  </div>
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10 mb-3">
+                      <CheckCircle2 className="w-7 h-7 text-green-500" />
+                    </div>
                     <h3 className="text-base font-bold text-green-500 mb-1">Pendaftaran Berhasil!</h3>
                     {submitResult.gamertag && (
                       <p className="text-sm font-medium mb-2">
@@ -297,30 +299,36 @@ export function RegistrationForm() {
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">{submitResult.message}</p>
+                  </div>
+
+                  {/* Payment Info */}
+                  <RegistrationPaymentInfo />
+
+                  <div className="mt-4 text-center">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="mt-3"
                       onClick={() => setSubmitResult(null)}
                     >
                       Daftar Lagi
                     </Button>
-                  </>
-                ) : (
-                  <>
-                    <X className="w-7 h-7 text-red-500 mx-auto mb-2" />
-                    <h3 className="text-base font-bold text-red-500 mb-1">Gagal Mendaftar</h3>
-                    <p className="text-xs text-muted-foreground">{submitResult.message}</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-3"
-                      onClick={() => setSubmitResult(null)}
-                    >
-                      Coba Lagi
-                    </Button>
-                  </>
-                )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center">
+                  <X className="w-7 h-7 text-red-500 mx-auto mb-2" />
+                  <h3 className="text-base font-bold text-red-500 mb-1">Gagal Mendaftar</h3>
+                  <p className="text-xs text-muted-foreground">{submitResult.message}</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3"
+                    onClick={() => setSubmitResult(null)}
+                  >
+                    Coba Lagi
+                  </Button>
+                </div>
+              )}
           </CardContent>
         </Card>
         </div>

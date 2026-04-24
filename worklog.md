@@ -2243,3 +2243,46 @@ Stage Summary:
   - Normalized phone storage for consistent future comparisons
 - Both forms now consistent: same fields, same API calls, same theming
 - All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Add registration payment info to success state + admin payment settings form
+
+Work Log:
+- Analyzed existing CMS settings infrastructure (CmsSetting model, /api/cms/settings, seed route)
+- Found existing payment keys: donation_dana_number, donation_ovo_number, donation_shopeepay_number, donation_qris_image, donation_payment_holder, donation_payment_notes
+- Added 2 new CmsSetting keys for registration payment:
+  - `registration_admin_wa_link` (text) — WhatsApp link for admin contact
+  - `registration_payment_instructions` (text) — Custom instructions shown after registration
+- Updated CMS seed route (/api/cms/seed/route.ts) with new keys
+- Seeded new settings into live database
+- Added "Pembayaran Registrasi" card to Keuangan tab in admin panel:
+  - Admin WhatsApp link input field
+  - Registration payment instructions textarea
+  - Hint: "Jangan tuliskan nominal — cukup sesuai ketentuan yang berlaku"
+  - Saves both new keys + all existing donation payment keys together
+  - Added UserPlus, MessageCircle, FileText icon imports
+- Created shared RegistrationPaymentInfo component (/src/components/idm/registration-payment-info.tsx):
+  - Fetches CMS settings via /api/cms/settings
+  - Shows: Payment instructions, Account holder (a.n.), E-wallet numbers with copy button (DANA/OVO/ShopeePay), QRIS image, "Kirim Bukti Pembayaran via WhatsApp" button (redirect to wa.me link)
+  - No nominal displayed — just "sesuai ketentuan yang berlaku"
+  - Gracefully hidden if no payment info configured
+  - Copy-to-clipboard with visual feedback (CheckCircle2 icon)
+- Updated RegistrationForm success state:
+  - Added RegistrationPaymentInfo component between success message and "Daftar Lagi" button
+  - Success section now split: centered header → payment info → centered button
+- Updated RegistrationModal success state:
+  - Same layout: centered header → payment info → centered "Tutup" button
+  - Added RegistrationPaymentInfo import
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully, no errors
+
+Stage Summary:
+- Registration payment info system fully implemented
+- Admin can configure: WA link, payment instructions, e-wallet numbers, QRIS, account holder
+- Both registration forms (modal + dashboard) show payment info on success
+- No nominal displayed — uses "sesuai ketentuan yang berlaku" approach
+- Payment methods reuse existing donation settings (DANA/OVO/ShopeePay/QRIS)
+- "Kirim Bukti Pembayaran via WhatsApp" button redirects to admin WA link
+- All lint checks pass, dev server operational
