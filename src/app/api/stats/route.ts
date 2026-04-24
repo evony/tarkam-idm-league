@@ -123,9 +123,10 @@ export async function GET(request: Request) {
       orderBy: { round: 'asc' },
     }),
 
-    // Tournaments list — use activeSeasonId for consistency with clubs/league data
+    // Tournaments list — fetch from ALL seasons for this division (not just activeSeasonId)
+    // so that MVP Hall of Fame and weeklyChampions include completed seasons too
     db.tournament.findMany({
-      where: { seasonId: activeSeasonId },
+      where: { seasonId: { in: allSeasons.map((s: { id: string }) => s.id) } },
       orderBy: { weekNumber: 'asc' },
       include: {
         _count: { select: { teams: true, participations: true } },
