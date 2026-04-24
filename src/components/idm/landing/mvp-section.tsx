@@ -357,7 +357,7 @@ function DivisionMVPCard({
           {selectedMvp && (
             <div className="flex items-center justify-between gap-2 px-0.5">
               <span className="text-[9px] text-muted-foreground">
-                {selectedWeekIdx + 1} / {mvps.length} weeks
+                W{selectedMvp?.weekNumber || selectedWeekIdx + 1} / {selectedSeasonInfo?.tournamentCount || mvps.length} weeks
               </span>
               {selectedMvp.tournamentName && (
                 <span className="text-[9px] text-muted-foreground/60 truncate max-w-[120px]">

@@ -365,7 +365,7 @@ function DivisionChampionCard({
                   {weekPage === 0 ? 'Early Phase' : weekPage === totalPages - 1 ? 'Late Phase' : 'Mid Phase'}
                 </span>
                 <span className="text-[9px] font-semibold text-muted-foreground">
-                  {selectedWeekIdx + 1} / {champions.length} weeks
+                  W{selected?.weekNumber || selectedWeekIdx + 1} / {selectedSeasonInfo?.tournamentCount || champions.length} weeks
                 </span>
               </div>
             )}
