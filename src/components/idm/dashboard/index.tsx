@@ -349,13 +349,9 @@ export function Dashboard() {
             </div>
           ) : null}
 
-          {/* Division Rivalry */}
-          <div className="stagger-item-subtle stagger-d2">
+          {/* Division Rivalry + Streak Widget — side by side on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 stagger-item-subtle stagger-d2">
             <DivisionRivalryWidget setSelectedPlayer={handleSelectPlayer} />
-          </div>
-
-          {/* Streak Widget */}
-          <div className="stagger-item-subtle stagger-d2">
             <StreakWidget />
           </div>
 

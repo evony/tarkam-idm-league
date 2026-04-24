@@ -154,9 +154,9 @@ export function DivisionRivalryWidget({ setSelectedPlayer }: DivisionRivalryWidg
   /* ─── Loading skeleton ─── */
   if (isLoading) {
     return (
-      <Card className={`${dt.casinoCard} overflow-hidden rivalry-card`}>
+      <Card className={`${dt.casinoCard} overflow-hidden rivalry-card h-full flex flex-col`}>
         <div className={dt.casinoBar} />
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-3 flex-1">
           <div className="flex items-center justify-between">
             <div className="h-4 w-28 bg-muted/20 rounded animate-pulse" />
             <div className="h-5 w-12 bg-muted/20 rounded animate-pulse" />
@@ -185,9 +185,9 @@ export function DivisionRivalryWidget({ setSelectedPlayer }: DivisionRivalryWidg
   /* ─── Empty state ─── */
   if (!rivalry) {
     return (
-      <Card className={`${dt.casinoCard} overflow-hidden`}>
+      <Card className={`${dt.casinoCard} overflow-hidden h-full flex flex-col`}>
         <div className={dt.casinoBar} />
-        <div className="p-4 text-center">
+        <div className="p-4 text-center flex-1 flex flex-col items-center justify-center">
           <Swords className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
           <p className="text-xs text-muted-foreground">Belum cukup data rivalitas</p>
           <p className="text-[10px] text-muted-foreground/60 mt-1">Minimal 2 pemain diperlukan</p>
@@ -204,11 +204,11 @@ export function DivisionRivalryWidget({ setSelectedPlayer }: DivisionRivalryWidg
   const maxStreak = Math.max(player1.streak, player2.streak, 1);
 
   return (
-    <Card className={`${dt.casinoCard} overflow-hidden rivalry-card`}>
+    <Card className={`${dt.casinoCard} overflow-hidden rivalry-card h-full flex flex-col`}>
       <div className={dt.casinoBar} />
 
       {/* Header */}
-      <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+      <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle} shrink-0`}>
         <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
           <Swords className={`w-3 h-3 ${dt.neonText}`} />
         </div>

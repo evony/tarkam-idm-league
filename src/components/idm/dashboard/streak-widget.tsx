@@ -55,9 +55,9 @@ function LoadingSkeleton() {
   const dt = useDivisionTheme();
 
   return (
-    <Card className={`${dt.casinoCard} overflow-hidden`}>
+    <Card className={`${dt.casinoCard} overflow-hidden h-full flex flex-col`}>
       <div className={dt.casinoBar} />
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 flex-1">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-4 rounded" />
           <Skeleton className="h-4 w-32 rounded" />
@@ -91,9 +91,9 @@ function EmptyStreakState() {
   const dt = useDivisionTheme();
 
   return (
-    <Card className={`${dt.casinoCard} overflow-hidden`}>
+    <Card className={`${dt.casinoCard} overflow-hidden h-full flex flex-col`}>
       <div className={dt.casinoBar} />
-      <div className="p-4 text-center">
+      <div className="p-4 text-center flex-1 flex flex-col items-center justify-center">
         <div className="relative inline-flex items-center justify-center mb-2">
           <Flame className="w-8 h-8 text-amber-400/30" />
         </div>
@@ -133,11 +133,11 @@ export function StreakWidget() {
   const runnerUps = streaks.slice(1, 3);
 
   return (
-    <Card className={`${dt.casinoCard} overflow-hidden`}>
+    <Card className={`${dt.casinoCard} overflow-hidden h-full flex flex-col`}>
       <div className={dt.casinoBar} />
 
       {/* Header */}
-      <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+      <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle} shrink-0`}>
         <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
           <FlameIcon streak={topStreak.streak} className="w-3 h-3" />
         </div>

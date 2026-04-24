@@ -2721,3 +2721,24 @@ Stage Summary:
 - Match Unggulan (featured match with DanceMatchCard) moved from inside OverviewTab to above Division Rivalry
 - Component order: Activity+Donors → Match Unggulan → Rivalitas Puncak → Streak
 - Clean lint, dev server operational
+
+---
+Task ID: 17
+Agent: Main Agent
+Task: Combine Streak Terpanjang with Rivalitas Puncak into one row
+
+Work Log:
+- Read dashboard/index.tsx to see current layout (Division Rivalry and Streak Widget as separate sections)
+- Combined both into a single grid row: `grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4`
+- Added `h-full flex flex-col` to all Card variants in DivisionRivalryWidget (loading, empty, main)
+- Added `h-full flex flex-col` to all Card variants in StreakWidget (loading, empty, main)
+- Added `shrink-0` to CardHeaders in both components to prevent header compression
+- Added `flex-1` to content areas for proper flex distribution
+- Empty states now use `flex-1 flex flex-col items-center justify-center` for vertical centering
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server running with no errors
+
+Stage Summary:
+- Rivalitas Puncak + Streak Terpanjang now side by side on desktop (2-column grid), stacked on mobile
+- Both cards auto-stretch to equal height with flex-col + h-full layout
+- Clean lint, dev server operational
