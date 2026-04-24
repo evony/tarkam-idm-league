@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Simple in-memory rate limiting for middleware
+// Simple in-memory rate limiting for proxy
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function getIp(req: NextRequest): string {
@@ -43,7 +43,7 @@ function checkRateLimit(ip: string, path: string): boolean {
   return true;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Rate limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const ip = getIp(request);

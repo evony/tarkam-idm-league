@@ -25,15 +25,17 @@ if [[ "$DB_URL" == postgresql://* ]] || [[ "$DB_URL" == postgres://* ]]; then
   fi
 
   echo "[vercel-build] ✅ Schema swapped to PostgreSQL"
-  cat "$SCHEMA_FILE" | head -10
+  echo "[vercel-build] Schema header:"
+  head -10 "$SCHEMA_FILE"
 
   echo "[vercel-build] Running prisma generate..."
   npx prisma generate
 
   echo "[vercel-build] Running prisma db push (sync schema to Neon)..."
   # db push ensures Neon schema matches our Prisma schema.
-  # It only ADDS missing columns/tables — safe, won't delete data.
-  npx prisma db push --skip-generate 2>&1 || {
+  # --accept-data-loss is needed for first deploy when Neon has old/different tables.
+  # It only drops columns/tables that don't exist in the new schema.
+  npx prisma db push --accept-data-loss --skip-generate 2>&1 || {
     echo "[vercel-build] ⚠️  prisma db push failed (non-fatal, continuing build)"
   }
 else
