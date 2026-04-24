@@ -429,7 +429,7 @@ export function AdminPanel() {
     dashboard: ['dashboard'],
     tournament: ['pemain', 'season-tarkam', 'turnamen', 'keuangan'],
     league: ['liga-season', 'liga-club', 'liga-poin', 'liga-skor'],
-    system: ['konten', 'pengaturan'],
+    system: ['sponsor', 'achievement', 'konten', 'pengaturan'],
   };
 
   const [searchPlayer, setSearchPlayer] = useState('');
@@ -598,6 +598,8 @@ export function AdminPanel() {
                 'liga-club': { icon: Shield, label: 'Club' },
                 'liga-poin': { icon: Star, label: 'Poin' },
                 'liga-skor': { icon: Trophy, label: 'Skor' },
+                sponsor: { icon: Flame, label: 'Sponsor' },
+                achievement: { icon: Trophy, label: 'Achievement' },
                 konten: { icon: Globe, label: 'Konten' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
@@ -670,6 +672,8 @@ export function AdminPanel() {
                 'liga-club': { icon: Shield, label: 'Club' },
                 'liga-poin': { icon: Star, label: 'Poin' },
                 'liga-skor': { icon: Trophy, label: 'Skor' },
+                sponsor: { icon: Flame, label: 'Sponsor' },
+                achievement: { icon: Trophy, label: 'Achievement' },
                 konten: { icon: Globe, label: 'Konten' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
@@ -1373,11 +1377,23 @@ export function AdminPanel() {
           </div>
         </TabsContent>
 
+        {/* ====== SPONSOR TAB ====== */}
+        <TabsContent value="sponsor" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminSponsorPanel />
+          </div>
+        </TabsContent>
+
+        {/* ====== ACHIEVEMENT TAB ====== */}
+        <TabsContent value="achievement" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminAchievementPanel />
+          </div>
+        </TabsContent>
+
         {/* ====== KONTEN TAB ====== */}
         <TabsContent value="konten" className="admin-tab-enter">
           <div className="space-y-4">
-            <AdminSponsorPanel />
-            <AdminAchievementPanel />
             <AdminSkinPanel />
             <CmsPanel />
           </div>
