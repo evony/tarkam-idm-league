@@ -182,49 +182,62 @@ export function Dashboard() {
         {/* Bottom corner accents — desktop only */}
         <div className={`hidden lg:block absolute bottom-3 left-3 rotate-180 ${dt.cornerAccent}`} />
         <div className={`hidden lg:block absolute bottom-3 right-3 rotate-270 ${dt.cornerAccent}`} />
-        {/* Top-right: Status + Share */}
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
-          <ShareButton
-            title={t?.name || 'IDM League'}
-            description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
-            variant="icon"
-          />
-          <StatusBadge status={t?.status || 'registration'} />
-        </div>
-        {/* Content — fills banner with flex column: top badges, middle title, bottom info */}
+        {/* Content — 2-column layout: Left (badges + title + chips) | Right (status + prize + sawer) */}
         <div className="absolute inset-0 z-10 flex flex-col justify-between p-3 sm:p-5 lg:p-8">
-          {/* Top row: Badges */}
-          <div className="flex items-center gap-2">
-            <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
-              🐉 Season {data.season?.number || 1}
-            </Badge>
-            <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
-              {division === 'male' ? '🕺 Male' : '💃 Female'}
-            </Badge>
+          {/* Top row: Badges left, Status + Share right */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
+                🐉 Season {data.season?.number || 1}
+              </Badge>
+              <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
+                {division === 'male' ? '🕺 Male' : '💃 Female'}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1">
+              <ShareButton
+                title={t?.name || 'IDM League'}
+                description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+                variant="icon"
+              />
+              <StatusBadge status={t?.status || 'registration'} />
+            </div>
           </div>
 
-          {/* Middle: Title — pushed down slightly for visual center */}
-          <div className="flex-1 flex flex-col justify-center min-h-0">
-            <h2 className={`text-base sm:text-2xl lg:text-4xl font-black ${dt.neonGradient} leading-tight`}>{t?.name || 'IDM League Babak'}</h2>
-            <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-1">{data.season?.name}</p>
+          {/* Middle row: Title left, Prize Pool + Sawer right */}
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h2 className={`text-base sm:text-2xl lg:text-4xl font-black ${dt.neonGradient} leading-tight`}>{t?.name || 'IDM League Babak'}</h2>
+              <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-1">{data.season?.name}</p>
+            </div>
+            {/* Right: Prize Pool + Sawer — hidden on very small mobile, visible sm+ */}
+            <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-xs lg:text-sm font-bold text-idm-gold-warm">
+                💰 {formatCurrency(data.totalPrizePool)}
+              </span>
+              <button
+                onClick={() => setDonationOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[32px]"
+              >
+                <Gift className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                Sawer
+              </button>
+            </div>
           </div>
 
-          {/* Bottom row: Prize Pool + Sawer + Info chips */}
+          {/* Bottom row: Info chips — full width */}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 lg:gap-x-3">
-            {/* Prize Pool badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-[10px] sm:text-xs lg:text-sm font-semibold text-idm-gold-warm">
+            {/* Mobile-only: Prize + Sawer inline */}
+            <span className="sm:hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-[10px] font-semibold text-idm-gold-warm">
               💰 {formatCurrency(data.totalPrizePool)}
             </span>
-            {/* Sawer button */}
             <button
               onClick={() => setDonationOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] sm:text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px] lg:min-h-[32px]"
+              className="sm:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
             >
-              <Gift className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+              <Gift className="w-3 h-3" />
               Sawer
             </button>
-            {/* Divider */}
-            <span className="hidden sm:inline-block w-px h-4 bg-white/10" />
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
