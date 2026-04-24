@@ -168,7 +168,7 @@ export function Dashboard() {
     <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
-      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[160px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
+      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[200px] sm:min-h-[260px] lg:min-h-[340px] ${!isMobile ? 'casino-shimmer' : ''}`}>
         <div className={dt.casinoBar} />
         <div className="absolute inset-0">
           <Image src={division === 'male' ? '/bg-male.jpg' : '/bg-female.jpg'} alt="" fill sizes="100vw" className={`object-cover ${division === 'male' ? 'object-[center_25%]' : ''}`} aria-hidden="true" />
@@ -182,68 +182,78 @@ export function Dashboard() {
         {/* Bottom corner accents — desktop only */}
         <div className={`hidden lg:block absolute bottom-3 left-3 rotate-180 ${dt.cornerAccent}`} />
         <div className={`hidden lg:block absolute bottom-3 right-3 rotate-270 ${dt.cornerAccent}`} />
-        {/* Content — 2-column layout: Left (badges + title + chips) | Right (status + prize + sawer) */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-between p-3 sm:p-5 lg:p-8">
-          {/* Top row: Badges left, Status + Share right */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
-                🐉 Season {data.season?.number || 1}
-              </Badge>
-              <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
-                {division === 'male' ? '🕺 Male' : '💃 Female'}
-              </Badge>
+        {/* Content — spacious 2-zone layout: Left zone (info) | Right zone (prize + action) */}
+        <div className="absolute inset-0 z-10 flex">
+          {/* ─── LEFT ZONE: Badges → Title → Info chips ─── */}
+          <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 lg:p-8 min-w-0">
+            {/* Top: Badges + Status */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Badge className={`${dt.casinoBadge} px-2 py-0.5 text-[9px] sm:text-[10px]`}>
+                  🐉 Season {data.season?.number || 1}
+                </Badge>
+                <Badge className={`${dt.casinoBadge} px-2 py-0.5 text-[9px] sm:text-[10px]`}>
+                  {division === 'male' ? '🕺 Male' : '💃 Female'}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <ShareButton
+                  title={t?.name || 'IDM League'}
+                  description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+                  variant="icon"
+                />
+                <StatusBadge status={t?.status || 'registration'} />
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <ShareButton
-                title={t?.name || 'IDM League'}
-                description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
-                variant="icon"
-              />
-              <StatusBadge status={t?.status || 'registration'} />
+
+            {/* Center: Title — the hero moment */}
+            <div className="py-2 sm:py-4 lg:py-6">
+              <h2 className={`text-lg sm:text-3xl lg:text-5xl font-black ${dt.neonGradient} leading-tight tracking-tight`}>{t?.name || 'IDM League Babak'}</h2>
+              <p className="text-[10px] sm:text-xs lg:text-base text-muted-foreground mt-1.5">{data.season?.name}</p>
+            </div>
+
+            {/* Bottom: Info chips */}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5">
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Flame className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-[9px] sm:text-xs lg:text-sm text-muted-foreground border border-white/5"><Trophy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+              {t?.bpm && <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-xs lg:text-sm text-muted-foreground border border-white/5"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span>}
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-black/40 backdrop-blur-sm text-xs lg:text-sm text-muted-foreground border border-white/5"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
             </div>
           </div>
 
-          {/* Middle row: Title left, Prize Pool + Sawer right */}
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h2 className={`text-base sm:text-2xl lg:text-4xl font-black ${dt.neonGradient} leading-tight`}>{t?.name || 'IDM League Babak'}</h2>
-              <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-1">{data.season?.name}</p>
+          {/* ─── RIGHT ZONE: Prize Pool + Sawer — glass panel ─── */}
+          <div className="hidden sm:flex flex-col items-center justify-center gap-3 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 bg-black/30 backdrop-blur-md p-4 lg:p-6">
+            {/* Prize Pool */}
+            <div className="text-center">
+              <p className="text-[9px] lg:text-xs text-muted-foreground uppercase tracking-widest font-medium mb-1">Prize Pool</p>
+              <p className="text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(data.totalPrizePool)}</p>
             </div>
-            {/* Right: Prize Pool + Sawer — hidden on very small mobile, visible sm+ */}
-            <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-xs lg:text-sm font-bold text-idm-gold-warm">
-                💰 {formatCurrency(data.totalPrizePool)}
-              </span>
-              <button
-                onClick={() => setDonationOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[32px]"
-              >
-                <Gift className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                Sawer
-              </button>
-            </div>
-          </div>
-
-          {/* Bottom row: Info chips — full width */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 lg:gap-x-3">
-            {/* Mobile-only: Prize + Sawer inline */}
-            <span className="sm:hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-[10px] font-semibold text-idm-gold-warm">
-              💰 {formatCurrency(data.totalPrizePool)}
-            </span>
+            {/* Divider */}
+            <div className="w-8 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/50 to-transparent" />
+            {/* Sawer Button */}
             <button
               onClick={() => setDonationOpen(true)}
-              className="sm:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
+              className="flex items-center gap-1.5 px-4 py-2.5 lg:px-5 lg:py-3 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(229,190,74,0.3)] active:scale-95 transition-all cursor-pointer min-h-[36px] lg:min-h-[42px]"
             >
-              <Gift className="w-3 h-3" />
+              <Gift className="w-4 h-4 lg:w-5 lg:h-5" />
               Sawer
             </button>
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
-            {t?.bpm ? <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] lg:text-sm text-muted-foreground"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] lg:text-sm text-muted-foreground"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
           </div>
+        </div>
+
+        {/* Mobile-only: Prize + Sawer floating bar at bottom */}
+        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-t from-black/80 via-black/60 to-transparent backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-idm-gold-warm text-xs font-bold">💰 {formatCurrency(data.totalPrizePool)}</span>
+          </div>
+          <button
+            onClick={() => setDonationOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
+          >
+            <Gift className="w-3 h-3" />
+            Sawer
+          </button>
         </div>
       </div>
 
