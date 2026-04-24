@@ -2344,3 +2344,29 @@ Stage Summary:
 - CMS Settings panel: same fix applied for all settings form fields
 - Root cause was null spread on first edit + no server data merge
 - Both panels now use merge-from-server-data pattern for form state management
+---
+Task ID: 17
+Agent: Main Agent
+Task: Optimize team spin/roulette animation for better visual effect
+
+Work Log:
+- Read TeamSpinReveal component and CSS animations
+- Identified 3 optimization areas: duration, cycling repetitions, easing curve
+- Extended spin animation duration from 1.5s to 3.0s for more dramatic effect
+- Increased strip repetitions from 3 to 6 for longer cycling visual
+- Updated CSS cubic-bezier easing from (0.05, 0.7, 0.1, 1.0) to (0.1, 0.6, 0.05, 1.0)
+  - New curve: fast start, very dramatic slow-down at the end (like real slot machine)
+- Added motion blur effect during spinning (blur-[0.5px] with transition)
+- Added pulsing gold glow animation on slot machine border during spin (animate-slot-pulse)
+- Updated border styling to transition between spin/reveal/idle states
+- Fixed isTargetItem check for new STRIP_REPS (6 instead of 3)
+- Updated auto-play delay from 800ms to 1200ms to match longer animation
+- Added animate-slot-pulse to prefers-reduced-motion block
+- All lint checks pass, dev server operational
+
+Stage Summary:
+- Spin animation now 3 seconds (was 1.5s) with 6 repetitions (was 3)
+- Dramatic slow-down easing curve at the end
+- Motion blur during fast spinning
+- Pulsing gold glow border during spin
+- Better visual feedback for auto-play timing

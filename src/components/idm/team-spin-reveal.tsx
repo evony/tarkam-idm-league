@@ -41,9 +41,9 @@ const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'R
 const ITEM_H = 44;
 const VISIBLE_COUNT = 3;
 const VIEWPORT_H = ITEM_H * VISIBLE_COUNT; // 132px
-const STRIP_REPS = 3;
-const SPIN_DURATION = 1.5; // seconds
-const SPIN_EASE: [number, number, number, number] = [0.05, 0.7, 0.1, 1.0]; // fast start, slow end
+const STRIP_REPS = 6; // More repetitions for longer, more dramatic spin
+const SPIN_DURATION = 3.0; // seconds — extended for better visual effect
+const SPIN_EASE: [number, number, number, number] = [0.1, 0.6, 0.05, 1.0]; // dramatic slow-down at end
 
 // Fisher-Yates shuffle — unbiased, in-place
 function shuffle<T>(arr: T[]): T[] {
@@ -190,6 +190,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     }
 
     // Calculate where the target player should land (center item of viewport for 3 visible)
+    // Target lands in the last quarter of the strip for maximum visual drama
     const targetRep = STRIP_REPS - 2;
     const targetIdxInPlayers = shuffledAvailable.findIndex(p => p.id === targetPlayer.id);
     const targetGlobalIdx = targetRep * shuffledAvailable.length + targetIdxInPlayers;
@@ -263,11 +264,11 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
       setShowReveal(false);
 
       if (autoPlayRef.current) {
-        // Auto-play: start next spin after short delay
+        // Auto-play: start next spin after delay (reveal + pause)
         revealTimerRef.current = setTimeout(() => {
           if (!mountedRef.current || !autoPlayRef.current) return;
           startSpinRef.current(nextStep);
-        }, 800);
+        }, 1200);
       } else {
         // Manual: ready for next Play click
       }
@@ -464,7 +465,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                   {/* ===== SLOT MACHINE ROLLER ===== */}
                   <div
-                    className={`relative mx-auto w-80 lg:w-96 rounded-2xl border-2 ${tierConf.border} ${tierConf.bg} overflow-hidden`}
+                    className={`relative mx-auto w-80 lg:w-96 rounded-2xl border-2 overflow-hidden transition-shadow duration-500
+                      ${isSpinning ? `border-idm-gold-warm/50 animate-slot-pulse ${tierConf.bg}` :
+                        showReveal ? `border-idm-gold-warm/60 ${tierConf.bg}` :
+                        `${tierConf.border} ${tierConf.bg}`}`}
                     style={{ height: VIEWPORT_H, boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none' }}
                   >
                     {/* Top gradient mask — fades top item */}
@@ -484,7 +488,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     {rollerStrip.length > 0 ? (
                       <div
                         key={spinKey}
-                        className="animate-spin-roller"
+                        className={`animate-spin-roller ${isSpinning ? 'blur-[0.5px]' : ''} transition-blur duration-300`}
                         style={{
                           '--roller-target': `${rollerTargetY}px`,
                           willChange: 'transform',
@@ -496,7 +500,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                           const selectedPlayerForStep = randomSelection[currentStep] || currentItem?.player;
                           const isTargetItem = showReveal && selectedPlayerForStep && player.id === selectedPlayerForStep.id
                             && i >= (STRIP_REPS - 3) * Math.floor(rollerStrip.length / STRIP_REPS)
-                            && i <= (STRIP_REPS - 1) * Math.floor(rollerStrip.length / STRIP_REPS);
+                            && i <= STRIP_REPS * Math.floor(rollerStrip.length / STRIP_REPS);
 
                           return (
                             <div

@@ -1105,6 +1105,7 @@ div.group:hover .donor-rank-badge {
   .animate-float-medium,
   .animate-bob-fade,
   .animate-spin-roller,
+  .animate-slot-pulse,
   .animate-sparkle-explode,
   .animate-wiggle,
   .parallax-bg,
@@ -1313,8 +1314,17 @@ div.group:hover .donor-rank-badge {
   to { transform: translateY(var(--roller-target)); }
 }
 .animate-spin-roller {
-  animation: spin-roller 1.5s cubic-bezier(0.05, 0.7, 0.1, 1) forwards;
+  animation: spin-roller 3s cubic-bezier(0.1, 0.6, 0.05, 1) forwards;
   contain: layout style;
+}
+
+/* Slot machine pulse glow — border pulses while spinning */
+@keyframes slot-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(229, 190, 74, 0.15); }
+  50% { box-shadow: 0 0 25px rgba(229, 190, 74, 0.35); }
+}
+.animate-slot-pulse {
+  animation: slot-pulse 0.6s ease-in-out infinite;
 }
 
 /* Fade out — replaces motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} */
