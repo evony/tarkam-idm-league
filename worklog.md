@@ -2094,3 +2094,33 @@ Stage Summary:
 - New "Clubs in Season" section shows current clubs with W/L badges
 - New "Add Club to Season" dropdown button lets admin add existing clubs to season
 - All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Consolidate duplicate "Club di Season Ini" sections — remove horizontal list, enhance vertical list
+
+Work Log:
+- User reported two duplicate "Club di Season Ini" sections in Liga tab Season admin panel:
+  1. Horizontal list (top) — flex-wrap badges showing clubs with W/L stats, had AddClubToSeasonButton
+  2. Vertical list (bottom) — sorted by points with rank numbers, champion highlight, but used deprecated data access
+- Removed the horizontal list section (was already gone from prior context)
+- Enhanced the vertical "Clubs Quick List" section to be the sole "Club di Season Ini" display:
+  - Added AddClubToSeasonButton to the section header
+  - Fixed deprecated `club.name`/`club.logo` → uses `getClubName()`/`getClubLogo()` helpers
+  - Fixed champion comparison: `club.id === seasonDetail.championClubId` → `(club.profileId || club.profile?.id) === seasonDetail.championClubId`
+  - Section now shows even when no clubs exist (with helpful "Gunakan tombol + untuk menambahkan club" message)
+  - Added proper card styling with bg-muted/30 border, club count in header
+  - Increased max-height from max-h-40 to max-h-52 for better visibility
+  - Added hover effect and transition-colors for better interactivity
+- Fixed revalidateTag error in `/api/clubs/route.ts`:
+  - Changed `revalidateTag('league-data', 'layout')` → `revalidateTag('league-data', 'max')`
+  - Fixed same issue in `/api/clubs/[id]/route.ts` (2 occurrences)
+  - Resolved POST /api/clubs returning 500 error → now returns 201 successfully
+
+Stage Summary:
+- Single consolidated "Club di Season Ini" section with vertical list style (preferred by user)
+- Section includes AddClubToSeasonButton, rank numbers, champion highlight, proper data access
+- Shows helpful empty state when no clubs exist
+- Fixed API error preventing club creation (revalidateTag 'layout' → 'max')
+- All lint checks pass, dev server operational

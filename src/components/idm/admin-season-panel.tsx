@@ -843,41 +843,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                               )}
                             </div>
 
-                            {/* ── Clubs in Season (Liga only) ── */}
-                            {!isTarkam && (
-                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                                    <Shield className="w-3.5 h-3.5 text-blue-400" /> Club di Season Ini ({seasonDetail?.clubs?.length || 0})
-                                  </p>
-                                  <AddClubToSeasonButton seasonId={season.id} seasonDivision={season.division} dt={dt} qc={qc} />
-                                </div>
-                                {seasonDetail?.clubs && seasonDetail.clubs.length > 0 ? (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {seasonDetail.clubs.map((club) => {
-                                      const clubName = getClubName(club);
-                                      const clubLogo = getClubLogo(club);
-                                      return (
-                                        <Badge key={club.id} className="text-[9px] border border-border/30 bg-card/50 gap-1 pr-1.5 pl-1 py-0.5">
-                                          {clubLogo ? (
-                                            <ClubLogoImage clubName={clubName} dbLogo={clubLogo} alt={clubName} width={12} height={12} className="w-3 h-3 rounded-sm object-cover" />
-                                          ) : (
-                                            <Shield className="w-2.5 h-2.5 text-muted-foreground" />
-                                          )}
-                                          <span>{clubName}</span>
-                                          <span className="text-green-500/70">{club.wins}W</span>
-                                          <span className="text-red-500/70">{club.losses}L</span>
-                                        </Badge>
-                                      );
-                                    })}
-                                  </div>
-                                ) : (
-                                  <p className="text-[10px] text-muted-foreground text-center py-2">
-                                    Belum ada club di season ini — gunakan tombol + untuk menambahkan
-                                  </p>
-                                )}
-                              </div>
-                            )}
+
 
                             {/* ── Champion Squad Management ── */}
                             {!isTarkam && seasonDetail?.championClubId && (
@@ -1106,51 +1072,71 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                               </div>
                             </div>
 
-                            {/* ── Clubs Quick List (Liga only) ── */}
-                            {!isTarkam && seasonDetail?.clubs && seasonDetail.clubs.length > 0 && (
-                              <div>
-                                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                                  <Shield className="w-3 h-3" /> Club di Season Ini
-                                </p>
-                                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
-                                  {seasonDetail.clubs
-                                    .sort((a, b) => b.points - a.points)
-                                    .map((club, idx) => (
-                                    <div
-                                      key={club.id}
-                                      className={`flex items-center gap-2 p-2 rounded-lg border text-xs ${
-                                        club.id === seasonDetail.championClubId
-                                          ? 'border-yellow-500/20 bg-yellow-500/5'
-                                          : 'border-border/20 bg-card/30'
-                                      }`}
-                                    >
-                                      <span className={`w-5 text-center font-bold text-[10px] ${
-                                        idx === 0 ? 'text-yellow-500' :
-                                        idx === 1 ? 'text-gray-400' :
-                                        idx === 2 ? 'text-amber-600' :
-                                        'text-muted-foreground'
-                                      }`}>#{idx + 1}</span>
-                                      <div className="w-6 h-6 rounded overflow-hidden shrink-0">
-                                        {club.logo ? (
-                                          <Image src={club.logo} alt={club.name} width={24} height={24} className="w-full h-full object-cover" />
-                                        ) : (
-                                          <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
-                                            <Shield className={`w-2.5 h-2.5 ${dt.neonText}`} />
-                                          </div>
-                                        )}
-                                      </div>
-                                      <span className={`font-medium truncate ${club.id === seasonDetail.championClubId ? 'text-yellow-500' : ''}`}>
-                                        {club.name}
-                                      </span>
-                                      {club.id === seasonDetail.championClubId && (
-                                        <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
-                                      )}
-                                      <span className="ml-auto text-[10px] text-muted-foreground">
-                                        {club.points}pts • {club.wins}W/{club.losses}L
-                                      </span>
-                                    </div>
-                                  ))}
+                            {/* ── Clubs in Season (Liga only) ── */}
+                            {!isTarkam && (
+                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                    <Shield className="w-3.5 h-3.5 text-blue-400" /> Club di Season Ini ({seasonDetail?.clubs?.length || 0})
+                                  </p>
+                                  <AddClubToSeasonButton seasonId={season.id} seasonDivision={season.division} dt={dt} qc={qc} />
                                 </div>
+                                {seasonDetail?.clubs && seasonDetail.clubs.length > 0 ? (
+                                  <div className="space-y-1 max-h-52 overflow-y-auto custom-scrollbar">
+                                    {seasonDetail.clubs
+                                      .sort((a, b) => b.points - a.points)
+                                      .map((club, idx) => {
+                                        const clubName = getClubName(club);
+                                        const clubLogo = getClubLogo(club);
+                                        const isChampion = (club.profileId || club.profile?.id) === seasonDetail.championClubId;
+                                        return (
+                                          <div
+                                            key={club.id}
+                                            className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition-colors ${
+                                              isChampion
+                                                ? 'border-yellow-500/20 bg-yellow-500/5'
+                                                : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                            }`}
+                                          >
+                                            <span className={`w-5 text-center font-bold text-[10px] ${
+                                              idx === 0 ? 'text-yellow-500' :
+                                              idx === 1 ? 'text-gray-400' :
+                                              idx === 2 ? 'text-amber-600' :
+                                              'text-muted-foreground'
+                                            }`}>#{idx + 1}</span>
+                                            <div className="w-6 h-6 rounded overflow-hidden shrink-0">
+                                              {clubLogo ? (
+                                                <ClubLogoImage clubName={clubName} dbLogo={clubLogo} alt={clubName} width={24} height={24} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
+                                                  <Shield className={`w-2.5 h-2.5 ${dt.neonText}`} />
+                                                </div>
+                                              )}
+                                            </div>
+                                            <span className={`font-medium truncate ${isChampion ? 'text-yellow-500' : ''}`}>
+                                              {clubName}
+                                            </span>
+                                            {isChampion && (
+                                              <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
+                                            )}
+                                            <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                                              {club.points}pts • {club.wins}W/{club.losses}L
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-3">
+                                    <Shield className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                    <p className="text-[10px] text-muted-foreground">
+                                      Belum ada club di season ini
+                                    </p>
+                                    <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                                      Gunakan tombol + untuk menambahkan club
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             )}
 
