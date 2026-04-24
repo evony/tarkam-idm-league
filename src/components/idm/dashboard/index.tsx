@@ -317,9 +317,10 @@ export function Dashboard() {
           {/* Top Players — right below match status */}
           <TopPlayersSection data={data} division={division} setSelectedPlayer={handleSelectPlayer} />
 
-          {/* Activity Feed */}
-          <div className="stagger-item-subtle stagger-d2">
+          {/* Activity Feed + Top Donors — side by side on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 stagger-item-subtle stagger-d2">
             <ActivityFeed />
+            <TopDonorsWidget onDonate={() => setDonationOpen(true)} />
           </div>
 
           {/* Division Rivalry */}
@@ -330,11 +331,6 @@ export function Dashboard() {
           {/* Streak Widget */}
           <div className="stagger-item-subtle stagger-d2">
             <StreakWidget />
-          </div>
-
-          {/* Top Donors */}
-          <div className="stagger-item-subtle stagger-d4">
-            <TopDonorsWidget onDonate={() => setDonationOpen(true)} />
           </div>
 
           {/* Existing Overview Tab Content */}

@@ -195,8 +195,8 @@ export function ActivityFeed() {
   }, []);
 
   return (
-    <Card className="perspective-card overflow-hidden relative">
-      <CardHeader className="pb-3">
+    <Card className="perspective-card overflow-hidden relative h-full flex flex-col">
+      <CardHeader className="pb-3 shrink-0">
         <CardTitle className="text-sm flex items-center gap-2">
           <Activity className="w-4 h-4 text-amber-400" />
           Aktivitas Terbaru
@@ -223,7 +223,7 @@ export function ActivityFeed() {
           <EmptyState />
         ) : (
           <div className="relative">
-            <div ref={scrollRef} className="max-h-96 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
+            <div ref={scrollRef} className="max-h-80 lg:max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activities.map(a => a.id).join(',')}

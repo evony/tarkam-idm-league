@@ -2669,3 +2669,35 @@ Stage Summary:
 - Mobile prize pool now shows abbreviated format (Rp. 240K) with bigger text
 - Desktop right zone layout reorganized with better spacing and larger prize pool
 - All changes are backward-compatible and lint-clean
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Combine Top Donatur with Aktivitas Terbaru into one row + Fix WeekNavigator CSS on mobile
+
+Work Log:
+- Read dashboard/index.tsx to understand current layout (Activity Feed and Top Donors as separate vertical sections)
+- Read top-donors-widget.tsx and activity-feed.tsx to understand component structure
+- Combined Top Donatur and Aktivitas Terbaru into a single grid row: `grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4`
+- Moved Top Donors widget to be adjacent to Activity Feed (was previously separated by DivisionRivalry and StreakWidget)
+- Added `h-full flex flex-col` to both Card components so they stretch to equal heights in the grid
+- Added `shrink-0` to CardHeaders to prevent header compression
+- Added `flex-1` to donor list and activity list for proper flex distribution
+- Matched scroll heights: both components now use `max-h-80 lg:max-h-64` for consistent appearance
+- Updated LoadingSkeleton and EmptyDonorsState in TopDonorsWidget with same h-full flex pattern
+- Fixed WeekNavigator CSS bugs on mobile (xs variant):
+  - Added `max-w-full` to root container to prevent overflow
+  - Added `overflow-x-auto` to phase tabs container on xs to allow horizontal scroll
+  - Changed `font-black` to `font-bold` on week dots for better rendering at tiny sizes (7px)
+  - Added `shrink-0` to "W" label and week dot buttons to prevent compression
+  - Added `whitespace-nowrap` to phase tab buttons to prevent text wrapping
+  - Reduced xs phase tab font from `text-[9px]` to `text-[8px] leading-tight` for better fit
+  - Added `flex-wrap` to week dots row for graceful wrapping on very narrow screens
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server compiling successfully with no errors
+
+Stage Summary:
+- Top Donatur and Aktivitas Terbaru now display side by side on desktop (2-column grid), stacked on mobile
+- Both cards stretch to equal height with flex-col + h-full layout
+- WeekNavigator CSS fixed for mobile: no overflow, better font rendering, wrapping support
+- All lint checks pass, dev server operational

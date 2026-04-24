@@ -105,8 +105,8 @@ function DonationTypeBadge({ type }: { type: string }) {
 
 function LoadingSkeleton() {
   return (
-    <Card className="overflow-hidden relative glassmorphism-donor-card">
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden relative glassmorphism-donor-card h-full flex flex-col">
+      <CardHeader className="pb-2 shrink-0">
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-28 rounded" />
           <Skeleton className="h-5 w-20 rounded" />
@@ -135,14 +135,14 @@ function EmptyDonorsState({ onDonate }: { onDonate: () => void }) {
   const dt = useDivisionTheme();
 
   return (
-    <Card className="overflow-hidden relative glassmorphism-donor-card">
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden relative glassmorphism-donor-card h-full flex flex-col">
+      <CardHeader className="pb-2 shrink-0">
         <CardTitle className="text-sm flex items-center gap-2">
           <Heart className="w-4 h-4 text-idm-gold-warm" />
           Top Donatur
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center justify-center py-6 text-center donor-empty-state">
           {/* Floating heart icon with glow */}
           <div className="relative inline-flex items-center justify-center mb-3">
@@ -194,11 +194,11 @@ export function TopDonorsWidget({ onDonate }: TopDonorsWidgetProps) {
   if (donors.length === 0) return <EmptyDonorsState onDonate={onDonate} />;
 
   return (
-    <Card className="overflow-hidden relative glassmorphism-donor-card">
+    <Card className="overflow-hidden relative glassmorphism-donor-card h-full flex flex-col">
       {/* Gold accent top bar */}
       <div className="h-0.5 bg-gradient-to-r from-transparent via-idm-gold-warm to-transparent opacity-60" />
 
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
             <Heart className="w-4 h-4 text-idm-gold-warm" />
@@ -219,7 +219,7 @@ export function TopDonorsWidget({ onDonate }: TopDonorsWidgetProps) {
 
       <CardContent className="pt-0">
         {/* Donor list */}
-        <div className="max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-1 pr-1">
+        <div className="max-h-80 lg:max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-1 pr-1 flex-1">
           {donors.map((donor, i) => (
             <div
               key={donor.donorName}

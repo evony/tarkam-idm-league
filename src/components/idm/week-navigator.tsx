@@ -101,18 +101,18 @@ export function WeekNavigator({
   const isXs = size === 'xs';
 
   return (
-    <div className="space-y-1.5">
-      {/* Phase Tabs */}
+    <div className={`space-y-1.5 ${isXs ? 'max-w-full' : ''}`}>
+      {/* Phase Tabs — scrollable on xs to prevent overflow */}
       {phases.length > 1 && (
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 ${isXs ? 'overflow-x-auto' : ''}`}>
           {phases.map(phase => {
             const isActive = currentPhase.key === phase.key;
             return (
               <button
                 key={phase.key}
                 onClick={() => setManualPhase(phase.key)}
-                className={`rounded-md font-semibold transition-all ${
-                  isXs ? 'px-1.5 py-0.5 text-[9px]' :
+                className={`rounded-md font-semibold transition-all whitespace-nowrap ${
+                  isXs ? 'px-1.5 py-0.5 text-[8px] leading-tight' :
                   isSm ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[10px]'
                 } ${
                   isActive
@@ -129,9 +129,9 @@ export function WeekNavigator({
         </div>
       )}
 
-      {/* Week Dots */}
-      <div className="flex items-center gap-1">
-        <span className={`font-semibold mr-0.5 ${isXs ? 'text-[8px]' : isSm ? 'text-[9px]' : 'text-[9px]'}`} style={{ color: accentLight, opacity: 0.5 }}>
+      {/* Week Dots — flex-wrap for small screens */}
+      <div className={`flex items-center flex-wrap ${isXs ? 'gap-1' : 'gap-1'}`}>
+        <span className={`font-semibold mr-0.5 shrink-0 ${isXs ? 'text-[7px]' : isSm ? 'text-[9px]' : 'text-[9px]'}`} style={{ color: accentLight, opacity: 0.5 }}>
           W
         </span>
         {phaseWeeks.map(w => {
@@ -143,7 +143,7 @@ export function WeekNavigator({
             <button
               key={w.weekNumber}
               onClick={() => onWeekChange(w.weekNumber)}
-              className={`relative flex items-center justify-center transition-all duration-200 rounded-full font-black ${
+              className={`relative flex items-center justify-center transition-all duration-200 rounded-full font-bold shrink-0 ${
                 isXs ? 'w-5 h-5 text-[7px]' : isSm ? 'w-6 h-6 text-[8px]' : 'w-7 h-7 text-[9px]'
               } ${
                 isSelected
