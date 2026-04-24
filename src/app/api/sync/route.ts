@@ -1,5 +1,7 @@
 import { db } from '@/lib/db';
+import { requireSuperAdmin } from '@/lib/api-auth';
 import { withDbRetry } from '@/lib/db-resilience';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 /**
@@ -21,6 +23,9 @@ import { NextResponse } from 'next/server';
  * When called locally (SQLite), it reads SQLite data and can be used to generate a payload.
  */
 export async function POST(request: Request) {
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     let body: {
       clubLogos?: Array<{ name: string; division?: string; logo: string }>;
@@ -137,7 +142,7 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('[/api/sync] Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }
 
@@ -146,7 +151,10 @@ export async function POST(request: Request) {
  * This reads from whichever database the server is connected to.
  * Useful for generating a sync payload from SQLite to push to Neon.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Read from ClubProfile (persistent model with name, logo, bannerImage)
     const clubProfiles = await withDbRetry(() => db.clubProfile.findMany({
@@ -197,7 +205,7 @@ export async function GET() {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('[/api/sync GET] Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }
 

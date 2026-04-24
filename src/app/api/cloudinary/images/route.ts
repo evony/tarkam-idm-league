@@ -1,3 +1,4 @@
+import { requireAdmin } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
@@ -11,6 +12,9 @@ const API_SECRET = process.env.CLOUDINARY_API_SECRET;
  * Requires CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET env vars.
  */
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const nextCursor = searchParams.get('next_cursor');
@@ -76,6 +80,9 @@ export async function GET(request: NextRequest) {
  * POST /api/cloudinary/images — Get folders list from Cloudinary
  */
 export async function POST(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const { action } = body;

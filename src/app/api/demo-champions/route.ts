@@ -1,7 +1,15 @@
 import { db } from '@/lib/db';
+import { requireSuperAdmin } from '@/lib/api-auth';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Endpoint tidak tersedia di production' }, { status: 403 });
+  }
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Get or create active seasons
     let maleSeason = await db.season.findFirst({
@@ -295,6 +303,6 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Demo champions error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }

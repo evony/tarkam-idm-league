@@ -1,4 +1,5 @@
 import ZAI from 'z-ai-web-dev-sdk';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -29,6 +30,6 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Avatar generation error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }

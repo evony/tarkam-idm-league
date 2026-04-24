@@ -2839,3 +2839,166 @@ Stage Summary:
 - SVG overlay repositioned inside the scrollable content area
 - Added scroll event listener for recalculation on scroll events
 - All lint checks pass, dev server operational
+
+---
+Task ID: 4
+Agent: Security Agent
+Task: Implement rate limiting for API routes
+
+Work Log:
+- Read worklog.md for full project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read existing /src/middleware.ts — had CSP headers and basic security headers but no rate limiting
+- Created /src/lib/rate-limit.ts — In-memory rate limiter utility:
+  - Map-based store with automatic cleanup every 5 minutes (setInterval)
+  - RateLimitOptions interface with windowSeconds and maxRequests
+  - Three preset configurations: STRICT (5 req/min), MODERATE (15 req/min), DEFAULT (30 req/min)
+  - getClientIp() helper extracting IP from x-forwarded-for or x-real-ip headers
+  - rateLimit() factory function returning a check() method that tracks count per IP with sliding window
+  - Pre-configured limiters: loginLimiter, registerLimiter, donationLimiter, avatarLimiter, apiLimiter
+- Updated /src/middleware.ts — Added rate limiting for all API routes:
+  - In-memory rate limit map with per-IP + per-path tracking
+  - getIp() helper extracting client IP from request headers
+  - checkRateLimit() function with endpoint-specific limits:
+    - Login routes (/api/auth/login, /api/account/login): 5 req/min
+    - Registration routes (/api/register, /api/account/register): 5 req/min
+    - Donations list (/api/donations): 10 req/min
+    - AI avatar generation (/api/generate-avatar): 3 req/min
+    - General API: 60 req/min
+  - Rate limit check runs BEFORE security headers
+  - Returns 429 JSON response with Indonesian error message and Retry-After header when rate exceeded
+  - Added additional security headers: Strict-Transport-Security, Permissions-Policy, X-DNS-Prefetch-Control
+  - Updated matcher pattern to cleaner format
+- Ran `bun run lint` — passed with zero errors
+
+Stage Summary:
+- Rate limiter utility created at /src/lib/rate-limit.ts with 3 preset configurations and 5 pre-configured limiters
+- Middleware updated with per-IP per-path rate limiting for all API routes
+- Endpoint-specific rate limits: login/registration (5/min), donations (10/min), avatar generation (3/min), general (60/min)
+- 429 responses include Indonesian error message and Retry-After header
+- Additional security headers added (HSTS, Permissions-Policy, X-DNS-Prefetch-Control)
+- All lint checks pass, dev server operational
+
+---
+Task ID: 6
+Agent: Security Agent
+Task: Sanitize error responses across API routes to prevent information leakage
+
+Work Log:
+- Read worklog.md for project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Created /src/lib/api-error.ts utility with two functions:
+  - getSafeErrorMessage(error, fallback): Returns real error.message in development, generic fallback in production
+  - errorResponse(message, status, details): Creates standardized error Response objects
+- Fixed 8 API route files (10 catch blocks total) that leaked error.message to clients:
+  1. /api/generate-avatar/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in catch block
+  2. /api/seed/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in catch block
+  3. /api/seed-demo/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in both GET and POST catch blocks
+  4. /api/demo-champions/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in catch block
+  5. /api/sync/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in both POST and GET catch blocks
+  6. /api/clubs/update-logos/route.ts — Replaced `error.message` with `getSafeErrorMessage(e)` in catch block
+  7. /api/tournaments/[id]/score/route.ts — Replaced `message` with `getSafeErrorMessage(error)` in 500 catch; preserved business-logic messages for 400/404 responses (Match already completed, Match not found)
+  8. /api/tournaments/[id]/finalize/route.ts — Replaced `message` with `getSafeErrorMessage(error)` in catch block; removed now-unused `message` variable
+- Console.error statements preserved (server-side logging is safe and valuable for debugging)
+- Business-logic error messages (400/404 responses) intentionally left unsanitized as they contain user-facing domain messages, not internal details
+- Ran `bun run lint` — passed with zero errors
+
+Stage Summary:
+- Created /src/lib/api-error.ts with getSafeErrorMessage() and errorResponse() utility functions
+- Fixed 10 catch blocks across 8 API route files that leaked error.message to clients
+- In production, all 500 errors now return generic "Terjadi kesalahan server" instead of exposing internal details
+- In development, real error messages still shown for debugging convenience
+- Business-logic error messages (400/404) preserved as they are intentional user-facing messages
+- Server-side console.error logging preserved for operational debugging
+- All lint checks pass
+
+---
+Task ID: 2
+Agent: Security Fix Agent
+Task: Fix CRITICAL security issues in authentication core
+
+Work Log:
+- Read worklog.md for full project context
+- Read all 5 target files: .env, auth.ts, api-auth.ts, require-admin.ts, next.config.ts
+- Fix 1: Generated 64-char hex SESSION_SECRET via `openssl rand -hex 32` and added to .env along with ADMIN_USERNAME=idm_admin and ADMIN_PASSWORD=IDM@League2026!Secure
+- Fix 2: Fixed /src/lib/auth.ts:
+  - Removed hardcoded fallback SESSION_SECRET ('idm-league-secret-key-change-in-production')
+  - In production: throws fatal error if SESSION_SECRET not set (app crashes rather than running insecurely)
+  - In development: uses 'dev-only-insecure-session-secret' fallback with no misleading warning
+  - Removed all 6 console.log debug lines in verifySessionToken() (token parts, signature checks, token age, success)
+  - Changed catch block from console.error to silent catch (no credential leakage in logs)
+  - Kept all function logic intact (HMAC verification, 7-day expiry, etc.)
+- Fix 3: Fixed /src/lib/api-auth.ts:
+  - Removed all 5 console.log debug lines in verifyAdmin() (cookie preview, session cookie raw, token extracted, verification result, admin lookup)
+  - Removed console.log in requireAdmin() (unauthorized return)
+  - Kept all function logic intact (cookie parsing, token verification, DB admin lookup)
+- Fix 4: Fixed /src/lib/require-admin.ts:
+  - Replaced entire file content with `export { requireAdmin } from './api-auth';`
+  - Previously had a simpler version without DB lookup (only checked cookie via getSessionFromCookies)
+  - Now all routes using requireAdmin get the proper DB-lookup version from api-auth.ts
+- Fix 5: Fixed /next.config.ts:
+  - Replaced `hostname: '**'` wildcard in images.remotePatterns with only `res.cloudinary.com`
+  - Changed typescript.ignoreBuildErrors from true to false
+  - Changed reactStrictMode from false to true
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server restarted successfully after next.config.ts change
+
+Stage Summary:
+- SESSION_SECRET now properly set in .env (64-char hex), production crashes if missing
+- All debug console.log lines removed from auth.ts and api-auth.ts (no credential/session data leakage)
+- require-admin.ts now re-exports from api-auth.ts (all routes get DB-verified admin check)
+- Image remote patterns restricted to res.cloudinary.com only (no wildcard hostname)
+- TypeScript build errors no longer ignored, React strict mode enabled
+- All lint checks pass, dev server operational
+
+---
+Task ID: 3
+Agent: Auth Security Agent
+Task: Add authentication protection to unprotected API routes
+
+Work Log:
+- Read worklog.md for project context (IDM League dance tournament platform, Next.js 16 + App Router)
+- Read all target files before modifying: cms/route.ts, cms/cards/route.ts, cms/sections/route.ts, cms/batch/route.ts, cms/seed/route.ts, seed/route.ts, seed-demo/route.ts, demo-champions/route.ts, sync/route.ts, cloudinary/images/route.ts, clubs/update-logos/route.ts, donations/route.ts, auth/route.ts
+- Read /src/lib/api-auth.ts to understand requireAdmin() and requireSuperAdmin() helpers
+
+CMS Routes Protected:
+1. /api/cms/route.ts — Added requireAdmin to POST (GET kept public)
+2. /api/cms/cards/route.ts — Already had requireAdmin on POST/DELETE ✓
+3. /api/cms/sections/route.ts — Already had requireAdmin on POST/DELETE ✓
+4. /api/cms/batch/route.ts — Added requireAdmin to PUT
+5. /api/cms/seed/route.ts — Changed from requireAdmin to requireSuperAdmin on POST
+
+Seed/Demo Routes Protected:
+6. /api/seed/route.ts — Changed from conditional requireAdmin (only on force=true) to always require requireSuperAdmin on POST; removed the else-branch early-return that allowed unauthenticated seeding when seasons don't exist
+7. /api/seed-demo/route.ts — Added requireSuperAdmin to both GET and POST; added production environment check (returns 403 with Indonesian error message when NODE_ENV === 'production')
+8. /api/demo-champions/route.ts — Added requireSuperAdmin to POST; added production environment check (returns 403 when NODE_ENV === 'production')
+9. /api/seed-matches/route.ts — Does not exist, skipped
+
+Sync Route Protected:
+10. /api/sync/route.ts — Added requireSuperAdmin to both GET and POST
+
+Cloudinary Route Protected:
+11. /api/cloudinary/images/route.ts — Added requireAdmin to both GET and POST
+
+Club Logos Update Protected:
+12. /api/clubs/update-logos/route.ts — Added requireAdmin to POST
+
+Donation Status Filter Auth Bypass Fixed:
+13. /api/donations/route.ts — Fixed GET method: when status param is 'all' or any status other than 'approved', now requires requireAdmin auth; previously the 'all' status would bypass auth by not setting any status filter
+
+Legacy Auth Route Deleted:
+14. /api/auth/route.ts — Deleted (was using bcryptjs and adminUser model, superseded by auth/login route); auth/login, auth/session, auth/logout, auth/change-password routes preserved
+
+All auth checks use the pattern:
+  const authResult = await requireAdmin(request); // or requireSuperAdmin
+  if (authResult instanceof NextResponse) return authResult;
+
+Ran `bun run lint` — passed with zero errors
+Verified dev server running (200 OK responses in dev.log)
+
+Stage Summary:
+- 8 API route files modified with auth protection (cms, cms/batch, cms/seed, seed, seed-demo, demo-champions, sync, cloudinary, clubs/update-logos, donations)
+- 3 files already had correct auth (cms/cards, cms/sections) — no changes needed
+- 1 legacy auth route deleted (api/auth/route.ts)
+- Donation GET endpoint auth bypass fixed — non-approved status queries now require admin
+- Seed/demo routes blocked in production with 403 response
+- Seed route now always requires super_admin (not just on force=true)
+- All lint checks pass, dev server operational

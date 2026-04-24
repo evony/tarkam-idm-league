@@ -87,8 +87,16 @@ export async function GET(request: Request) {
     if (seasonId) where.seasonId = seasonId;
 
     // Public requests only see approved; admin can request specific status
-    if (status && status !== 'all') {
-      where.status = status;
+    if (status && status !== 'approved') {
+      // Any status other than 'approved' (including 'all', 'pending', 'rejected') requires admin auth
+      const authResult = await requireAdmin(request);
+      if (authResult instanceof NextResponse) return authResult;
+
+      if (status === 'all') {
+        // No status filter — show all statuses
+      } else {
+        where.status = status;
+      }
     } else if (!status) {
       // Default: only approved for public
       where.status = 'approved';

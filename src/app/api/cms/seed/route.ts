@@ -1,11 +1,11 @@
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/api-auth';
+import { requireSuperAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
 
 // POST seed default CMS content
 export async function POST(request: Request) {
-  const admin = await requireAdmin(request);
-  if (!(admin instanceof Object)) return admin;
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
 
   try {
     // Seed default settings

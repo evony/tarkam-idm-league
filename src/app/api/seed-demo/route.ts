@@ -1,8 +1,15 @@
 import { db } from '@/lib/db';
+import { requireSuperAdmin } from '@/lib/api-auth';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 // ─── GET: Return current data stats ───
-export async function GET() {
+export async function GET(request: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Endpoint tidak tersedia di production' }, { status: 403 });
+  }
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const [
       playerCount,
@@ -52,7 +59,7 @@ export async function GET() {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Seed-demo GET error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }
 
@@ -77,7 +84,12 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 // ─── POST: Seed demo data ───
-export async function POST() {
+export async function POST(request: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Endpoint tidak tersedia di production' }, { status: 403 });
+  }
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
   try {
     // 1. Find the first active season
     const activeSeason = await db.season.findFirst({
@@ -550,6 +562,6 @@ export async function POST() {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Seed-demo POST error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }

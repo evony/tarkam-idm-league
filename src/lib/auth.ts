@@ -1,12 +1,12 @@
 import crypto from 'crypto';
 import { db } from './db';
 
-// Force recompile - debug token issue
 const SESSION_SECRET = process.env.SESSION_SECRET || (() => {
   if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠ SECURITY: Using default SESSION_SECRET in production! Set SESSION_SECRET env variable.');
+    throw new Error('FATAL: SESSION_SECRET environment variable is not set. Refusing to run in production without a secure session secret.');
   }
-  return 'idm-league-secret-key-change-in-production';
+  // Development-only fallback
+  return 'dev-only-insecure-session-secret';
 })();
 
 // Password utilities using Node.js crypto (replaces bcryptjs for Turbopack compatibility)
@@ -47,32 +47,24 @@ export function createSessionToken(adminId: string, role: string): string {
 
 export function verifySessionToken(token: string): { adminId: string; role: string } | null {
   try {
-    console.log('verifySessionToken: Token received:', token?.substring(0, 50) + '...');
     const parts = token.split(':');
-    console.log('verifySessionToken: Parts count:', parts.length);
     if (parts.length !== 4) {
-      console.log('verifySessionToken: Invalid parts length, expected 4');
       return null;
     }
     const [adminId, role, timestamp, signature] = parts;
     const payload = `${adminId}:${role}:${timestamp}`;
     const expectedSignature = sign(payload);
-    console.log('verifySessionToken: Signature check:', { provided: signature, expected: expectedSignature, match: signature === expectedSignature });
     if (signature !== expectedSignature) {
-      console.log('verifySessionToken: Signature mismatch!');
       return null;
     }
 
     // Check token age (7 days max)
     const tokenAge = Date.now() - parseInt(timestamp);
     const maxAge = 7 * 24 * 60 * 60 * 1000;
-    console.log('verifySessionToken: Token age:', tokenAge, 'ms, max:', maxAge, 'ms, expired:', tokenAge > maxAge);
     if (tokenAge > maxAge) return null;
 
-    console.log('verifySessionToken: SUCCESS for adminId:', adminId);
     return { adminId, role };
-  } catch (error) {
-    console.error('verifySessionToken error:', error);
+  } catch {
     return null;
   }
 }

@@ -4,6 +4,7 @@ import { SEASON_TOTAL_WEEKS } from '@/lib/constants';
 import { awardPoints } from '@/lib/points';
 import { checkTournamentAchievements } from '@/lib/achievements';
 import { autoAwardTournamentSkins } from '@/lib/skin-auto-award';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 export async function POST(
@@ -342,8 +343,7 @@ export async function POST(
   return NextResponse.json({ ...result, achievementsAwarded, skinsAwarded });
 
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Finalization error:', error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(error) }, { status: 500 });
   }
 }

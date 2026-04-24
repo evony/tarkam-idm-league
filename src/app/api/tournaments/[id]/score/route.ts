@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { awardPoints } from '@/lib/points';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 // ===== Helper: Parse groupLabel position (e.g., "U2-3" → round=2, pos=3, "L1-2" → round=1, pos=2) =====
@@ -486,7 +487,7 @@ export async function POST(
       return NextResponse.json({ error: message }, { status: 404 });
     }
     console.error('Score submission error:', error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(error) }, { status: 500 });
   }
 }
 

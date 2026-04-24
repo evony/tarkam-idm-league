@@ -1,15 +1,16 @@
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/api-auth';
+import { requireSuperAdmin } from '@/lib/api-auth';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  const authResult = await requireSuperAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   const { searchParams } = new URL(request.url);
   const force = searchParams.get('force') === 'true';
 
-  if (force) {
-    const authResult = await requireAdmin(request);
-    if (authResult instanceof NextResponse) return authResult;
-  } else {
+  if (!force) {
     const seasonCount = await db.season.count();
     if (seasonCount > 0) {
       return NextResponse.json({ success: true, message: 'Database already has seasons — seeding skipped' });
@@ -337,6 +338,6 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Seed error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }

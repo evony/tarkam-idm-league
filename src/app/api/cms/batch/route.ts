@@ -1,8 +1,12 @@
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
 
 // PUT /api/cms/batch — Batch save multiple CMS settings
 export async function PUT(request: Request) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const { items } = body as { items: { key: string; value: string }[] };

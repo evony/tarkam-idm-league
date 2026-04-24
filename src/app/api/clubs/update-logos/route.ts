@@ -1,5 +1,7 @@
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 import { withDbRetry } from '@/lib/db-resilience';
+import { getSafeErrorMessage } from '@/lib/api-error';
 import { NextResponse } from 'next/server';
 
 /**
@@ -12,6 +14,9 @@ import { NextResponse } from 'next/server';
  * { "logos": [{ "name": "MAXIMOUS", "logo": "https://..." }] }
  */
 export async function POST(request: Request) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Try to read logos from request body first
     let logos: Array<{ name: string; logo: string }>;
@@ -52,7 +57,7 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error('Update club logos error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getSafeErrorMessage(e) }, { status: 500 });
   }
 }
 
