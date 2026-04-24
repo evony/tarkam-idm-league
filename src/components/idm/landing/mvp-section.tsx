@@ -75,7 +75,22 @@ export function MvpSection({
                         <p className="text-sm font-bold text-white/80 uppercase tracking-widest">MVP Belum Dipilih</p>
                         <div className="w-12 h-px bg-gradient-to-l from-transparent to-idm-gold-warm/40" />
                       </div>
-                      <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">Tunjukkan skillmu — jadilah MVP pertama di divisi ini!</p>
+                      <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">MVP ditetapkan admin saat finalisasi tournament</p>
+                      {/* Top scorer preview — show #1 ranked player as "contender" */}
+                      {(() => {
+                        const topPlayer = maleData?.topPlayers?.[0];
+                        if (!topPlayer) return null;
+                        return (
+                          <div className="relative z-10 mt-6 w-full max-w-[260px] rounded-xl border border-dashed border-[#06b6d4]/15 p-3 text-center" style={{ background: 'rgba(6,182,212,0.04)' }}>
+                            <p className="text-[10px] text-[#22d3ee]/60 uppercase tracking-wider font-semibold mb-1">Top Contender</p>
+                            <p className="text-sm font-bold text-white/90">{topPlayer.gamertag}</p>
+                            <div className="flex items-center justify-center gap-3 mt-1">
+                              <span className="text-[10px] font-bold text-[#67e8f9]/60">{topPlayer.points} pts</span>
+                              <span className="text-[10px] font-bold text-green-400/60">{topPlayer.totalWins}W</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                   return (
@@ -175,7 +190,22 @@ export function MvpSection({
                         <p className="text-sm font-bold text-white/80 uppercase tracking-widest">MVP Belum Dipilih</p>
                         <div className="w-12 h-px bg-gradient-to-l from-transparent to-idm-gold-warm/40" />
                       </div>
-                      <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">Tunjukkan skillmu — jadilah MVP pertama di divisi ini!</p>
+                      <p className="relative z-10 text-xs text-muted-foreground/80 mt-1">MVP ditetapkan admin saat finalisasi tournament</p>
+                      {/* Top scorer preview — show #1 ranked player as "contender" */}
+                      {(() => {
+                        const topPlayer = femaleData?.topPlayers?.[0];
+                        if (!topPlayer) return null;
+                        return (
+                          <div className="relative z-10 mt-6 w-full max-w-[260px] rounded-xl border border-dashed border-[#a855f7]/15 p-3 text-center" style={{ background: 'rgba(168,85,247,0.04)' }}>
+                            <p className="text-[10px] text-[#c084fc]/60 uppercase tracking-wider font-semibold mb-1">Top Contender</p>
+                            <p className="text-sm font-bold text-white/90">{topPlayer.gamertag}</p>
+                            <div className="flex items-center justify-center gap-3 mt-1">
+                              <span className="text-[10px] font-bold text-[#e9d5ff]/60">{topPlayer.points} pts</span>
+                              <span className="text-[10px] font-bold text-green-400/60">{topPlayer.totalWins}W</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                   return (

@@ -1458,3 +1458,67 @@ The project is **feature-rich and visually polished**. The Season Champion secti
 3. Add "View All Weeks" expanded mode
 4. Improve mobile responsiveness of week selector
 5. Add season selector to switch between different seasons
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Continue remaining todolist — data cleanup, animated transitions, MVP fallback, validation
+
+Work Log:
+- Cleaned up female S1 tournament overflow data:
+  - Female S1 had 16 tournaments (W1-W18) instead of max 10
+  - Moved W11-W18 to newly created S2 Female with corrected week numbers (W1-W6)
+  - Closed S1 Female (status → completed, set championClubId = EUPHORIC)
+  - Created S2 Female (active) with 13 clubs copied from S1
+  - Verified: S1 Female now has 10 tournaments (completed), S2 Female has 6 tournaments (active)
+- Added week validation to POST /api/tournaments:
+  - SEASON_MAX_WEEKS = 10 constant
+  - Rejects tournament creation if season already has 10 tournaments
+  - Rejects tournament creation if season status is 'completed'
+  - Auto-corrects weekNumber if admin inputs invalid number
+- Added auto-close season on tournament finalization:
+  - In /api/tournaments/[id]/finalize/route.ts
+  - After finalizing a tournament, counts completed tournaments in season
+  - If count >= 10, auto-sets season status to 'completed', sets endDate, determines championClubId (top club by points)
+- Added animated week transitions in champions-section.tsx:
+  - Imported framer-motion AnimatePresence + motion.div
+  - Wrapped team info + avatar content in AnimatePresence with key={selectedWeekIdx}
+  - Smooth fade + slide up/down animation when switching weeks (duration 0.25s)
+- Enhanced MVP section fallback display:
+  - Changed text from "Tunjukkan skillmu" to "MVP ditetapkan admin saat finalisasi tournament" (more informative)
+  - Added "Top Contender" preview card showing #1 ranked player with points + wins
+  - Both Male and Female MVP fallbacks updated with division-colored styling
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling and serving correctly
+
+Stage Summary:
+- Female S1 data cleaned up (W11-W18 moved to S2, S1 closed as completed)
+- Backend validation: max 10 weeks per season, auto-close season on W10 finalization
+- Animated week transitions in champion selector (framer-motion)
+- MVP fallback enhanced with "Top Contender" preview and clearer messaging
+- All lint checks pass, dev server operational
+
+## Current Project Status
+
+### Assessment
+The project is **stable and feature-rich** with proper data integrity. Season management now enforces the 10-week limit with auto-close functionality.
+
+### Completed in This Round (Task ID 16)
+- Data cleanup: Female S1 overflow → S2 created, S1 closed
+- Backend validation: 10-week season limit, reject completed season, auto-correct weekNumber
+- Auto-close season when week 10 tournament finalized (with champion determination)
+- Animated transitions when switching weeks in champion selector
+- MVP fallback enhanced with "Top Contender" preview
+
+### Unresolved Issues / Risks
+1. **Season selector** not yet implemented in champions section (currently only shows latest season)
+2. **Male S1** only has 4 tournaments (not yet completed)
+3. **MVP data** still empty — admin needs to finalize tournaments with MVP assignment
+4. **Some sections** may show empty states until more data is seeded
+
+### Priority Recommendations for Next Phase
+1. Add season selector to champions section (switch between S1, S2, etc.)
+2. Add more demo match data to populate empty sections
+3. Improve mobile responsiveness of week selector
+4. Add notification/toast system for real-time updates
+5. Add social sharing features for player profiles

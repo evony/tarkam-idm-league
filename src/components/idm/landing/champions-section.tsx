@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Trophy, Music, Users, Shield, Crown, Wallet, Flame, Play,
   ChevronLeft, ChevronRight,
@@ -158,7 +159,15 @@ function DivisionChampionCard({
           </div>
         </div>
 
-        <div className="p-5 space-y-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedWeekIdx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="p-5 space-y-4"
+          >
           {/* Team Info */}
           <div className="relative flex items-center justify-between flex-wrap gap-2">
             <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-32 h-16 rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.08) 0%, transparent 70%)' }} aria-hidden="true" />
@@ -364,7 +373,8 @@ function DivisionChampionCard({
               )}
             </div>
           </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </CardContent>
     </Card>
   );
