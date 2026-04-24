@@ -26,7 +26,7 @@ import { useHaptic, PullToRefresh } from '@/components/idm/ui/mobile-interaction
 
 /* ─── Lazy-loaded view components (code-split for smaller initial bundle) ─── */
 const viewLoading = (
-  <div className="space-y-4 max-w-7xl mx-auto">
+  <div className="space-y-4">
     <CasinoHeroSkeleton />
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div className="flex items-center justify-center rounded-xl border border-border/50 bg-card/60 p-4">

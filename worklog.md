@@ -2766,3 +2766,24 @@ Stage Summary:
 - Match Selanjutnya and Peserta also now side by side on desktop
 - Both rows use matching card heights with h-full/flex layout
 - All lint checks pass, dev server operational
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Make dashboard full-width like other menu views
+
+Work Log:
+- Identified the root cause: Dashboard component (`dashboard/index.tsx`) had `max-w-7xl mx-auto` on both its loading skeleton and main content container, which limited width to ~1280px
+- Other views (League, Match Day, Tour Saya) didn't have this constraint — they used full available width
+- App-shell already set dashboard as no max-width (`''` instead of `max-w-[1600px]`), but the inner component was overriding it
+- Removed `max-w-7xl mx-auto` from:
+  1. `dashboard/index.tsx` line 117 (loading skeleton)
+  2. `dashboard/index.tsx` line 170 (main content)
+  3. `app-shell.tsx` line 29 (viewLoading skeleton)
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling and serving correctly
+
+Stage Summary:
+- Dashboard is now full-width, matching other views (League, Match Day, Tour Saya)
+- Removed `max-w-7xl mx-auto` from 3 locations
+- All lint checks pass, dev server operational

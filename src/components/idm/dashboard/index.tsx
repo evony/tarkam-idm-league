@@ -114,7 +114,7 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-5 max-w-7xl mx-auto">
+      <div className="space-y-5">
         <CasinoHeroSkeleton />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="flex items-center justify-center rounded-xl border border-border/50 bg-card/60 p-3">
@@ -167,7 +167,7 @@ export function Dashboard() {
 
   return (
     <>
-    <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
+    <div className="space-y-3 sm:space-y-4">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
       <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[220px] sm:min-h-[260px] lg:min-h-[340px] ${!isMobile ? 'casino-shimmer' : ''}`}>
