@@ -2395,3 +2395,40 @@ Stage Summary:
 - Full slot-machine effect with fast spin → deceleration → bounce → sparkle reveal
 - All previous fixes also confirmed: WA duplicate check, anti-hijacking, form state persistence
 - Lint clean, dev server stable
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix match score submission bug — winning team doesn't advance to next round
+
+Work Log:
+- Investigated the match score submission flow: frontend (tournament-manager.tsx) → API (score/route.ts) → bracket advancement → checkAllMatchesComplete
+- Found critical bug in dev server log: `Socket timeout (the database failed to respond to a query within the configured timeout)` at `db.club.update()` inside `updateClubStatsForPlayer`
+- Root cause: `updateClubStatsForPlayer()` was called INSIDE the `$transaction` block but used the global `db` client (not `tx`), causing SQLite deadlock/timeout because:
+  1. The transaction holds a write lock on the SQLite database
+  2. `updateClubStatsForPlayer` tries to open a separate connection via `db` which can't get a lock
+  3. SQLite only supports one writer at a time, so it times out after 5+ seconds
+  4. The transaction rolls back, meaning the match score is NEVER saved and bracket advancement NEVER happens
+- Fix applied to `/src/app/api/tournaments/[id]/score/route.ts`:
+  1. Moved ALL `updateClubStatsForPlayer()` calls OUTSIDE the `$transaction` block
+  2. Collected club stats updates in a `clubStatsQueue` array during the transaction
+  3. Applied club stats updates sequentially after the transaction succeeds, with try/catch error handling (non-critical)
+  4. Added `nextPowerOf2()` helper function (was missing — referenced but not defined in the file)
+  5. Club stats failures no longer block score submission
+- Fix applied to frontend `/src/components/idm/tournament-manager.tsx`:
+  1. Added `onError` handler to `scoreMutation` — shows error toast on failure
+  2. Added `qc.invalidateQueries` for tournament list (status may change after scoring)
+  3. Added `setScoreInputs({})` to clear score inputs after successful submission
+- Reset stuck tournament from "finalization" back to "main_event" (was incorrectly set due to previous bug)
+- Verified fix works: all 3 matches in test tournament scored successfully, bracket advancement works correctly
+  - R1 M1: Tim Bambang 2-1 Tim Armors ✅
+  - R1 M2: Tim tazos 2-1 Tim AbdnZ ✅
+  - R2 Final: Tim tazos 3-2 Tim Bambang ✅ (this was the match that previously failed!)
+- Lint clean, dev server stable
+
+Stage Summary:
+- Match score submission bug FIXED — root cause was SQLite deadlock from club stats update inside transaction
+- Club stats updates moved outside transaction with error resilience (non-critical)
+- Frontend now shows error feedback on score submission failure
+- Score inputs cleared after successful submission
+- Tournament bracket advancement works correctly: winner advances to next round, tournament transitions to finalization when all matches complete

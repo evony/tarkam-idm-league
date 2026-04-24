@@ -356,10 +356,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       return r.json();
     },
     onSuccess: () => {
-      // Score doesn't change tournament list — only invalidate detail
+      // Invalidate both detail and list (tournament status may change)
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
+      qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] });
+      setScoreInputs({});
       toast.success('Skor berhasil disubmit!');
     },
+    onError: (e: Error) => { toast.error(`Gagal submit skor: ${e.message}`); },
   });
 
   const undoScoreMutation = useMutation({

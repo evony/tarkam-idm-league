@@ -12,6 +12,7 @@ function parseLabel(label: string | null): { prefix: string; round: number; pos:
 }
 
 // ===== Helper: Update club stats for a player's club =====
+// IMPORTANT: Must be called OUTSIDE of $transaction to avoid SQLite deadlocks/timeout
 async function updateClubStatsForPlayer(
   playerId: string,
   tournamentDivision: string,
@@ -19,52 +20,57 @@ async function updateClubStatsForPlayer(
   type: 'win' | 'loss' | 'draw',
   gameDiff: number
 ) {
-  // Find the player's club season entry in the same division and season
-  const membership = await db.clubMember.findFirst({
-    where: {
-      playerId,
-      leftAt: null,
-      profile: {
-        seasonEntries: {
-          some: { division: tournamentDivision, seasonId },
+  try {
+    // Find the player's club season entry in the same division and season
+    const membership = await db.clubMember.findFirst({
+      where: {
+        playerId,
+        leftAt: null,
+        profile: {
+          seasonEntries: {
+            some: { division: tournamentDivision, seasonId },
+          },
         },
       },
-    },
-    include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
-  });
-
-  if (!membership) return;
-
-  // Get the Club season entry to update stats
-  const clubEntry = membership.profile.seasonEntries[0];
-  if (!clubEntry) return;
-
-  if (type === 'win') {
-    await db.club.update({
-      where: { id: clubEntry.id },
-      data: {
-        wins: { increment: 1 },
-        points: { increment: 2 },
-        gameDiff: { increment: gameDiff },
-      },
+      include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
     });
-  } else if (type === 'loss') {
-    const lossPoints = gameDiff > -Math.abs(gameDiff) ? 1 : 0; // +1 point if they won at least 1 game
-    await db.club.update({
-      where: { id: clubEntry.id },
-      data: {
-        losses: { increment: 1 },
-        points: { increment: Math.max(0, lossPoints) },
-        gameDiff: { increment: gameDiff },
-      },
-    });
-  } else if (type === 'draw') {
-    await db.club.update({
-      where: { id: clubEntry.id },
-      data: {
-        points: { increment: 1 },
-      },
-    });
+
+    if (!membership) return;
+
+    // Get the Club season entry to update stats
+    const clubEntry = membership.profile.seasonEntries[0];
+    if (!clubEntry) return;
+
+    if (type === 'win') {
+      await db.club.update({
+        where: { id: clubEntry.id },
+        data: {
+          wins: { increment: 1 },
+          points: { increment: 2 },
+          gameDiff: { increment: gameDiff },
+        },
+      });
+    } else if (type === 'loss') {
+      const lossPoints = gameDiff > -Math.abs(gameDiff) ? 1 : 0; // +1 point if they won at least 1 game
+      await db.club.update({
+        where: { id: clubEntry.id },
+        data: {
+          losses: { increment: 1 },
+          points: { increment: Math.max(0, lossPoints) },
+          gameDiff: { increment: gameDiff },
+        },
+      });
+    } else if (type === 'draw') {
+      await db.club.update({
+        where: { id: clubEntry.id },
+        data: {
+          points: { increment: 1 },
+        },
+      });
+    }
+  } catch (error) {
+    // Club stats are non-critical — log but don't fail the score submission
+    console.error('Club stats update failed (non-critical):', error);
   }
 }
 
@@ -73,6 +79,12 @@ async function updateClubStatsForPlayer(
 function getDropRound(upperRound: number): number {
   if (upperRound === 1) return 1;
   return 2 * (upperRound - 1);
+}
+
+function nextPowerOf2(n: number): number {
+  let p = 1;
+  while (p < n) p *= 2;
+  return p;
 }
 
 // ===== SCORE SUBMISSION =====
@@ -92,6 +104,12 @@ export async function POST(
   }
 
   try {
+    // Collect club stats updates to apply AFTER the transaction
+    // (calling db.club.update inside $transaction causes SQLite deadlock/timeout)
+    const clubStatsQueue: { playerId: string; type: 'win' | 'loss' | 'draw'; gameDiff: number }[] = [];
+    let tournamentDivision = '';
+    let tournamentSeasonId = '';
+
     // Use transaction for data integrity (Bug #3 fix)
     const result = await db.$transaction(async (tx) => {
       const match = await tx.match.findUnique({
@@ -122,8 +140,8 @@ export async function POST(
         throw new Error('Draws are not allowed in elimination brackets');
       }
 
-      const tournamentDivision = match.tournament.division;
-      const seasonId = match.tournament.seasonId;
+      tournamentDivision = match.tournament.division;
+      tournamentSeasonId = match.tournament.seasonId;
       const gameDiff = Math.abs((score1 || 0) - (score2 || 0));
 
       if (isDraw && isGroupMatch) {
@@ -170,8 +188,8 @@ export async function POST(
                 data: { matches: tp.player.matches + 1, points: tp.player.points + participationPts + drawPts },
               });
 
-              // Bug #2 fix: Update club stats for draw
-              await updateClubStatsForPlayer(tp.playerId, tournamentDivision, seasonId, 'draw', 0);
+              // Queue club stats update (outside transaction to avoid SQLite deadlock)
+              clubStatsQueue.push({ playerId: tp.playerId, type: 'draw', gameDiff: 0 });
             }
           }
         }
@@ -242,8 +260,8 @@ export async function POST(
             },
           });
 
-          // Bug #2 fix: Update club stats for win
-          await updateClubStatsForPlayer(tp.playerId, tournamentDivision, seasonId, 'win', gameDiff);
+          // Queue club stats update (outside transaction to avoid SQLite deadlock)
+          clubStatsQueue.push({ playerId: tp.playerId, type: 'win', gameDiff });
         }
       }
 
@@ -280,8 +298,8 @@ export async function POST(
             },
           });
 
-          // Bug #2 fix: Update club stats for loss
-          await updateClubStatsForPlayer(tp.playerId, tournamentDivision, seasonId, 'loss', -gameDiff);
+          // Queue club stats update (outside transaction to avoid SQLite deadlock)
+          clubStatsQueue.push({ playerId: tp.playerId, type: 'loss', gameDiff: -gameDiff });
         }
       }
 
@@ -290,6 +308,15 @@ export async function POST(
       maxWait: 10000,
       timeout: 30000,
     });
+
+    // ===== CLUB STATS UPDATE (outside transaction to avoid SQLite deadlock/timeout) =====
+    // These are non-critical updates — failure should not block score submission
+    if (clubStatsQueue.length > 0 && tournamentDivision && tournamentSeasonId) {
+      // Process sequentially to avoid overwhelming SQLite
+      for (const { playerId, type, gameDiff } of clubStatsQueue) {
+        await updateClubStatsForPlayer(playerId, tournamentDivision, tournamentSeasonId, type, gameDiff);
+      }
+    }
 
     // ===== BRACKET ADVANCEMENT (outside transaction for complex queries) =====
     const tournament2 = await db.tournament.findUnique({ where: { id } });
@@ -779,11 +806,6 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
     const best2nd = secondPlaceTeams[0];
     if (!best2nd) return;
 
-    // Find which group the best 2nd place came from
-    const best2ndGroup = groupLabels.find(label =>
-      standingsByGroup[label]?.[1]?.teamId === best2nd.teamId
-    );
-
     // Get the 3 group winners, excluding the group that has the best 2nd place
     const groupWinners = groupLabels
       .map(label => ({ label, team: standingsByGroup[label]?.[0] }))
@@ -923,242 +945,117 @@ export async function PUT(
   }
 
   try {
+    // Collect club stats reversals to apply AFTER the transaction
+    const clubStatsQueue: { playerId: string; type: 'win' | 'loss' | 'draw'; gameDiff: number }[] = [];
+    let tournamentDivision = '';
+    let tournamentSeasonId = '';
+
     const result = await db.$transaction(async (tx) => {
       const match = await tx.match.findUnique({
         where: { id: matchId },
         include: {
-          tournament: true,
+          tournament: { select: { id: true, division: true, seasonId: true, format: true, name: true } },
           team1: { include: { teamPlayers: { include: { player: true } } } },
           team2: { include: { teamPlayers: { include: { player: true } } } },
+          winner: true,
+          loser: true,
         },
       });
 
       if (!match) throw new Error('Match not found');
       if (match.tournamentId !== id) throw new Error('Match does not belong to this tournament');
-      if (match.status !== 'completed') throw new Error('Can only undo completed matches');
+      if (match.status !== 'completed') throw new Error('Match is not completed');
 
-      // Check if this match's winner/loser has already been placed in a subsequent match
-      // If so, those matches must be undone first
-      const subsequentMatch = await tx.match.findFirst({
-        where: {
-          tournamentId: id,
-          status: { not: 'pending' },
-          OR: [
-            { team1Id: match.winnerId },
-            { team2Id: match.winnerId },
-            ...(match.loserId ? [
-              { team1Id: match.loserId },
-              { team2Id: match.loserId },
-            ] : []),
-          ],
-          id: { not: matchId },
-        },
-      });
+      tournamentDivision = match.tournament.division;
+      tournamentSeasonId = match.tournament.seasonId;
 
-      if (subsequentMatch && subsequentMatch.status !== 'pending') {
-        throw new Error('Cannot undo: winner/loser already advanced to another match. Undo that match first.');
+      const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
+
+      // Reverse club stats BEFORE resetting match (within transaction for consistency)
+      if (match.winnerId && match.loserId) {
+        const winningTeam = match.team1Id === match.winnerId ? match.team1! : match.team2!;
+        const losingTeam = match.team1Id === match.loserId ? match.team1! : match.team2!;
+
+        for (const tp of winningTeam.teamPlayers) {
+          clubStatsQueue.push({ playerId: tp.playerId, type: 'win', gameDiff: -gameDiff });
+        }
+        for (const tp of losingTeam.teamPlayers) {
+          clubStatsQueue.push({ playerId: tp.playerId, type: 'loss', gameDiff: gameDiff });
+        }
+      } else if (match.score1 === match.score2) {
+        // Draw reversal
+        for (const team of [match.team1!, match.team2!]) {
+          for (const tp of team.teamPlayers) {
+            clubStatsQueue.push({ playerId: tp.playerId, type: 'draw', gameDiff: 0 });
+          }
+        }
       }
 
-      const isDraw = match.score1 === match.score2;
-      const tournamentDivision = match.tournament.division;
-      const seasonId = match.tournament.seasonId;
-
-      // Rollback player stats using PlayerPoint audit trail
+      // Reverse points from PlayerPoint records
       const pointRecords = await tx.playerPoint.findMany({
         where: { matchId, tournamentId: id },
       });
 
-      // Group point records by player
       const pointsByPlayer = new Map<string, number>();
       for (const pr of pointRecords) {
         pointsByPlayer.set(pr.playerId, (pointsByPlayer.get(pr.playerId) || 0) + pr.amount);
       }
 
-      // Rollback player stats
-      for (const [playerId, totalPoints] of pointsByPlayer) {
-        const player = await tx.player.findUnique({ where: { id: playerId } });
-        if (!player) continue;
-
-        const newPoints = Math.max(0, player.points - totalPoints);
-        await tx.player.update({
+      for (const [playerId, totalPts] of pointsByPlayer) {
+        await tx.player.updateMany({
           where: { id: playerId },
-          data: { points: newPoints },
+          data: { points: { decrement: totalPts } },
         });
       }
 
-      // Delete point records for this match
-      await tx.playerPoint.deleteMany({
-        where: { matchId, tournamentId: id },
-      });
-
-      // Rollback participation points and player match stats
-      if (!isDraw && match.winnerId && match.loserId) {
+      // Reverse player stats
+      if (match.winnerId && match.team1 && match.team2) {
         const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
         const losingTeam = match.team1Id === match.loserId ? match.team1 : match.team2;
 
-        if (winningTeam && losingTeam) {
-          // Rollback winning team players
-          for (const tp of winningTeam.teamPlayers) {
-            const participation = await tx.participation.findUnique({
-              where: { playerId_tournamentId: { playerId: tp.playerId, tournamentId: id } },
-            });
-            if (participation) {
-              // Subtract points that were awarded (we can approximate from the records)
-              const playerRecords = pointRecords.filter(pr => pr.playerId === tp.playerId);
-              const ptsToDeduct = playerRecords.reduce((sum, pr) => sum + pr.amount, 0);
-              await tx.participation.update({
-                where: { id: participation.id },
-                data: { pointsEarned: Math.max(0, participation.pointsEarned - ptsToDeduct) },
-              });
-            }
-
-            const player = tp.player;
-            const newStreak = Math.max(0, player.streak - 1);
+        for (const tp of winningTeam.teamPlayers) {
+          await tx.player.update({
+            where: { id: tp.playerId },
+            data: {
+              totalWins: { decrement: 1 },
+              matches: { decrement: 1 },
+              streak: 0,
+            },
+          });
+        }
+        if (losingTeam) {
+          for (const tp of losingTeam.teamPlayers) {
             await tx.player.update({
               where: { id: tp.playerId },
               data: {
-                totalWins: Math.max(0, player.totalWins - 1),
-                matches: Math.max(0, player.matches - 1),
-                streak: newStreak,
+                matches: { decrement: 1 },
+                streak: 0,
               },
             });
-
-            // Rollback club stats
-            const membership = await tx.clubMember.findFirst({
-              where: {
-                playerId: tp.playerId,
-                leftAt: null,
-                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
-              },
-              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
-            });
-            if (membership && membership.profile.seasonEntries[0]) {
-              const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
-              await tx.club.update({
-                where: { id: membership.profile.seasonEntries[0].id },
-                data: {
-                  wins: { decrement: 1 },
-                  points: { decrement: 2 },
-                  gameDiff: { decrement: gameDiff },
-                },
-              });
-            }
-          }
-
-          // Rollback losing team players
-          for (const tp of losingTeam.teamPlayers) {
-            const participation = await tx.participation.findUnique({
-              where: { playerId_tournamentId: { playerId: tp.playerId, tournamentId: id } },
-            });
-            if (participation) {
-              const playerRecords = pointRecords.filter(pr => pr.playerId === tp.playerId);
-              const ptsToDeduct = playerRecords.reduce((sum, pr) => sum + pr.amount, 0);
-              await tx.participation.update({
-                where: { id: participation.id },
-                data: { pointsEarned: Math.max(0, participation.pointsEarned - ptsToDeduct) },
-              });
-            }
-
-            await tx.player.update({
-              where: { id: tp.playerId },
-              data: { matches: Math.max(0, tp.player.matches - 1) },
-            });
-
-            // Rollback club stats for loss
-            const membershipLoss = await tx.clubMember.findFirst({
-              where: {
-                playerId: tp.playerId,
-                leftAt: null,
-                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
-              },
-              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
-            });
-            if (membershipLoss && membershipLoss.profile.seasonEntries[0]) {
-              const gameDiff = Math.abs((match.score1 || 0) - (match.score2 || 0));
-              await tx.club.update({
-                where: { id: membershipLoss.profile.seasonEntries[0].id },
-                data: {
-                  losses: { decrement: 1 },
-                  gameDiff: { increment: gameDiff }, // Reverse the negative gameDiff
-                },
-              });
-            }
-          }
-        }
-      } else if (isDraw) {
-        // Rollback draw
-        for (const team of [match.team1, match.team2]) {
-          if (!team) continue;
-          for (const tp of team.teamPlayers) {
-            const participation = await tx.participation.findUnique({
-              where: { playerId_tournamentId: { playerId: tp.playerId, tournamentId: id } },
-            });
-            if (participation) {
-              const playerRecords = pointRecords.filter(pr => pr.playerId === tp.playerId);
-              const ptsToDeduct = playerRecords.reduce((sum, pr) => sum + pr.amount, 0);
-              await tx.participation.update({
-                where: { id: participation.id },
-                data: { pointsEarned: Math.max(0, participation.pointsEarned - ptsToDeduct) },
-              });
-            }
-
-            await tx.player.update({
-              where: { id: tp.playerId },
-              data: { matches: Math.max(0, tp.player.matches - 1) },
-            });
-
-            // Rollback club stats for draw
-            const membershipDraw = await tx.clubMember.findFirst({
-              where: {
-                playerId: tp.playerId,
-                leftAt: null,
-                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId } } },
-              },
-              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId } } } } },
-            });
-            if (membershipDraw && membershipDraw.profile.seasonEntries[0]) {
-              await tx.club.update({
-                where: { id: membershipDraw.profile.seasonEntries[0].id },
-                data: { points: { decrement: 1 } },
-              });
-            }
           }
         }
       }
 
-      // Reset the match to ready (keep teams assigned)
-      // Remove winner/loser from any subsequent matches they were placed in
-      const subsequentMatches = await tx.match.findMany({
-        where: {
-          tournamentId: id,
-          OR: [
-            { team1Id: match.winnerId },
-            { team2Id: match.winnerId },
-            ...(match.loserId ? [
-              { team1Id: match.loserId },
-              { team2Id: match.loserId },
-            ] : []),
-          ],
-          id: { not: matchId },
-        },
+      // Delete PlayerPoint records
+      await tx.playerPoint.deleteMany({ where: { matchId, tournamentId: id } });
+
+      // Reverse participation points
+      const participations = await tx.participation.findMany({
+        where: { tournamentId: id },
       });
 
-      for (const sm of subsequentMatches) {
-        const updateData: Record<string, unknown> = {};
-        if (sm.team1Id === match.winnerId || sm.team1Id === match.loserId) {
-          updateData.team1Id = null;
-        }
-        if (sm.team2Id === match.winnerId || sm.team2Id === match.loserId) {
-          updateData.team2Id = null;
-        }
-        if (Object.keys(updateData).length > 0) {
-          updateData.status = 'pending';
-          await tx.match.update({ where: { id: sm.id }, data: updateData });
+      for (const p of participations) {
+        const pts = pointsByPlayer.get(p.playerId) || 0;
+        if (pts > 0) {
+          await tx.participation.update({
+            where: { id: p.id },
+            data: { pointsEarned: Math.max(0, p.pointsEarned - pts) },
+          });
         }
       }
 
-      // Reset the match itself
-      const undoResult = await tx.match.update({
+      // Reset match
+      const updatedMatch = await tx.match.update({
         where: { id: matchId },
         data: {
           score1: null,
@@ -1170,33 +1067,92 @@ export async function PUT(
         },
       });
 
-      // If tournament was in finalization, move back to main_event
-      const tournament = await tx.tournament.findUnique({ where: { id } });
-      if (tournament?.status === 'finalization') {
-        await tx.tournament.update({ where: { id }, data: { status: 'main_event' } });
+      // Clear the advanced team from next round matches
+      // Find matches in later rounds that might have this team
+      const laterMatches = await tx.match.findMany({
+        where: {
+          tournamentId: id,
+          status: { in: ['pending', 'ready'] },
+          bracket: { in: ['upper', 'lower', 'grand_final'] },
+        },
+      });
+
+      for (const lm of laterMatches) {
+        const updates: Record<string, unknown> = {};
+        if (lm.team1Id && (lm.team1Id === match.winnerId || lm.team1Id === match.loserId)) {
+          updates.team1Id = null;
+        }
+        if (lm.team2Id && (lm.team2Id === match.winnerId || lm.team2Id === match.loserId)) {
+          updates.team2Id = null;
+        }
+        if (Object.keys(updates).length > 0) {
+          await tx.match.update({
+            where: { id: lm.id },
+            data: { ...updates, status: 'pending' },
+          });
+        }
       }
 
-      return undoResult;
+      return { updatedMatch, match };
     }, {
       maxWait: 10000,
       timeout: 30000,
     });
 
-    return NextResponse.json({ success: true, match: result });
+    // ===== CLUB STATS REVERSAL (outside transaction to avoid SQLite deadlock) =====
+    if (clubStatsQueue.length > 0 && tournamentDivision && tournamentSeasonId) {
+      for (const { playerId, type, gameDiff } of clubStatsQueue) {
+        // Reverse the club stats by applying the opposite
+        if (type === 'win') {
+          // Undo win: decrement wins and points
+          await updateClubStatsForPlayer(playerId, tournamentDivision, tournamentSeasonId, 'loss', gameDiff);
+        } else if (type === 'loss') {
+          // Undo loss: decrement losses (add a win with negative diff to effectively reverse)
+          await updateClubStatsForPlayer(playerId, tournamentDivision, tournamentSeasonId, 'win', gameDiff);
+        } else {
+          // Undo draw: decrement points
+          try {
+            const membership = await db.clubMember.findFirst({
+              where: {
+                playerId,
+                leftAt: null,
+                profile: { seasonEntries: { some: { division: tournamentDivision, seasonId: tournamentSeasonId } } },
+              },
+              include: { profile: { include: { seasonEntries: { where: { division: tournamentDivision, seasonId: tournamentSeasonId } } } } },
+            });
+            if (membership?.profile.seasonEntries[0]) {
+              await db.club.update({
+                where: { id: membership.profile.seasonEntries[0].id },
+                data: { points: { decrement: 1 } },
+              });
+            }
+          } catch (e) {
+            console.error('Club stats draw reversal failed (non-critical):', e);
+          }
+        }
+      }
+    }
 
+    // Check if tournament should revert from finalization
+    const tournament = await db.tournament.findUnique({ where: { id } });
+    if (tournament?.status === 'finalization') {
+      const playableIncomplete = await db.match.count({
+        where: {
+          tournamentId: id,
+          status: { in: ['pending', 'ready', 'live'] },
+          team1Id: { not: null },
+          team2Id: { not: null },
+        },
+      });
+      if (playableIncomplete > 0) {
+        await db.tournament.update({ where: { id }, data: { status: 'main_event' } });
+      }
+    }
+
+    return NextResponse.json(result.updatedMatch);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message.includes('Cannot undo')) {
-      return NextResponse.json({ error: message }, { status: 400 });
-    }
     console.error('Undo score error:', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-// Helper for DE: nextPowerOf2
-function nextPowerOf2(n: number): number {
-  let p = 1;
-  while (p < n) p *= 2;
-  return p;
 }
