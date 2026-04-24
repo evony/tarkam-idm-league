@@ -39,7 +39,7 @@ export function RegistrationForm() {
     joki: '',
     phone: '',
     city: '',
-    clubId: '',
+    clubProfileId: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApprovedList, setShowApprovedList] = useState(false);
@@ -71,13 +71,13 @@ export function RegistrationForm() {
     },
   });
 
-  const { data: clubs } = useQuery({
-    queryKey: ['register-clubs'],
+  // Fetch ClubProfiles (global, not season-specific) for the dropdown
+  const { data: clubProfiles } = useQuery({
+    queryKey: ['register-club-profiles'],
     queryFn: async () => {
-      // Clubs are in Liga season, not Tarkam season — fetch by division=liga
-      const res = await fetch('/api/clubs?division=liga');
+      const res = await fetch('/api/clubs?unified=true');
       const data = await res.json();
-      return data;
+      return data as Array<{ id: string; name: string; logo: string | null; memberCount: number }>;
     },
   });
 
@@ -119,7 +119,7 @@ export function RegistrationForm() {
           joki: formData.joki || null,
           phone: formData.phone || null,
           city: formData.city,
-          clubId: formData.clubId || null,
+          clubProfileId: formData.clubProfileId || null,
           division,
           force,
         }),
@@ -184,7 +184,7 @@ export function RegistrationForm() {
           message: data.message,
           gamertag: data.player?.gamertag,
         });
-        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+        setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
       } else {
         setSubmitResult({
@@ -225,7 +225,7 @@ export function RegistrationForm() {
           joki: formData.joki || null,
           phone: formData.phone || null,
           city: formData.city,
-          clubId: formData.clubId || null,
+          clubProfileId: formData.clubProfileId || null,
           division,
           reRegister: true,
           reRegisterPlayerId,
@@ -241,7 +241,7 @@ export function RegistrationForm() {
           message: data.message,
           gamertag: data.player?.gamertag || data.tournament?.name,
         });
-        setFormData({ name: '', joki: '', phone: '', city: '', clubId: '' });
+        setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
       } else {
         setSubmitResult({
@@ -641,7 +641,7 @@ export function RegistrationForm() {
                 <div className="flex items-center bg-muted rounded-xl p-1 gap-1">
                   <button
                     type="button"
-                    onClick={() => { setDivision('male'); setFormData(p => ({ ...p, clubId: '' })); }}
+                    onClick={() => { setDivision('male'); setFormData(p => ({ ...p, clubProfileId: '' })); }}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 ${
                       division === 'male'
                         ? 'bg-idm-male text-white shadow-md'
@@ -652,7 +652,7 @@ export function RegistrationForm() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setDivision('female'); setFormData(p => ({ ...p, clubId: '' })); }}
+                    onClick={() => { setDivision('female'); setFormData(p => ({ ...p, clubProfileId: '' })); }}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 ${
                       division === 'female'
                         ? 'bg-idm-female text-white shadow-md'
@@ -739,16 +739,16 @@ export function RegistrationForm() {
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                   <Select
-                    value={formData.clubId}
-                    onValueChange={(val) => setFormData(p => ({ ...p, clubId: val === '_none' ? '' : val }))}
+                    value={formData.clubProfileId}
+                    onValueChange={(val) => setFormData(p => ({ ...p, clubProfileId: val === '_none' ? '' : val }))}
                   >
                     <SelectTrigger className="pl-9 glass">
                       <SelectValue placeholder="Pilih Club" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="_none">Tanpa Club</SelectItem>
-                      {clubs?.map((c: { id: string; name?: string; profile?: { name: string } }) => (
-                        <SelectItem key={c.id} value={c.id}>{c.profile?.name || c.name || 'Unknown'}</SelectItem>
+                      {clubProfiles?.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

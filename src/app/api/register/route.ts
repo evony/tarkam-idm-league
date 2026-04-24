@@ -470,7 +470,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, joki, phone, city, clubId, division, force, reRegister, reRegisterPlayerId, isApprovedPlayer } = body;
+    const { name, joki, phone, city, clubId, clubProfileId, division, force, reRegister, reRegisterPlayerId, isApprovedPlayer } = body;
+    // Support both clubId (legacy, Club entry ID) and clubProfileId (new, ClubProfile ID)
+    // If clubId is provided (legacy), resolve it to profileId; otherwise use clubProfileId directly
+    let resolvedProfileId = clubProfileId || null;
+    if (!resolvedProfileId && clubId) {
+      const club = await db.club.findUnique({ where: { id: clubId }, select: { profileId: true } });
+      if (club) resolvedProfileId = club.profileId;
+    }
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -551,9 +558,9 @@ export async function POST(request: Request) {
       } else {
         // ====== REJECTED/INACTIVE PLAYER: Full re-registration ======
         // Reset player data + create participation
-        if (clubId) {
-          const club = await db.club.findUnique({ where: { id: clubId }, include: { profile: true } });
-          if (!club) {
+        if (resolvedProfileId) {
+          const profile = await db.clubProfile.findUnique({ where: { id: resolvedProfileId } });
+          if (!profile) {
             return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 400 });
           }
         }
@@ -575,22 +582,19 @@ export async function POST(request: Request) {
         // Also sign up for active tournament if exists
         const { tournament, participation, error } = await createParticipationForTournament(updatedPlayer.id, division);
 
-        if (clubId) {
-          const club = await db.club.findUnique({ where: { id: clubId } });
-          if (club) {
-            const existingMembership = await db.clubMember.findFirst({
-              where: { playerId: updatedPlayer.id, leftAt: null },
+        if (resolvedProfileId) {
+          const existingMembership = await db.clubMember.findFirst({
+            where: { playerId: updatedPlayer.id, leftAt: null },
+          });
+          if (existingMembership) {
+            await db.clubMember.update({
+              where: { id: existingMembership.id },
+              data: { profileId: resolvedProfileId },
             });
-            if (existingMembership) {
-              await db.clubMember.update({
-                where: { id: existingMembership.id },
-                data: { profileId: club.profileId },
-              });
-            } else {
-              await db.clubMember.create({
-                data: { profileId: club.profileId, playerId: updatedPlayer.id, role: 'member' },
-              });
-            }
+          } else {
+            await db.clubMember.create({
+              data: { profileId: resolvedProfileId, playerId: updatedPlayer.id, role: 'member' },
+            });
           }
         }
 
@@ -705,9 +709,9 @@ export async function POST(request: Request) {
       gamertag = `${baseTag}${counter}`;
     }
 
-    if (clubId) {
-      const club = await db.club.findUnique({ where: { id: clubId } });
-      if (!club) {
+    if (resolvedProfileId) {
+      const profile = await db.clubProfile.findUnique({ where: { id: resolvedProfileId } });
+      if (!profile) {
         return NextResponse.json({ error: 'Club tidak ditemukan' }, { status: 400 });
       }
     }
@@ -730,13 +734,10 @@ export async function POST(request: Request) {
     // Also auto-sign up for active tournament if exists
     const { tournament, participation, error: tournamentError } = await createParticipationForTournament(player.id, division);
 
-    if (clubId) {
-      const club = await db.club.findUnique({ where: { id: clubId } });
-      if (club) {
-        await db.clubMember.create({
-          data: { profileId: club.profileId, playerId: player.id, role: 'member' },
-        });
-      }
+    if (resolvedProfileId) {
+      await db.clubMember.create({
+        data: { profileId: resolvedProfileId, playerId: player.id, role: 'member' },
+      });
     }
 
     return NextResponse.json({

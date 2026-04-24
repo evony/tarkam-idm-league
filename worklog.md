@@ -2157,3 +2157,31 @@ Stage Summary:
 - Each sub-tab focuses on a specific function: Season, Club, Poin, Skor
 - Navigation follows the same pattern as other categories (mobile: category + sub-tab strip, desktop: same)
 - No leftover references to old 'liga' tab value
+
+---
+Task ID: 18
+Agent: Main Agent
+Task: Fix empty club dropdown in registration form — use ClubProfile (global) instead of Club season entry
+
+Work Log:
+- Diagnosed root cause: Registration form fetched clubs from `/api/clubs?seasonId={tarkamSeasonId}`, but clubs only exist in Liga seasons (division="liga"), not Tarkam seasons
+- Redesigned the approach: Use ClubProfile (global identity) for registration instead of Club (season-specific entry)
+- Updated registration form (`registration-form.tsx`):
+  - Changed query from `/api/clubs?division=liga` to `/api/clubs?unified=true` — returns all ClubProfiles
+  - Renamed `clubId` → `clubProfileId` in form state
+  - Dropdown now shows all ClubProfiles with their names directly (no need for profile.name mapping)
+  - No longer depends on stats.season.id being available
+- Updated registration API (`/api/register/route.ts`):
+  - Accepts both `clubId` (legacy) and `clubProfileId` (new)
+  - If `clubId` provided (legacy), resolves it to `profileId` via Club lookup
+  - If `clubProfileId` provided (new), uses it directly as `resolvedProfileId`
+  - ClubMember creation now uses `resolvedProfileId` directly — no need to look up Club entry
+  - All 4 usage sites updated: validation, re-registration, normal registration
+- Backward compatible: Admin panel player form still sends `clubId` (Club entry ID) which gets resolved
+
+Stage Summary:
+- Registration form dropdown now shows ALL clubs from ClubProfile (global list)
+- Club membership is correctly linked via ClubProfile.id, not season-specific Club.id
+- Tarkam leaderboard aggregation already works via ClubMember→ClubProfile (no changes needed)
+- Liga leaderboard still uses Club season entries with wins/losses/points (no changes needed)
+- Backward compatible with admin panel's existing clubId usage
