@@ -537,17 +537,12 @@ export function ChampionsSection({
         <div className="champions-crown-float absolute top-8 left-1/2 -translate-x-1/2 z-20" aria-hidden="true">
           <Crown className="w-6 h-6 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 12px rgba(212,168,83,0.3))' }} />
         </div>
-        {/* Background */}
+        {/* Background — Kompetisi style */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
-        {/* Subtle cross-line pattern */}
-        <div className="absolute inset-0 opacity-[0.01]" style={{ backgroundImage: 'linear-gradient(rgba(212,168,83,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.2) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-
-        {/* Bilateral ambient glows */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 60%)' }} />
-          <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full" style={{ background: 'radial-gradient(ellipse, rgba(212,168,83,0.06) 0%, transparent 60%)' }} />
-        </div>
+        {/* Diagonal line pattern — arena bracket feel */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212,168,83,0.15) 35px, rgba(212,168,83,0.15) 36px)', backgroundSize: '50px 50px' }} />
+        {/* Bilateral division color split */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Section Header */}

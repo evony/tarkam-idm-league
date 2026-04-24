@@ -433,13 +433,15 @@ export function MvpSection({
     <>
       {/* ========== MVP ARENA — Dramatic Split Hero Cards ========== */}
       <section id="mvp" role="region" aria-label="MVP Arena" className="py-16 sm:py-24 px-4 relative overflow-hidden">
-        {/* Background — Dark theater with spotlight cone */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-[#0a0806]/50 to-background" />
-        {/* Spotlight cone from top center */}
+        {/* Background — The Dream style */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+        {/* Triple radial gradient — gold center, cyan left, purple right */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 50%), radial-gradient(ellipse at 20% 70%, rgba(6,182,212,0.03) 0%, transparent 40%), radial-gradient(ellipse at 80% 70%, rgba(168,85,247,0.03) 0%, transparent 40%)' }} />
+        {/* Decorative rings */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px]" style={{ background: 'conic-gradient(from 170deg at 50% 0%, transparent 10%, rgba(212,168,83,0.04) 30%, rgba(212,168,83,0.06) 40%, rgba(212,168,83,0.04) 50%, transparent 70%)' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-idm-gold-warm/5" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full border border-idm-gold-warm/8" />
         </div>
-        <div className="ambient-light" style={{ top: '30%', left: '15%', animationDuration: '22s' }} />
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="stagger-item">
