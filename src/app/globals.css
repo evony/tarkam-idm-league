@@ -1135,7 +1135,6 @@ div.group:hover .donor-rank-badge {
   .trend-down,
   .empty-cta-hint,
   .sidebar-gradient-border::after,
-  .section-divider-premium::before,
   .section-divider-premium::after,
   .club-card-shimmer:hover::after,
   .compare-btn-glow,
@@ -2138,13 +2137,8 @@ html {
 }
 
 /* ============================================
-   4b. PREMIUM SECTION DIVIDER — Gold shimmer + diamond
+   4b. PREMIUM SECTION DIVIDER — Gold line + diamond
    ============================================ */
-
-@keyframes divider-shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
 
 @keyframes divider-diamond-pulse {
   0%, 100% { opacity: 0.6; transform: rotate(45deg) scale(0.8); }
@@ -2167,26 +2161,6 @@ html {
     transparent 100%
   );
   overflow: visible;
-}
-
-/* Shimmer overlay — travels along the line */
-.section-divider-premium::before {
-  content: '';
-  position: absolute;
-  inset: -1px 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 35%,
-    rgba(245, 215, 122, 0.5) 45%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(245, 215, 122, 0.5) 55%,
-    transparent 65%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: divider-shimmer 4s ease-in-out infinite;
-  border-radius: inherit;
 }
 
 /* Diamond center decoration */
