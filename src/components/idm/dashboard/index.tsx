@@ -43,7 +43,6 @@ import { TopDonorsWidget } from './top-donors-widget';
 import { DivisionRivalryWidget } from './division-rivalry-widget';
 import { LiveMatchCounter } from './live-match-counter';
 import { LiveMatchIndicator } from './live-match-indicator';
-import { MatchDayCountdown } from './match-day-countdown';
 import { StreakWidget } from './streak-widget';
 import { MatchResultsSummary } from './match-results-summary';
 import { TopPlayersSection } from './top-players-section';
@@ -378,11 +377,6 @@ export function Dashboard() {
           {/* Match Results Summary */}
           <div className="stagger-item-subtle stagger-d3">
             <MatchResultsSummary />
-          </div>
-
-          {/* Match Day Countdown */}
-          <div className="stagger-item-subtle stagger-d3">
-            <MatchDayCountdown division={division} />
           </div>
 
           {/* Existing Matches Tab Content */}
