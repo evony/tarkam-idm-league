@@ -2742,3 +2742,27 @@ Stage Summary:
 - Rivalitas Puncak + Streak Terpanjang now side by side on desktop (2-column grid), stacked on mobile
 - Both cards auto-stretch to equal height with flex-col + h-full layout
 - Clean lint, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Combine Hasil Terbaru with Top Tim into one row in Tour Saya page
+
+Work Log:
+- Read worklog.md for project context
+- Identified the "Tour Saya" (MyTournamentCard) component at `/src/components/idm/my-tournament-card.tsx`
+- Found the default view (no search) had a 2-column grid layout where Top Tim and Hasil Terbaru were stacked vertically in the left column, while Match Selanjutnya and Peserta were stacked in the right column
+- Restructured the layout to make each pair side by side in their own grid row:
+  - Row 1: Top Tim + Hasil Terbaru (`grid grid-cols-1 lg:grid-cols-2 gap-4`)
+  - Row 2: Match Selanjutnya + Peserta (`grid grid-cols-1 lg:grid-cols-2 gap-4`)
+- Added `h-full flex flex-col` to each Card and `flex-1 flex flex-col` to CardContent for matching heights
+- Added `max-h-80 overflow-y-auto custom-scrollbar` with `flex-1` to scrollable areas for consistent max height
+- Added match count badges to Hasil Terbaru and Match Selanjutnya headers
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling and serving correctly
+
+Stage Summary:
+- Tour Saya page layout restructured: Top Tim and Hasil Terbaru now side by side on desktop (stacked on mobile)
+- Match Selanjutnya and Peserta also now side by side on desktop
+- Both rows use matching card heights with h-full/flex layout
+- All lint checks pass, dev server operational

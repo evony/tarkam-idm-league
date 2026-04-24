@@ -820,128 +820,129 @@ export function MyTournamentCard() {
             </Card>
           )}
 
-          {/* ── Secondary content in 2-column grid ── */}
+          {/* ── Top Tim + Hasil Terbaru — side by side on desktop ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Left: Top Teams + Recent Results */}
-            <div className="space-y-4">
-              {overview.topTeams && overview.topTeams.length > 0 && (
-                <Card className={`${dt.casinoCard}`}>
-                  <div className={dt.casinoBar} />
-                  <CardContent className="p-0 relative z-10">
-                    <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                      <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                        <Star className={`w-3 h-3 ${dt.neonText}`} />
-                      </div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider">Top Tim</h3>
-                      <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{overview.tournament.totalTeams} Tim</Badge>
+            {overview.topTeams && overview.topTeams.length > 0 && (
+              <Card className={`${dt.casinoCard} h-full flex flex-col`}>
+                <div className={dt.casinoBar} />
+                <CardContent className="p-0 relative z-10 flex-1 flex flex-col">
+                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                      <Star className={`w-3 h-3 ${dt.neonText}`} />
                     </div>
-                    <div className="p-2 space-y-1">
-                      {overview.topTeams.slice(0, 5).map((team: OverviewTeam, idx: number) => (
-                        <div key={team.id} className={`flex items-center gap-2 p-2 rounded-lg ${
-                          idx === 0 ? `${dt.bgSubtle} border ${dt.borderSubtle}` : ''
+                    <h3 className="text-xs font-semibold uppercase tracking-wider">Top Tim</h3>
+                    <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{overview.tournament.totalTeams} Tim</Badge>
+                  </div>
+                  <div className="p-2 space-y-1 flex-1 max-h-80 overflow-y-auto custom-scrollbar">
+                    {overview.topTeams.slice(0, 5).map((team: OverviewTeam, idx: number) => (
+                      <div key={team.id} className={`flex items-center gap-2 p-2 rounded-lg ${
+                        idx === 0 ? `${dt.bgSubtle} border ${dt.borderSubtle}` : ''
+                      }`}>
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                          idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
+                          idx === 1 ? 'bg-gray-400/20 text-gray-400' :
+                          idx === 2 ? 'bg-amber-600/20 text-amber-600' :
+                          'bg-muted/30 text-muted-foreground'
                         }`}>
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
-                            idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                            idx === 1 ? 'bg-gray-400/20 text-gray-400' :
-                            idx === 2 ? 'bg-amber-600/20 text-amber-600' :
-                            'bg-muted/30 text-muted-foreground'
-                          }`}>
-                            {idx + 1}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-bold truncate">{team.name}</p>
-                            <div className="flex gap-1 mt-0.5">
-                              {team.players.slice(0, 3).map(p => (
-                                <span key={p.id} className="flex items-center gap-0.5 text-[8px] text-muted-foreground">
-                                  <TierBadge tier={p.tier} /> {p.gamertag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className={`text-[10px] font-bold ${dt.neonText}`}>{team.power}</div>
-                            <div className="text-[8px] text-muted-foreground">power</div>
+                          {idx + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-bold truncate">{team.name}</p>
+                          <div className="flex gap-1 mt-0.5">
+                            {team.players.slice(0, 3).map(p => (
+                              <span key={p.id} className="flex items-center gap-0.5 text-[8px] text-muted-foreground">
+                                <TierBadge tier={p.tier} /> {p.gamertag}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {overview.recentMatches && overview.recentMatches.length > 0 && (
-                <Card className={`${dt.casinoCard}`}>
-                  <div className={dt.casinoBar} />
-                  <CardContent className="p-0 relative z-10">
-                    <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                      <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                        <Swords className={`w-3 h-3 ${dt.neonText}`} />
-                      </div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider">Hasil Terbaru</h3>
-                    </div>
-                    <div className="p-2 space-y-1 max-h-72 overflow-y-auto custom-scrollbar">
-                      {overview.recentMatches.map((m: OverviewMatch) => (
-                        <div key={m.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/20">
-                          <span className="text-[10px] font-semibold flex-1 truncate text-right">{m.team1.name}</span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-xs font-bold tabular-nums">{m.score1}</span>
-                            <span className="text-[8px] text-muted-foreground">-</span>
-                            <span className="text-xs font-bold tabular-nums">{m.score2}</span>
-                          </div>
-                          <span className="text-[10px] font-semibold flex-1 truncate">{m.team2.name}</span>
-                          {m.winner && (
-                            <span className="text-[8px] text-green-400 shrink-0">✓ {m.winner}</span>
-                          )}
+                        <div className="text-right shrink-0">
+                          <div className={`text-[10px] font-bold ${dt.neonText}`}>{team.power}</div>
+                          <div className="text-[8px] text-muted-foreground">power</div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Right: Upcoming + Participants */}
-            <div className="space-y-4">
-              {overview.upcomingMatches && overview.upcomingMatches.length > 0 && (
-                <Card className={`${dt.casinoCard}`}>
-                  <CardContent className="p-0 relative z-10">
-                    <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                      <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                        <Clock className={`w-3 h-3 ${dt.neonText}`} />
                       </div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider">Match Selanjutnya</h3>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {overview.recentMatches && overview.recentMatches.length > 0 && (
+              <Card className={`${dt.casinoCard} h-full flex flex-col`}>
+                <div className={dt.casinoBar} />
+                <CardContent className="p-0 relative z-10 flex-1 flex flex-col">
+                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                      <Swords className={`w-3 h-3 ${dt.neonText}`} />
                     </div>
-                    <div className="p-2 space-y-1 max-h-72 overflow-y-auto custom-scrollbar">
-                      {overview.upcomingMatches.map((m: OverviewMatch) => (
-                        <div key={m.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/20">
-                          <span className="text-[10px] font-semibold flex-1 truncate text-right">{m.team1.name}</span>
-                          <span className="text-[9px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted/50 shrink-0">VS</span>
-                          <span className="text-[10px] font-semibold flex-1 truncate">{m.team2.name}</span>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider">Hasil Terbaru</h3>
+                    <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{overview.recentMatches.length} Match</Badge>
+                  </div>
+                  <div className="p-2 space-y-1 flex-1 max-h-80 overflow-y-auto custom-scrollbar">
+                    {overview.recentMatches.map((m: OverviewMatch) => (
+                      <div key={m.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/20">
+                        <span className="text-[10px] font-semibold flex-1 truncate text-right">{m.team1.name}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-xs font-bold tabular-nums">{m.score1}</span>
+                          <span className="text-[8px] text-muted-foreground">-</span>
+                          <span className="text-xs font-bold tabular-nums">{m.score2}</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {['registration', 'approval'].includes(overview.tournament.status) && (
-                <Card className={`${dt.casinoCard}`}>
-                  <CardContent className="p-0 relative z-10">
-                    <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                      <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                        <Award className={`w-3 h-3 ${dt.neonText}`} />
-                      </div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider">Peserta</h3>
-                      <div className="ml-auto flex items-center gap-1.5">
-                        {overview.tournament.approvedCount > 0 && (
-                          <Badge className="bg-green-500/15 text-green-400 border-0 text-[9px]">{overview.tournament.approvedCount} ✓</Badge>
+                        <span className="text-[10px] font-semibold flex-1 truncate">{m.team2.name}</span>
+                        {m.winner && (
+                          <span className="text-[8px] text-green-400 shrink-0">✓ {m.winner}</span>
                         )}
-                        {overview.tournament.registeredCount > 0 && (
-                          <Badge className="bg-yellow-500/15 text-yellow-400 border-0 text-[9px]">{overview.tournament.registeredCount} menunggu</Badge>
-                        )}
-                        <Badge className={`${dt.casinoBadge} text-[9px]`}>{overview.tournament.totalParticipants}</Badge>
                       </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* ── Match Selanjutnya + Peserta — side by side on desktop ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {overview.upcomingMatches && overview.upcomingMatches.length > 0 && (
+              <Card className={`${dt.casinoCard} h-full flex flex-col`}>
+                <CardContent className="p-0 relative z-10 flex-1 flex flex-col">
+                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                      <Clock className={`w-3 h-3 ${dt.neonText}`} />
                     </div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider">Match Selanjutnya</h3>
+                    <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{overview.upcomingMatches.length}</Badge>
+                  </div>
+                  <div className="p-2 space-y-1 flex-1 max-h-80 overflow-y-auto custom-scrollbar">
+                    {overview.upcomingMatches.map((m: OverviewMatch) => (
+                      <div key={m.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/20">
+                        <span className="text-[10px] font-semibold flex-1 truncate text-right">{m.team1.name}</span>
+                        <span className="text-[9px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted/50 shrink-0">VS</span>
+                        <span className="text-[10px] font-semibold flex-1 truncate">{m.team2.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {['registration', 'approval'].includes(overview.tournament.status) && (
+              <Card className={`${dt.casinoCard} h-full flex flex-col`}>
+                <CardContent className="p-0 relative z-10 flex-1 flex flex-col">
+                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                      <Award className={`w-3 h-3 ${dt.neonText}`} />
+                    </div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider">Peserta</h3>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      {overview.tournament.approvedCount > 0 && (
+                        <Badge className="bg-green-500/15 text-green-400 border-0 text-[9px]">{overview.tournament.approvedCount} ✓</Badge>
+                      )}
+                      {overview.tournament.registeredCount > 0 && (
+                        <Badge className="bg-yellow-500/15 text-yellow-400 border-0 text-[9px]">{overview.tournament.registeredCount} menunggu</Badge>
+                      )}
+                      <Badge className={`${dt.casinoBadge} text-[9px]`}>{overview.tournament.totalParticipants}</Badge>
+                    </div>
+                  </div>
+                  <div className="flex-1 max-h-80 overflow-y-auto custom-scrollbar">
                     {/* Approved participants */}
                     {overview.topParticipants && overview.topParticipants.length > 0 && (
                       <div className="p-2">
@@ -973,10 +974,10 @@ export function MyTournamentCard() {
                         )}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* ── Help Card ── */}
