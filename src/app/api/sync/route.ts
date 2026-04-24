@@ -10,10 +10,10 @@ import { NextResponse } from 'next/server';
  *
  * Body format (optional — uses built-in defaults if not provided):
  * {
- *   "clubLogos": [{ "name": "MAXIMOUS", "division": "male", "logo": "https://..." }],
+ *   "clubLogos": [{ "name": "MAXIMOUS", "logo": "https://..." }],
  *   "playerAvatars": [{ "gamertag": "Bambang", "avatar": "https://..." }],
  *   "seasonChampions": [{ "seasonName": "...", "championClubName": "MAXIMOUS" }],
- *   "clubBanners": [{ "name": "MAXIMOUS", "division": "male", "bannerImage": "https://..." }]
+ *   "clubBanners": [{ "name": "MAXIMOUS", "bannerImage": "https://..." }]
  * }
  *
  * IMPORTANT: This syncs FROM the database the server is connected to.
@@ -36,53 +36,42 @@ export async function POST(request: Request) {
     }
 
     const results = {
-      clubLogos: { total: 0, updated: 0, details: [] as Array<{ name: string; division: string; count: number }> },
+      clubLogos: { total: 0, updated: 0, details: [] as Array<{ name: string; count: number }> },
       playerAvatars: { total: 0, updated: 0, details: [] as Array<{ gamertag: string; count: number }> },
       seasonChampions: { total: 0, updated: 0, details: [] as Array<{ seasonName: string; success: boolean }> },
-      clubBanners: { total: 0, updated: 0, details: [] as Array<{ name: string; division: string; count: number }> },
+      clubBanners: { total: 0, updated: 0, details: [] as Array<{ name: string; count: number }> },
     };
 
-    // ── 1. Sync Club Logos ──
+    // ── 1. Sync Club Logos (on ClubProfile) ──
     const clubLogos = body.clubLogos?.length ? body.clubLogos : getDefaultClubLogos();
     results.clubLogos.total = clubLogos.length;
 
     for (const clubData of clubLogos) {
-      const where: { name: string; division?: string } = { name: clubData.name };
-      if (clubData.division) {
-        where.division = clubData.division;
-      }
-
-      const result = await withDbRetry(() => db.club.updateMany({
-        where,
+      // ClubProfile has unique name, update logo there
+      const result = await withDbRetry(() => db.clubProfile.updateMany({
+        where: { name: clubData.name },
         data: { logo: clubData.logo },
       }));
 
       results.clubLogos.details.push({
         name: clubData.name,
-        division: clubData.division || 'all',
         count: result.count,
       });
       if (result.count > 0) results.clubLogos.updated++;
     }
 
-    // ── 2. Sync Club Banners ──
+    // ── 2. Sync Club Banners (on ClubProfile) ──
     const clubBanners = body.clubBanners?.length ? body.clubBanners : getDefaultClubBanners();
     results.clubBanners.total = clubBanners.length;
 
     for (const clubData of clubBanners) {
-      const where: { name: string; division?: string } = { name: clubData.name };
-      if (clubData.division) {
-        where.division = clubData.division;
-      }
-
-      const result = await withDbRetry(() => db.club.updateMany({
-        where,
+      const result = await withDbRetry(() => db.clubProfile.updateMany({
+        where: { name: clubData.name },
         data: { bannerImage: clubData.bannerImage },
       }));
 
       results.clubBanners.details.push({
         name: clubData.name,
-        division: clubData.division || 'all',
         count: result.count,
       });
       if (result.count > 0) results.clubBanners.updated++;
@@ -110,15 +99,15 @@ export async function POST(request: Request) {
     results.seasonChampions.total = seasonChampions.length;
 
     for (const champData of seasonChampions) {
-      // Find the champion club by name
-      const championClub = await withDbRetry(() => db.club.findFirst({
+      // Find the champion ClubProfile by name
+      const championProfile = await withDbRetry(() => db.clubProfile.findFirst({
         where: { name: champData.championClubName },
         select: { id: true },
       }));
 
-      if (championClub) {
+      if (championProfile) {
         const updateData: { championClubId: string; championSquad?: string } = {
-          championClubId: championClub.id,
+          championClubId: championProfile.id,
         };
         if (champData.championSquad) {
           updateData.championSquad = champData.championSquad;
@@ -159,8 +148,9 @@ export async function POST(request: Request) {
  */
 export async function GET() {
   try {
-    const clubs = await withDbRetry(() => db.club.findMany({
-      select: { name: true, division: true, logo: true, bannerImage: true },
+    // Read from ClubProfile (persistent model with name, logo, bannerImage)
+    const clubProfiles = await withDbRetry(() => db.clubProfile.findMany({
+      select: { name: true, logo: true, bannerImage: true },
     }));
 
     const players = await withDbRetry(() => db.player.findMany({
@@ -173,13 +163,13 @@ export async function GET() {
       select: { name: true, championClubId: true, championSquad: true, championClub: { select: { name: true } } },
     }));
 
-    const clubLogos = clubs
+    const clubLogos = clubProfiles
       .filter(c => c.logo)
-      .map(c => ({ name: c.name, division: c.division, logo: c.logo! }));
+      .map(c => ({ name: c.name, logo: c.logo! }));
 
-    const clubBanners = clubs
+    const clubBanners = clubProfiles
       .filter(c => c.bannerImage)
-      .map(c => ({ name: c.name, division: c.division, bannerImage: c.bannerImage! }));
+      .map(c => ({ name: c.name, bannerImage: c.bannerImage! }));
 
     const playerAvatars = players.map(p => ({ gamertag: p.gamertag, avatar: p.avatar! }));
 
@@ -197,7 +187,7 @@ export async function GET() {
       playerAvatars,
       seasonChampions,
       _meta: {
-        totalClubs: clubs.length,
+        totalClubProfiles: clubProfiles.length,
         totalLogos: clubLogos.length,
         totalBanners: clubBanners.length,
         totalAvatars: playerAvatars.length,

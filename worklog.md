@@ -1858,3 +1858,59 @@ The project is **stable and fully functional** after comprehensive bug fixes. Al
 3. Continue improving mobile responsiveness across all pages
 4. Add batch operations to admin panel
 5. Add notification system for real-time tournament updates
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Remove podium, fix API bugs, clean up stale references
+
+Work Log:
+- Cleared .next cache to fix HMR runtime error (stats-ticker.tsx module factory not available)
+- Restarted dev server — all APIs returning 200 with no Prisma errors
+- Removed podium from club-leaderboard.tsx:
+  - Deleted PodiumCard component (~190 lines)
+  - Deleted Top3Podium component (~50 lines)
+  - Deleted AnimatedPoints component (~7 lines)
+  - Removed podium rendering from main ClubLeaderboard component
+  - Kept list-only view with LeaderboardRow component
+  - Removed unused imports (Flame from lucide-react)
+- Fixed /api/sync/route.ts for new schema:
+  - POST handler: Updated to use ClubProfile instead of Club for logo/banner sync (Club no longer has name/logo/bannerImage fields)
+  - POST handler: Updated champion club lookup to use ClubProfile instead of Club
+  - GET handler: Updated to query ClubProfile instead of Club (Club model no longer has name, logo, bannerImage)
+  - GET handler: Removed division from clubLogos/clubBanners output (ClubProfile is division-agnostic)
+- Cleaned up podium CSS from globals.css:
+  - Removed Block 1: ~186 lines of podium ring/glow/shimmer animations
+  - Removed Block 2: ~156 lines of JUARA banner, particles, pedestal, light beams, background pattern, counter animations
+  - Kept leaderboard-row-enhanced animation and admin panel styles
+- Verified all APIs return 200 after fixes (no more Prisma "Unknown field `name`" errors)
+- Lint passes with zero errors
+
+Stage Summary:
+- Podium completely removed from club leaderboard — now shows clean list view only
+- /api/sync route fixed for ClubProfile schema (was broken referencing old Club.name/logo/bannerImage)
+- ~340 lines of unused podium CSS removed from globals.css
+- Dev server stable, all APIs working, no Prisma errors
+
+## Current Project Status
+
+### Assessment
+The project is **stable and functional**. The ClubProfile schema migration is nearly complete. All major API routes now correctly reference ClubProfile for name/logo/banner. The leaderboard shows a clean list view instead of the podium.
+
+### Completed in This Round (Task ID 15)
+- Podium removed from club leaderboard (list-only view now)
+- /api/sync/route.ts fixed for new ClubProfile schema
+- Podium CSS cleaned up (~340 lines removed)
+- HMR cache issue resolved
+
+### Unresolved Issues / Risks
+1. **ClubMember model change**: The schema has `playerId` on ClubMember, but the clubs/[id]/members route may still reference old patterns
+2. **Admin panel UX/responsiveness**: User requested improvements — not yet started
+3. **Remaining API audit**: Some admin API routes may still reference old Club model patterns
+4. **Tier removal**: User previously asked to remove tier display from clubs — verify all places
+
+### Priority Recommendations for Next Phase
+1. Improve admin panel UX and responsiveness (explicitly requested by user)
+2. Complete API audit for any remaining old Club model references
+3. Verify tier removal across all club displays
+4. Add more interactive features to the list-based leaderboard
