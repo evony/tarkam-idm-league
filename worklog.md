@@ -1976,3 +1976,43 @@ The project is **clean and stable**. Dead code has been thoroughly removed. The 
 1. Improve admin panel UX and responsiveness
 2. Verify tier removal across all club displays
 3. Complete API audit for any remaining old Club model references
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Implement Leaderboard section with 4 subtabs (Klub Tarkam, Klub Liga, Pemain Male, Pemain Female) with clickable profile modals
+
+Work Log:
+- Read worklog.md, existing components: club-leaderboard.tsx, club-profile.tsx, player-profile.tsx, landing-page.tsx, app-shell.tsx, standings-tab.tsx, shared.tsx, stats.ts
+- Reviewed existing API endpoints: /api/clubs/leaderboard (tarkam/liga), /api/players/leaderboard (division param)
+- Rewrote /src/components/idm/landing/club-leaderboard.tsx with:
+  - 4 subtabs: Klub Tarkam, Klub Liga, Pemain Male, Pemain Female
+  - ClubLeaderboardProps with onClubClick and onPlayerClick callbacks
+  - ClubRow component with click handler → opens ClubProfile modal
+  - PlayerRow component with click handler → opens PlayerProfile modal
+  - Division-colored accents (cyan for male, purple for female) on player rows
+  - Real data from /api/clubs/leaderboard and /api/players/leaderboard
+  - Conditional query enabling (club queries only when club tab active, player queries only when player tab active)
+  - Keyboard accessibility (role="button", tabIndex, onKeyDown for Enter/Space)
+  - Responsive layout with mobile horizontal scroll + desktop full table
+  - Show more/less toggles for both clubs and players
+  - Loading skeleton and empty states
+- Updated /src/components/idm/landing-page.tsx:
+  - Passed onClubClick handler to ClubLeaderboard → setSelectedClub
+  - Passed onPlayerClick handler to ClubLeaderboard → setSelectedPlayer (with fallback to API data)
+  - Added "Peringkat" nav link to desktop navigation
+  - Updated mobile bottom nav to include Peringkat tab
+- Fixed pre-existing bug: Created /src/components/idm/landing/variants.ts (missing module that caused 500 error)
+  - Defined fadeUp, fadeLeft, fadeRight, scaleIn, stagger animation variants
+- All data comes from existing APIs, zero mock/hardcoded data
+- Ran lint: zero errors
+- Dev server compiles and serves correctly (HTTP 200)
+
+Stage Summary:
+- Leaderboard section now has 4 subtabs: Klub Tarkam, Klub Liga, Pemain Male, Pemain Female
+- Clicking any club row opens ClubProfile modal with full club details
+- Clicking any player row opens PlayerProfile modal with full player details
+- All data from real API endpoints (no mock data)
+- Fixed pre-existing variants.ts missing module bug
+- Navigation updated with Peringkat link on both desktop and mobile
+- All lint checks pass, dev server operational

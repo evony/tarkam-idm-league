@@ -237,6 +237,7 @@ export function LandingPage() {
               { id: 'champions', label: 'Champion' },
               { id: 'mvp', label: 'MVP' },
               { id: 'clubs', label: 'Club' },
+              { id: 'leaderboard', label: 'Peringkat' },
               { id: 'community', label: 'Komunitas' },
               { id: 'dream', label: 'Liga IDM' },
             ].map(item => (
@@ -292,9 +293,9 @@ export function LandingPage() {
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
             { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
             { id: 'champions', label: 'Champion', icon: Crown, special: true },
+            { id: 'leaderboard', label: 'Peringkat', icon: Trophy, special: false },
             { id: 'clubs', label: 'Club', icon: Users, special: false },
-            { id: 'community', label: 'Feed', icon: Radio, special: false },
-            { id: 'dream', label: 'Liga IDM', icon: Trophy, special: false },
+            { id: 'dream', label: 'Liga', icon: Radio, special: false },
           ].map(item => {
             const isActive = (activeSection === 'champions' || activeSection === 'mvp') && item.id === 'champions' || activeSection === item.id;
             return (
@@ -442,9 +443,43 @@ export function LandingPage() {
 
       <SectionDivider />
 
-      {/* Club Leaderboard */}
+      {/* Leaderboard — Peringkat Klub & Pemain */}
       <div className="section-reveal">
-      <ClubLeaderboard />
+      <ClubLeaderboard
+        onClubClick={(club) => setSelectedClub({
+          id: club.id,
+          name: club.name,
+          logo: club.logo,
+          wins: club.wins,
+          losses: club.losses,
+          points: club.points,
+          gameDiff: club.gameDiff,
+        })}
+        onPlayerClick={(player) => {
+          const searchDivision = player.division || 'male';
+          const data = searchDivision === 'male' ? maleData : femaleData;
+          const found = data?.topPlayers?.find(p => p.id === player.id);
+          if (found) {
+            setSelectedPlayer({ ...found, division: searchDivision });
+          } else {
+            setSelectedPlayer({
+              id: player.id,
+              name: player.name || player.gamertag,
+              gamertag: player.gamertag,
+              avatar: player.avatar,
+              tier: player.tier || 'B',
+              points: player.points || 0,
+              totalWins: player.totalWins || 0,
+              streak: player.streak || 0,
+              maxStreak: player.maxStreak || 0,
+              totalMvp: player.totalMvp || 0,
+              matches: player.matches || 0,
+              division: searchDivision,
+              club: player.club || undefined,
+            });
+          }
+        }}
+      />
       </div>
 
       <SectionDivider />
