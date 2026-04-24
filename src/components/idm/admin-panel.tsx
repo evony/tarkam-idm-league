@@ -1388,13 +1388,13 @@ export function AdminPanel() {
         <TabsContent value="achievement" className="admin-tab-enter">
           <div className="space-y-4">
             <AdminAchievementPanel />
+            <AdminSkinPanel />
           </div>
         </TabsContent>
 
         {/* ====== KONTEN TAB ====== */}
         <TabsContent value="konten" className="admin-tab-enter">
           <div className="space-y-4">
-            <AdminSkinPanel />
             <CmsPanel />
           </div>
         </TabsContent>
