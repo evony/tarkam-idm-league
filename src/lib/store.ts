@@ -69,6 +69,10 @@ interface AppState {
   division: Division;
   setDivision: (d: Division) => void;
 
+  // Initial dashboard tab — set before navigating to dashboard to auto-switch tab
+  initialDashboardTab: string | null;
+  setInitialDashboardTab: (tab: string | null) => void;
+
   // Mobile sidebar
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -110,6 +114,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   division: "male",
   setDivision: (d) => set({ division: d }),
+
+  initialDashboardTab: null,
+  setInitialDashboardTab: (tab) => set({ initialDashboardTab: tab }),
 
   sidebarOpen: false,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),

@@ -50,7 +50,7 @@ import { DanceMatchCard } from '../match-card';
 
 /* ─── Main Dashboard Component ─── */
 export function Dashboard() {
-  const { division } = useAppStore();
+  const { division, initialDashboardTab, setInitialDashboardTab } = useAppStore();
   const dt = useDivisionTheme();
   const isMobile = useIsMobile();
 
@@ -68,7 +68,20 @@ export function Dashboard() {
   };
   const [selectedClub, setSelectedClub] = useState<StatsData['clubs'][0] | null>(null);
   const [donationOpen, setDonationOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    // If we were navigated here with an initial tab, use it
+    return initialDashboardTab || 'overview';
+  });
+
+  // Clear the initialDashboardTab once consumed
+  React.useEffect(() => {
+    if (initialDashboardTab) {
+      setActiveTab(initialDashboardTab);
+      // Clear after a tick so the tab has time to activate
+      const timer = setTimeout(() => setInitialDashboardTab(null), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [initialDashboardTab, setInitialDashboardTab]);
 
   const { data, isLoading } = useQuery<StatsData>({
     queryKey: ['stats', division],

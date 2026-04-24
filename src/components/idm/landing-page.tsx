@@ -42,7 +42,7 @@ function SectionDivider() {
 }
 
 export function LandingPage() {
-  const { setCurrentView, setDivision } = useAppStore();
+  const { setCurrentView, setDivision, setInitialDashboardTab } = useAppStore();
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
   const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string }) | null>(null);
   const [showAllClubs, setShowAllClubs] = useState(false);
@@ -151,6 +151,12 @@ export function LandingPage() {
 
   const enterApp = (division: 'male' | 'female') => {
     setDivision(division);
+    setCurrentView('dashboard');
+  };
+
+  const enterBracket = (division: 'male' | 'female') => {
+    setDivision(division);
+    setInitialDashboardTab('matches');
     setCurrentView('dashboard');
   };
 
@@ -343,6 +349,7 @@ export function LandingPage() {
         maleData={maleData}
         onRegister={() => setRegistrationModalOpen(true)}
         onVideoPlay={openVideoModal}
+        onViewBracket={enterBracket}
       />
 
       {/* About / Cerita Kami */}

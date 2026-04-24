@@ -3,8 +3,9 @@
 import { motion } from 'framer-motion';
 import { type MotionValue } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Shield, Wallet, Swords } from 'lucide-react';
+import { Crown, Users, Shield, Wallet, Swords, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { MarqueeTicker } from '../marquee-ticker';
 import { StatCard, stagger, scaleIn, fadeUp } from './shared';
 import { formatCurrency } from '@/lib/utils';
@@ -61,13 +62,14 @@ interface HeroSectionProps {
   maleData: StatsData | undefined;
   onRegister: () => void;
   onVideoPlay?: (url: string, title: string) => void;
+  onViewBracket: (division: 'male' | 'female') => void;
 }
 
 export function HeroSection({
   heroRef, heroY, heroScale, heroOpacity, contentY, heroMidY,
   cmsSiteTitle, cmsHeroTitle, cmsHeroSubtitle, cmsHeroTagline,
   cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
-  nextSeason, maleData, onRegister, onVideoPlay
+  nextSeason, maleData, onRegister, onVideoPlay, onViewBracket
 }: HeroSectionProps) {
   return (
     <>
@@ -234,8 +236,9 @@ export function HeroSection({
               {cmsHeroTagline}
             </motion.p>
 
-            {/* Hero CTA — Register Button with gradient border + shimmer */}
-            <motion.div variants={fadeUp} className="flex items-center justify-center">
+            {/* Hero CTA — Register Button + Lihat Bracket */}
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              {/* Primary CTA: Daftar Sekarang */}
               <motion.button
                 onClick={onRegister}
                 aria-label="Register now for IDM League"
@@ -266,6 +269,62 @@ export function HeroSection({
                 </div>
                 </div>
               </motion.button>
+
+              {/* Secondary CTA: Lihat Bracket — Popover with Male/Female */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    aria-label="View bracket"
+                    className="group relative cursor-pointer transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="relative px-5 py-3 sm:px-8 sm:py-5 border-2 border-white/20 rounded-sm transform rotate-1.5 transition-all duration-300 group-hover:rotate-0 group-hover:border-white/40 bg-white/[0.04] group-hover:bg-white/[0.08]">
+                      <div className="relative z-10 flex items-center gap-2">
+                        <span className="font-bold text-base sm:text-xl tracking-wider sm:tracking-widest text-white/80 group-hover:text-white transition-colors">
+                          LIHAT BRACKET
+                        </span>
+                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-white/50 group-hover:text-white/80 transition-all group-hover:translate-y-0.5" />
+                      </div>
+                      <div className="flex items-center justify-center gap-2 mt-1 sm:mt-1.5">
+                        <div className="h-px flex-1 bg-white/15" />
+                        <span className="text-[10px] sm:text-[10px] text-white/30 tracking-widest">MALE & FEMALE</span>
+                        <div className="h-px flex-1 bg-white/15" />
+                      </div>
+                      {/* Corner brackets — subtle */}
+                      <div className="absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-2 h-2 sm:w-3 sm:h-3 border-t-2 border-l-2 border-white/15 group-hover:border-white/30 transition-colors" />
+                      <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 sm:w-3 sm:h-3 border-t-2 border-r-2 border-white/15 group-hover:border-white/30 transition-colors" />
+                      <div className="absolute bottom-0.5 left-0.5 sm:bottom-1 sm:left-1 w-2 h-2 sm:w-3 sm:h-3 border-b-2 border-l-2 border-white/15 group-hover:border-white/30 transition-colors" />
+                      <div className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 w-2 h-2 sm:w-3 sm:h-3 border-b-2 border-r-2 border-white/15 group-hover:border-white/30 transition-colors" />
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="center"
+                  sideOffset={8}
+                  className="w-56 p-2 bg-background/95 backdrop-blur-xl border border-idm-gold-warm/20 rounded-lg shadow-2xl"
+                >
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold px-2 py-1.5">Pilih Divisi</p>
+                  <button
+                    onClick={() => onViewBracket('male')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-idm-male/10 transition-all duration-200 cursor-pointer group"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-idm-male/20 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🕺</span>
+                    <div className="text-left">
+                      <span className="text-sm font-semibold text-foreground">Male Division</span>
+                      <span className="block text-[10px] text-muted-foreground">Bracket Male</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => onViewBracket('female')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-idm-female/10 transition-all duration-200 cursor-pointer group mt-0.5"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-idm-female/20 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">💃</span>
+                    <div className="text-left">
+                      <span className="text-sm font-semibold text-foreground">Female Division</span>
+                      <span className="block text-[10px] text-muted-foreground">Bracket Female</span>
+                    </div>
+                  </button>
+                </PopoverContent>
+              </Popover>
             </motion.div>
 
             {/* Quick Stats — Animated Counters */}
