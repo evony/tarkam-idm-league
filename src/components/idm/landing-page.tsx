@@ -6,7 +6,7 @@ import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Crown, Users, Swords, BookOpen, Trophy, Award, Calendar, Radio, Zap } from 'lucide-react';
+import { Crown, Users, Swords, BookOpen, Trophy, Radio } from 'lucide-react';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
 
@@ -15,11 +15,8 @@ import { HeroSection } from './landing/hero-section';
 import { AboutSection } from './landing/about-section';
 import { TournamentHub } from './landing/tournament-hub';
 import { ClubsSection } from './landing/clubs-section';
-import { AchievementsSection } from './landing/achievements-section';
 import { CommunityFeed } from './landing/community-feed';
-import { FeaturedMatches } from './landing/featured-matches';
 import { ClubLeaderboard } from './landing/club-leaderboard';
-import { SeasonTimeline } from './landing/season-timeline';
 import { PlayerSpotlight } from './landing/player-spotlight';
 import { ChampionsSection } from './landing/champions-section';
 import { MvpSection } from './landing/mvp-section';
@@ -179,7 +176,7 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ['timeline', 'about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'leaderboard', 'achievements', 'matches', 'community', 'dream'];
+    const sectionIds = ['about', 'kompetisi', 'champions', 'mvp', 'spotlight', 'clubs', 'leaderboard', 'community', 'dream'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -235,14 +232,11 @@ export function LandingPage() {
           {/* Desktop Nav Links */}
           <div className="hidden sm:flex items-center gap-1">
             {[
-              { id: 'timeline', label: 'Timeline' },
               { id: 'about', label: 'Cerita Kami' },
               { id: 'kompetisi', label: 'Kompetisi' },
               { id: 'champions', label: 'Champion' },
               { id: 'mvp', label: 'MVP' },
               { id: 'clubs', label: 'Club' },
-              { id: 'achievements', label: 'Achievement' },
-              { id: 'matches', label: 'Match' },
               { id: 'community', label: 'Komunitas' },
               { id: 'dream', label: 'Liga IDM' },
             ].map(item => (
@@ -295,13 +289,10 @@ export function LandingPage() {
       <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-idm-gold-warm/10 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {[
-            { id: 'timeline', label: 'Timeline', icon: Calendar, special: false },
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },
             { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
             { id: 'champions', label: 'Champion', icon: Crown, special: true },
             { id: 'clubs', label: 'Club', icon: Users, special: false },
-            { id: 'achievements', label: 'Achieve', icon: Award, special: false },
-            { id: 'matches', label: 'Match', icon: Zap, special: false },
             { id: 'community', label: 'Feed', icon: Radio, special: false },
             { id: 'dream', label: 'Liga IDM', icon: Trophy, special: false },
           ].map(item => {
@@ -365,13 +356,6 @@ export function LandingPage() {
         onRegister={() => setRegistrationModalOpen(true)}
         onVideoPlay={openVideoModal}
       />
-
-      {/* Season Timeline — Visual progression of all seasons */}
-      <div className="section-reveal">
-      <SeasonTimeline />
-      </div>
-
-      <SectionDivider />
 
       {/* About / Cerita Kami */}
       <div className="section-reveal">
@@ -461,20 +445,6 @@ export function LandingPage() {
       {/* Club Leaderboard */}
       <div className="section-reveal">
       <ClubLeaderboard />
-      </div>
-
-      <SectionDivider />
-
-      {/* Achievements Showcase */}
-      <div className="section-reveal">
-      <AchievementsSection />
-      </div>
-
-      <SectionDivider />
-
-      {/* Featured Matches */}
-      <div className="section-reveal">
-      <FeaturedMatches maleData={maleData} femaleData={femaleData} />
       </div>
 
       <SectionDivider />

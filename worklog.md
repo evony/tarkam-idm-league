@@ -1914,3 +1914,65 @@ The project is **stable and functional**. The ClubProfile schema migration is ne
 2. Complete API audit for any remaining old Club model references
 3. Verify tier removal across all club displays
 4. Add more interactive features to the list-based leaderboard
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Remove Timeline, Achievement, Matches sections + clean up dead code
+
+Work Log:
+- Removed 3 sections from landing-page.tsx:
+  - SeasonTimeline (landing version)
+  - AchievementsSection
+  - FeaturedMatches
+- Removed imports: AchievementsSection, FeaturedMatches, SeasonTimeline, Award, Calendar, Zap
+- Updated desktop nav: removed Timeline, Achievement, Match links
+- Updated mobile bottom nav: removed Timeline, Achieve, Match items
+- Updated sectionIds for IntersectionObserver: removed 'timeline', 'achievements', 'matches'
+- Deleted component files:
+  - src/components/idm/landing/season-timeline.tsx (dashboard version kept)
+  - src/components/idm/landing/achievements-section.tsx
+  - src/components/idm/landing/featured-matches.tsx
+  - src/components/idm/landing/stats-ticker.tsx (was dead code — never imported)
+  - src/components/idm/landing/variants.ts (was dead code — never imported)
+  - src/components/idm/landing/video-modal.tsx (duplicate of idm/video-modal.tsx)
+- Deleted API routes:
+  - src/app/api/seasons/timeline/route.ts (dashboard uses different API)
+  - src/app/api/achievements/showcase/route.ts (only used by deleted component)
+- Cleaned up CSS from globals.css:
+  - Removed: ACHIEVEMENT SHOWCASE section (~22 lines)
+  - Removed: SEASON TIMELINE — Landing page section (~78 lines)
+  - Removed: stats-ticker-scroll keyframes + StatsTicker CSS (~25 lines)
+  - Removed: dead class refs from prefers-reduced-motion blocks
+- Final dead code audit: all landing/ files now match imports, no orphaned code
+- Lint passes with zero errors, dev server stable
+
+Stage Summary:
+- 3 landing sections removed (Timeline, Achievement, Matches)
+- 6 component files deleted (~600+ lines of dead code removed)
+- 2 API routes deleted
+- ~125 lines of unused CSS removed
+- Additional dead code found and removed: stats-ticker.tsx, variants.ts, duplicate video-modal.tsx
+- All remaining landing components verified as actively imported and used
+- Project is clean with no dead code
+
+## Current Project Status
+
+### Assessment
+The project is **clean and stable**. Dead code has been thoroughly removed. The landing page now has 9 focused sections: Hero, About, Kompetisi, Champions, MVP, Player Spotlight, Clubs, Leaderboard, Community Feed, Dream/CTA.
+
+### Completed in This Round (Task ID 16)
+- Removed Timeline, Achievement, Matches sections from landing page
+- Deleted 6 unused component files and 2 API routes
+- Cleaned up all associated CSS animations
+- Found and removed 3 additional dead code files (stats-ticker, variants, duplicate video-modal)
+
+### Unresolved Issues / Risks
+1. **Admin panel UX/responsiveness**: User requested improvements — still not started
+2. **Tier removal**: User previously asked to remove tier display from clubs — verify all places
+3. **Remaining API audit**: Some admin API routes may still reference old Club model patterns
+
+### Priority Recommendations for Next Phase
+1. Improve admin panel UX and responsiveness
+2. Verify tier removal across all club displays
+3. Complete API audit for any remaining old Club model references
