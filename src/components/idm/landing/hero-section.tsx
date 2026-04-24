@@ -90,7 +90,7 @@ export function HeroSection({
                   title="Hero background video"
                 />
               </div>
-              <div className="absolute inset-0 bg-black/50" />
+              <div className="absolute inset-0 bg-black/55" />
             </motion.div>
           ) : (
             /* Cloudinary / direct MP4 — autoplay background */
@@ -105,7 +105,7 @@ export function HeroSection({
                 className="absolute inset-0 w-full h-full object-cover"
                 aria-hidden="true"
               />
-              <div className="absolute inset-0 bg-black/50" />
+              <div className="absolute inset-0 bg-black/55" />
             </motion.div>
           );
         })() : cmsHeroBgDesktop || cmsHeroBgMobile ? (
@@ -114,11 +114,13 @@ export function HeroSection({
             {cmsHeroBgDesktop && (
               <motion.div className="absolute inset-0 hidden sm:block" style={{ y: heroY, scale: heroScale }}>
                 <Image src={cmsHeroBgDesktop} alt="" fill priority sizes="100vw" className="object-cover" aria-hidden="true" />
+                <div className="absolute inset-0 bg-black/55" />
               </motion.div>
             )}
             {cmsHeroBgMobile && (
               <motion.div className="absolute inset-0 sm:hidden" style={{ y: heroY, scale: heroScale }}>
                 <Image src={cmsHeroBgMobile} alt="" fill priority sizes="100vw" className="object-cover object-top" aria-hidden="true" />
+                <div className="absolute inset-0 bg-black/55" />
               </motion.div>
             )}
           </>
