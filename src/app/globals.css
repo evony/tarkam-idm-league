@@ -7229,3 +7229,119 @@ html {
     font-size: 5rem;
   }
 }
+
+/* ============================================
+   PODIUM ENHANCEMENTS — Club Leaderboard
+   Eye-catching podium with animated rings & glow
+   ============================================ */
+
+/* Gold podium card — subtle shimmer + glow pulse */
+@keyframes podium-card-gold-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.15), 0 0 40px rgba(250, 204, 21, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(250, 204, 21, 0.25), 0 0 60px rgba(250, 204, 21, 0.1), 0 0 80px rgba(250, 204, 21, 0.03);
+  }
+}
+.podium-card-gold {
+  animation: podium-card-gold-pulse 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Silver podium card — cool shimmer */
+@keyframes podium-card-silver-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(156, 163, 175, 0.1), 0 0 24px rgba(156, 163, 175, 0.03);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(156, 163, 175, 0.2), 0 0 40px rgba(156, 163, 175, 0.08);
+  }
+}
+.podium-card-silver {
+  animation: podium-card-silver-pulse 3.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Bronze podium card — warm shimmer */
+@keyframes podium-card-bronze-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(180, 83, 9, 0.1), 0 0 20px rgba(180, 83, 9, 0.03);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(180, 83, 9, 0.2), 0 0 36px rgba(180, 83, 9, 0.08);
+  }
+}
+.podium-card-bronze {
+  animation: podium-card-bronze-pulse 4s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Animated ring — Gold (for #1 avatar) */
+@keyframes podium-ring-gold-rotate {
+  0% {
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.6),
+                0 0 12px rgba(250, 204, 21, 0.3),
+                inset 0 0 8px rgba(250, 204, 21, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.8),
+                0 0 20px rgba(250, 204, 21, 0.4),
+                0 0 40px rgba(250, 204, 21, 0.1),
+                inset 0 0 12px rgba(250, 204, 21, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.6),
+                0 0 12px rgba(250, 204, 21, 0.3),
+                inset 0 0 8px rgba(250, 204, 21, 0.1);
+  }
+}
+.podium-ring-gold {
+  border-radius: 50%;
+  animation: podium-ring-gold-rotate 2.5s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Animated ring — Silver (for #2 avatar) */
+@keyframes podium-ring-silver-rotate {
+  0% {
+    box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.4),
+                0 0 8px rgba(156, 163, 175, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.6),
+                0 0 16px rgba(156, 163, 175, 0.3),
+                0 0 28px rgba(156, 163, 175, 0.08);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.4),
+                0 0 8px rgba(156, 163, 175, 0.2);
+  }
+}
+.podium-ring-silver {
+  border-radius: 50%;
+  animation: podium-ring-silver-rotate 3s ease-in-out infinite;
+  contain: layout style;
+}
+
+/* Animated ring — Bronze (for #3 avatar) */
+@keyframes podium-ring-bronze-rotate {
+  0% {
+    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4),
+                0 0 6px rgba(180, 83, 9, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.6),
+                0 0 14px rgba(180, 83, 9, 0.25),
+                0 0 24px rgba(180, 83, 9, 0.06);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.4),
+                0 0 6px rgba(180, 83, 9, 0.15);
+  }
+}
+.podium-ring-bronze {
+  border-radius: 50%;
+  animation: podium-ring-bronze-rotate 3.5s ease-in-out infinite;
+  contain: layout style;
+}

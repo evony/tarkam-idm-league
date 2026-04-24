@@ -220,7 +220,122 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
   );
 }
 
-/* ========== Podium — Top 3 Display ========== */
+/* ========== Podium — Top 3 Display (Eye-Catching) ========== */
+function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 | 3; type: LeaderboardType }) {
+  const isFirst = rank === 1;
+
+  // Config per rank
+  const config = {
+    1: {
+      containerClass: 'podium-card-gold',
+      ringClass: 'podium-ring-gold',
+      stepHeight: 'h-36',
+      order: 'order-2',
+      avatarSize: 'w-20 h-20',
+      nameSize: 'text-sm',
+      pointsSize: 'text-lg',
+      label: '🥇',
+      glowColor: 'shadow-[0_0_40px_rgba(250,204,21,0.25)]',
+      stepBg: 'bg-gradient-to-t from-yellow-500/30 via-yellow-500/15 to-yellow-500/5',
+      stepBorder: 'border-yellow-500/30',
+      cardBg: 'bg-gradient-to-b from-yellow-500/20 via-yellow-500/8 to-transparent',
+      cardBorder: 'border-yellow-500/25',
+    },
+    2: {
+      containerClass: 'podium-card-silver',
+      ringClass: 'podium-ring-silver',
+      stepHeight: 'h-24',
+      order: 'order-1',
+      avatarSize: 'w-16 h-16',
+      nameSize: 'text-xs',
+      pointsSize: 'text-base',
+      label: '🥈',
+      glowColor: 'shadow-[0_0_24px_rgba(156,163,175,0.15)]',
+      stepBg: 'bg-gradient-to-t from-gray-400/20 via-gray-400/10 to-transparent',
+      stepBorder: 'border-gray-400/20',
+      cardBg: 'bg-gradient-to-b from-gray-400/15 via-gray-400/5 to-transparent',
+      cardBorder: 'border-gray-400/20',
+    },
+    3: {
+      containerClass: 'podium-card-bronze',
+      ringClass: 'podium-ring-bronze',
+      stepHeight: 'h-16',
+      order: 'order-3',
+      avatarSize: 'w-14 h-14',
+      nameSize: 'text-xs',
+      pointsSize: 'text-sm',
+      label: '🥉',
+      glowColor: 'shadow-[0_0_20px_rgba(180,83,9,0.15)]',
+      stepBg: 'bg-gradient-to-t from-amber-700/20 via-amber-700/10 to-transparent',
+      stepBorder: 'border-amber-700/20',
+      cardBg: 'bg-gradient-to-b from-amber-700/15 via-amber-700/5 to-transparent',
+      cardBorder: 'border-amber-700/20',
+    },
+  }[rank];
+
+  const memberLabel = club.maleMemberCount > 0 && club.femaleMemberCount > 0
+    ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
+    : `${club.memberCount} anggota`;
+
+  return (
+    <div className={`flex flex-col items-center ${config.order} ${isFirst ? 'z-10' : 'z-0'}`}>
+      {/* Card above podium step */}
+      <div className={`flex flex-col items-center gap-2 p-4 rounded-2xl ${config.cardBg} border ${config.cardBorder} ${config.glowColor} transition-all duration-500 hover:scale-105 hover:${config.glowColor.replace('0.25', '0.4').replace('0.15', '0.25')} ${config.containerClass} ${isFirst ? 'min-w-[140px]' : 'min-w-[110px]'}`}>
+        {/* Rank label */}
+        <span className="text-2xl leading-none">{config.label}</span>
+
+        {/* Avatar with animated ring */}
+        <div className={`relative ${config.avatarSize} rounded-full ${config.ringClass}`}>
+          {/* Animated ring behind avatar */}
+          <div className={`absolute inset-0 rounded-full ${config.ringClass}`} />
+          <div className={`relative w-full h-full rounded-full overflow-hidden bg-white/[0.08] border-2 ${isFirst ? 'border-yellow-400/60' : rank === 2 ? 'border-gray-300/50' : 'border-amber-600/50'}`}>
+            <ClubLogoImage
+              clubName={club.name}
+              dbLogo={club.logo}
+              alt={club.name}
+              width={isFirst ? 80 : 56}
+              height={isFirst ? 80 : 56}
+              className="w-full h-full object-contain p-1"
+            />
+          </div>
+          {/* Crown overlay for #1 */}
+          {isFirst && (
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+              <Crown className="w-5 h-5 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
+            </div>
+          )}
+        </div>
+
+        {/* Club name */}
+        <p className={`${config.nameSize} font-bold text-white text-center truncate max-w-[120px]`}>
+          {club.name}
+        </p>
+
+        {/* Points */}
+        <div className="flex items-center gap-1.5">
+          <Trophy className={`${isFirst ? 'w-4 h-4' : 'w-3 h-3'} text-idm-gold-warm`} />
+          <span className={`${config.pointsSize} font-black text-idm-gold-warm tabular-nums`}>
+            {club.points}
+          </span>
+        </div>
+
+        {/* Tier badge */}
+        <TierBadge tier={club.tier} />
+
+        {/* Members info */}
+        <p className="text-[9px] text-muted-foreground/70">{memberLabel}</p>
+      </div>
+
+      {/* Podium step */}
+      <div className={`w-full ${config.stepHeight} rounded-t-xl ${config.stepBg} border-x border-t ${config.stepBorder} mt-1 flex items-start justify-center pt-3`}>
+        <span className={`font-black tabular-nums ${isFirst ? 'text-3xl text-yellow-400' : rank === 2 ? 'text-2xl text-gray-300' : 'text-xl text-amber-600'}`}>
+          {rank}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function Top3Podium({ clubs, maxPoints, type }: { clubs: LeaderboardClub[]; maxPoints: number; type: LeaderboardType }) {
   if (clubs.length === 0) return null;
 
@@ -228,41 +343,11 @@ function Top3Podium({ clubs, maxPoints, type }: { clubs: LeaderboardClub[]; maxP
   const second = clubs.find(c => c.rank === 2);
   const third = clubs.find(c => c.rank === 3);
 
-  const podiumItems = [
-    { club: second, height: 'h-24', order: 'order-1', accent: 'from-gray-400/20 to-gray-400/5', borderColor: 'border-gray-400/20' },
-    { club: first, height: 'h-32', order: 'order-2', accent: 'from-yellow-500/25 to-yellow-500/5', borderColor: 'border-yellow-500/30' },
-    { club: third, height: 'h-20', order: 'order-3', accent: 'from-amber-700/20 to-amber-700/5', borderColor: 'border-amber-700/20' },
-  ].filter(item => item.club);
-
   return (
-    <div className="flex items-end justify-center gap-3 mb-8 px-4">
-      {podiumItems.map(({ club, height, order, accent, borderColor }) => (
-        <div key={club!.id} className={`flex flex-col items-center ${order}`}>
-          {/* Club avatar + info */}
-          <div className={`flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gradient-to-b ${accent} border ${borderColor} transition-all duration-300 hover:scale-105 leaderboard-podium-card`}>
-            <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white/[0.06] flex items-center justify-center border border-white/[0.06]">
-              <ClubLogoImage
-                clubName={club!.name}
-                dbLogo={club!.logo}
-                alt={club!.name}
-                width={48}
-                height={48}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <p className="text-xs font-bold text-white text-center truncate max-w-[80px]">{club!.name}</p>
-            <div className="flex items-center gap-1">
-              <Trophy className="w-3 h-3 text-idm-gold-warm" />
-              <span className="text-[11px] font-black text-idm-gold-warm tabular-nums">{club!.points}</span>
-            </div>
-            <TierBadge tier={club!.tier} />
-          </div>
-          {/* Podium column */}
-          <div className={`w-full ${height} rounded-t-lg bg-gradient-to-t ${accent} border-x ${borderColor} mt-1 flex items-start justify-center pt-2`}>
-            <RankBadge rank={club!.rank} />
-          </div>
-        </div>
-      ))}
+    <div className="flex items-end justify-center gap-3 sm:gap-5 mb-10 px-2">
+      {second && <PodiumCard club={second} rank={2} type={type} />}
+      {first && <PodiumCard club={first} rank={1} type={type} />}
+      {third && <PodiumCard club={third} rank={3} type={type} />}
     </div>
   );
 }
