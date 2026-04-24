@@ -2185,3 +2185,26 @@ Stage Summary:
 - Tarkam leaderboard aggregation already works via ClubMember→ClubProfile (no changes needed)
 - Liga leaderboard still uses Club season entries with wins/losses/points (no changes needed)
 - Backward compatible with admin panel's existing clubId usage
+
+---
+Task ID: 19
+Agent: Main Agent
+Task: Fix WhatsApp number duplicate filtering in registration
+
+Work Log:
+- Diagnosed the issue: Same WhatsApp number could register with different names
+- Root cause 1: Phone match with different name allowed "re-register" which overwrites existing player data
+- Root cause 2: `existingPlayers` query only searched within the same division, so cross-division phone duplicates were missed
+- Fixed `checkDuplicates` function in `/api/register/route.ts`:
+  - Added `nameDifferent` check for phone matches: if phone matches but name is DIFFERENT → BLOCK
+  - Message: "Satu nomor WhatsApp hanya untuk satu peserta. Hubungi admin jika ada kendala."
+  - If phone matches AND name is same → allow re-register (existing behavior, makes sense)
+- Fixed `existingPlayers` query to fetch from ALL divisions (removed `where: { division }` filter):
+  - WhatsApp duplicates across male/female divisions now detected
+  - Name-based checks still work since `checkDuplicates` receives the full player list
+
+Stage Summary:
+- Same WhatsApp number + different name = BLOCKED (409 response)
+- Same WhatsApp number + same name = can re-register (existing flow)
+- Cross-division duplicate phone detection now works
+- Tested: POST /api/register returns 409 for duplicate WA with different name

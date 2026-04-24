@@ -247,6 +247,53 @@ function checkDuplicates(
   const phoneMatchPlayer = similarPlayers.find(p => p.matchDetails.phoneMatch);
 
   if (phoneMatchPlayer) {
+    // Phone match with DIFFERENT name — BLOCK (same WA = same person, can't register as different person)
+    if (phoneMatchPlayer.matchDetails.nameDifferent) {
+      // Check if already registered in active tournament
+      const existingParticipation = activeTournamentParticipations.find(
+        p => p.playerId === phoneMatchPlayer.id
+      );
+
+      if (existingParticipation) {
+        return {
+          isBlocked: true,
+          isHighRisk: true,
+          canReRegister: false,
+          isApprovedPlayer: false,
+          alreadyInTournament: true,
+          reRegisterPlayerId: null,
+          similarPlayers: [phoneMatchPlayer],
+          message: `Nomor WhatsApp ini sudah terdaftar di turnamen minggu ini atas nama "${phoneMatchPlayer.name}" (status: ${existingParticipation.status}). Satu nomor WhatsApp hanya untuk satu peserta.`,
+        };
+      }
+
+      if (phoneMatchPlayer.registrationStatus === 'pending') {
+        return {
+          isBlocked: true,
+          isHighRisk: true,
+          canReRegister: false,
+          isApprovedPlayer: false,
+          alreadyInTournament: false,
+          reRegisterPlayerId: null,
+          similarPlayers: [phoneMatchPlayer],
+          message: `Pendaftaran diblokir! Nomor WhatsApp ini sudah dalam antrian persetujuan admin atas nama "${phoneMatchPlayer.name}". Satu nomor WhatsApp hanya untuk satu peserta.`,
+        };
+      }
+
+      // Active/approved/rejected — all blocked if name is different
+      return {
+        isBlocked: true,
+        isHighRisk: true,
+        canReRegister: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
+        reRegisterPlayerId: null,
+        similarPlayers: [phoneMatchPlayer],
+        message: `Nomor WhatsApp ini sudah terdaftar atas nama "${phoneMatchPlayer.name}" (gamertag: "${phoneMatchPlayer.gamertag}"). Satu nomor WhatsApp hanya untuk satu peserta. Hubungi admin jika ada kendala.`,
+      };
+    }
+
+    // Phone match with SAME name — allow re-register
     // Check if already registered in active tournament
     const existingParticipation = activeTournamentParticipations.find(
       p => p.playerId === phoneMatchPlayer.id
@@ -642,8 +689,9 @@ export async function POST(request: Request) {
     }
 
     // ====== NORMAL REGISTRATION FLOW ======
+    // Fetch players from ALL divisions for phone duplicate check,
+    // but primarily from same division for name-based checks
     const existingPlayers = await db.player.findMany({
-      where: { division },
       select: {
         id: true, name: true, gamertag: true, division: true,
         city: true, phone: true, registrationStatus: true, isActive: true,
