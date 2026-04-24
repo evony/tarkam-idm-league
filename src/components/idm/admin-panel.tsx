@@ -427,9 +427,9 @@ export function AdminPanel() {
 
   const categoryTabMap: Record<string, string[]> = {
     dashboard: ['dashboard'],
-    tournament: ['pemain', 'season-tarkam', 'turnamen'],
+    tournament: ['pemain', 'season-tarkam', 'turnamen', 'keuangan'],
     league: ['liga-season', 'liga-club', 'liga-poin', 'liga-skor'],
-    system: ['konten', 'keuangan', 'pengaturan'],
+    system: ['konten', 'pengaturan'],
   };
 
   const [searchPlayer, setSearchPlayer] = useState('');
