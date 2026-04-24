@@ -260,8 +260,8 @@ function DivisionMVPCard({
               {/* Card layout: avatar left, info right — responsive */}
               <div className="flex flex-col sm:flex-row">
                 {/* Avatar Section */}
-                <div className="relative w-full sm:w-[45%] min-h-[220px] sm:min-h-[380px] overflow-hidden">
-                  <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="(max-width: 640px) 100vw, 45vw" className="object-cover object-top group-hover:scale-105 transition-transform duration-700" />
+                <div className="relative w-full sm:w-[45%] aspect-[3/4] sm:aspect-auto sm:min-h-[420px] overflow-hidden">
+                  <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="(max-width: 640px) 100vw, 45vw" className="object-cover object-top sm:object-[center_15%] group-hover:scale-105 transition-transform duration-700" />
                   {/* Overlay gradient for avatar section */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0c0a06]/80 hidden sm:block" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-transparent to-transparent sm:hidden" />
