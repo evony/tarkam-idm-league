@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { getAvatarUrl } from '@/lib/utils';
@@ -25,6 +25,7 @@ interface AdminSeasonPanelProps {
   division: string;
   dt: DivisionTheme;
   setConfirmDialog: (d: { open: boolean; title: string; description: string; onConfirm: () => void }) => void;
+  mode?: 'liga' | 'tarkam'; // 'liga' = league seasons, 'tarkam' = tournament seasons
 }
 
 interface SeasonClubData {
@@ -54,7 +55,7 @@ interface SeasonData {
   clubs?: SeasonClubData[];
 }
 
-export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeasonPanelProps) {
+export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga' }: AdminSeasonPanelProps) {
   const qc = useQueryClient();
 
   const authFetch = async (url: string, options: RequestInit = {}) => {
@@ -70,13 +71,23 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
 
   // State
   const [expandedSeason, setExpandedSeason] = useState<string | null>(null);
+  const isTarkam = mode === 'tarkam';
+  const defaultDivision = isTarkam ? division : 'liga';
+
   const [newSeasonForm, setNewSeasonForm] = useState({
     name: '',
     number: '',
-    division: 'liga',
+    division: defaultDivision,
     startDate: '',
     endDate: '',
   });
+
+  // Sync division with store division when in tarkam mode
+  useEffect(() => {
+    if (isTarkam) {
+      setNewSeasonForm(p => ({ ...p, division }));
+    }
+  }, [division, isTarkam]);
   const [editingChampion, setEditingChampion] = useState<string | null>(null);
   const [selectedChampion, setSelectedChampion] = useState<string>('');
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
@@ -89,14 +100,19 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
     onConfirm: () => void;
   }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
-  // Fetch ALL seasons
-  const { data: seasons, isLoading } = useQuery<SeasonData[]>({
+  // Fetch ALL seasons, then filter by mode
+  const { data: allSeasons, isLoading } = useQuery<SeasonData[]>({
     queryKey: ['admin-seasons'],
     queryFn: async () => {
       const res = await fetch('/api/seasons');
       return res.json();
     },
   });
+
+  // Filter seasons based on mode
+  const seasons = isTarkam
+    ? (allSeasons || []).filter(s => s.division === 'male' || s.division === 'female')
+    : (allSeasons || []).filter(s => s.division === 'liga');
 
   // Fetch expanded season detail with clubs
   const { data: seasonDetail, isLoading: detailLoading } = useQuery<SeasonData>({
@@ -132,7 +148,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
       qc.invalidateQueries({ queryKey: ['league-landing'] });
       broadcastInvalidation('league-landing', 'league', 'stats');
       toast.success('Season berhasil dibuat!');
-      setNewSeasonForm({ name: '', number: '', division: 'liga', startDate: '', endDate: '' });
+      setNewSeasonForm({ name: '', number: '', division: defaultDivision, startDate: '', endDate: '' });
     },
     onError: (e: Error) => { toast.error(e.message); },
   });
@@ -258,13 +274,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
         <div className={dt.casinoBar} />
         <CardContent className="p-4 relative z-10">
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Plus className={`w-4 h-4 ${dt.neonText}`} /> Buat Season Baru
+            <Plus className={`w-4 h-4 ${dt.neonText}`} /> {isTarkam ? 'Buat Season Tarkam Baru' : 'Buat Season Liga Baru'}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             <div>
               <Label className="text-[10px] text-muted-foreground">Nama Season</Label>
               <Input
-                placeholder="contoh: Liga IDM Season 3"
+                placeholder={isTarkam ? 'contoh: Season 2 Tarkam Male' : 'contoh: Liga IDM Season 3'}
                 value={newSeasonForm.name}
                 onChange={(e) => setNewSeasonForm(p => ({ ...p, name: e.target.value }))}
               />
@@ -279,10 +295,23 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
               />
             </div>
             <div>
-              <Label className="text-[10px] text-muted-foreground">Liga</Label>
-              <div className="flex items-center h-9 px-3 rounded-md border border-border/30 bg-muted/10 text-xs text-muted-foreground">
-                Liga IDM (Terbuka untuk semua divisi)
-              </div>
+              <Label className="text-[10px] text-muted-foreground">Divisi</Label>
+              {isTarkam ? (
+                <div className="flex items-center h-9">
+                  <select
+                    value={newSeasonForm.division}
+                    onChange={(e) => setNewSeasonForm(p => ({ ...p, division: e.target.value }))}
+                    className="w-full h-full px-3 rounded-md border border-border/30 bg-muted/10 text-xs"
+                  >
+                    <option value="male">🕺 Male Division</option>
+                    <option value="female">💃 Female Division</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex items-center h-9 px-3 rounded-md border border-border/30 bg-muted/10 text-xs text-muted-foreground">
+                  Liga IDM (Terbuka untuk semua divisi)
+                </div>
+              )}
             </div>
             <div>
               <Label className="text-[10px] text-muted-foreground">Tanggal Mulai</Label>
@@ -319,7 +348,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog }: AdminSeason
       {!seasons || seasons.length === 0 ? (
         <div className="text-center py-10">
           <Calendar className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Belum ada season Liga IDM</p>
+          <p className="text-sm text-muted-foreground">Belum ada season {isTarkam ? 'Tarkam' : 'Liga IDM'}</p>
         </div>
       ) : (
         <div className="space-y-2">

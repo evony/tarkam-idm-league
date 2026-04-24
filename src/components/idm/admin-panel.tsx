@@ -427,7 +427,7 @@ export function AdminPanel() {
 
   const categoryTabMap: Record<string, string[]> = {
     dashboard: ['dashboard'],
-    tournament: ['pemain', 'turnamen'],
+    tournament: ['pemain', 'season-tarkam', 'turnamen'],
     league: ['liga'],
     system: ['konten', 'keuangan', 'pengaturan'],
   };
@@ -592,6 +592,7 @@ export function AdminPanel() {
               const tabConfig: Record<string, { icon: typeof Users; label: string; count?: number }> = {
                 dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
                 pemain: { icon: Users, label: 'Pemain', count: playerCount },
+                'season-tarkam': { icon: Calendar, label: 'Season' },
                 turnamen: { icon: Music, label: 'Turnamen' },
                 liga: { icon: Crown, label: 'Liga' },
                 konten: { icon: Globe, label: 'Konten' },
@@ -660,6 +661,7 @@ export function AdminPanel() {
               const tabConfig: Record<string, { icon: typeof Users; label: string; count?: number }> = {
                 dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
                 pemain: { icon: Users, label: 'Pemain', count: playerCount },
+                'season-tarkam': { icon: Calendar, label: 'Season' },
                 turnamen: { icon: Music, label: 'Turnamen' },
                 liga: { icon: Crown, label: 'Liga' },
                 konten: { icon: Globe, label: 'Konten' },
@@ -1029,11 +1031,18 @@ export function AdminPanel() {
           </div>
         </TabsContent>
 
+        {/* ====== SEASON TARKAM TAB ====== */}
+        <TabsContent value="season-tarkam" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} mode="tarkam" />
+          </div>
+        </TabsContent>
+
         {/* ====== LIGA TAB ====== */}
         <TabsContent value="liga" className="admin-tab-enter">
           <div className="space-y-4">
-            {/* Season Management */}
-            <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
+            {/* Season Management — Liga only */}
+            <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} mode="liga" />
 
             {/* Club Management */}
             <ClubManagement division={storeDivision} dt={dt} seasonId={stats?.seasonForClubs?.id || stats?.season?.id} setConfirmDialog={setConfirmDialog} />
