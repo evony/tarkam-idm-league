@@ -2,6 +2,8 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { NextResponse } from 'next/server';
 
+const SEASON_MAX_WEEKS = 10;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const division = searchParams.get('division');
@@ -53,10 +55,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid match format. Use: BO1, BO3, BO5' }, { status: 400 });
   }
 
+  // ── Validate: 1 season = max 10 weeks ──
+  // Check the season's current tournament count
+  const season = await db.season.findUnique({
+    where: { id: seasonId },
+    include: { _count: { select: { tournaments: true } } },
+  });
+
+  if (!season) {
+    return NextResponse.json({ error: 'Season tidak ditemukan' }, { status: 404 });
+  }
+
+  if (season.status === 'completed') {
+    return NextResponse.json({ error: `Season ${season.name} sudah selesai (completed). Buat season baru untuk melanjutkan.` }, { status: 400 });
+  }
+
+  // Count completed + in-progress tournaments for this season
+  const existingTournaments = await db.tournament.count({
+    where: { seasonId },
+  });
+
+  if (existingTournaments >= SEASON_MAX_WEEKS) {
+    return NextResponse.json({
+      error: `Season ${season.name} sudah penuh (${SEASON_MAX_WEEKS} weeks). Week berikutnya harus masuk ke season baru.`,
+      hint: 'Buatt season baru terlebih dahulu, lalu assign tournament ke season tersebut.',
+    }, { status: 400 });
+  }
+
+  // Auto-correct weekNumber if it exceeds the max for this season
+  // The weekNumber should be the next available slot (existingTournaments + 1)
+  const correctedWeekNumber = weekNumber > existingTournaments + 1 ? existingTournaments + 1 : weekNumber;
+
   const tournament = await db.tournament.create({
     data: {
       name,
-      weekNumber,
+      weekNumber: correctedWeekNumber,
       division,
       seasonId,
       status: 'setup',

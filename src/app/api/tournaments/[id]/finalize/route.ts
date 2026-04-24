@@ -283,6 +283,38 @@ export async function POST(
     data: { status: 'completed', finalizedAt: new Date(), completedAt: new Date() },
   });
 
+  // ===== AUTO-CLOSE SEASON if week 10 finalized =====
+  const SEASON_MAX_WEEKS = 10;
+  try {
+    const completedCount = await db.tournament.count({
+      where: {
+        seasonId: tournament.seasonId,
+        status: 'completed',
+      },
+    });
+
+    if (completedCount >= SEASON_MAX_WEEKS) {
+      // Determine season champion: club with most points in this season
+      const topClub = await db.club.findFirst({
+        where: { seasonId: tournament.seasonId },
+        orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
+        select: { id: true, name: true },
+      });
+
+      await db.season.update({
+        where: { id: tournament.seasonId },
+        data: {
+          status: 'completed',
+          endDate: new Date(),
+          championClubId: topClub?.id || null,
+        },
+      });
+    }
+  } catch (e) {
+    console.error('Auto-close season error (non-fatal):', e);
+    // Don't fail finalization if season auto-close fails
+  }
+
   // ===== CHECK AND AWARD ACHIEVEMENTS =====
   const achievementsAwarded = await checkTournamentAchievements(id);
 
