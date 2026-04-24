@@ -330,16 +330,66 @@ export async function GET(request: Request) {
     .sort((a, b) => +b._sortKey - +a._sortKey)
     .map(({ _sortKey, ...rest }) => rest);
 
-  // All seasons info for season selector
-  const allSeasonsInfo = allSeasons.map((s: { id: string; name: string; number: number; status: string; startDate: Date | null; endDate: Date | null; championClubId: string | null; _count?: { tournaments?: number } }) => ({
-    id: s.id,
-    name: s.name,
-    number: s.number,
-    status: s.status,
-    startDate: s.startDate,
-    endDate: s.endDate,
-    tournamentCount: s._count?.tournaments ?? 0,
-    championClubId: s.championClubId,
+  // Type for champion player in season info
+  type SeasonChampionPlayer = {
+    id: string;
+    gamertag: string;
+    avatar?: string | null;
+    tier: string;
+    points: number;
+    totalWins: number;
+    totalMvp: number;
+    streak: number;
+    maxStreak: number;
+    matches: number;
+    club?: string | null;
+    division?: string;
+  };
+
+  // All seasons info for season selector — include champion player data
+  const allSeasonsInfo = await Promise.all(allSeasons.map(async (s: { id: string; name: string; number: number; status: string; startDate: Date | null; endDate: Date | null; championClubId: string | null; championPlayerId: string | null; _count?: { tournaments?: number } }) => {
+    let championPlayer: SeasonChampionPlayer | null = null;
+    if (s.championPlayerId) {
+      const player = await db.player.findUnique({
+        where: { id: s.championPlayerId },
+        include: {
+          clubMembers: {
+            where: { leftAt: null },
+            include: { profile: { select: { name: true } } },
+            take: 1,
+          },
+        },
+      });
+      if (player) {
+        const activeClub = player.clubMembers[0]?.profile?.name || null;
+        championPlayer = {
+          id: player.id,
+          gamertag: player.gamertag,
+          avatar: player.avatar,
+          tier: player.tier,
+          points: player.points,
+          totalWins: player.totalWins,
+          totalMvp: player.totalMvp,
+          streak: player.streak,
+          maxStreak: player.maxStreak,
+          matches: player.matches,
+          club: activeClub,
+          division: player.division,
+        };
+      }
+    }
+    return {
+      id: s.id,
+      name: s.name,
+      number: s.number,
+      status: s.status,
+      startDate: s.startDate,
+      endDate: s.endDate,
+      tournamentCount: s._count?.tournaments ?? 0,
+      championClubId: s.championClubId,
+      championPlayerId: s.championPlayerId,
+      championPlayer,
+    };
   }));
 
   // ── Flatten club data for frontend compatibility ──

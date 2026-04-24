@@ -9,7 +9,7 @@ import { Shield } from 'lucide-react';
 
 interface TierProgressProps {
   /** Current tier of the player */
-  currentTier: 'S' | 'A' | 'B' | 'C' | 'D';
+  currentTier: 'S' | 'A' | 'B';
   /** Current points of the player */
   points: number;
   /** Division determines accent colour scheme */
@@ -22,84 +22,45 @@ interface TierProgressProps {
 // Tier configuration
 // ---------------------------------------------------------------------------
 
-const TIER_ORDER: Array<'D' | 'C' | 'B' | 'A' | 'S'> = ['D', 'C', 'B', 'A', 'S'];
-
-const TIER_THRESHOLDS: Record<string, number> = {
-  D: 0,
-  C: 50,
-  B: 100,
-  A: 150,
-  S: 350,
-};
+const TIER_ORDER: Array<'B' | 'A' | 'S'> = ['B', 'A', 'S'];
 
 interface TierColorSet {
   fill: string;
-  gradient: string;
   glow: string;
   bg: string;
 }
 
 const TIER_COLORS_MALE: Record<string, TierColorSet> = {
-  D: {
-    fill: '#6b7280',      // gray-500
-    gradient: 'from-gray-500 to-green-500',
-    glow: 'rgba(107,114,128,0.5)',
-    bg: 'rgba(107,114,128,0.15)',
-  },
-  C: {
-    fill: '#22c55e',      // green-500
-    gradient: 'from-green-500 to-blue-500',
-    glow: 'rgba(34,197,94,0.5)',
-    bg: 'rgba(34,197,94,0.15)',
-  },
   B: {
     fill: '#3b82f6',      // blue-500
-    gradient: 'from-blue-500 to-amber-500',
     glow: 'rgba(59,130,246,0.5)',
     bg: 'rgba(59,130,246,0.15)',
   },
   A: {
     fill: '#f59e0b',      // amber-500
-    gradient: 'from-amber-500 to-red-500',
     glow: 'rgba(245,158,11,0.5)',
     bg: 'rgba(245,158,11,0.15)',
   },
   S: {
     fill: '#ef4444',      // red-500
-    gradient: 'from-red-500 to-red-400',
     glow: 'rgba(239,68,68,0.5)',
     bg: 'rgba(239,68,68,0.15)',
   },
 };
 
 const TIER_COLORS_FEMALE: Record<string, TierColorSet> = {
-  D: {
-    fill: '#6b7280',
-    gradient: 'from-gray-500 to-green-400',
-    glow: 'rgba(107,114,128,0.5)',
-    bg: 'rgba(107,114,128,0.15)',
-  },
-  C: {
-    fill: '#4ade80',      // green-400
-    gradient: 'from-green-400 to-purple-400',
-    glow: 'rgba(74,222,128,0.5)',
-    bg: 'rgba(74,222,128,0.15)',
-  },
   B: {
     fill: '#a78bfa',      // purple-400
-    gradient: 'from-purple-400 to-amber-400',
     glow: 'rgba(167,139,250,0.5)',
     bg: 'rgba(167,139,250,0.15)',
   },
   A: {
     fill: '#fbbf24',      // amber-400
-    gradient: 'from-amber-400 to-pink-400',
     glow: 'rgba(251,191,36,0.5)',
     bg: 'rgba(251,191,36,0.15)',
   },
   S: {
     fill: '#f472b6',      // pink-400
-    gradient: 'from-pink-400 to-pink-300',
     glow: 'rgba(244,114,182,0.5)',
     bg: 'rgba(244,114,182,0.15)',
   },
@@ -113,38 +74,15 @@ function getTierIndex(tier: string): number {
   return TIER_ORDER.indexOf(tier as typeof TIER_ORDER[number]);
 }
 
-function getNextThreshold(tier: string): number | null {
-  const idx = getTierIndex(tier);
-  if (idx >= TIER_ORDER.length - 1) return null; // S tier — max
-  return TIER_THRESHOLDS[TIER_ORDER[idx + 1]];
-}
-
-function getCurrentThreshold(tier: string): number {
-  return TIER_THRESHOLDS[tier];
-}
-
-function getProgressInTier(points: number, tier: string): number {
-  const min = getCurrentThreshold(tier);
-  const max = getNextThreshold(tier);
-  if (max === null) return 100; // S tier is always 100%
-  const range = max - min;
-  if (range <= 0) return 100;
-  return Math.min(100, Math.max(0, ((points - min) / range) * 100));
-}
-
-function getOverallProgress(tier: string): number {
-  // Position along the 0-100 scale where the tier begins
-  const idx = getTierIndex(tier);
-  return (idx / (TIER_ORDER.length - 1)) * 100;
-}
-
 function getColors(tier: string, division: 'male' | 'female'): TierColorSet {
   const palette = division === 'male' ? TIER_COLORS_MALE : TIER_COLORS_FEMALE;
-  return palette[tier] ?? palette['D'];
+  return palette[tier] ?? palette['B'];
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Component — Tier Badge with Points Display
+// Tier is managed manually by admin, no auto-upgrade based on points.
+// Shows current tier, points, and a simple indicator of tier level.
 // ---------------------------------------------------------------------------
 
 export function TierProgress({
@@ -158,25 +96,18 @@ export function TierProgress({
 
   useEffect(() => {
     setMounted(true);
-    // Small delay to trigger CSS transition after mount
+    // Animate progress based on tier position (B=0%, A=50%, S=100%)
     const timer = setTimeout(() => {
       const tierIdx = getTierIndex(currentTier);
       const baseProgress = (tierIdx / (TIER_ORDER.length - 1)) * 100;
-      const tierProgress = getProgressInTier(points, currentTier);
-      // Interpolate within the tier's segment
-      const segmentSize = 100 / (TIER_ORDER.length - 1);
-      const progress = baseProgress + (tierProgress / 100) * segmentSize;
-      setAnimatedProgress(Math.min(100, progress));
+      setAnimatedProgress(Math.min(100, baseProgress));
     }, 50);
     return () => clearTimeout(timer);
-  }, [currentTier, points]);
+  }, [currentTier]);
 
   const colors = getColors(currentTier, division);
   const accentColor = division === 'male' ? '#22d3ee' : '#c084fc'; // cyan-400 / purple-400
-  const nextThreshold = getNextThreshold(currentTier);
-  const progressInTier = getProgressInTier(points, currentTier);
   const isMaxTier = currentTier === 'S';
-
   const tierIdx = getTierIndex(currentTier);
 
   return (
@@ -237,21 +168,14 @@ export function TierProgress({
 
           {/* Points display */}
           <div className="text-right">
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black" style={{ color: colors.fill }}>
-                {points}
-              </span>
-              {!isMaxTier && nextThreshold !== null && (
-                <span className="text-xs text-muted-foreground">
-                  / {nextThreshold}
-                </span>
-              )}
-            </div>
+            <span className="text-xl font-black" style={{ color: colors.fill }}>
+              {points}
+            </span>
             <div className="text-[10px] text-muted-foreground">
               {isMaxTier ? (
-                <span className="text-red-400 font-semibold">MAX TIER</span>
+                <span className="font-semibold" style={{ color: colors.fill }}>HIGHEST TIER</span>
               ) : (
-                <span>{Math.round(progressInTier)}% to {TIER_ORDER[tierIdx + 1]}</span>
+                <span>Tier ditentukan admin</span>
               )}
             </div>
           </div>
@@ -261,9 +185,9 @@ export function TierProgress({
         <div className="relative">
           {/* Track */}
           <div className="relative h-2.5 bg-muted/50 rounded-full overflow-hidden border border-white/5">
-            {/* Fill bar with gradient */}
+            {/* Fill bar */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r"
+              className="absolute inset-y-0 left-0 rounded-full"
               style={{
                 width: mounted ? `${animatedProgress}%` : '0%',
                 transition: 'width 1s ease-out',
@@ -341,22 +265,13 @@ export function TierProgress({
                   >
                     {tier}
                   </span>
-
-                  {/* Threshold label */}
-                  <span
-                    className={`text-[9px] mt-0.5 ${
-                      isReached ? 'text-muted-foreground/60' : 'text-muted-foreground/25'
-                    }`}
-                  >
-                    {TIER_THRESHOLDS[tier]}
-                  </span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Bottom stats row */}
+        {/* Bottom info row */}
         <div className="flex items-center justify-between mt-10 pt-3 border-t border-white/5">
           <div className="flex items-center gap-1.5">
             <div
@@ -364,9 +279,7 @@ export function TierProgress({
               style={{ backgroundColor: accentColor }}
             />
             <span className="text-[10px] text-muted-foreground">
-              {isMaxTier
-                ? 'Highest tier achieved'
-                : `${nextThreshold !== null ? nextThreshold - points : 0} pts to ${TIER_ORDER[tierIdx + 1]}`}
+              Tier diatur manual oleh admin
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -398,7 +311,7 @@ export function TierProgress({
 // ---------------------------------------------------------------------------
 
 interface TierProgressMiniProps {
-  currentTier: 'S' | 'A' | 'B' | 'C' | 'D';
+  currentTier: 'S' | 'A' | 'B';
   points: number;
   division: 'male' | 'female';
   className?: string;
@@ -410,23 +323,10 @@ export function TierProgressMini({
   division,
   className = '',
 }: TierProgressMiniProps) {
-  const [mounted, setMounted] = useState(false);
-  const [animatedProgress, setAnimatedProgress] = useState(0);
-
-  useEffect(() => {
-    setMounted(true);
-    const timer = setTimeout(() => {
-      const tierIdx = getTierIndex(currentTier);
-      const baseProgress = (tierIdx / (TIER_ORDER.length - 1)) * 100;
-      const tierProgress = getProgressInTier(points, currentTier);
-      const segmentSize = 100 / (TIER_ORDER.length - 1);
-      const progress = baseProgress + (tierProgress / 100) * segmentSize;
-      setAnimatedProgress(Math.min(100, progress));
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [currentTier, points]);
-
   const colors = getColors(currentTier, division);
+  const tierIdx = getTierIndex(currentTier);
+  // Progress: B=0%, A=50%, S=100%
+  const progress = (tierIdx / (TIER_ORDER.length - 1)) * 100;
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -440,8 +340,7 @@ export function TierProgressMini({
         <div
           className="h-full rounded-full"
           style={{
-            width: mounted ? `${animatedProgress}%` : '0%',
-            transition: 'width 1s ease-out',
+            width: `${progress}%`,
             backgroundColor: colors.fill,
           }}
         />

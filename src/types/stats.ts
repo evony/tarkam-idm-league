@@ -174,6 +174,21 @@ export interface TournamentSummary {
  * Main StatsData interface — matches /api/stats response.
  * All optional enrichment fields are marked as optional.
  */
+export interface SeasonChampionPlayer {
+  id: string;
+  gamertag: string;
+  avatar?: string | null;
+  tier: string;
+  points: number;
+  totalWins: number;
+  totalMvp: number;
+  streak: number;
+  maxStreak: number;
+  matches: number;
+  club?: string | null;
+  division?: string;
+}
+
 export interface SeasonInfo {
   id: string;
   name: string;
@@ -183,6 +198,8 @@ export interface SeasonInfo {
   endDate: string | null;
   tournamentCount: number;
   championClubId: string | null;
+  championPlayerId: string | null;
+  championPlayer: SeasonChampionPlayer | null;
 }
 
 export interface StatsData {

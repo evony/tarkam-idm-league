@@ -2547,3 +2547,23 @@ Stage Summary:
 - Admin can manually set player tier via POST /api/rankings { action: "set_tier", playerId, tier }
 - Ranking panel simplified: no more upgrade progress bars, pending upgrades, or threshold info
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Remove tier upgrade thresholds + Update Bintang Liga with season champion and selector
+
+Work Log:
+- Removed TIER_THRESHOLDS, calculateTargetTier, getTierUpgradeInfo, processTierUpgrade, processAllTierUpgrades from points.ts
+- Updated tier-progress.tsx: 3-tier B/A/S only, removed threshold display, shows "Tier diatur manual oleh admin"
+- Added SeasonChampionPlayer type and championPlayerId/championPlayer to SeasonInfo in types/stats.ts
+- Updated /api/stats to include champion player data in allSeasons (async fetch)
+- Rewrote player-spotlight.tsx with SpotlightSeasonSelector and DivisionSpotlightCard
+- Active season shows #1 ranked player; completed season shows champion (gold accent + Juara badge)
+- Lint passes, dev server 200 OK
+
+Stage Summary:
+- Tier auto-upgrade fully removed, admin controls tier manually
+- Bintang Liga has season selector like MVP section
+- Champion display for completed seasons with gold accent
+
