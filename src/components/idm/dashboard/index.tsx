@@ -8,7 +8,7 @@ import {
   Heart, MapPin, Users, Trophy, Flame,
   Shield, Music,
   Gift,
-  BarChart3,
+  BarChart3, Calendar, Clock,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -214,9 +214,11 @@ export function Dashboard() {
 
             {/* Bottom: Info chips */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5">
-              <span className="inline-flex items-center gap-1 text-[9px] sm:text-xs lg:text-sm text-white/70"><Flame className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
-              <span className="inline-flex items-center gap-1 text-[9px] sm:text-xs lg:text-sm text-white/70"><MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-              <span className="inline-flex items-center gap-1 text-[9px] sm:text-xs lg:text-sm text-white/70"><Trophy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-0 sm:py-0 rounded sm:rounded-none bg-black/30 sm:bg-transparent text-[9px] sm:text-xs lg:text-sm text-white/80"><Flame className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-0 sm:py-0 rounded sm:rounded-none bg-black/30 sm:bg-transparent text-[9px] sm:text-xs lg:text-sm text-white/80"><MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-0 sm:py-0 rounded sm:rounded-none bg-black/30 sm:bg-transparent text-[9px] sm:text-xs lg:text-sm text-white/80"><Trophy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+              {t?.scheduledAt && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-0 sm:py-0 rounded sm:rounded-none bg-black/30 sm:bg-transparent text-[9px] sm:text-xs lg:text-sm text-white/80"><Calendar className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{new Date(t.scheduledAt).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</span>}
+              {t?.scheduledAt && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-0 sm:py-0 rounded sm:rounded-none bg-black/30 sm:bg-transparent text-[9px] sm:text-xs lg:text-sm text-white/80"><Clock className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{new Date(t.scheduledAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>}
               {t?.bpm && <span className="hidden sm:inline-flex items-center gap-1 text-xs lg:text-sm text-white/70"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span>}
               <span className="hidden sm:inline-flex items-center gap-1 text-xs lg:text-sm text-white/70"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
             </div>
