@@ -141,14 +141,7 @@ export function HeroSection({
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
 
-        {/* Animated Particle Grid Background */}
-        <div className="hero-grid-pattern" aria-hidden="true" />
 
-        {/* Animated Grid Overlay */}
-        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
-          backgroundImage: `linear-gradient(rgba(212,168,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,83,0.3) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
-        }} />
 
         {/* Vignette Effect — darkens edges for cinematic depth */}
         <div className="hero-vignette absolute inset-0 pointer-events-none" aria-hidden="true" />

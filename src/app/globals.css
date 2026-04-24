@@ -1193,7 +1193,6 @@ div.group:hover .donor-rank-badge {
   /* Featured Matches */
   .featured-match-card,
   /* Visual Polish Enhancement (Task 4) additions */
-  .hero-grid-pattern::before,
   .hero-title-glow,
   .hero-scanline::after,
   .hero-btn-gradient-border::before,
@@ -6670,35 +6669,6 @@ html {
    CSS-only animations for hero, leaderboard, champions, MVP
    All respect prefers-reduced-motion
    ============================================ */
-
-/* ─── Hero: Particle Grid Background ─── */
-@keyframes hero-grid-drift {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-8px, 4px); }
-  50% { transform: translate(4px, -8px); }
-  75% { transform: translate(-4px, -4px); }
-}
-
-.hero-grid-pattern {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  contain: layout style;
-}
-
-.hero-grid-pattern::before {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  background-image:
-    radial-gradient(circle, rgba(212, 168, 83, 0.15) 1px, transparent 1px),
-    radial-gradient(circle, rgba(212, 168, 83, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px, 24px 24px;
-  background-position: 0 0, 12px 12px;
-  animation: hero-grid-drift 20s ease-in-out infinite;
-  contain: layout style;
-}
 
 /* ─── Hero: Title Breathing Glow ─── */
 @keyframes hero-title-breathe {
