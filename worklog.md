@@ -3002,3 +3002,43 @@ Stage Summary:
 - Seed/demo routes blocked in production with 403 response
 - Seed route now always requires super_admin (not just on force=true)
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Prepare deployment setup for Vercel + Neon PostgreSQL, create dual .env files
+
+Work Log:
+- Read existing .env (SQLite local dev), prisma/schema.prisma (sqlite provider), src/lib/db.ts (dual-database support), scripts/vercel-build.sh (auto-swap provider)
+- Confirmed dual-database infrastructure already in place:
+  - src/lib/db.ts auto-detects SQLite vs PostgreSQL from DATABASE_URL
+  - scripts/vercel-build.sh auto-swaps Prisma provider from sqlite to postgresql during Vercel build
+- Created .env.production with all Neon PostgreSQL credentials for Vercel reference
+- Created .env.example template (no secrets) for GitHub — includes all required env vars with documentation
+- Updated .gitignore to properly handle env files:
+  - .env, .env.local, .env.production, .env.production.local are excluded
+  - .env.example is explicitly included (!)
+- Improved scripts/vercel-build.sh:
+  - Added schema file debug output (head -10)
+  - Runs prisma generate for both SQLite and PostgreSQL paths
+  - Uses npx for both prisma and next commands
+- Updated package.json:
+  - Simplified build command (removed standalone cp commands — Vercel doesn't need them)
+  - Added postinstall script for prisma generate
+- Committed and pushed to GitHub (origin: evony/tarkam-idm-league.git)
+- Lint check passes with zero errors
+
+Stage Summary:
+- .env (SQLite local dev) — unchanged, working
+- .env.production (PostgreSQL Neon) — created with all production credentials
+- .env.example (template for GitHub) — created with documentation, no secrets
+- .gitignore updated — excludes .env files but includes .env.example
+- vercel-build.sh improved — robust schema swapping for Vercel deployment
+- package.json — clean build command + postinstall for prisma generate
+- All changes pushed to GitHub (commit 6dfa9b3)
+- Ready for Vercel deployment: set environment variables from .env.production in Vercel Dashboard
+
+Unresolved Issues / Risks:
+1. Neon database contains old schema — prisma db push during first Vercel build will sync/overwrite
+2. Need to set environment variables in Vercel Dashboard before deploying
+3. output: "standalone" in next.config.ts may need removal for Vercel (currently harmless)
