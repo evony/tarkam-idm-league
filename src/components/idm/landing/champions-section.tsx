@@ -294,7 +294,7 @@ function DivisionChampionCard({
 
           {/* 3 Player Avatars — reordered by tier */}
           {selected.winnerTeam && orderedPlayers.length > 0 ? (
-            <div className="relative flex rounded-2xl overflow-hidden border" style={{ height: '260px', borderColor: hexToRgba(accent, 0x15) }}>
+            <div className="relative flex rounded-2xl overflow-hidden border -mx-1" style={{ height: '280px', borderColor: hexToRgba(accent, 0.15) }}>
               {/* CHAMPION gold watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
                 <span className="text-4xl font-black uppercase tracking-widest select-none" style={{ color: 'rgba(212,168,83,0.04)', WebkitTextStroke: '1px rgba(212,168,83,0.06)' }}>CHAMPION</span>
@@ -324,13 +324,13 @@ function DivisionChampionCard({
                       }
                     }}
                   >
-                    <Image src={getAvatarUrl(player.gamertag, division as 'male' | 'female', player.avatar)} alt={player.gamertag} fill sizes="33vw" className="object-cover object-center transition-transform duration-500 group-hover/avatar:scale-110" />
+                    <Image src={getAvatarUrl(player.gamertag, division as 'male' | 'female', player.avatar)} alt={player.gamertag} fill sizes="33vw" className="object-cover object-top transition-transform duration-500 group-hover/avatar:scale-110" />
                     {/* Bottom gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/5 to-transparent" />
                     {/* Top gradient */}
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06]/5 via-transparent to-transparent" />
                     {/* Divider lines between players */}
-                    {pIdx < 2 && <div className="absolute right-0 top-4 bottom-4 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0.15) }} />}
+                    {pIdx < 2 && <div className="absolute right-0 top-0 bottom-0 w-px z-20" style={{ backgroundColor: hexToRgba(accent, 0.20) }} />}
 
                     {/* Player info at bottom */}
                     <div className="absolute bottom-0 inset-x-0 px-2.5 pb-2.5 pt-6 z-10" style={{ background: 'linear-gradient(to top, rgba(12,10,6,0.85) 0%, transparent 100%)' }}>
