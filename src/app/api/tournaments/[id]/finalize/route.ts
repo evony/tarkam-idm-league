@@ -22,6 +22,7 @@ export async function POST(
   }
   const { mvpPlayerId } = body;
 
+  try {
   const tournament = await db.tournament.findUnique({
     where: { id },
     include: {
@@ -316,7 +317,13 @@ export async function POST(
   }
 
   // ===== CHECK AND AWARD ACHIEVEMENTS =====
-  const achievementsAwarded = await checkTournamentAchievements(id);
+  let achievementsAwarded: Awaited<ReturnType<typeof checkTournamentAchievements>> = [];
+  try {
+    achievementsAwarded = await checkTournamentAchievements(id);
+  } catch (e) {
+    console.error('Achievement check error (non-fatal):', e);
+    // Don't fail finalization if achievement check fails
+  }
 
   // ===== AUTO-AWARD SKINS (Champion + MVP) =====
   let skinsAwarded: { playerId: string; gamertag: string; skinType: string; displayName: string; action: string }[] = [];
@@ -338,4 +345,10 @@ export async function POST(
   });
 
   return NextResponse.json({ ...result, tierUpgrades, achievementsAwarded, skinsAwarded });
+
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Finalization error:', error);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

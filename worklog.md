@@ -2432,3 +2432,29 @@ Stage Summary:
 - Frontend now shows error feedback on score submission failure
 - Score inputs cleared after successful submission
 - Tournament bracket advancement works correctly: winner advances to next round, tournament transitions to finalization when all matches complete
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix tournament finalization JSON parse error and make all API mutations robust
+
+Work Log:
+- User reported bug: "ketika submit finalisasi pemenang dan mvp toast : Failed to execute 'json' on 'Response': Unexpected end of JSON input"
+- Investigated the finalize API route at /src/app/api/tournaments/[id]/finalize/route.ts
+- Root cause #1: The finalize route had NO try/catch wrapper around the main body. If any function (especially `checkTournamentAchievements`) threw an error, the server would return an empty/malformed response
+- Root cause #2: `checkTournamentAchievements()` was called without try/catch, meaning any error in achievement checking (e.g., invalid JSON in criteria) would crash the entire finalization
+- Root cause #3: Frontend mutations used `await r.json()` directly without safety - if the server returned an empty body, this would throw "Failed to execute 'json' on 'Response': Unexpected end of JSON input"
+- Fix #1 (Backend): Wrapped the entire finalize route body in try/catch, returning proper JSON error responses
+- Fix #2 (Backend): Wrapped `checkTournamentAchievements()` in try/catch with non-fatal logging, so achievement errors don't block finalization
+- Fix #3 (Frontend): Created `safeParseJSON()` helper function that uses `r.text()` first, then JSON.parse, with proper error messages for empty/malformed responses
+- Fix #4 (Frontend): Created `apiFetch()` wrapper that handles the common pattern (fetch → check ok → parse JSON safely → throw with error message)
+- Fix #5 (Frontend): Replaced all 14 mutation functions in tournament-manager.tsx to use `apiFetch()` instead of raw `fetch + r.json()`
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Finalize API route now has proper try/catch error handling with JSON error responses
+- `checkTournamentAchievements()` is now non-fatal — errors are logged but don't block finalization
+- All 14 tournament manager mutations now use safe JSON parsing via `apiFetch()` helper
+- No more "Unexpected end of JSON input" errors on empty server responses
+- All lint checks pass, dev server operational

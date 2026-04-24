@@ -25,6 +25,26 @@ import { formatCurrency } from '@/lib/utils';
 
 import type { DivisionTheme } from '@/hooks/use-division-theme';
 
+// ===== Safe JSON response parser — handles empty/malformed responses =====
+async function safeParseJSON<T = Record<string, unknown>>(r: Response): Promise<T> {
+  const text = await r.text();
+  if (!text) throw new Error(r.ok ? 'Server mengembalikan respons kosong' : `Error ${r.status}: Server mengembalikan respons kosong`);
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(r.ok ? 'Gagal memproses respons server' : `Error ${r.status}: Gagal memproses respons server`);
+  }
+}
+
+async function apiFetch(url: string, options: RequestInit) {
+  const r = await fetch(url, options);
+  if (!r.ok) {
+    const d = await safeParseJSON(r);
+    throw new Error((d as Record<string, unknown>).error as string || 'Terjadi kesalahan');
+  }
+  return safeParseJSON(r);
+}
+
 interface TournamentManagerProps {
   division: string;
   dt: DivisionTheme;
@@ -227,12 +247,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const r = await fetch('/api/tournaments', {
+      return apiFetch('/api/tournaments', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membuat tournament'); }
-      return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); toast.success('Tournament berhasil dibuat!'); setNewForm({ name: '', weekNumber: '', format: 'single_elimination', defaultMatchFormat: 'BO1', prizePool: '', bpm: '128', location: 'Online' }); setShowCreateForm(false); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -240,24 +258,20 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-      const r = await fetch(`/api/tournaments/${id}`, {
+      return apiFetch(`/api/tournaments/${id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal update'); }
-      return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Status diperbarui!'); },
   });
 
   const registerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[] } }) => {
-      const r = await fetch(`/api/tournaments/${id}/register`, {
+      return apiFetch(`/api/tournaments/${id}/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal register'); }
-      return r.json();
     },
     onSuccess: (res) => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success(`${res.registered} player terdaftar!`); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -265,12 +279,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const unregisterMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[] } }) => {
-      const r = await fetch(`/api/tournaments/${id}/register`, {
+      return apiFetch(`/api/tournaments/${id}/register`, {
         method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membatalkan pendaftaran'); }
-      return r.json();
     },
     onSuccess: (res) => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success(`${res.removed} player dibatalkan pendaftarannya.`); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -278,12 +290,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-      const r = await fetch(`/api/tournaments/${id}/approve`, {
+      return apiFetch(`/api/tournaments/${id}/approve`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal approve'); }
-      return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Player disetujui!'); },
   });
@@ -291,12 +301,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   // Unapprove mutation — rollback approval to "registered"
   const unapproveMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { playerId?: string; playerIds?: string[]; unapproveAll?: boolean } }) => {
-      const r = await fetch(`/api/tournaments/${id}/approve`, {
+      return apiFetch(`/api/tournaments/${id}/approve`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal membatalkan persetujuan'); }
-      return r.json();
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
@@ -307,9 +315,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const generateTeamsMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}/generate-teams`, { method: 'POST', credentials: 'include' });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal generate tim'); }
-      return r.json();
+      return apiFetch(`/api/tournaments/${id}/generate-teams`, { method: 'POST', credentials: 'include' });
     },
     onSuccess: (data) => {
       // Only invalidate detail — list doesn't change on team generation
@@ -325,9 +331,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const generateBracketMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}/generate-bracket`, { method: 'POST', credentials: 'include' });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal generate bracket'); }
-      return r.json();
+      return apiFetch(`/api/tournaments/${id}/generate-bracket`, { method: 'POST', credentials: 'include' });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Bracket berhasil di-generate!'); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -335,12 +339,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const startMatchMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
-      const r = await fetch(`/api/tournaments/${tournamentId}/start-match`, {
+      return apiFetch(`/api/tournaments/${tournamentId}/start-match`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId }),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal start match'); }
-      return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Match dimulai!'); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -348,12 +350,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const scoreMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId, score1, score2 }: { tournamentId: string; matchId: string; score1: number; score2: number }) => {
-      const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
+      return apiFetch(`/api/tournaments/${tournamentId}/score`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId, score1, score2 }),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal submit skor'); }
-      return r.json();
     },
     onSuccess: () => {
       // Invalidate both detail and list (tournament status may change)
@@ -367,12 +367,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const undoScoreMutation = useMutation({
     mutationFn: async ({ tournamentId, matchId }: { tournamentId: string; matchId: string }) => {
-      const r = await fetch(`/api/tournaments/${tournamentId}/score`, {
+      return apiFetch(`/api/tournaments/${tournamentId}/score`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ matchId }),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal undo skor'); }
-      return r.json();
     },
     onSuccess: () => {
       // Undo score doesn't change tournament list — only invalidate detail
@@ -384,12 +382,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const finalizeMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-      const r = await fetch(`/api/tournaments/${id}/finalize`, {
+      return apiFetch(`/api/tournaments/${id}/finalize`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal finalisasi'); }
-      return r.json();
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); toast.success('Tournament berhasil difinalisasi! 🎉'); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -397,12 +393,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const r = await fetch(`/api/tournaments/${id}`, { method: 'DELETE', credentials: 'include' });
-      if (!r.ok) {
-        const d = await r.json().catch(() => ({ error: 'Gagal hapus tournament' }));
-        throw new Error(d.error || 'Gagal hapus tournament');
-      }
-      return r.json();
+      return apiFetch(`/api/tournaments/${id}`, { method: 'DELETE', credentials: 'include' });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); setSelectedId(null); toast.success('Tournament berhasil dihapus!'); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -426,12 +417,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   const editMutation = useMutation({
     mutationFn: async (data: { id: string } & Record<string, unknown>) => {
       const { id, ...rest } = data;
-      const r = await fetch(`/api/tournaments/${id}`, {
+      return apiFetch(`/api/tournaments/${id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(rest),
       });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Gagal update tournament'); }
-      return r.json();
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] });
