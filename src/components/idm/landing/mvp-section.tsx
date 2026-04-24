@@ -202,7 +202,7 @@ function DivisionMVPCard({
   // Empty state — no MVPs at all
   if (!allMvps.length) {
     return (
-      <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[520px] champion-gold-frame border bg-[#0c0a06] flex flex-col items-center justify-center p-8" style={{ borderColor: hexToRgba(accent, 0.20) }}>
+      <div className="relative rounded-2xl overflow-hidden champion-gold-frame border bg-[#0c0a06] flex flex-col items-center justify-center p-8 aspect-[3/4] sm:aspect-auto sm:min-h-[520px]" style={{ borderColor: hexToRgba(accent, 0.20) }}>
         <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(accent, 0.08)}, transparent 60%)` }} />
         <div className={`mvp-glow-ring absolute z-0 w-32 h-32 rounded-full ${isMale ? '' : 'mvp-glow-ring-female'}`} aria-hidden="true" />
         <div className="relative z-10 w-28 h-28 rounded-full border-2 border-dashed flex items-center justify-center mb-6" style={{ borderColor: hexToRgba(accent, 0.25) }}>
@@ -233,7 +233,7 @@ function DivisionMVPCard({
         >
           {!selectedMvp ? (
             /* No MVP for this season/week */
-            <div className="relative rounded-2xl overflow-hidden min-h-[380px] sm:min-h-[460px] champion-gold-frame border bg-[#0c0a06] flex flex-col items-center justify-center p-8" style={{ borderColor: hexToRgba(accent, 0.20) }}>
+            <div className="relative rounded-2xl overflow-hidden champion-gold-frame border bg-[#0c0a06] flex flex-col items-center justify-center p-8 aspect-[3/4] sm:aspect-auto sm:min-h-[520px]" style={{ borderColor: hexToRgba(accent, 0.20) }}>
               <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(accent, 0.06)}, transparent 60%)` }} />
               <Crown className="relative z-10 w-12 h-12 mb-3 opacity-30" style={{ color: accent }} />
               <p className="relative z-10 text-sm font-bold text-white/70">Belum ada MVP di season ini</p>
@@ -241,7 +241,7 @@ function DivisionMVPCard({
             </div>
           ) : (
             <div
-              className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group border transition-all duration-300 mvp-card-glow champion-gold-frame min-h-[420px] sm:min-h-[520px]"
+              className="perspective-card relative rounded-2xl overflow-hidden cursor-pointer group border transition-all duration-300 mvp-card-glow champion-gold-frame aspect-[3/4] sm:aspect-auto sm:min-h-[520px]"
               style={{ borderColor: hexToRgba(accent, 0.15), boxShadow: `0 0 40px ${hexToRgba(accent, 0.08)}` }}
               role="button"
               tabIndex={0}
@@ -259,8 +259,8 @@ function DivisionMVPCard({
             >
               {/* Gold shimmer accent line */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-current to-transparent z-20" style={{ color: accent }} />
-              {/* Full-Bleed Avatar — cover fills card, positioned to show upper body */}
-              <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="50vw" className="object-cover object-center group-hover:scale-105 transition-transform duration-700" />
+              {/* Full-Bleed Avatar — card has portrait aspect ratio so avatar fits without cropping */}
+              <Image src={getAvatarUrl(selectedMvp.gamertag, division, selectedMvp.avatar)} alt={selectedMvp.gamertag} fill sizes="50vw" className="object-cover object-top group-hover:scale-105 transition-transform duration-700" />
               {/* Multi-layer Overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/60 via-transparent to-transparent" />
