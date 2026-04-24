@@ -25,7 +25,7 @@ interface WeekNavigatorProps {
   accent?: string;        // hex color e.g. '#06b6d4'
   accentLight?: string;   // hex color e.g. '#22d3ee'
   phases?: Phase[];
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
 }
 
 function buildPhases(totalWeeks: number): Phase[] {
@@ -98,9 +98,10 @@ export function WeekNavigator({
   }, [currentPhase, totalWeeks, completedWeeks, liveWeek]);
 
   const isSm = size === 'sm';
+  const isXs = size === 'xs';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {/* Phase Tabs */}
       {phases.length > 1 && (
         <div className="flex items-center gap-1">
@@ -110,8 +111,9 @@ export function WeekNavigator({
               <button
                 key={phase.key}
                 onClick={() => setManualPhase(phase.key)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${
-                  isSm ? 'px-2 py-0.5' : ''
+                className={`rounded-md text-[10px] font-semibold transition-all ${
+                  isXs ? 'px-1.5 py-0.5 text-[8px]' :
+                  isSm ? 'px-2 py-0.5' : 'px-2.5 py-1'
                 } ${
                   isActive
                     ? 'text-white shadow-sm'
@@ -119,7 +121,7 @@ export function WeekNavigator({
                 }`}
                 style={isActive ? { backgroundColor: hexToRgba(accent, 0x25), color: accentLight } : undefined}
               >
-                <span className="mr-1">{phase.emoji}</span>
+                <span className="mr-0.5">{phase.emoji}</span>
                 {phase.label}
               </button>
             );
@@ -128,8 +130,8 @@ export function WeekNavigator({
       )}
 
       {/* Week Dots */}
-      <div className="flex items-center gap-1.5">
-        <span className={`text-[9px] font-semibold mr-0.5 ${isSm ? 'text-[8px]' : ''}`} style={{ color: hexToRgba(accentLight, 0x50) }}>
+      <div className="flex items-center gap-1">
+        <span className={`text-[9px] font-semibold mr-0.5 ${isXs ? 'text-[7px]' : isSm ? 'text-[8px]' : ''}`} style={{ color: hexToRgba(accentLight, 0x50) }}>
           W
         </span>
         {phaseWeeks.map(w => {
@@ -143,8 +145,10 @@ export function WeekNavigator({
               key={w.weekNumber}
               onClick={() => onWeekChange(w.weekNumber)}
               className={`relative flex items-center justify-center transition-all duration-200 ${
-                isSm ? 'w-6 h-6' : 'w-7 h-7'
-              } rounded-full text-[9px] font-black ${
+                isXs ? 'w-5 h-5' : isSm ? 'w-6 h-6' : 'w-7 h-7'
+              } rounded-full ${
+                isXs ? 'text-[7px]' : 'text-[9px]'
+              } font-black ${
                 isSelected
                   ? 'text-white shadow-md'
                   : isLive
@@ -164,7 +168,7 @@ export function WeekNavigator({
               {w.weekNumber}
               {/* Live pulse */}
               {isLive && !isSelected && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className={`absolute -top-0.5 -right-0.5 rounded-full bg-red-500 animate-pulse ${isXs ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
               )}
               {/* Completed check */}
               {isCompleted && !isSelected && !isLive && (

@@ -186,7 +186,7 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
                         onWeekChange={setSelectedChampionWeek}
                         accent={division === 'male' ? '#06b6d4' : '#a855f7'}
                         accentLight={division === 'male' ? '#22d3ee' : '#c084fc'}
-                        size="sm"
+                        size="xs"
                       />
                     </div>
                   );
@@ -274,7 +274,7 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
                         onWeekChange={setSelectedMvpWeek}
                         accent={division === 'male' ? '#06b6d4' : '#a855f7'}
                         accentLight={division === 'male' ? '#22d3ee' : '#c084fc'}
-                        size="sm"
+                        size="xs"
                       />
                     </div>
                   );
