@@ -2286,3 +2286,36 @@ Stage Summary:
 - Payment methods reuse existing donation settings (DANA/OVO/ShopeePay/QRIS)
 - "Kirim Bukti Pembayaran via WhatsApp" button redirects to admin WA link
 - All lint checks pass, dev server operational
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix WA duplicate check logic and add payment info improvements
+
+Work Log:
+- Analyzed the WA duplicate check bug: when exact name match found, phone was not independently checked against ALL players
+- Fixed checkDuplicates() in /src/app/api/register/route.ts:
+  - Added PHONE SECURITY CHECK when exactNamePlayer is found
+  - Check 1: If DB has phone AND input phone differs → BLOCK (hijacking attempt)
+  - Check 2: If input phone is used by ANOTHER player (not name-matched) → BLOCK
+  - Check 3: If DB phone is empty → allow (input phone will fill it in)
+  - Check 4: If DB phone matches input → normal re-registration
+- Fixed POST handler re-registration flow:
+  - Added phone hijacking check in approved player path (isApprovedPlayer=true)
+  - Added phone fill-in logic when approved player has empty phone field
+  - Added phone hijacking check in rejected/inactive player path
+  - Used normalized phone for storage in re-registration
+- Updated RegistrationPaymentInfo component:
+  - Added generic "Biaya Registrasi" notice with "Sesuai ketentuan yang berlaku" text
+  - Always shown when payment info is configured (no specific nominal displayed)
+- Added toast notifications on successful registration:
+  - RegistrationModal: toast.success on new registration and re-registration
+  - RegistrationForm: toast.success on new registration and re-registration
+- All lint checks pass, dev server operational
+
+Stage Summary:
+- WA duplicate check bug FIXED: independent phone validation when name matches
+- Hijacking prevention: same name + different phone → BLOCKED
+- Empty phone fill-in: same name + empty DB phone → UPDATE with input phone
+- Generic "Biaya Registrasi" label added to payment info (no exact nominal)
+- Toast notifications added to both registration forms
+- All changes are backward-compatible and lint-clean

@@ -62,6 +62,15 @@ export function RegistrationPaymentInfo() {
         <h4 className="text-sm font-bold text-idm-gold-warm">Pembayaran Registrasi</h4>
       </div>
 
+      {/* Generic registration fee notice - always shown */}
+      <div className="px-3 py-2 rounded-lg bg-idm-gold-warm/10 border border-idm-gold-warm/20">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-3.5 h-3.5 text-idm-gold-warm shrink-0" />
+          <p className="text-xs font-semibold text-idm-gold-warm">Biaya Registrasi</p>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1">Sesuai ketentuan yang berlaku</p>
+      </div>
+
       {/* Payment instructions */}
       {instructions && (
         <p className="text-xs text-muted-foreground leading-relaxed">{instructions}</p>

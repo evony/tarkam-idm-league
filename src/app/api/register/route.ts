@@ -191,6 +191,73 @@ function checkDuplicates(
   const exactNamePlayer = similarPlayers.find(p => p.matchDetails.nameMatch);
 
   if (exactNamePlayer) {
+    const exactNamePhoneNorm = normalizePhone(exactNamePlayer.phone);
+
+    // ====== PHONE SECURITY CHECK: Verify phone ownership ======
+    // Prevent hijacking: someone using another person's name with a different phone
+
+    // 1. If DB has phone AND input phone differs → BLOCK (hijacking attempt)
+    if (exactNamePhoneNorm && normalizedPhone &&
+        exactNamePhoneNorm.length >= 8 && normalizedPhone.length >= 8 &&
+        exactNamePhoneNorm !== normalizedPhone &&
+        !normalizedPhone.endsWith(exactNamePhoneNorm.slice(-8)) &&
+        !exactNamePhoneNorm.endsWith(normalizedPhone.slice(-8))) {
+      return {
+        isBlocked: true,
+        isHighRisk: true,
+        canReRegister: false,
+        isApprovedPlayer: false,
+        alreadyInTournament: false,
+        reRegisterPlayerId: null,
+        similarPlayers: [exactNamePlayer],
+        message: `Nama "${name}" sudah terdaftar dengan nomor WhatsApp yang berbeda. Jika ini akun Anda, hubungi admin. Jika bukan, gunakan nama lain.`,
+      };
+    }
+
+    // 2. Check if input phone is used by ANOTHER player (not the name-matched one)
+    if (normalizedPhone && normalizedPhone.length >= 8) {
+      const phoneUsedByOther = existingPlayers.find(p => {
+        if (p.id === exactNamePlayer.id) return false; // Skip the name-matched player
+        const pNorm = normalizePhone(p.phone);
+        if (!pNorm || pNorm.length < 8) return false;
+        return normalizedPhone === pNorm ||
+          normalizedPhone.endsWith(pNorm.slice(-8)) ||
+          pNorm.endsWith(normalizedPhone.slice(-8));
+      });
+
+      if (phoneUsedByOther) {
+        return {
+          isBlocked: true,
+          isHighRisk: true,
+          canReRegister: false,
+          isApprovedPlayer: false,
+          alreadyInTournament: false,
+          reRegisterPlayerId: null,
+          similarPlayers: [exactNamePlayer, {
+            id: phoneUsedByOther.id,
+            name: phoneUsedByOther.name,
+            gamertag: phoneUsedByOther.gamertag,
+            division: phoneUsedByOther.division,
+            city: phoneUsedByOther.city,
+            phone: phoneUsedByOther.phone,
+            registrationStatus: phoneUsedByOther.registrationStatus,
+            isActive: phoneUsedByOther.isActive,
+            matchType: 'phone_match' as const,
+            matchDetails: {
+              nameMatch: false,
+              cityMatch: normalizeCity(phoneUsedByOther.city) === normalizedCity,
+              phoneMatch: true,
+              nameDifferent: true,
+            },
+          }],
+          message: `Nomor WhatsApp ini sudah digunakan oleh "${phoneUsedByOther.name}". Satu nomor WhatsApp hanya untuk satu peserta.`,
+        };
+      }
+    }
+
+    // 3. If DB phone is empty → input phone will fill it in (safe, proceed)
+    // 4. If DB phone matches input → normal re-registration (proceed)
+
     // Check if already registered in active tournament
     const existingParticipation = activeTournamentParticipations.find(
       p => p.playerId === exactNamePlayer.id
@@ -570,6 +637,27 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Player belum disetujui. Hubungi admin.' }, { status: 400 });
         }
 
+        // SECURITY: If player has a phone in DB, verify it matches input (prevent hijacking)
+        const dbPhoneNorm = normalizePhone(existingPlayer.phone);
+        const inputPhoneNorm = normalizePhone(trimmedPhone);
+        if (dbPhoneNorm && inputPhoneNorm &&
+            dbPhoneNorm.length >= 8 && inputPhoneNorm.length >= 8 &&
+            dbPhoneNorm !== inputPhoneNorm &&
+            !inputPhoneNorm.endsWith(dbPhoneNorm.slice(-8)) &&
+            !dbPhoneNorm.endsWith(inputPhoneNorm.slice(-8))) {
+          return NextResponse.json({
+            error: `Nama "${existingPlayer.name}" sudah terdaftar dengan nomor WhatsApp yang berbeda. Jika ini akun Anda, hubungi admin. Jika bukan, gunakan nama lain.`,
+          }, { status: 409 });
+        }
+
+        // If player's phone is empty, fill it in with the input phone
+        if (!existingPlayer.phone && trimmedPhone) {
+          await db.player.update({
+            where: { id: existingPlayer.id },
+            data: { phone: normalizePhone(trimmedPhone) || trimmedPhone },
+          });
+        }
+
         const { tournament, participation, error } = await createParticipationForTournament(existingPlayer.id, division);
 
         if (error) {
@@ -618,12 +706,29 @@ export async function POST(request: Request) {
           }
         }
 
+        // SECURITY: If player has a phone in DB, verify it matches input (prevent hijacking)
+        // Exception: if DB phone is empty, allow fill-in
+        const dbPhoneNorm = normalizePhone(existingPlayer.phone);
+        const inputPhoneNorm = normalizePhone(trimmedPhone);
+        if (dbPhoneNorm && inputPhoneNorm &&
+            dbPhoneNorm.length >= 8 && inputPhoneNorm.length >= 8 &&
+            dbPhoneNorm !== inputPhoneNorm &&
+            !inputPhoneNorm.endsWith(dbPhoneNorm.slice(-8)) &&
+            !dbPhoneNorm.endsWith(inputPhoneNorm.slice(-8))) {
+          return NextResponse.json({
+            error: `Nama "${existingPlayer.name}" sudah terdaftar dengan nomor WhatsApp yang berbeda. Jika ini akun Anda, hubungi admin. Jika bukan, gunakan nama lain.`,
+          }, { status: 409 });
+        }
+
+        // Use normalized phone for storage (or existing phone if input matches it)
+        const phoneToStoreForReReg = inputPhoneNorm || normalizePhone(trimmedPhone) || trimmedPhone;
+
         const updatedPlayer = await db.player.update({
           where: { id: reRegisterPlayerId },
           data: {
             name: trimmedName,
             city: trimmedCity,
-            phone: trimmedPhone,
+            phone: phoneToStoreForReReg,
             joki: joki?.trim() || null,
             division,
             registrationStatus: 'pending',

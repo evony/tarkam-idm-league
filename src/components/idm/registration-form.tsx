@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { RegistrationPaymentInfo } from './registration-payment-info';
 // animations import removed — using CSS stagger-item classes
 
@@ -187,6 +188,7 @@ export function RegistrationForm() {
         });
         setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
+        toast.success('Pendaftaran berhasil!', { description: 'Silakan lakukan pembayaran registrasi di bawah.' });
       } else {
         setSubmitResult({
           success: false,
@@ -244,6 +246,7 @@ export function RegistrationForm() {
         });
         setFormData({ name: '', joki: '', phone: '', city: '', clubProfileId: '' });
         setWarningState(null);
+        toast.success('Daftar ulang berhasil!', { description: 'Silakan lakukan pembayaran registrasi di bawah.' });
       } else {
         setSubmitResult({
           success: false,
