@@ -182,12 +182,12 @@ export function Dashboard() {
         {/* Bottom corner accents — desktop only */}
         <div className={`hidden lg:block absolute bottom-3 left-3 rotate-180 ${dt.cornerAccent}`} />
         <div className={`hidden lg:block absolute bottom-3 right-3 rotate-270 ${dt.cornerAccent}`} />
-        {/* Content — spacious 2-zone layout: Left zone (info) | Right zone (prize + action) */}
+        {/* Content — spacious 2-zone layout: Left zone (info) | Right zone (status + prize + sawer) */}
         <div className="absolute inset-0 z-10 flex">
           {/* ─── LEFT ZONE: Badges → Title → Info chips ─── */}
           <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 lg:p-8 min-w-0">
-            {/* Top: Badges + Status */}
-            <div className="flex items-center justify-between gap-2">
+            {/* Top: Badges (mobile: + Status + Prize) */}
+            <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Badge className={`${dt.casinoBadge} px-2 py-0.5 text-[9px] sm:text-[10px]`}>
                   🐉 Season {data.season?.number || 1}
@@ -196,7 +196,8 @@ export function Dashboard() {
                   {division === 'male' ? '🕺 Male' : '💃 Female'}
                 </Badge>
               </div>
-              <div className="flex flex-col items-end gap-1">
+              {/* Mobile-only: Status + Share + Prize in top-right */}
+              <div className="flex sm:hidden flex-col items-end gap-1">
                 <div className="flex items-center gap-1.5">
                   <ShareButton
                     title={t?.name || 'IDM League'}
@@ -205,8 +206,7 @@ export function Dashboard() {
                   />
                   <StatusBadge status={t?.status || 'registration'} />
                 </div>
-                {/* Prize Pool — below status/share */}
-                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] sm:text-xs lg:text-sm font-bold text-idm-gold-warm">💰 {formatCurrency(data.totalPrizePool)}</span>
+                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] font-bold text-idm-gold-warm">💰 {formatCurrency(data.totalPrizePool)}</span>
               </div>
             </div>
 
@@ -228,9 +228,25 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* ─── RIGHT ZONE: Sawer button (prize pool at top-right) ─── */}
-          <div className="hidden sm:flex flex-col items-center justify-end gap-4 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6 pb-6 lg:pb-8">
-            {/* Sawer Button */}
+          {/* ─── RIGHT ZONE (Desktop): Status → Prize → Sawer ─── */}
+          <div className="hidden sm:flex flex-col items-center justify-between w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6">
+            {/* Top: Share + Status */}
+            <div className="flex items-center gap-1.5">
+              <ShareButton
+                title={t?.name || 'IDM League'}
+                description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+                variant="icon"
+              />
+              <StatusBadge status={t?.status || 'registration'} />
+            </div>
+
+            {/* Center: Prize Pool */}
+            <div className="text-center">
+              <p className="text-[9px] lg:text-xs text-white/50 uppercase tracking-widest font-medium mb-2">Prize Pool</p>
+              <p className="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(data.totalPrizePool)}</p>
+            </div>
+
+            {/* Bottom: Sawer Button */}
             <button
               onClick={() => setDonationOpen(true)}
               className="flex items-center gap-1.5 px-4 py-2.5 lg:px-5 lg:py-3 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(229,190,74,0.3)] active:scale-95 transition-all cursor-pointer min-h-[36px] lg:min-h-[42px]"
@@ -241,6 +257,7 @@ export function Dashboard() {
           </div>
         </div>
 
+        {/* Mobile-only: Sawer button bottom-right */}
         <div className="sm:hidden absolute bottom-0 right-0 z-20 p-3">
           <button
             onClick={() => setDonationOpen(true)}
