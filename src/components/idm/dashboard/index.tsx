@@ -170,7 +170,7 @@ export function Dashboard() {
     <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
-      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[120px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
+      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[160px] sm:min-h-[180px] lg:min-h-[280px] ${!isMobile ? 'casino-shimmer' : ''}`}>
         <div className={dt.casinoBar} />
         <div className="absolute inset-0">
           <Image src={division === 'male' ? '/bg-male.jpg' : '/bg-female.jpg'} alt="" fill sizes="100vw" className={`object-cover ${division === 'male' ? 'object-[center_25%]' : ''}`} aria-hidden="true" />
@@ -203,15 +203,15 @@ export function Dashboard() {
           </div>
           <h2 className={`text-base sm:text-2xl lg:text-3xl font-black ${dt.neonGradient}`}>{t?.name || 'IDM League Babak'}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{data.season?.name}</p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1"><Flame className={`w-3 h-3 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
-            <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-            <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 ${dt.neonText}`} />Format: {t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] sm:text-xs lg:text-sm text-muted-foreground">
+            <span className="flex items-center gap-1"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
+            <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
+            <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Format: {t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
           </div>
           {/* Desktop-only extra info row */}
-          <div className="hidden sm:flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
-            {t?.bpm ? <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
-            <span className="flex items-center gap-1"><Music className={`w-3 h-3 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
+          <div className="hidden sm:flex items-center gap-4 mt-2 text-[10px] lg:text-sm text-muted-foreground">
+            {t?.bpm ? <span className="flex items-center gap-1"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
+            <span className="flex items-center gap-1"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
           </div>
         </div>
       </div>
