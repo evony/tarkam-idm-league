@@ -93,9 +93,9 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
           {topPlayerTab === 'top3' && (
             <>
               {data.topPlayers?.length > 0 ? (
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {data.topPlayers.slice(0, 3).map((p, idx) => (
-                    <div key={p.id} className="shrink-0 w-[140px] sm:w-auto lg:shrink lg:w-auto">
+                    <div key={p.id}>
                       <PlayerCard
                         gamertag={p.gamertag}
                         avatar={p.avatar}
@@ -148,9 +148,9 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
                       </div>
                       {/* Players */}
                       {championPlayers.length > 0 ? (
-                        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-3">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
                           {championPlayers.map((p, idx) => (
-                            <div key={p.id} className="shrink-0 w-[140px] sm:w-auto lg:shrink lg:w-auto">
+                            <div key={p.id}>
                               <PlayerCard
                                 gamertag={p.gamertag}
                                 avatar={p.avatar}
@@ -220,10 +220,9 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
                         <span className="text-[9px] text-muted-foreground/80 truncate">{selectedMvp.tournamentName}</span>
                       </div>
                       {/* MVP Player Card + Stats */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="sm:col-span-1 flex justify-center">
-                          <div className="w-[140px] sm:w-auto">
-                            <PlayerCard
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        <div>
+                          <PlayerCard
                               gamertag={selectedMvp.gamertag}
                               avatar={selectedMvp.avatar}
                               tier={selectedMvp.tier}
@@ -243,10 +242,9 @@ export function TopPlayersSection({ data, division, setSelectedPlayer }: TopPlay
                                 matches: 0,
                               })}
                             />
-                          </div>
                         </div>
                         {/* MVP stats highlight */}
-                        <div className={`sm:col-span-2 flex flex-col justify-center gap-2 p-3 rounded-xl ${dt.bgSubtle} ${dt.border}`}>
+                        <div className={`col-span-2 flex flex-col justify-center gap-2 p-3 rounded-xl ${dt.bgSubtle} ${dt.border}`}>
                           <div className="flex items-center gap-2">
                             <Crown className="w-4 h-4 text-yellow-400" />
                             <span className="text-sm font-bold text-yellow-400">{selectedMvp.gamertag}</span>
