@@ -282,7 +282,7 @@ function DivisionMVPCard({
               <div className="absolute bottom-0 inset-x-0 p-5 z-10">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-3.5 h-3.5" style={{ color: accentLight }} />
-                  <span className="text-[11px] font-bold" style={{ color: accentLight }}>Week {selectedMvp.weekNumber}</span>
+                  <span className="text-[11px] font-bold" style={{ color: accentLight }}>Tarkam W{selectedMvp.weekNumber}</span>
                   {selectedSeasonInfo && (
                     <span className="text-[10px] font-semibold text-white/40">• S{selectedSeasonInfo.number}</span>
                   )}
@@ -409,9 +409,9 @@ function DivisionMVPCard({
               <span className="text-[9px] text-muted-foreground">
                 W{selectedMvp?.weekNumber || selectedWeekIdx + 1} / {selectedSeasonInfo?.tournamentCount || mvps.length} weeks
               </span>
-              {selectedMvp.tournamentName && (
+              {selectedMvp.weekNumber && (
                 <span className="text-[9px] text-muted-foreground/60 truncate max-w-[120px]">
-                  {selectedMvp.tournamentName}
+                  Tarkam W{selectedMvp.weekNumber}
                 </span>
               )}
             </div>
