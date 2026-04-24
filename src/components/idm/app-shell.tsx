@@ -466,7 +466,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* Mobile Header — clean, single account button */}
       <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
