@@ -22,7 +22,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
       {/* Background — Arena battle with bilateral division glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
       {/* Subtle diagonal line pattern — arena bracket feel */}
-      <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212,168,83,0.15) 35px, rgba(212,168,83,0.15) 36px)', backgroundSize: '50px 50px' }} />
+      <div className="absolute inset-0 opacity-[0.012]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212,168,83,0.15) 35px, rgba(212,168,83,0.15) 36px)', backgroundSize: '50px 50px' }} />
       {/* Division color split — cyan left, purple right */}
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
 

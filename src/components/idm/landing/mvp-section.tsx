@@ -435,6 +435,8 @@ export function MvpSection({
       <section id="mvp" role="region" aria-label="MVP Arena" className="py-16 sm:py-24 px-4 relative overflow-hidden">
         {/* Background — The Dream style */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+        {/* Subtle dot grain — visual texture */}
+        <div className="absolute inset-0 opacity-[0.008]" style={{ backgroundImage: 'radial-gradient(circle, rgba(212,168,83,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
         {/* Triple radial gradient — gold center, cyan left, purple right */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 50%), radial-gradient(ellipse at 20% 70%, rgba(6,182,212,0.03) 0%, transparent 40%), radial-gradient(ellipse at 80% 70%, rgba(168,85,247,0.03) 0%, transparent 40%)' }} />
         {/* Decorative rings */}

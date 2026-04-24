@@ -255,7 +255,7 @@ export function CommunityFeed() {
       {/* Background — Social Hub */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06] via-[#0d0a08]/98 to-[#0c0a06]" />
       {/* Wave line pattern — community rhythm */}
-      <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(212,168,83,0.12) 28px, rgba(212,168,83,0.12) 29px), repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(212,168,83,0.08) 28px, rgba(212,168,83,0.08) 29px)', backgroundSize: '29px 29px' }} />
+      <div className="absolute inset-0 opacity-[0.013]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(212,168,83,0.12) 28px, rgba(212,168,83,0.12) 29px), repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(212,168,83,0.08) 28px, rgba(212,168,83,0.08) 29px)', backgroundSize: '29px 29px' }} />
       {/* Warm social glow center */}
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(212,168,83,0.07) 0%, transparent 45%), radial-gradient(ellipse at 30% 70%, rgba(6,182,212,0.04) 0%, transparent 35%), radial-gradient(ellipse at 70% 70%, rgba(168,85,247,0.04) 0%, transparent 35%)' }} />
       {/* Top warm edge glow */}

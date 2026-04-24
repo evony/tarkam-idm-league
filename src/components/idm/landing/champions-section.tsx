@@ -540,7 +540,7 @@ export function ChampionsSection({
         {/* Background — Premium Championship */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06] via-[#0f0b05]/98 to-[#0c0a06]" />
         {/* Diamond lattice pattern — championship prestige */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(135deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(225deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(315deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(45deg, rgba(212,168,83,0.2) 25%, transparent 25%)', backgroundSize: '40px 40px', backgroundPosition: '0 0, 0 20px, 20px -20px, -20px 0px' }} />
+        <div className="absolute inset-0 opacity-[0.014]" style={{ backgroundImage: 'linear-gradient(135deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(225deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(315deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(45deg, rgba(212,168,83,0.2) 25%, transparent 25%)', backgroundSize: '40px 40px', backgroundPosition: '0 0, 0 20px, 20px -20px, -20px 0px' }} />
         {/* Gold spotlight from top center — champion spotlight */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 15%, rgba(212,168,83,0.10) 0%, transparent 45%)' }} />
         {/* Bilateral division color glow */}
