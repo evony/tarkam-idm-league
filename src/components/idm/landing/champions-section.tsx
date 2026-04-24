@@ -537,12 +537,17 @@ export function ChampionsSection({
         <div className="champions-crown-float absolute top-8 left-1/2 -translate-x-1/2 z-20" aria-hidden="true">
           <Crown className="w-6 h-6 text-idm-gold-warm/40" style={{ filter: 'drop-shadow(0 0 12px rgba(212,168,83,0.3))' }} />
         </div>
-        {/* Background — Kompetisi style */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
-        {/* Diagonal line pattern — arena bracket feel */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212,168,83,0.15) 35px, rgba(212,168,83,0.15) 36px)', backgroundSize: '50px 50px' }} />
-        {/* Bilateral division color split */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06) 0%, transparent 50%), radial-gradient(ellipse at 75% 40%, rgba(168,85,247,0.06) 0%, transparent 50%)' }} />
+        {/* Background — Premium Championship */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06] via-[#0f0b05]/98 to-[#0c0a06]" />
+        {/* Diamond lattice pattern — championship prestige */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(135deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(225deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(315deg, rgba(212,168,83,0.2) 25%, transparent 25%), linear-gradient(45deg, rgba(212,168,83,0.2) 25%, transparent 25%)', backgroundSize: '40px 40px', backgroundPosition: '0 0, 0 20px, 20px -20px, -20px 0px' }} />
+        {/* Gold spotlight from top center — champion spotlight */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 15%, rgba(212,168,83,0.10) 0%, transparent 45%)' }} />
+        {/* Bilateral division color glow */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 15% 50%, rgba(6,182,212,0.06) 0%, transparent 45%), radial-gradient(ellipse at 85% 50%, rgba(168,85,247,0.06) 0%, transparent 45%)' }} />
+        {/* Top & bottom gold edge glow */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/15 to-transparent" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Section Header */}

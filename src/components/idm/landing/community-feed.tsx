@@ -252,9 +252,14 @@ export function CommunityFeed() {
 
   return (
     <section id="community" className="relative py-24 px-4 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
-      <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'radial-gradient(circle, rgba(212,168,83,0.5) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      {/* Background — Social Hub */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a06] via-[#0d0a08]/98 to-[#0c0a06]" />
+      {/* Wave line pattern — community rhythm */}
+      <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(212,168,83,0.12) 28px, rgba(212,168,83,0.12) 29px), repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(212,168,83,0.08) 28px, rgba(212,168,83,0.08) 29px)', backgroundSize: '29px 29px' }} />
+      {/* Warm social glow center */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(212,168,83,0.07) 0%, transparent 45%), radial-gradient(ellipse at 30% 70%, rgba(6,182,212,0.04) 0%, transparent 35%), radial-gradient(ellipse at 70% 70%, rgba(168,85,247,0.04) 0%, transparent 35%)' }} />
+      {/* Top warm edge glow */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/20 to-transparent" />
 
       <div className="relative z-10 max-w-4xl mx-auto">
         {/* Section Header with Live indicator */}
