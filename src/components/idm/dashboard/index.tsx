@@ -184,6 +184,7 @@ export function Dashboard() {
         {/* Bottom corner accents — desktop only */}
         <div className={`hidden lg:block absolute bottom-3 left-3 rotate-180 ${dt.cornerAccent}`} />
         <div className={`hidden lg:block absolute bottom-3 right-3 rotate-270 ${dt.cornerAccent}`} />
+        {/* Top-right: Status + Share */}
         <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
           <ShareButton
             title={t?.name || 'IDM League'}
@@ -192,8 +193,10 @@ export function Dashboard() {
           />
           <StatusBadge status={t?.status || 'registration'} />
         </div>
-        <div className="absolute bottom-3 sm:bottom-4 lg:bottom-6 left-3 sm:left-5 lg:left-8 right-3 sm:right-5 lg:right-8 z-10">
-          <div className="flex items-center gap-2 mb-1">
+        {/* Content — fills banner with flex column: top badges, middle title, bottom info */}
+        <div className="absolute inset-0 z-10 flex flex-col justify-between p-3 sm:p-5 lg:p-8">
+          {/* Top row: Badges */}
+          <div className="flex items-center gap-2">
             <Badge className={`${dt.casinoBadge} px-2 py-0.5`}>
               🐉 Season {data.season?.number || 1}
             </Badge>
@@ -201,17 +204,20 @@ export function Dashboard() {
               {division === 'male' ? '🕺 Male' : '💃 Female'}
             </Badge>
           </div>
-          <h2 className={`text-base sm:text-2xl lg:text-3xl font-black ${dt.neonGradient}`}>{t?.name || 'IDM League Babak'}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{data.season?.name}</p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] sm:text-xs lg:text-sm text-muted-foreground">
-            <span className="flex items-center gap-1"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
-            <span className="flex items-center gap-1"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
-            <span className="flex items-center gap-1"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Format: {t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+
+          {/* Middle: Title — pushed down slightly for visual center */}
+          <div className="flex-1 flex flex-col justify-center min-h-0">
+            <h2 className={`text-base sm:text-2xl lg:text-4xl font-black ${dt.neonGradient} leading-tight`}>{t?.name || 'IDM League Babak'}</h2>
+            <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-1">{data.season?.name}</p>
           </div>
-          {/* Desktop-only extra info row */}
-          <div className="hidden sm:flex items-center gap-4 mt-2 text-[10px] lg:text-sm text-muted-foreground">
-            {t?.bpm ? <span className="flex items-center gap-1"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
-            <span className="flex items-center gap-1"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
+
+          {/* Bottom row: Info chips */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 lg:gap-x-3">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
+            {t?.bpm ? <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] lg:text-sm text-muted-foreground"><Heart className="w-3 h-3 lg:w-4 lg:h-4 text-red-400 live-dot" />{t.bpm} BPM</span> : null}
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] lg:text-sm text-muted-foreground"><Music className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.matches?.length || recentMatches.length} Match</span>
           </div>
         </div>
       </div>
