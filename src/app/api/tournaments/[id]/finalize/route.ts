@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { SEASON_TOTAL_WEEKS } from '@/lib/constants';
-import { awardPoints, processTierUpgrade } from '@/lib/points';
+import { awardPoints } from '@/lib/points';
 import { checkTournamentAchievements } from '@/lib/achievements';
 import { autoAwardTournamentSkins } from '@/lib/skin-auto-award';
 import { NextResponse } from 'next/server';
@@ -158,7 +158,8 @@ export async function POST(
 
   // ===== AWARD PRIZE POINTS WITH AUDIT TRAIL =====
   // Bug #6 fix: Use position field for matching instead of label string matching
-  const tierUpgrades: { playerId: string; gamertag: string; fromTier: string; toTier: string }[] = [];
+  // Tier upgrades are NO LONGER automatic — admin manually controls tier via approval/assignment
+  // This prevents all players eventually reaching S tier over time
 
   // Build position → team map
   const positionTeamMap: Record<number, string | null> = {
@@ -206,10 +207,7 @@ export async function POST(
           });
         }
 
-        const upgrade = await processTierUpgrade(mvpPlayerId);
-        if (upgrade?.upgraded) {
-          tierUpgrades.push({ playerId: mvpPlayerId, gamertag: player.gamertag, fromTier: upgrade.fromTier, toTier: upgrade.toTier });
-        }
+        // No automatic tier upgrade — admin controls tier manually
       }
 
       // Set MVP on the grand final / last match
@@ -269,10 +267,7 @@ export async function POST(
               });
             }
 
-            const upgrade = await processTierUpgrade(tp.playerId);
-            if (upgrade?.upgraded) {
-              tierUpgrades.push({ playerId: tp.playerId, gamertag: tp.player.gamertag, fromTier: upgrade.fromTier, toTier: upgrade.toTier });
-            }
+            // No automatic tier upgrade — admin controls tier manually
           }
         }
       }
@@ -344,7 +339,7 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ ...result, tierUpgrades, achievementsAwarded, skinsAwarded });
+  return NextResponse.json({ ...result, achievementsAwarded, skinsAwarded });
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
-import { getTierUpgradeInfo, processAllTierUpgrades, recalculateAllPoints, TIER_THRESHOLDS } from '@/lib/points';
+import { recalculateAllPoints } from '@/lib/points';
 import { NextResponse } from 'next/server';
 
 /**
@@ -27,7 +27,6 @@ export async function GET(request: Request) {
   });
 
   const rankings = players.map((p, idx) => {
-    const upgradeInfo = getTierUpgradeInfo(p.tier as 'S' | 'A' | 'B', p.points);
     const club = (p.clubMembers as unknown as { profile: { name: string } }[])?.[0]?.profile?.name || null;
 
     // Point breakdown
@@ -61,7 +60,6 @@ export async function GET(request: Request) {
       matches: p.matches,
       club,
       tournamentCount: p.participations.filter(part => part.status === 'approved' || part.status === 'assigned').length,
-      upgradeInfo,
     };
   });
 
@@ -71,35 +69,24 @@ export async function GET(request: Request) {
     tierSummary[p.tier as keyof typeof tierSummary]++;
   }
 
-  // Pending upgrades
-  const pendingUpgrades = rankings.filter(r => r.upgradeInfo.shouldUpgrade);
-
   return NextResponse.json({
     rankings,
     tierSummary,
-    pendingUpgrades,
-    thresholds: TIER_THRESHOLDS,
   });
 }
 
 /**
  * POST /api/rankings
  * Actions:
- *   action: "process_upgrades" — process all eligible tier upgrades
  *   action: "recalculate" — recalculate all points from audit trail
- *   action: "upgrade_player" — upgrade specific player (playerId required)
+ *   action: "set_tier" — admin manually sets player tier (playerId + tier required)
  */
 export async function POST(request: Request) {
   const authResult = await requireAdmin(request);
   if (authResult instanceof NextResponse) return authResult;
 
   const body = await request.json();
-  const { action, division, playerId } = body;
-
-  if (action === 'process_upgrades') {
-    const upgraded = await processAllTierUpgrades(division || undefined);
-    return NextResponse.json({ success: true, upgraded, count: upgraded.length });
-  }
+  const { action, division, playerId, tier } = body;
 
   if (action === 'recalculate') {
     const results = await recalculateAllPoints(division || undefined);
@@ -107,13 +94,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, totalPlayers: results.length, corrected, correctionsCount: corrected.length });
   }
 
-  if (action === 'upgrade_player' && playerId) {
-    const { processTierUpgrade } = await import('@/lib/points');
-    const result = await processTierUpgrade(playerId);
-    if (result?.upgraded) {
-      return NextResponse.json({ success: true, upgraded: true, fromTier: result.fromTier, toTier: result.toTier });
+  if (action === 'set_tier' && playerId && tier) {
+    const validTiers = ['S', 'A', 'B'];
+    if (!validTiers.includes(tier)) {
+      return NextResponse.json({ error: `Invalid tier. Must be one of: ${validTiers.join(', ')}` }, { status: 400 });
     }
-    return NextResponse.json({ success: true, upgraded: false, message: 'Player tidak eligible untuk upgrade' });
+    const player = await db.player.findUnique({ where: { id: playerId } });
+    if (!player) {
+      return NextResponse.json({ error: 'Player not found' }, { status: 404 });
+    }
+    const oldTier = player.tier;
+    await db.player.update({ where: { id: playerId }, data: { tier } });
+    return NextResponse.json({ success: true, playerId, fromTier: oldTier, toTier: tier });
   }
 
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

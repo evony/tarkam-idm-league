@@ -2517,3 +2517,33 @@ Stage Summary:
 - 8 existing TeamPlayer records corrected in database
 - Tier display in teams now correctly shows admin-assigned tier instead of original Player.tier
 - All lint checks pass, dev server operational
+
+---
+Task ID: 18
+Agent: Main Agent
+Task: Remove automatic tier upgrade system — tier now fully admin-controlled
+
+Work Log:
+- User requested removal of automatic tier upgrade thresholds because over time all players will reach S tier, making the S/A/B system meaningless
+- Admin can still manually assign tier during approval (tierOverride), which is the proper control mechanism
+- Changes made:
+  1. finalize/route.ts: Removed processTierUpgrade() calls — no more auto-tier upgrades after tournament finalization
+  2. finalize/route.ts: Removed tierUpgrades from response payload
+  3. rankings/route.ts: Removed process_upgrades and upgrade_player actions, added set_tier action for admin manual tier control
+  4. rankings/route.ts GET: Removed pendingUpgrades and thresholds from response
+  5. ranking-panel.tsx: Complete rewrite — removed Pending Upgrade card, Threshold card, upgrade buttons, upgrade progress bars, upgrade info display
+  6. ranking-panel.tsx: Updated "Sistem Poin & Tier" section to explain tier is admin-managed (not automatic)
+  7. Removed unused imports: ArrowUpCircle, processUpgradesMutation, upgradePlayerMutation
+- Key functions kept in points.ts for potential future use but no longer called automatically:
+  - processTierUpgrade(), processAllTierUpgrades(), getTierUpgradeInfo()
+  - TIER_THRESHOLDS constant
+- Verified no tier_upgrade_bonus records in database (nothing to clean up)
+- Ran `bun run lint` — passed with zero errors
+- Dev server compiling successfully
+
+Stage Summary:
+- Automatic tier upgrade system completely removed
+- Tier is now 100% admin-controlled via tierOverride during approval/assignment
+- Admin can manually set player tier via POST /api/rankings { action: "set_tier", playerId, tier }
+- Ranking panel simplified: no more upgrade progress bars, pending upgrades, or threshold info
+- All lint checks pass, dev server operational
