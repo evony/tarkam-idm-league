@@ -1172,11 +1172,7 @@ div.group:hover .donor-rank-badge {
   .countdown-card,
   .rivalry-card::before,
   /* Styling Enhancement Agent additions */
-  .hero-landing-mesh,
   .hero-vignette,
-  .hero-particle,
-  .hero-particle-gold,
-  .hero-particle-cyan,
   .hero-btn-glow,
   .champions-crown-float,
   .champion-name-shine,
@@ -3073,33 +3069,6 @@ html {
 /* ============================================
    20. AMBIENT LIGHT EFFECT
    ============================================ */
-@keyframes ambient-orbit {
-  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
-}
-
-.ambient-light {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(229, 190, 74, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  animation: ambient-orbit 20s linear infinite;
-}
-
-@media (min-width: 640px) {
-  @keyframes ambient-orbit-lg {
-    0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-    100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
-  }
-  .ambient-light {
-    width: 300px;
-    height: 300px;
-    animation: ambient-orbit-lg 20s linear infinite;
-  }
-}
-
 /* ============================================
    21. FOG EFFECT - Moving mist layers
    ============================================ */
@@ -5196,23 +5165,6 @@ html {
   animation: badge-glow-breathe 3s ease-in-out infinite;
 }
 
-/* Floating particle dots in hero banner */
-@keyframes hero-particle-1 {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-  50% { transform: translateY(-8px) translateX(4px); opacity: 0.7; }
-}
-@keyframes hero-particle-2 {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
-  50% { transform: translateY(-12px) translateX(-3px); opacity: 0.6; }
-}
-@keyframes hero-particle-3 {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.4; }
-  50% { transform: translateY(-6px) translateX(6px); opacity: 0.8; }
-}
-.hero-particle { pointer-events: none; position: absolute; border-radius: 50%; }
-.hero-particle-1 { animation: hero-particle-1 4s ease-in-out infinite; }
-.hero-particle-2 { animation: hero-particle-2 5s ease-in-out infinite 0.5s; }
-.hero-particle-3 { animation: hero-particle-3 3.5s ease-in-out infinite 1s; }
 
 /* Breathing progress bar glow */
 @keyframes progress-breathe {
@@ -5315,9 +5267,6 @@ html {
   .hero-mesh-bg,
   .hero-shine-sweep::after,
   .badge-glow-breathe,
-  .hero-particle-1,
-  .hero-particle-2,
-  .hero-particle-3,
   .progress-breathe,
   .points-count-up,
   .activity-card-shimmer::before,
@@ -6199,74 +6148,9 @@ html {
    GPU-optimized, respects prefers-reduced-motion
    ============================================ */
 
-/* ─── Hero Landing Mesh Background ─── */
-@keyframes hero-landing-mesh-drift {
-  0%, 100% {
-    background-position: 0% 50%, 100% 50%, 50% 0%, 30% 70%;
-  }
-  25% {
-    background-position: 50% 0%, 0% 50%, 100% 50%, 70% 30%;
-  }
-  50% {
-    background-position: 100% 50%, 50% 100%, 0% 50%, 50% 50%;
-  }
-  75% {
-    background-position: 50% 100%, 100% 50%, 50% 0%, 30% 70%;
-  }
-}
-
-.hero-landing-mesh {
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(212, 168, 83, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(34, 211, 238, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 30% 30%, rgba(192, 132, 252, 0.02) 0%, transparent 40%);
-  background-size: 200% 200%;
-  animation: hero-landing-mesh-drift 15s ease-in-out infinite;
-  contain: layout style;
-}
-
 /* ─── Hero Vignette Effect ─── */
 .hero-vignette {
   background: radial-gradient(ellipse at center, transparent 40%, rgba(12, 10, 6, 0.4) 80%, rgba(12, 10, 6, 0.7) 100%);
-}
-
-/* ─── Hero Floating Particles — gold and cyan ─── */
-@keyframes hero-particle-float {
-  0% {
-    transform: translateY(100vh) translateX(0) scale(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-    transform: translateY(90vh) translateX(5px) scale(1);
-  }
-  90% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(-10vh) translateX(-10px) scale(0.5);
-    opacity: 0;
-  }
-}
-
-.hero-particle {
-  position: absolute;
-  bottom: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: hero-particle-float var(--particle-duration, 16s) linear infinite;
-  contain: layout style;
-}
-
-.hero-particle-gold {
-  background: radial-gradient(circle, rgba(229, 190, 74, 0.8), rgba(229, 190, 74, 0.2));
-  box-shadow: 0 0 6px rgba(229, 190, 74, 0.4), 0 0 12px rgba(229, 190, 74, 0.1);
-}
-
-.hero-particle-cyan {
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.8), rgba(34, 211, 238, 0.2));
-  box-shadow: 0 0 6px rgba(34, 211, 238, 0.4), 0 0 12px rgba(34, 211, 238, 0.1);
 }
 
 /* ─── Hero CTA Button Glow ─── */

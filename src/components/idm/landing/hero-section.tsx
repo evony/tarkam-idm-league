@@ -59,7 +59,6 @@ interface HeroSectionProps {
   leagueData: any;
   nextSeason: number;
   maleData: StatsData | undefined;
-  particles: Array<{id: number; left: string; size: number; delay: number; duration: number; opacity: number; alt: boolean}>;
   onRegister: () => void;
   onVideoPlay?: (url: string, title: string) => void;
 }
@@ -68,7 +67,7 @@ export function HeroSection({
   heroRef, heroY, heroScale, heroOpacity, contentY, heroMidY,
   cmsSiteTitle, cmsHeroTitle, cmsHeroSubtitle, cmsHeroTagline,
   cmsHeroBgDesktop, cmsHeroBgMobile, cmsHeroBgVideo, cmsSections, leagueData,
-  nextSeason, maleData, particles, onRegister, onVideoPlay
+  nextSeason, maleData, onRegister, onVideoPlay
 }: HeroSectionProps) {
   return (
     <>
@@ -125,9 +124,6 @@ export function HeroSection({
           </>
         ) : null /* No CMS media set — gradient dark background from overlay layers serves as cinematic base */}
 
-        {/* Animated Gradient Mesh Background — adds visual depth to dark hero */}
-        <div className="hero-landing-mesh absolute inset-0" aria-hidden="true" />
-
         {/* Layer 2: Mid-depth gold haze */}
         <motion.div
           className="absolute inset-0"
@@ -137,39 +133,11 @@ export function HeroSection({
           }}
         />
 
-        {/* Gradient Overlay — 2 layers (simplified from 3) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/50 to-[#0c0a06]/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0c0a06]/50 via-transparent to-[#0c0a06]/50" />
-
-
-
         {/* Vignette Effect — darkens edges for cinematic depth */}
         <div className="hero-vignette absolute inset-0 pointer-events-none" aria-hidden="true" />
 
         {/* CRT Scanline Overlay — esports vibe */}
         <div className="hero-scanline" aria-hidden="true" />
-
-        {/* Ambient Orbit Light */}
-        <div className="ambient-light" style={{ top: '30%', left: '20%' }} />
-        <div className="ambient-light" style={{ top: '60%', right: '10%', animationDelay: '-10s', animationDuration: '25s' }} />
-
-        {/* Floating Particles — gold/cyan colors for visual richness */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          {particles.map((p) => (
-            <div
-              key={p.id}
-              className={`hero-particle ${p.alt ? 'hero-particle-cyan' : 'hero-particle-gold'}`}
-              style={{
-                left: p.left,
-                width: `${p.size}px`,
-                height: `${p.size}px`,
-                animationDelay: `${p.delay}s`,
-                animationDuration: `${p.duration}s`,
-                opacity: p.opacity,
-              }}
-            />
-          ))}
-        </div>
 
         {/* Hero Content */}
         <motion.div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto w-full" style={{ opacity: heroOpacity, y: contentY }}>

@@ -7,7 +7,7 @@ import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { Crown, Users, Swords, BookOpen, Trophy, Radio } from 'lucide-react';
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
 
 // Section components
@@ -151,19 +151,6 @@ export function LandingPage() {
     setDivision(division);
     setCurrentView('dashboard');
   };
-
-  /* Floating Particles — reduced count for mobile performance */
-  const particles = useMemo(() => {
-    return Array.from({ length: 4 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      size: 1 + Math.random() * 2,
-      delay: Math.random() * 14,
-      duration: 14 + Math.random() * 18,
-      opacity: 0.12 + Math.random() * 0.2,
-      alt: i % 3 === 0,
-    }));
-  }, []);
 
   /* Nav scroll state */
   const [scrolled, setScrolled] = useState(false);
@@ -352,7 +339,6 @@ export function LandingPage() {
         leagueData={leagueData}
         nextSeason={nextSeason}
         maleData={maleData}
-        particles={particles}
         onRegister={() => setRegistrationModalOpen(true)}
         onVideoPlay={openVideoModal}
       />
