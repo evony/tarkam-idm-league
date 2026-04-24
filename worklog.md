@@ -2567,3 +2567,51 @@ Stage Summary:
 - Bintang Liga has season selector like MVP section
 - Champion display for completed seasons with gold accent
 
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Restructure dashboard layout — move tab bar to top after hero, remove redundant widgets, distribute widgets into relevant tabs
+
+Work Log:
+- Read full dashboard/index.tsx (553 lines) and all tab components (overview-tab.tsx, matches-tab.tsx, standings-tab.tsx, stats-tab.tsx)
+- Read all widget components: quick-stats-bar.tsx, live-match-indicator.tsx, live-match-counter.tsx, division-rivalry-widget.tsx, streak-widget.tsx, match-results-summary.tsx, match-day-countdown.tsx, top-donors-widget.tsx
+- Identified the problem: 17+ widgets displayed BEFORE the tab bar, requiring excessive scrolling to reach important tabs (Beranda, Peringkat, Pertandingan)
+- Identified redundancies: Quick Stats Pills duplicates QuickStatsBar, Live Match Banner duplicates LiveMatchIndicator, MyAccountCard/Login/PlayerQuickSearch/RecentlyViewed all already exist in sidebar
+- Restructured dashboard/index.tsx with new layout:
+  - Hero Banner (kept, compact)
+  - Tab Bar (moved up immediately after hero — no more scrolling)
+  - Tab Content with widgets distributed into relevant tabs
+- Distributed widgets into OverviewTab (Beranda):
+  - QuickStatsBar
+  - LiveMatchIndicator
+  - LiveMatchCounter
+  - Countdown/Status + Prize Pool
+  - ActivityFeed
+  - DivisionRivalryWidget
+  - StreakWidget
+  - TopDonorsWidget
+  - Existing OverviewTab content
+- Distributed widgets into MatchesTab (Pertandingan):
+  - MatchResultsSummary
+  - MatchDayCountdown
+  - Existing MatchesTab content
+- Removed redundant widgets:
+  - Quick Stats Pills (casino-pill grid — redundant with QuickStatsBar)
+  - Live Match Banner (redundant with LiveMatchIndicator)
+  - MyAccountCard (already in sidebar)
+  - PlayerQuickSearch (already in sidebar)
+  - Login Prompt (already in sidebar)
+  - Recently Viewed Players (already in sidebar)
+- Cleaned up orphaned PlayerAccountModal (no trigger after removing login prompt)
+- Removed unused imports: PlayerAccountModal, PlayerQuickSearch, addRecentlyViewed, getRecentlyViewed, RecentlyViewedPlayer, TierBadge, Image (for recently viewed), Clock, Gamepad2, ChevronRight, Wallet, Target, useEffect, getAvatarUrl
+- Ran `bun run lint` — passed with zero errors
+- Dev server running and compiling successfully
+
+Stage Summary:
+- Dashboard restructured: tab bar now appears immediately after hero banner without scrolling
+- 17 pre-tab widgets reduced to just hero banner + tab bar
+- Widgets distributed into relevant tabs: overview gets live/stats widgets, matches gets match widgets
+- 6 redundant widgets removed (Quick Stats Pills, Live Match Banner, MyAccountCard, PlayerQuickSearch, Login Prompt, Recently Viewed Players)
+- Orphaned PlayerAccountModal cleaned up
+- All lint checks pass, dev server operational
