@@ -3,13 +3,11 @@
 import React from 'react';
 import {
   Users,
-  Wallet,
   TrendingUp,
   Crown,
   Zap,
 } from 'lucide-react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { formatCurrency } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 /* ─── Stat Card Item ─── */
@@ -41,11 +39,6 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
       isPrimary: true,
     },
     {
-      icon: Wallet,
-      value: formatCurrency(data.totalPrizePool),
-      label: 'Prize Pool',
-    },
-    {
       icon: TrendingUp,
       value: `${data.seasonProgress?.percentage ?? 0}%`,
       label: 'Season Progress',
@@ -64,7 +57,7 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
         flex gap-3 overflow-x-auto snap-x snap-mandatory
         pb-2 -mx-1 px-1
         lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0
-        lg:grid lg:grid-cols-2 lg:gap-4
+        lg:grid lg:grid-cols-3 lg:gap-4
         custom-scrollbar
       "
       role="list"
