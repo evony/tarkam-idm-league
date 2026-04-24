@@ -107,6 +107,26 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
+ * Format number as abbreviated IDR currency for compact displays (mobile).
+ * Examples: 240000 → "Rp. 240K", 1200000 → "Rp. 1.2M", 50000 → "Rp. 50K"
+ */
+export function formatCurrencyShort(amount: number): string {
+  if (amount >= 1_000_000_000) {
+    const val = amount / 1_000_000_000;
+    return `Rp. ${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}B`;
+  }
+  if (amount >= 1_000_000) {
+    const val = amount / 1_000_000;
+    return `Rp. ${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
+  }
+  if (amount >= 1_000) {
+    const val = amount / 1_000;
+    return `Rp. ${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+  }
+  return `Rp. ${amount}`;
+}
+
+/**
  * Normalize club to a display string regardless of input format.
  * The /api/players/search endpoint returns club as {id, name, logo},
  * while /api/stats returns club as a string. This helper ensures

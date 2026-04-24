@@ -2636,3 +2636,36 @@ Stage Summary:
 - Grid layout updated to 2-column for better appearance with fewer cards
 - Marquee ticker also cleaned up — Total Clubs stat removed
 - All lint checks pass
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Enlarge mobile prize pool text + use abbreviated K format (Rp. 240K)
+
+Work Log:
+- Read current dashboard component at /src/components/idm/dashboard/index.tsx
+- Created `formatCurrencyShort()` utility in /src/lib/utils.ts:
+  - 240000 → "Rp. 240K", 1200000 → "Rp. 1.2M", 5000000000 → "Rp. 5B"
+  - Uses K for thousands, M for millions, B for billions
+  - Only shows decimal when not a round number (1.2M vs 2M)
+- Updated mobile prize pool in banner:
+  - Changed from `formatCurrency` (full: "Rp 240.000") to `formatCurrencyShort` (abbreviated: "Rp. 240K")
+  - Increased text size from text-[9px] to text-xs
+  - Increased padding from px-2 py-0.5 to px-2.5 py-1
+- Fixed desktop right zone layout (was messy per previous session feedback):
+  - Changed from `items-center` to `items-stretch` for proper alignment
+  - Added `gap-3` for consistent vertical spacing
+  - Increased width from w-[140px]/w-[200px] to w-[150px]/w-[220px]
+  - Prize pool text enlarged: text-sm→text-base (tablet), text-xl→text-2xl (desktop)
+  - Prize pool padding increased: px-3 py-1.5→px-3 py-2 (tablet), px-4 py-2→px-5 py-2.5 (desktop)
+  - Added rounded-xl to prize pool for better look
+  - "Prize Pool" label: added tracking-[0.2em] for readability
+  - Sawer button: full width with `w-full`, increased min-height
+- Lint check: passed with zero errors
+- Dev server: compiling and serving correctly
+
+Stage Summary:
+- New `formatCurrencyShort()` utility for compact currency display
+- Mobile prize pool now shows abbreviated format (Rp. 240K) with bigger text
+- Desktop right zone layout reorganized with better spacing and larger prize pool
+- All changes are backward-compatible and lint-clean

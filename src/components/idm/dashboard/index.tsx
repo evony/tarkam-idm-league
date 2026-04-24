@@ -27,7 +27,7 @@ import { ShareButton } from '../ui/share-button';
 import React, { useState, useMemo } from 'react';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { formatCurrency, clubToString } from '@/lib/utils';
+import { formatCurrency, formatCurrencyShort, clubToString } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 import { NoSeasonState } from './no-season-state';
@@ -206,7 +206,7 @@ export function Dashboard() {
                   />
                   <StatusBadge status={t?.status || 'registration'} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] font-bold text-idm-gold-warm">💰 {formatCurrency(t?.prizePool || data.totalPrizePool)}</span>
+                <span className="px-2.5 py-1 rounded bg-black/60 text-xs font-bold text-idm-gold-warm">💰 {formatCurrencyShort(t?.prizePool || data.totalPrizePool)}</span>
               </div>
             </div>
 
@@ -229,9 +229,9 @@ export function Dashboard() {
           </div>
 
           {/* ─── RIGHT ZONE (Desktop): Status → Prize → Sawer ─── */}
-          <div className="hidden sm:flex flex-col items-center justify-between w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6">
-            {/* Top: Share + Status */}
-            <div className="flex items-center gap-1.5">
+          <div className="hidden sm:flex flex-col items-stretch justify-between w-[150px] lg:w-[220px] shrink-0 border-l border-white/10 p-4 lg:p-6 gap-3">
+            {/* Top row: Share + Status — aligned left */}
+            <div className="flex items-center gap-2">
               <ShareButton
                 title={t?.name || 'IDM League'}
                 description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
@@ -240,16 +240,16 @@ export function Dashboard() {
               <StatusBadge status={t?.status || 'registration'} />
             </div>
 
-            {/* Center: Prize Pool */}
-            <div className="text-center">
-              <p className="text-[9px] lg:text-xs text-white/50 uppercase tracking-widest font-medium mb-2">Prize Pool</p>
-              <p className="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(t?.prizePool || data.totalPrizePool)}</p>
+            {/* Center: Prize Pool — emphasized */}
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-[10px] lg:text-xs text-white/40 uppercase tracking-[0.2em] font-semibold">Prize Pool</p>
+              <p className="px-3 py-2 lg:px-5 lg:py-2.5 rounded-xl bg-black/60 text-base lg:text-2xl font-black text-idm-gold-warm drop-shadow-[0_0_16px_rgba(229,190,74,0.45)] whitespace-nowrap">{formatCurrency(t?.prizePool || data.totalPrizePool)}</p>
             </div>
 
-            {/* Bottom: Sawer Button */}
+            {/* Bottom: Sawer Button — full width */}
             <button
               onClick={() => setDonationOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 lg:px-5 lg:py-3 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(229,190,74,0.3)] active:scale-95 transition-all cursor-pointer min-h-[36px] lg:min-h-[42px]"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 lg:px-5 lg:py-3 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(229,190,74,0.3)] active:scale-95 transition-all cursor-pointer min-h-[40px] lg:min-h-[44px]"
             >
               <Gift className="w-4 h-4 lg:w-5 lg:h-5" />
               Sawer
