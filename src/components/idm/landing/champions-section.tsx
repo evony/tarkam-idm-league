@@ -225,12 +225,7 @@ function DivisionChampionCard({
           <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0x30)} 0%, ${hexToRgba(accent, 0x15)} 50%, transparent 100%)` }} />
           <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 70% 40%, ${hexToRgba(accent, 0x35)}, transparent 60%)` }} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a06] via-[#0c0a06]/40 to-transparent" />
-          {/* Crown Glow */}
-          <div className="absolute top-4 right-6">
-            <div className="animate-float-subtle">
-              <Crown className="w-8 h-8 trophy-float" style={{ color: accentLight, filter: `drop-shadow(0 0 16px ${hexToRgba(accent, 0x80)})` }} />
-            </div>
-          </div>
+
           {/* Division + Week Badges */}
           <div className="absolute bottom-4 inset-x-0 px-5 flex items-end justify-between">
             <div className="flex items-center gap-3">
@@ -289,16 +284,9 @@ function DivisionChampionCard({
               <Trophy className="w-5 h-5" style={{ color: accentLight }} />
               <span className="text-xl sm:text-2xl font-black text-white">{selected.winnerTeam?.name || 'TBD'}</span>
             </div>
-            <div className="relative flex items-center gap-2">
-              {selected.prizePool > 0 && (
-                <span className="text-[11px] font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/15 to-idm-gold-warm/5 px-3 py-1.5 rounded-lg flex items-center gap-1 border border-idm-gold-warm/20"><Wallet className="w-3.5 h-3.5" />{selected.prizePool.toLocaleString()}</span>
-              )}
-              {selected.mvp && (
-                <span className="mvp-badge-premium glow-pulse text-xs font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-idm-gold-warm/25">
-                  <Crown className="w-5 h-5" />MVP {selected.mvp.gamertag}
-                </span>
-              )}
-            </div>
+            {selected.prizePool > 0 && (
+              <span className="text-[11px] font-bold text-idm-gold-warm bg-gradient-to-r from-idm-gold-warm/15 to-idm-gold-warm/5 px-3 py-1.5 rounded-lg flex items-center gap-1 border border-idm-gold-warm/20"><Wallet className="w-3.5 h-3.5" />{selected.prizePool.toLocaleString()}</span>
+            )}
           </div>
 
           {/* Gold divider line */}
@@ -481,12 +469,7 @@ function DivisionChampionCard({
                   </span>
                 )}
               </div>
-              {selected.mvp && (
-                <div className="flex items-center gap-1">
-                  <Crown className="w-3 h-3 text-idm-gold-warm" />
-                  <span className="text-[10px] font-bold text-idm-gold-warm">{selected.mvp.gamertag}</span>
-                </div>
-              )}
+
             </div>
             )}
           </div>
