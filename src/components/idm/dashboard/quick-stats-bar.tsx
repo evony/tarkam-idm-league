@@ -54,11 +54,9 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
   return (
     <div
       className="
-        flex gap-3 overflow-x-auto snap-x snap-mandatory
-        pb-2 -mx-1 px-1
-        lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0
-        lg:grid lg:grid-cols-3 lg:gap-4
-        custom-scrollbar
+        grid grid-cols-3 gap-2
+        sm:gap-3
+        lg:gap-4
       "
       role="list"
       aria-label="Quick stats summary"
@@ -69,18 +67,14 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
         return (
           <div
             key={stat.label}
-            className={`
-              stagger-item-subtle
-              snap-start shrink-0 w-[140px] sm:w-[160px]
-              lg:shrink lg:w-auto
-              group
-            `}
+            className="stagger-item-subtle group"
             style={{ animationDelay: `${idx * 60}ms` }}
             role="listitem"
           >
             <div
               className={`
-                relative flex items-center gap-3 p-3 sm:p-4
+                relative flex flex-col items-center justify-center
+                p-2.5 sm:p-4 lg:p-5
                 rounded-xl
                 bg-white/[0.07] dark:bg-white/[0.05]
                 border
@@ -93,7 +87,7 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
               {/* Icon */}
               <div
                 className={`
-                  w-9 h-9 sm:w-10 sm:h-10
+                  w-7 h-7 sm:w-10 sm:h-10
                   rounded-lg shrink-0
                   flex items-center justify-center
                   ${dt.iconBg}
@@ -103,33 +97,31 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
               >
                 <Icon
                   className={`
-                    w-4 h-4 sm:w-5 sm:h-5
+                    w-3.5 h-3.5 sm:w-5 sm:h-5
                     ${division === 'male' ? 'text-amber-400' : 'text-pink-400'}
                   `}
                 />
               </div>
 
-              {/* Value + Label */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p
-                    className={`
-                      text-sm sm:text-base font-bold truncate
-                      ${dt.neonText}
-                    `}
-                  >
-                    {stat.value}
-                  </p>
-                  {stat.badge}
-                </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">
-                  {stat.label}
-                </p>
-              </div>
+              {/* Value */}
+              <p
+                className={`
+                  text-xs sm:text-base font-bold truncate max-w-full text-center
+                  ${dt.neonText}
+                  mt-1.5 sm:mt-2
+                `}
+              >
+                {stat.value}
+              </p>
+
+              {/* Label */}
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 truncate max-w-full text-center">
+                {stat.label}
+              </p>
 
               {/* Subtle zap accent on primary card */}
               {stat.isPrimary && (
-                <Zap className="absolute top-2 right-2 w-3 h-3 text-amber-500/30" />
+                <Zap className="absolute top-1.5 right-1.5 w-3 h-3 text-amber-500/30" />
               )}
             </div>
           </div>
