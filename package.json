@@ -7,11 +7,12 @@
     "dev:guardian": "bash scripts/dev-guardian.sh",
     "dev:guardian:stop": "bash scripts/dev-guardian.sh stop",
     "dev:guardian:status": "bash scripts/dev-guardian.sh status",
-    "build": "bash scripts/vercel-build.sh && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
+    "build": "bash scripts/vercel-build.sh",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
+    "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset"
   },
