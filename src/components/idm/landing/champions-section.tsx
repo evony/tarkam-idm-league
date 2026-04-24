@@ -294,7 +294,7 @@ function DivisionChampionCard({
 
           {/* 3 Player Avatars — reordered by tier */}
           {selected.winnerTeam && orderedPlayers.length > 0 ? (
-            <div className="relative flex rounded-2xl overflow-hidden border -mx-1" style={{ height: '280px', borderColor: hexToRgba(accent, 0.15) }}>
+            <div className="relative flex rounded-2xl overflow-hidden border -mx-5" style={{ height: '260px', borderColor: hexToRgba(accent, 0.15) }}>
               {/* CHAMPION gold watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
                 <span className="text-4xl font-black uppercase tracking-widest select-none" style={{ color: 'rgba(212,168,83,0.04)', WebkitTextStroke: '1px rgba(212,168,83,0.06)' }}>CHAMPION</span>
