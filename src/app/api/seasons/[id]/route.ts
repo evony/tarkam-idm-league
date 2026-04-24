@@ -12,7 +12,13 @@ export async function GET(
     where: { id },
     include: {
       tournaments: { orderBy: { weekNumber: 'asc' } },
-      clubs: { orderBy: { points: 'desc' } },
+      clubs: {
+        orderBy: { points: 'desc' },
+        include: {
+          profile: { select: { id: true, name: true, logo: true } },
+          _count: { select: { homeMatches: true, awayMatches: true } },
+        },
+      },
       donations: { orderBy: { createdAt: 'desc' } },
       championClub: { select: { id: true, name: true, logo: true } },
       championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
@@ -49,6 +55,21 @@ export async function GET(
     seasonPlayers = Array.from(playerMap.values()).sort((a, b) => b.points - a.points);
   }
 
+  // For liga seasons, also fetch ALL ClubProfiles (for champion selector when season has no clubs yet)
+  let availableProfiles: Array<{ id: string; name: string; logo: string | null; memberCount: number }> = [];
+  if (season.division === 'liga') {
+    const profiles = await db.clubProfile.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { members: true } } },
+    });
+    availableProfiles = profiles.map(p => ({
+      id: p.id,
+      name: p.name,
+      logo: p.logo,
+      memberCount: p._count.members,
+    }));
+  }
+
   // Parse championSquad JSON string for SQLite compatibility
   const response = { ...season } as Record<string, unknown>;
   if (response.championSquad && typeof response.championSquad === 'string') {
@@ -61,6 +82,10 @@ export async function GET(
   // Add players for tarkam seasons
   if (seasonPlayers.length > 0) {
     response.players = seasonPlayers;
+  }
+  // Add available profiles for liga seasons
+  if (availableProfiles.length > 0) {
+    response.availableProfiles = availableProfiles;
   }
 
   return NextResponse.json(response);
@@ -89,10 +114,17 @@ export async function PUT(
     if (!profile) {
       return NextResponse.json({ error: 'Club champion tidak ditemukan' }, { status: 400 });
     }
-    // Verify club has an entry in this season
+    // Check if club already has a season entry; if not, auto-create one
     const seasonEntry = await db.club.findFirst({ where: { profileId: championClubId, seasonId: id } });
     if (!seasonEntry) {
-      return NextResponse.json({ error: 'Club bukan bagian dari season ini' }, { status: 400 });
+      // Auto-add club to this season so it can be set as champion
+      await db.club.create({
+        data: {
+          profileId: championClubId,
+          division: season.division,
+          seasonId: id,
+        },
+      });
     }
   }
 

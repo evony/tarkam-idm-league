@@ -2061,3 +2061,36 @@ Stage Summary:
   - Tarkam: Select champion player directly (individual tournament)
 - "Belum ada club" message no longer appears for Tarkam seasons
 - All changes are backward-compatible (championPlayerId is optional/nullable)
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix Season Liga champion selector — "belum ada club di season ini" issue
+
+Work Log:
+- Diagnosed the root cause: The Liga season had 0 clubs because:
+  1. API `/api/seasons/[id]` didn't include `profile` relation in clubs query, so `name`/`logo` were missing
+  2. Frontend sent `club.id` (Club season entry ID) as `championClubId`, but API expected `ClubProfile` ID
+  3. Liga season was created after clubs existed, so no clubs were added to it
+- Fixed API `GET /api/seasons/[id]`:
+  - Added `profile` relation include to clubs query: `{ select: { id: true, name: true, logo: true } }`
+  - Added `_count: { select: { homeMatches: true, awayMatches: true } }` to clubs
+  - Added `availableProfiles` fetch for Liga seasons — returns ALL ClubProfiles when season has no clubs
+  - Changed champion validation in PUT handler: auto-creates Club season entry if not exists (instead of returning error)
+- Fixed frontend `AdminSeasonPanel`:
+  - Updated `SeasonClubData` interface to include `profileId`, `profile` fields
+  - Added `availableProfiles` to `SeasonData` interface
+  - Added helper functions `getClubName()` and `getClubLogo()` to handle profile-based data
+  - Fixed `handleSetChampion()` to accept and send ClubProfile ID (not Club entry ID)
+  - Updated Liga champion selector to use `profile.name`/`profile.logo` with `ClubLogoImage`
+  - Added fallback: when season has no clubs, shows ALL available ClubProfiles with amber notice
+  - Added "Clubs in Season" section showing current clubs as badges with W/L stats
+  - Created `AddClubToSeasonButton` component — dropdown to add existing clubs to season
+  - Uses `ClubLogoImage` for proper logo rendering with fallback
+
+Stage Summary:
+- Liga season champion selector now shows ALL ClubProfiles (21 clubs) even when season has 0 clubs
+- Admin can set champion from any ClubProfile — API auto-creates season entry if needed
+- New "Clubs in Season" section shows current clubs with W/L badges
+- New "Add Club to Season" dropdown button lets admin add existing clubs to season
+- All lint checks pass, dev server operational

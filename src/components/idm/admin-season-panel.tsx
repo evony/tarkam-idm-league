@@ -30,14 +30,16 @@ interface AdminSeasonPanelProps {
 
 interface SeasonClubData {
   id: string;
-  name: string;
-  logo: string | null;
+  profileId: string;
+  name?: string; // deprecated — use profile.name
+  logo?: string | null; // deprecated — use profile.logo
   division: string;
   wins: number;
   losses: number;
   points: number;
   gameDiff: number;
-  _count?: { members: number };
+  profile?: { id: string; name: string; logo: string | null };
+  _count?: { homeMatches?: number; awayMatches?: number; members?: number };
 }
 
 interface SeasonData {
@@ -54,6 +56,7 @@ interface SeasonData {
   championPlayerId?: string | null;
   championPlayer?: { id: string; gamertag: string; division: string; avatar: string | null; points: number } | null;
   players?: Array<{ id: string; gamertag: string; division: string; avatar: string | null; points: number; tournamentCount: number }>;
+  availableProfiles?: Array<{ id: string; name: string; logo: string | null; memberCount: number }>;
   _count: { tournaments: number; clubs: number };
   clubs?: SeasonClubData[];
 }
@@ -204,17 +207,22 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
     onError: (e: Error) => { toast.error(e.message); },
   });
 
+  // Helper to get club display name
+  const getClubName = (club: SeasonClubData) => club.profile?.name || club.name || 'Unknown';
+  const getClubLogo = (club: SeasonClubData) => club.profile?.logo || club.logo || null;
+
   // Helper to set champion (liga)
-  const handleSetChampion = (seasonId: string, clubId: string) => {
-    const club = seasonDetail?.clubs?.find(c => c.id === clubId);
+  // championClubId must be a ClubProfile ID (not Club season entry ID)
+  const handleSetChampion = (seasonId: string, profileId: string) => {
+    const club = seasonDetail?.clubs?.find(c => c.profileId === profileId || c.profile?.id === profileId);
     setConfirmLocal({
       open: true,
       title: 'Set Champion Season?',
-      description: `Set "${club?.name}" sebagai champion season ini? Status season akan otomatis diubah menjadi "completed".`,
+      description: `Set "${getClubName(club!)}" sebagai champion season ini? Status season akan otomatis diubah menjadi "completed".`,
       onConfirm: () => {
         updateSeason.mutate({
           seasonId,
-          data: { championClubId: clubId, status: 'completed' },
+          data: { championClubId: profileId, status: 'completed' },
         });
       },
     });
@@ -559,50 +567,126 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                   {/* Champion editing mode - Liga */}
                                   {isChampionEditing && (
                                     <div className="space-y-2">
-                                      <p className="text-[10px] text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
-                                      <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                                        {seasonDetail?.clubs?.map((club) => (
-                                          <div
-                                            key={club.id}
-                                            className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
-                                              selectedChampion === club.id
-                                                ? 'border-yellow-500/30 bg-yellow-500/5'
-                                                : 'border-border/20 bg-card/30 hover:bg-muted/20'
-                                            }`}
-                                            onClick={() => setSelectedChampion(club.id)}
-                                          >
-                                            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                                              {club.logo ? (
-                                                <Image src={club.logo} alt={club.name} width={32} height={32} className="w-full h-full object-cover" />
-                                              ) : (
-                                                <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
-                                                  <Shield className={`w-3.5 h-3.5 ${dt.neonText}`} />
+                                      {/* Show clubs in season if available */}
+                                      {seasonDetail?.clubs && seasonDetail.clubs.length > 0 && (
+                                        <>
+                                          <p className="text-[10px] text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
+                                          <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                            {seasonDetail.clubs.map((club) => {
+                                              const clubName = getClubName(club);
+                                              const clubLogo = getClubLogo(club);
+                                              const championRef = club.profileId || club.profile?.id || club.id;
+                                              return (
+                                                <div
+                                                  key={club.id}
+                                                  className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
+                                                    selectedChampion === championRef
+                                                      ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                      : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                                  }`}
+                                                  onClick={() => setSelectedChampion(championRef)}
+                                                >
+                                                  <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                    {clubLogo ? (
+                                                      <ClubLogoImage
+                                                        clubName={clubName}
+                                                        dbLogo={clubLogo}
+                                                        alt={clubName}
+                                                        width={32}
+                                                        height={32}
+                                                        className="w-full h-full object-cover"
+                                                      />
+                                                    ) : (
+                                                      <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
+                                                        <Shield className={`w-3.5 h-3.5 ${dt.neonText}`} />
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-medium truncate">{clubName}</p>
+                                                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                      <span className="text-green-500">{club.wins}W</span>
+                                                      <span>-</span>
+                                                      <span className="text-red-500">{club.losses}L</span>
+                                                      <span>•</span>
+                                                      <span>{club.points}pts</span>
+                                                      <span>•</span>
+                                                      <span>GD {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}</span>
+                                                    </div>
+                                                  </div>
+                                                  {selectedChampion === championRef && (
+                                                    <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                      <Check className="w-3 h-3 text-black" />
+                                                    </div>
+                                                  )}
                                                 </div>
-                                              )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <p className="text-xs font-medium truncate">{club.name}</p>
-                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
-                                                <span className="text-green-500">{club.wins}W</span>
-                                                <span>-</span>
-                                                <span className="text-red-500">{club.losses}L</span>
-                                                <span>•</span>
-                                                <span>{club.points}pts</span>
+                                              );
+                                            })}
+                                          </div>
+                                        </>
+                                      )}
+
+                                      {/* Show ALL ClubProfiles when season has no clubs yet */}
+                                      {(!seasonDetail?.clubs || seasonDetail.clubs.length === 0) && (
+                                        <>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <p className="text-[10px] text-amber-400/80">Season ini belum ada club — pilih dari semua club yang tersedia:</p>
+                                          </div>
+                                          <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                            {seasonDetail?.availableProfiles?.map((profile) => (
+                                              <div
+                                                key={profile.id}
+                                                className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
+                                                  selectedChampion === profile.id
+                                                    ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                    : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                                }`}
+                                                onClick={() => setSelectedChampion(profile.id)}
+                                              >
+                                                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                  {profile.logo ? (
+                                                    <ClubLogoImage
+                                                      clubName={profile.name}
+                                                      dbLogo={profile.logo}
+                                                      alt={profile.name}
+                                                      width={32}
+                                                      height={32}
+                                                      className="w-full h-full object-cover"
+                                                    />
+                                                  ) : (
+                                                    <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
+                                                      <Shield className={`w-3.5 h-3.5 ${dt.neonText}`} />
+                                                    </div>
+                                                  )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  <p className="text-xs font-medium truncate">{profile.name}</p>
+                                                  <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                    <span>{profile.memberCount} anggota</span>
+                                                  </div>
+                                                </div>
+                                                {selectedChampion === profile.id && (
+                                                  <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                    <Check className="w-3 h-3 text-black" />
+                                                  </div>
+                                                )}
                                               </div>
-                                            </div>
-                                            {selectedChampion === club.id && (
-                                              <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
-                                                <Check className="w-3 h-3 text-black" />
+                                            ))}
+                                            {(!seasonDetail?.availableProfiles || seasonDetail.availableProfiles.length === 0) && (
+                                              <div className="text-center py-4">
+                                                <Shield className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                                <p className="text-[10px] text-muted-foreground">
+                                                  Belum ada club yang terdaftar di platform
+                                                </p>
+                                                <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                                                  Tambahkan club terlebih dahulu di tab Club
+                                                </p>
                                               </div>
                                             )}
                                           </div>
-                                        ))}
-                                        {(!seasonDetail?.clubs || seasonDetail.clubs.length === 0) && (
-                                          <p className="text-[10px] text-muted-foreground text-center py-4">
-                                            Belum ada club di season ini
-                                          </p>
-                                        )}
-                                      </div>
+                                        </>
+                                      )}
+
                                       <div className="flex items-center gap-2">
                                         <Button
                                           size="sm"
@@ -758,6 +842,42 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                 </>
                               )}
                             </div>
+
+                            {/* ── Clubs in Season (Liga only) ── */}
+                            {!isTarkam && (
+                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                    <Shield className="w-3.5 h-3.5 text-blue-400" /> Club di Season Ini ({seasonDetail?.clubs?.length || 0})
+                                  </p>
+                                  <AddClubToSeasonButton seasonId={season.id} seasonDivision={season.division} dt={dt} qc={qc} />
+                                </div>
+                                {seasonDetail?.clubs && seasonDetail.clubs.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {seasonDetail.clubs.map((club) => {
+                                      const clubName = getClubName(club);
+                                      const clubLogo = getClubLogo(club);
+                                      return (
+                                        <Badge key={club.id} className="text-[9px] border border-border/30 bg-card/50 gap-1 pr-1.5 pl-1 py-0.5">
+                                          {clubLogo ? (
+                                            <ClubLogoImage clubName={clubName} dbLogo={clubLogo} alt={clubName} width={12} height={12} className="w-3 h-3 rounded-sm object-cover" />
+                                          ) : (
+                                            <Shield className="w-2.5 h-2.5 text-muted-foreground" />
+                                          )}
+                                          <span>{clubName}</span>
+                                          <span className="text-green-500/70">{club.wins}W</span>
+                                          <span className="text-red-500/70">{club.losses}L</span>
+                                        </Badge>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="text-[10px] text-muted-foreground text-center py-2">
+                                    Belum ada club di season ini — gunakan tombol + untuk menambahkan
+                                  </p>
+                                )}
+                              </div>
+                            )}
 
                             {/* ── Champion Squad Management ── */}
                             {!isTarkam && seasonDetail?.championClubId && (
@@ -1105,6 +1225,113 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// Add Club To Season Button — opens a dropdown of available ClubProfiles not yet in this season
+function AddClubToSeasonButton({ seasonId, seasonDivision, dt, qc }: {
+  seasonId: string;
+  seasonDivision: string;
+  dt: DivisionTheme;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [adding, setAdding] = useState<string | null>(null);
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    return fetch(url, { ...options, credentials: 'include', headers: { 'Content-Type': 'application/json', ...options.headers } });
+  };
+
+  // Fetch all ClubProfiles
+  const { data: profiles } = useQuery<Array<{ id: string; name: string; logo: string | null; memberCount: number }>>({
+    queryKey: ['club-profiles-all'],
+    queryFn: async () => {
+      const res = await fetch('/api/clubs?unified=true');
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.map((c: { id: string; name: string; logo: string | null; memberCount?: number; seasonRecords?: Array<{ seasonId: string }> }) => ({
+        id: c.id,
+        name: c.name,
+        logo: c.logo,
+        memberCount: c.memberCount || 0,
+        seasonIds: c.seasonRecords?.map((r: { seasonId: string }) => r.seasonId) || [],
+      }));
+    },
+    enabled: open,
+  });
+
+  // Fetch current season clubs to filter out already-added ones
+  const { data: seasonDetail } = useQuery<SeasonData>({
+    queryKey: ['admin-season-detail', seasonId],
+    queryFn: async () => { const res = await fetch(`/api/seasons/${seasonId}`); return res.json(); },
+    enabled: open,
+  });
+
+  const existingProfileIds = new Set((seasonDetail?.clubs || []).map(c => c.profileId || c.profile?.id));
+  const available = (profiles || []).filter(p => !existingProfileIds.has(p.id));
+  const filtered = available.filter(p => !search.trim() || p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const handleAdd = async (profileId: string) => {
+    setAdding(profileId);
+    try {
+      const res = await authFetch('/api/clubs', {
+        method: 'POST',
+        body: JSON.stringify({ name: (available.find(p => p.id === profileId))?.name, seasonId }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      qc.invalidateQueries({ queryKey: ['admin-season-detail', seasonId] });
+      qc.invalidateQueries({ queryKey: ['admin-seasons'] });
+      toast.success('Club berhasil ditambahkan ke season!');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Gagal menambahkan club');
+    } finally {
+      setAdding(null);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Button size="sm" variant="outline" className="text-[10px] h-7 w-7 p-0" onClick={() => setOpen(!open)}>
+        <Plus className="w-3 h-3" />
+      </Button>
+      {open && (
+        <div className="absolute right-0 top-8 z-50 w-56 bg-card border border-border/30 rounded-lg shadow-lg p-2 space-y-1.5">
+          <Input
+            placeholder="Cari club..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="text-[10px] h-7"
+          />
+          <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-0.5">
+            {filtered.map((profile) => (
+              <div
+                key={profile.id}
+                className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/20 cursor-pointer transition-colors"
+                onClick={() => handleAdd(profile.id)}
+              >
+                {profile.logo ? (
+                  <ClubLogoImage clubName={profile.name} dbLogo={profile.logo} alt={profile.name} width={16} height={16} className="w-4 h-4 rounded-sm object-cover shrink-0" />
+                ) : (
+                  <Shield className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                )}
+                <span className="text-[10px] truncate flex-1">{profile.name}</span>
+                {adding === profile.id ? (
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground shrink-0" />
+                ) : (
+                  <Plus className="w-3 h-3 text-muted-foreground shrink-0" />
+                )}
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-[9px] text-muted-foreground text-center py-2">
+                {available.length === 0 ? 'Semua club sudah ada di season' : 'Club tidak ditemukan'}
+              </p>
+            )}
+          </div>
+          <Button size="sm" variant="ghost" className="text-[9px] h-6 w-full" onClick={() => { setOpen(false); setSearch(''); }}>Tutup</Button>
+        </div>
+      )}
     </div>
   );
 }
