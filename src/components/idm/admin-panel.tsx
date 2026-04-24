@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   Shield, Users, Music, Trophy, Gift, Plus,
   Crown, X, Loader2, Clock, MapPin, Phone, Globe, Camera, Pencil, Trash2, Search,
-  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight
+  LayoutDashboard, Sliders, Flame, CheckCircle2, XCircle, Wallet, Save, ArrowRight, Calendar
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -468,7 +468,7 @@ export function AdminPanel() {
     phone: string | null;
     joki: string | null;
     points: number;
-    clubMembers?: Array<{ club: { id: string; name: string } }>;
+    clubMembers?: Array<{ profile: { id: string; name: string; logo?: string | null } }>;
   }) => {
     setEditingPlayer({
       id: player.id,
@@ -481,7 +481,7 @@ export function AdminPanel() {
         phone: player.phone || '',
         joki: player.joki || '',
         points: player.points.toString(),
-        clubId: player.clubMembers?.[0]?.club?.id || '_none',
+        clubId: player.clubMembers?.[0]?.profile?.id || '_none',
       }
     });
     setFormData({
@@ -493,7 +493,7 @@ export function AdminPanel() {
       phone: player.phone || '',
       joki: player.joki || '',
       points: player.points.toString(),
-      clubId: player.clubMembers?.[0]?.club?.id || '_none',
+      clubId: player.clubMembers?.[0]?.profile?.id || '_none',
     });
     setPlayerFormOpen(true);
   };
@@ -519,16 +519,45 @@ export function AdminPanel() {
 
   // paymentForm is derived from cmsSettings (no useEffect needed)
 
+  // Count helpers for tab badges
+  const playerCount = filteredPlayers?.length || 0;
+  const pendingCount = pendingRegistrations?.length || 0;
+  const donationCount = donations?.donations?.filter((d: { status: string }) => d.status === 'pending').length || 0;
+
   return (
-    <div className="space-y-4 w-full">
-      <div className="flex items-center gap-2 mb-2">
-        <Shield className={`w-5 h-5 ${dt.neonText}`} />
-        <h2 className="text-lg font-bold text-gradient-fury">Panel Admin</h2>
-        <Badge className="bg-red-500/10 text-red-500 text-[10px] border-0">ADMIN</Badge>
+    <div className="space-y-3 w-full admin-panel-glass rounded-2xl p-3 sm:p-4 border border-white/[0.06]">
+      {/* Header + Season Info */}
+      <div className="flex flex-col gap-2 mb-1">
+        <div className="flex items-center gap-2">
+          <Shield className={`w-5 h-5 ${dt.neonText}`} />
+          <h2 className="text-lg font-bold text-gradient-fury">Panel Admin</h2>
+          <Badge className="bg-red-500/10 text-red-500 text-[10px] border-0">ADMIN</Badge>
+        </div>
+        {/* Season Info Indicator */}
+        {stats?.season && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+            <Calendar className="w-3.5 h-3.5 text-idm-gold-warm shrink-0" />
+            <span className="text-[11px] font-medium text-idm-gold-warm truncate">{stats.season.name || `Season ${stats.season.number}`}</span>
+            <Badge
+              className={
+                stats.season.status === 'active'
+                  ? 'text-[8px] border-0 px-1.5 py-0 bg-green-500/15 text-green-400'
+                  : stats.season.status === 'completed'
+                    ? 'text-[8px] border-0 px-1.5 py-0 bg-muted text-muted-foreground'
+                    : 'text-[8px] border-0 px-1.5 py-0 bg-idm-gold-warm/15 text-idm-gold-warm'
+              }
+            >
+              {stats.season.status === 'active' ? '● Aktif' : stats.season.status === 'completed' ? 'Selesai' : stats.season.status}
+            </Badge>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">
+              Division: {storeDivision === 'male' ? '🕺 Male' : '💃 Female'}
+            </span>
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" aria-label="Admin panel navigation">
-        {/* Mobile: Apple Settings grouped navigation */}
+        {/* Mobile: Grouped category navigation */}
         <div className="sm:hidden space-y-2">
           <div className="grid grid-cols-4 gap-1">
             {([
@@ -544,26 +573,29 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-[10px] font-medium transition-colors duration-150 min-h-[44px] justify-center ${
+                className={`relative flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-[10px] font-medium transition-all duration-200 min-h-[44px] justify-center admin-nav-btn ${
                   mobileCategory === cat.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
-                    : 'bg-muted/30 text-muted-foreground border border-transparent'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm shadow-idm-gold-warm/10'
+                    : 'bg-muted/20 text-muted-foreground border border-transparent hover:bg-muted/40 hover:text-foreground/80'
                 }`}
               >
-                <cat.icon className="w-4 h-4" />
+                <cat.icon className={`w-4 h-4 transition-transform duration-200 ${mobileCategory === cat.key ? 'scale-110' : ''}`} />
                 <span>{cat.label}</span>
+                {mobileCategory === cat.key && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-idm-gold-warm admin-nav-indicator" />
+                )}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none px-0.5">
             {(categoryTabMap[mobileCategory] || []).map(tabValue => {
-              const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
+              const tabConfig: Record<string, { icon: typeof Users; label: string; count?: number }> = {
                 dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
-                pemain: { icon: Users, label: 'Pemain' },
+                pemain: { icon: Users, label: 'Pemain', count: playerCount },
                 turnamen: { icon: Music, label: 'Turnamen' },
                 liga: { icon: Crown, label: 'Liga' },
                 konten: { icon: Globe, label: 'Konten' },
-                keuangan: { icon: Gift, label: 'Keuangan' },
+                keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
@@ -573,21 +605,27 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors duration-150 min-h-[44px] ${
+                  className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all duration-200 min-h-[36px] ${
                     activeTab === tabValue
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'bg-background/80 backdrop-blur-sm shadow-sm text-foreground border border-border/50'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
                   <CfgIcon className="w-3 h-3" />
                   {cfg.label}
+                  {cfg.count !== undefined && cfg.count > 0 && (
+                    <Badge className="text-[8px] border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
+                  )}
+                  {tabValue === 'pemain' && pendingCount > 0 && (
+                    <Badge className="text-[8px] border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{pendingCount}</Badge>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Desktop: Compact 4-category navigation (same as mobile) */}
+        {/* Desktop: Compact 4-category navigation */}
         <div className="hidden sm:block space-y-2">
           <div className="grid grid-cols-4 gap-1.5">
             {([
@@ -603,26 +641,29 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-medium transition-colors duration-150 ${
+                className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-200 admin-nav-btn ${
                   mobileCategory === cat.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25'
-                    : 'bg-muted/30 text-muted-foreground border border-transparent hover:bg-muted/50 hover:text-foreground'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm shadow-idm-gold-warm/10'
+                    : 'bg-muted/20 text-muted-foreground border border-transparent hover:bg-muted/40 hover:text-foreground/80'
                 }`}
               >
-                <cat.icon className="w-4 h-4" />
+                <cat.icon className={`w-4 h-4 transition-transform duration-200 ${mobileCategory === cat.key ? 'scale-110' : ''}`} />
                 <span>{cat.label}</span>
+                {mobileCategory === cat.key && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-idm-gold-warm admin-nav-indicator" />
+                )}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none px-0.5">
             {(categoryTabMap[mobileCategory] || []).map(tabValue => {
-              const tabConfig: Record<string, { icon: typeof Users; label: string }> = {
+              const tabConfig: Record<string, { icon: typeof Users; label: string; count?: number }> = {
                 dashboard: { icon: LayoutDashboard, label: 'Dashboard' },
-                pemain: { icon: Users, label: 'Pemain' },
+                pemain: { icon: Users, label: 'Pemain', count: playerCount },
                 turnamen: { icon: Music, label: 'Turnamen' },
                 liga: { icon: Crown, label: 'Liga' },
                 konten: { icon: Globe, label: 'Konten' },
-                keuangan: { icon: Gift, label: 'Keuangan' },
+                keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
@@ -632,14 +673,20 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors duration-150 ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                     activeTab === tabValue
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'bg-background/80 backdrop-blur-sm shadow-sm text-foreground border border-border/50'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
                   <CfgIcon className="w-3 h-3" />
                   {cfg.label}
+                  {cfg.count !== undefined && cfg.count > 0 && (
+                    <Badge className="text-[8px] border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
+                  )}
+                  {tabValue === 'pemain' && pendingCount > 0 && (
+                    <Badge className="text-[8px] border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center ml-0.5">{pendingCount}</Badge>
+                  )}
                 </button>
               );
             })}
@@ -647,12 +694,12 @@ export function AdminPanel() {
         </div>
 
         {/* ====== DASHBOARD TAB ====== */}
-        <TabsContent value="dashboard">
+        <TabsContent value="dashboard" className="admin-tab-enter">
           <AdminOverview division={storeDivision} />
         </TabsContent>
 
         {/* ====== PEMAIN TAB ====== */}
-        <TabsContent value="pemain">
+        <TabsContent value="pemain" className="admin-tab-enter">
           <div className="space-y-3">
             {/* Pending Registrations */}
             {pendingRegistrations?.length > 0 && (
@@ -717,19 +764,19 @@ export function AdminPanel() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Cari player by nama/gamertag..."
+                  placeholder="Cari pemain..."
                   value={searchPlayer}
                   onChange={(e) => setSearchPlayer(e.target.value)}
-                  className="pl-9 glass"
+                  className="pl-9 backdrop-blur-md bg-white/[0.04] border-white/[0.08] focus:border-idm-gold-warm/30 focus:bg-white/[0.06] transition-colors"
                 />
               </div>
-              <Button onClick={openNewPlayerForm} className="shrink-0">
-                <Plus className="w-4 h-4 mr-1" /> Tambah Player
+              <Button onClick={openNewPlayerForm} size="sm" className="shrink-0 text-[11px] h-8 sm:h-9">
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" /> <span className="hidden xs:inline">Tambah </span>Player
               </Button>
             </div>
 
             {/* Player list */}
-            <div className="space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="space-y-1 sm:space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar">
               {filteredPlayers.map((p: {
                 id: string;
                 gamertag: string;
@@ -746,15 +793,15 @@ export function AdminPanel() {
                 city: string;
                 phone: string | null;
                 joki: string | null;
-                clubMembers?: Array<{ club: { id: string; name: string } }>;
+                clubMembers?: Array<{ profile: { id: string; name: string; logo?: string | null } }>;
               }, index) => {
                 const avatarSrc = getAvatarUrl(p.gamertag, p.division, p.avatar);
                 return (
-                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow}`}
+                <div key={p.id} className={`flex items-center justify-between p-2 sm:p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow} transition-colors hover:border-border/80`}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                     <div className="relative group shrink-0">
-                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden">
                         <Image src={avatarSrc} alt={p.gamertag} width={40} height={40} className="w-full h-full object-cover" />
                       </div>
                       <button
@@ -762,36 +809,35 @@ export function AdminPanel() {
                         onClick={() => openAvatarPicker(p.id)}
                         title="Ganti avatar"
                       >
-                        <Camera className="w-4 h-4 text-white" />
+                        <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                       </button>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate">{p.gamertag}</p>
-                        <Badge className={`text-[9px] border-0 ${p.division === 'male' ? 'bg-idm-male/10 text-idm-male' : 'bg-idm-female/10 text-idm-female'}`}>
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                        <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                        <Badge className={`text-[8px] sm:text-[9px] border-0 ${p.division === 'male' ? 'bg-idm-male/10 text-idm-male' : 'bg-idm-female/10 text-idm-female'}`}>
                           {p.division === 'male' ? '🕺' : '💃'}
                         </Badge>
                         <TierBadge tier={p.tier} />
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
-                        <span className="font-medium text-foreground">{p.name}</span>
-                        {p.city && <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{p.city}</span>}
-                        <span>•</span>
-                        <span>{p.points} pts</span>
+                      <div className="flex flex-wrap items-center gap-x-1 sm:gap-x-2 gap-y-0.5 text-[9px] sm:text-[10px] text-muted-foreground">
+                        <span className="font-medium text-foreground truncate max-w-[80px] sm:max-w-none">{p.name}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>{p.points}pts</span>
                         <span>•</span>
                         <span>{p.totalWins}W</span>
-                        <span>•</span>
-                        <span>{p.totalMvp} MVP</span>
-                        {p.streak > 1 && <span className="text-orange-400 flex items-center gap-0.5"><Flame className="w-3 h-3" />{p.streak}</span>}
-                        {p.clubMembers?.[0]?.club && (
-                          <Badge className="text-[9px] border-0 bg-muted text-muted-foreground">{p.clubMembers[0].club.name}</Badge>
+                        <span className="hidden sm:inline">•</span>
+                        <span className="hidden sm:inline">{p.totalMvp} MVP</span>
+                        {p.streak > 1 && <span className="text-orange-400 flex items-center gap-0.5"><Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3" />{p.streak}</span>}
+                        {p.clubMembers?.[0]?.profile && (
+                          <Badge className="text-[8px] sm:text-[9px] border-0 bg-muted text-muted-foreground truncate max-w-[60px] sm:max-w-none">{p.clubMembers[0].profile.name}</Badge>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                     <Select value={p.tier} onValueChange={(tier) => updateTier.mutate({ playerId: p.id, tier })}>
-                      <SelectTrigger className="w-14 h-7 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-12 sm:w-14 h-7 text-[10px] sm:text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="S">S</SelectItem>
                         <SelectItem value="A">A</SelectItem>
@@ -828,7 +874,7 @@ export function AdminPanel() {
         </TabsContent>
 
         {/* ====== TURNAMEN TAB ====== */}
-        <TabsContent value="turnamen">
+        <TabsContent value="turnamen" className="admin-tab-enter">
           <div className="space-y-4">
             {/* ── Tournament Registration Overview ── */}
             {activeTournaments?.length > 0 && (
@@ -984,7 +1030,7 @@ export function AdminPanel() {
         </TabsContent>
 
         {/* ====== LIGA TAB ====== */}
-        <TabsContent value="liga">
+        <TabsContent value="liga" className="admin-tab-enter">
           <div className="space-y-4">
             {/* Season Management */}
             <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} />
@@ -1104,7 +1150,7 @@ export function AdminPanel() {
         </TabsContent>
 
         {/* ====== KEUANGAN TAB ====== */}
-        <TabsContent value="keuangan">
+        <TabsContent value="keuangan" className="admin-tab-enter">
           <div className="space-y-4">
             {/* Pending Donations — Approval Queue */}
             {donations?.donations?.filter((d: { status: string }) => d.status === 'pending').length > 0 && (
@@ -1301,7 +1347,7 @@ export function AdminPanel() {
         </TabsContent>
 
         {/* ====== KONTEN TAB ====== */}
-        <TabsContent value="konten">
+        <TabsContent value="konten" className="admin-tab-enter">
           <div className="space-y-4">
             <AdminSponsorPanel />
             <AdminAchievementPanel />
@@ -1311,7 +1357,7 @@ export function AdminPanel() {
         </TabsContent>
 
         {/* ====== PENGATURAN TAB ====== */}
-        <TabsContent value="pengaturan">
+        <TabsContent value="pengaturan" className="admin-tab-enter">
           <div className="space-y-4">
             <AdminSettingsPanel />
             <AdminManagement />
@@ -1335,12 +1381,12 @@ export function AdminPanel() {
 
       {/* Player Form Dialog */}
       <Dialog open={playerFormOpen} onOpenChange={setPlayerFormOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-[calc(100%-1rem)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPlayer ? 'Edit Player' : 'Tambah Player Baru'}</DialogTitle>
             <DialogDescription>{editingPlayer ? 'Perbarui informasi player yang sudah terdaftar' : 'Isi form untuk menambahkan player baru ke sistem'}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 sm:space-y-4 py-2 sm:py-4">
             <div className="grid grid-cols-2 gap-3">
               {/* Division */}
               <div className="col-span-2">

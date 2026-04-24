@@ -21,17 +21,19 @@ export async function GET(request: Request) {
       take: limit,
       include: {
         clubMembers: {
+          where: { leftAt: null },
           include: {
-            club: {
+            profile: {
               select: { name: true },
             },
           },
+          take: 1,
         },
       },
     });
 
     const streakData = players.map((player) => {
-      const club = player.clubMembers[0]?.club?.name || null;
+      const club = player.clubMembers[0]?.profile?.name || null;
       return {
         id: player.id,
         gamertag: player.gamertag,

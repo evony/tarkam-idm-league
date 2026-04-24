@@ -15,16 +15,18 @@ export async function GET(
   try {
     const { id } = await params;
 
-    // 1. Find the player by ID
+    // 1. Find the player by ID with club membership (via ClubProfile)
     const player = await db.player.findUnique({
       where: { id },
       include: {
         clubMembers: {
+          where: { leftAt: null },
           include: {
-            club: {
+            profile: {
               select: { id: true, name: true, logo: true },
             },
           },
+          take: 1,
         },
       },
     });
@@ -34,9 +36,10 @@ export async function GET(
     }
 
     const clubMembership = player.clubMembers[0];
-    const club = clubMembership?.club ?? null;
+    const clubProfile = clubMembership?.profile ?? null;
 
     // 2. Find league matches — via club membership
+    // Need to find the Club season entries for this profile to get clubIds for match lookups
     let leagueMatches: Array<{
       id: string;
       week: number;
@@ -50,59 +53,58 @@ export async function GET(
       result: 'win' | 'loss' | 'upcoming' | null;
     }> = [];
 
-    if (clubMembership) {
-      const clubId = clubMembership.clubId;
-
-      // Get all league matches where player's club is home or away
-      const homeMatches = await db.leagueMatch.findMany({
-        where: { club1Id: clubId },
-        include: {
-          club1: { select: { id: true, name: true, logo: true } },
-          club2: { select: { id: true, name: true, logo: true } },
-        },
-        orderBy: { week: 'desc' },
+    if (clubProfile) {
+      // Get all club season entries for this profile
+      const clubEntries = await db.club.findMany({
+        where: { profileId: clubProfile.id },
+        select: { id: true },
       });
+      const clubIds = clubEntries.map(c => c.id);
 
-      const awayMatches = await db.leagueMatch.findMany({
-        where: { club2Id: clubId },
-        include: {
-          club1: { select: { id: true, name: true, logo: true } },
-          club2: { select: { id: true, name: true, logo: true } },
-        },
-        orderBy: { week: 'desc' },
-      });
+      if (clubIds.length > 0) {
+        // Get all league matches where player's club entries are home or away
+        const allLeagueMatches = await db.leagueMatch.findMany({
+          where: {
+            OR: [
+              { club1Id: { in: clubIds } },
+              { club2Id: { in: clubIds } },
+            ],
+          },
+          include: {
+            club1: { include: { profile: { select: { id: true, name: true, logo: true } } } },
+            club2: { include: { profile: { select: { id: true, name: true, logo: true } } } },
+          },
+          orderBy: { week: 'desc' },
+        });
 
-      const allLeagueMatches = [...homeMatches, ...awayMatches].sort(
-        (a, b) => b.week - a.week
-      );
+        leagueMatches = allLeagueMatches.map((m) => {
+          const isHome = clubIds.includes(m.club1Id);
+          let result: 'win' | 'loss' | 'upcoming' | null = null;
 
-      leagueMatches = allLeagueMatches.map((m) => {
-        const isHome = m.club1Id === clubId;
-        let result: 'win' | 'loss' | 'upcoming' | null = null;
-
-        if (m.status === 'completed' && m.score1 !== null && m.score2 !== null) {
-          if (isHome) {
-            result = m.score1 > m.score2 ? 'win' : 'loss';
-          } else {
-            result = m.score2 > m.score1 ? 'win' : 'loss';
+          if (m.status === 'completed' && m.score1 !== null && m.score2 !== null) {
+            if (isHome) {
+              result = m.score1 > m.score2 ? 'win' : 'loss';
+            } else {
+              result = m.score2 > m.score1 ? 'win' : 'loss';
+            }
+          } else if (m.status === 'upcoming' || m.status === 'live') {
+            result = 'upcoming';
           }
-        } else if (m.status === 'upcoming' || m.status === 'live') {
-          result = 'upcoming';
-        }
 
-        return {
-          id: m.id,
-          week: m.week,
-          score1: m.score1,
-          score2: m.score2,
-          status: m.status,
-          format: m.format,
-          isHome,
-          club1: m.club1,
-          club2: m.club2,
-          result,
-        };
-      });
+          return {
+            id: m.id,
+            week: m.week,
+            score1: m.score1,
+            score2: m.score2,
+            status: m.status,
+            format: m.format,
+            isHome,
+            club1: { id: m.club1.id, name: m.club1.profile?.name || '', logo: m.club1.profile?.logo || null },
+            club2: { id: m.club2.id, name: m.club2.profile?.name || '', logo: m.club2.profile?.logo || null },
+            result,
+          };
+        });
+      }
     }
 
     // 3. Find tournament matches — via team memberships
@@ -157,7 +159,7 @@ export async function GET(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      // Deduplicate (in case a match somehow appears in both)
+      // Deduplicate
       const seenIds = new Set<string>();
 
       tournamentMatches = allMatches
@@ -206,7 +208,7 @@ export async function GET(
           gamertag: player.gamertag,
           division: player.division,
           tier: player.tier,
-          club,
+          club: clubProfile ? { id: clubProfile.id, name: clubProfile.name, logo: clubProfile.logo } : null,
         },
         leagueMatches,
         tournamentMatches,

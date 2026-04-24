@@ -48,7 +48,7 @@ interface SeasonData {
   startDate: string;
   endDate: string | null;
   championClubId: string | null;
-  championClub?: { id: string; name: string; logo: string | null; division: string } | null;
+  championClub?: { id: string; name: string; logo: string | null } | null;
   championSquad?: Array<{ id: string; gamertag: string; division: string; role: string }> | null;
   _count: { tournaments: number; clubs: number };
   clubs?: SeasonClubData[];

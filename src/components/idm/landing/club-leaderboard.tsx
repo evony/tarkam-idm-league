@@ -206,19 +206,28 @@ function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClu
   );
 }
 
+/* ========== Animated Points Counter ========== */
+function AnimatedPoints({ value }: { value: number }) {
+  return (
+    <span className="podium-points-counter inline-block" style={{ '--podium-counter-target': value } as React.CSSProperties}>
+      {value}
+    </span>
+  );
+}
+
 /* ========== Podium — Top 3 Display (Eye-Catching Champion Podium) ========== */
 function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 | 3; type: LeaderboardType }) {
   const isFirst = rank === 1;
   const isSecond = rank === 2;
 
-  // Config per rank
+  // Config per rank — responsive with mobile-first sizing
   const config = {
     1: {
-      stepHeight: 'h-28',
-      order: 'order-2',
-      avatarSize: 'w-[72px] h-[72px]',
-      nameSize: 'text-base',
-      pointsSize: 'text-2xl',
+      stepHeight: 'h-20 sm:h-28',
+      order: 'sm:order-2',
+      avatarSize: 'w-14 h-14 sm:w-[72px] sm:h-[72px]',
+      nameSize: 'text-sm sm:text-base',
+      pointsSize: 'text-xl sm:text-2xl',
       glowColor: 'shadow-[0_0_60px_rgba(250,204,21,0.35),0_0_120px_rgba(250,204,21,0.15)]',
       stepBg: 'bg-gradient-to-t from-yellow-500/50 via-yellow-500/25 to-yellow-400/10',
       stepBorder: 'border-yellow-400/50',
@@ -232,11 +241,11 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
       medalClass: 'text-yellow-300 drop-shadow-[0_0_12px_rgba(250,204,21,0.8)]',
     },
     2: {
-      stepHeight: 'h-20',
-      order: 'order-1',
-      avatarSize: 'w-16 h-16',
-      nameSize: 'text-sm',
-      pointsSize: 'text-lg',
+      stepHeight: 'h-14 sm:h-20',
+      order: 'sm:order-1',
+      avatarSize: 'w-12 h-12 sm:w-16 sm:h-16',
+      nameSize: 'text-xs sm:text-sm',
+      pointsSize: 'text-base sm:text-lg',
       glowColor: 'shadow-[0_0_40px_rgba(192,192,192,0.25)]',
       stepBg: 'bg-gradient-to-t from-gray-300/40 via-gray-300/20 to-gray-200/10',
       stepBorder: 'border-gray-300/40',
@@ -250,11 +259,11 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
       medalClass: 'text-gray-200 drop-shadow-[0_0_8px_rgba(192,192,192,0.6)]',
     },
     3: {
-      stepHeight: 'h-14',
-      order: 'order-3',
-      avatarSize: 'w-14 h-14',
-      nameSize: 'text-xs',
-      pointsSize: 'text-base',
+      stepHeight: 'h-10 sm:h-14',
+      order: 'sm:order-3',
+      avatarSize: 'w-10 h-10 sm:w-14 sm:h-14',
+      nameSize: 'text-[10px] sm:text-xs',
+      pointsSize: 'text-sm sm:text-base',
       glowColor: 'shadow-[0_0_30px_rgba(180,83,9,0.25)]',
       stepBg: 'bg-gradient-to-t from-amber-600/40 via-amber-600/20 to-amber-500/10',
       stepBorder: 'border-amber-600/40',
@@ -278,9 +287,23 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
       : '-';
 
   return (
-    <div className={`flex flex-col items-center ${config.order} ${isFirst ? 'z-10' : 'z-0'}`}>
+    <div className={`flex flex-col items-center ${config.order} ${isFirst ? 'z-10' : 'z-0'} relative`}>
+      {/* JUARA banner above #1 */}
+      {isFirst && (
+        <div className="podium-juara-banner mb-2 px-4 sm:px-6 py-1 sm:py-1.5 rounded-md relative z-20">
+          <div className="podium-juara-banner-inner flex items-center gap-1.5">
+            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-900" />
+            <span className="text-xs sm:text-sm font-black tracking-[0.2em] text-yellow-900 uppercase">JUARA</span>
+            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-900" />
+          </div>
+          {/* Ribbon tails */}
+          <div className="absolute -bottom-1.5 left-1 w-2.5 h-2.5 bg-amber-600 rotate-45 z-[-1]" />
+          <div className="absolute -bottom-1.5 right-1 w-2.5 h-2.5 bg-amber-600 rotate-45 z-[-1]" />
+        </div>
+      )}
+
       {/* Card above podium step */}
-      <div className={`flex flex-col items-center gap-3 p-5 rounded-2xl ${config.cardBg} border ${config.cardBorder} ${config.glowColor} transition-all duration-500 hover:scale-[1.06] ${isFirst ? 'min-w-[170px]' : 'min-w-[130px]'} relative overflow-hidden`}>
+      <div className={`flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-5 rounded-2xl ${config.cardBg} border ${config.cardBorder} ${config.glowColor} transition-all duration-500 hover:scale-[1.06] ${isFirst ? 'min-w-[140px] sm:min-w-[170px]' : 'min-w-[110px] sm:min-w-[130px]'} relative overflow-hidden`}>
         {/* Animated shimmer for #1 */}
         {isFirst && (
           <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
@@ -288,9 +311,21 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
           </div>
         )}
 
+        {/* Floating gold particles around #1 */}
+        {isFirst && (
+          <div className="absolute inset-0 pointer-events-none overflow-visible">
+            <span className="podium-particle podium-particle-1 absolute w-1.5 h-1.5 rounded-full bg-yellow-400" />
+            <span className="podium-particle podium-particle-2 absolute w-1 h-1 rounded-full bg-amber-300" />
+            <span className="podium-particle podium-particle-3 absolute w-1.5 h-1.5 rounded-full bg-yellow-300" />
+            <span className="podium-particle podium-particle-4 absolute w-1 h-1 rounded-full bg-yellow-500" />
+            <span className="podium-particle podium-particle-5 absolute w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span className="podium-particle podium-particle-6 absolute w-1 h-1 rounded-full bg-yellow-200" />
+          </div>
+        )}
+
         {/* Medal / Crown icon for rank */}
         <div className="relative">
-          <MedalIcon className={`w-8 h-8 ${config.medalClass} ${isFirst ? 'podium-crown-bounce' : ''}`} />
+          <MedalIcon className={`w-6 h-6 sm:w-8 sm:h-8 ${config.medalClass} ${isFirst ? 'podium-crown-bounce' : ''}`} />
           {isFirst && (
             <>
               {/* Sparkle dots around crown */}
@@ -305,7 +340,7 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
         <div className={`relative ${config.avatarSize} rounded-full`}>
           {/* Animated glow ring behind avatar for #1 */}
           {isFirst && (
-            <div className="absolute inset-[-4px] rounded-full podium-champion-ring" />
+            <div className="absolute inset-[-4px] sm:inset-[-6px] rounded-full podium-champion-ring" />
           )}
           <div className={`relative w-full h-full rounded-full overflow-hidden bg-black/40 border-2 ${config.ringBorder} ${isFirst ? 'border-[3px]' : ''}`}>
             <ClubLogoImage
@@ -320,27 +355,27 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
         </div>
 
         {/* Club name */}
-        <p className={`${config.nameSize} font-extrabold text-white text-center truncate max-w-[130px] tracking-tight`}>
+        <p className={`${config.nameSize} font-extrabold text-white text-center truncate max-w-[110px] sm:max-w-[130px] tracking-tight`}>
           {club.name}
         </p>
 
-        {/* Points with trophy */}
+        {/* Points with trophy — animated counter */}
         <div className="flex items-center gap-1.5">
-          <Trophy className={`${isFirst ? 'w-5 h-5' : 'w-4 h-4'} text-idm-gold-warm`} />
+          <Trophy className={`${isFirst ? 'w-4 h-4 sm:w-5 sm:h-5' : 'w-3.5 h-3.5 sm:w-4 sm:h-4'} text-idm-gold-warm`} />
           <span className={`${config.pointsSize} font-black text-idm-gold-warm tabular-nums`}>
-            {club.points}
+            <AnimatedPoints value={club.points} />
           </span>
         </div>
 
         {/* Members info */}
         <div className="flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
-          <p className="text-[11px] text-muted-foreground/60 font-medium">{memberLabel}</p>
+          <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground/50" />
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground/60 font-medium">{memberLabel}</p>
         </div>
 
         {/* Win/Loss for Liga mode */}
         {type === 'liga' && (club.wins > 0 || club.losses > 0) && (
-          <div className="flex items-center gap-2 text-[10px]">
+          <div className="flex items-center gap-2 text-[9px] sm:text-[10px]">
             <span className="font-bold text-green-400">{club.wins}W</span>
             <span className="text-muted-foreground/30">·</span>
             <span className="font-bold text-red-400">{club.losses}L</span>
@@ -357,14 +392,14 @@ function PodiumCard({ club, rank, type }: { club: LeaderboardClub; rank: 1 | 2 |
       </div>
 
       {/* Podium step */}
-      <div className={`w-full ${config.stepHeight} rounded-t-xl ${config.stepBg} border-x border-t ${config.stepBorder} mt-0.5 flex items-start justify-center pt-2.5 relative overflow-hidden`}>
+      <div className={`w-full ${config.stepHeight} rounded-t-xl ${config.stepBg} border-x border-t ${config.stepBorder} mt-0.5 flex items-start justify-center pt-2 sm:pt-2.5 relative overflow-hidden`}>
         {/* Subtle stripe pattern overlay */}
         <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 10px)' }} />
         {/* Gold/Silver/Bronze gradient shine */}
         {isFirst && (
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent podium-step-shimmer" />
         )}
-        <span className={`font-black tabular-nums relative ${isFirst ? 'text-4xl text-yellow-300 drop-shadow-[0_0_16px_rgba(250,204,21,0.6)]' : isSecond ? 'text-3xl text-gray-200 drop-shadow-[0_0_8px_rgba(192,192,192,0.4)]' : 'text-2xl text-amber-400 drop-shadow-[0_0_6px_rgba(180,83,9,0.4)]'}`}>
+        <span className={`font-black tabular-nums relative ${isFirst ? 'text-2xl sm:text-4xl text-yellow-300 drop-shadow-[0_0_16px_rgba(250,204,21,0.6)]' : isSecond ? 'text-xl sm:text-3xl text-gray-200 drop-shadow-[0_0_8px_rgba(192,192,192,0.4)]' : 'text-lg sm:text-2xl text-amber-400 drop-shadow-[0_0_6px_rgba(180,83,9,0.4)]'}`}>
           {rank}
         </span>
       </div>
@@ -380,12 +415,40 @@ function Top3Podium({ clubs, maxPoints, type }: { clubs: LeaderboardClub[]; maxP
   const third = clubs.find(c => c.rank === 3);
 
   return (
-    <div className="relative mb-10 px-2">
-      {/* Background glow for #1 */}
+    <div className="relative mb-6 sm:mb-10 px-2 py-4 sm:py-6">
+      {/* Dramatic pedestal glow for #1 — layered radial gradients */}
       {first && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[200px] rounded-full bg-yellow-500/[0.07] blur-3xl pointer-events-none" />
+        <>
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[180px] sm:w-[400px] sm:h-[280px] rounded-full bg-yellow-500/[0.12] blur-[60px] pointer-events-none podium-pedestal-glow" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[120px] sm:w-[280px] sm:h-[180px] rounded-full bg-yellow-400/[0.08] blur-[40px] pointer-events-none" />
+          <div className="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100px] h-[60px] sm:w-[160px] sm:h-[80px] rounded-full bg-amber-300/[0.06] blur-[30px] pointer-events-none" />
+        </>
       )}
-      <div className="relative flex items-end justify-center gap-3 sm:gap-5">
+
+      {/* Pulsing light beams behind podium */}
+      {first && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 pointer-events-none podium-light-beams">
+          <div className="podium-light-beam podium-light-beam-1" />
+          <div className="podium-light-beam podium-light-beam-2" />
+          <div className="podium-light-beam podium-light-beam-3" />
+          <div className="podium-light-beam podium-light-beam-4" />
+          <div className="podium-light-beam podium-light-beam-5" />
+        </div>
+      )}
+
+      {/* Subtle background pattern for the podium section */}
+      <div className="absolute inset-0 pointer-events-none podium-bg-pattern rounded-2xl opacity-30" />
+
+      {/* Mobile: vertical stack, Desktop: horizontal podium layout */}
+      {/* Mobile layout — stacked vertically */}
+      <div className="flex sm:hidden flex-col items-center gap-3 relative z-10">
+        {first && <PodiumCard club={first} rank={1} type={type} />}
+        {second && <PodiumCard club={second} rank={2} type={type} />}
+        {third && <PodiumCard club={third} rank={3} type={type} />}
+      </div>
+
+      {/* Desktop layout — classic podium */}
+      <div className="hidden sm:flex items-end justify-center gap-3 sm:gap-5 relative z-10">
         {second && <PodiumCard club={second} rank={2} type={type} />}
         {first && <PodiumCard club={first} rank={1} type={type} />}
         {third && <PodiumCard club={third} rank={3} type={type} />}
@@ -494,11 +557,9 @@ export function ClubLeaderboard() {
           {typeConfig[activeType].desc}
         </p>
 
-        {/* Top 3 Podium — desktop only */}
+        {/* Top 3 Podium — visible on all screen sizes */}
         {!isLoading && allClubs.length >= 2 && (
-          <div className="hidden sm:block">
-            <Top3Podium clubs={allClubs.slice(0, 3)} maxPoints={maxPoints} type={activeType} />
-          </div>
+          <Top3Podium clubs={allClubs.slice(0, 3)} maxPoints={maxPoints} type={activeType} />
         )}
 
         {/* Column Headers — desktop only */}

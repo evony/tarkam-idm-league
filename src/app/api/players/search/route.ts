@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Search by gamertag or name (case-insensitive, partial match)
-  // SQLite uses LIKE for pattern matching
   const players = await db.player.findMany({
     where: {
       division,
@@ -23,11 +22,13 @@ export async function GET(request: NextRequest) {
     },
     include: {
       clubMembers: {
+        where: { leftAt: null },
         include: {
-          club: {
+          profile: {
             select: { id: true, name: true, logo: true },
           },
         },
+        take: 1,
       },
     },
     orderBy: { points: 'desc' },
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
   const rankMap = new Map(divisionPlayers.map((p, i) => [p.id, i + 1]));
 
   const result = players.map(p => {
-    const clubMember = p.clubMembers[0]; // first club membership
+    const clubMember = p.clubMembers[0]; // first active club membership
     return {
       id: p.id,
       gamertag: p.gamertag,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       totalWins: p.totalWins,
       totalMvp: p.totalMvp,
       avatar: p.avatar,
-      club: clubMember?.club ?? null,
+      club: clubMember?.profile ? { id: clubMember.profile.id, name: clubMember.profile.name, logo: clubMember.profile.logo } : null,
       rank: rankMap.get(p.id) ?? 0,
     };
   });

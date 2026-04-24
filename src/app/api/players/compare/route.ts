@@ -26,11 +26,13 @@ export async function GET(request: NextRequest) {
       where: { id: player1Id },
       include: {
         clubMembers: {
+          where: { leftAt: null },
           include: {
-            club: {
+            profile: {
               select: { id: true, name: true, logo: true },
             },
           },
+          take: 1,
         },
         achievements: {
           include: {
@@ -47,11 +49,13 @@ export async function GET(request: NextRequest) {
       where: { id: player2Id },
       include: {
         clubMembers: {
+          where: { leftAt: null },
           include: {
-            club: {
+            profile: {
               select: { id: true, name: true, logo: true },
             },
           },
+          take: 1,
         },
         achievements: {
           include: {
@@ -115,7 +119,7 @@ export async function GET(request: NextRequest) {
       maxStreak: p.maxStreak,
       matches: p.matches,
       rank: getRank(p.id, p.division),
-      club: clubMember?.club ?? null,
+      club: clubMember?.profile ? { id: clubMember.profile.id, name: clubMember.profile.name, logo: clubMember.profile.logo } : null,
       achievements: p.achievements.map(a => ({
         id: a.achievement.id,
         name: a.achievement.name,

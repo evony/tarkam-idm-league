@@ -72,8 +72,8 @@ export async function GET(request: Request) {
         orderBy: { week: 'desc' },
         take: 5,
         include: {
-          club1: { select: { name: true } },
-          club2: { select: { name: true } },
+          club1: { include: { profile: { select: { name: true } } } },
+          club2: { include: { profile: { select: { name: true } } } },
         },
       }),
     ]);
@@ -121,8 +121,8 @@ export async function GET(request: Request) {
         s1 > s2 ? m.club1Id : s2 > s1 ? m.club2Id : null;
       recentResults.push({
         id: m.id,
-        player1: m.club1?.name || 'TBD',
-        player2: m.club2?.name || 'TBD',
+        player1: (m.club1 as any)?.profile?.name || 'TBD',
+        player2: (m.club2 as any)?.profile?.name || 'TBD',
         score: `${s1}-${s2}`,
         winnerId,
         completedAt: new Date().toISOString(), // LeagueMatch doesn't have completedAt

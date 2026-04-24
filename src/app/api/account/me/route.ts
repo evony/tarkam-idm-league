@@ -50,13 +50,13 @@ export async function GET(request: NextRequest) {
             city: true,
             phone: true,
             clubMembers: {
+              where: { leftAt: null },
               include: {
-                club: {
-                  select: { id: true, name: true, logo: true, division: true },
+                profile: {
+                  select: { id: true, name: true, logo: true },
                 },
               },
               take: 1,
-              orderBy: { createdAt: 'desc' },
             },
             achievements: {
               include: {
@@ -74,8 +74,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Get the current club from membership
-    const currentClub = account.player.clubMembers[0]?.club || null;
+    // Get the current club from membership (now on ClubProfile)
+    const currentProfile = account.player.clubMembers[0]?.profile || null;
 
     // Get active skins
     const playerSkins = await db.playerSkin.findMany({
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
         createdAt: account.createdAt,
         player: {
           ...account.player,
-          club: currentClub ? { id: currentClub.id, name: currentClub.name, logo: currentClub.logo } : null,
+          club: currentProfile ? { id: currentProfile.id, name: currentProfile.name, logo: currentProfile.logo } : null,
         },
       },
     });
