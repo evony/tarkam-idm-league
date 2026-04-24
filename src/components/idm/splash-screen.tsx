@@ -105,7 +105,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   }, [entered, onFinish]);
 
   // Derived visual values from beat intensity
-  const logoScale = 1 + beatIntensity * 0.16;
+  // Logo & text stay STATIC — only glow/sinar pulses
   const glowSize = 18 + beatIntensity * 55;
   const glowOpacity = 0.1 + beatIntensity * 0.55;
   const borderOpacity = 0.06 + beatIntensity * 0.5;
@@ -148,16 +148,10 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       {/* ═══ Main Content ═══ */}
       <div className="relative z-10 flex flex-col items-center">
 
-        {/* Main Logo — cinematic reveal + beat-reactive pulse */}
+        {/* Main Logo — cinematic reveal + beat-reactive GLOW only (logo stays static) */}
         <div className="mb-8" style={{ animation: 'splash-logo-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both' }}>
-          <div
-            className="relative"
-            style={{
-              transform: entered ? `scale(${logoScale})` : undefined,
-              transition: 'transform 60ms ease-out',
-            }}
-          >
-            {/* Beat-reactive glow ring */}
+          <div className="relative">
+            {/* Beat-reactive glow ring — sinar yang pulse */}
             <div
               className="absolute -inset-4 rounded-2xl"
               style={{
@@ -165,10 +159,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 transition: 'box-shadow 60ms ease-out',
               }}
             />
+            {/* Logo — static, tidak ikut pulse */}
             <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
               <img src="/logo.webp" alt="IDM League" className="w-full h-full object-cover" />
             </div>
-            {/* Beat-reactive border ring */}
+            {/* Beat-reactive border ring — sinar yang pulse */}
             <div
               className="absolute -inset-1.5 rounded-2xl"
               style={{
