@@ -35,13 +35,14 @@ model Player {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teamPlayers    TeamPlayer[]
-  participations Participation[]
-  mvpMatches     Match[]       @relation("MvpPlayer")
-  clubMembers    ClubMember[]
-  pointRecords   PlayerPoint[]
-  achievements   PlayerAchievement[]
-  account        Account?
+  teamPlayers      TeamPlayer[]
+  participations   Participation[]
+  mvpMatches       Match[]       @relation("MvpPlayer")
+  clubMembers      ClubMember[]
+  pointRecords     PlayerPoint[]
+  achievements     PlayerAchievement[]
+  account          Account?
+  championSeasons  Season[]      @relation("SeasonPlayerChampion")
 
   @@index([division])
   @@index([division, isActive])
@@ -49,17 +50,18 @@ model Player {
 }
 
 model Season {
-  id             String   @id @default(cuid())
-  name           String
-  number         Int
-  division       String   // "male" | "female"
-  status         String   @default("active") // "active" | "completed" | "upcoming"
-  startDate      DateTime
-  endDate        DateTime?
-  championClubId String?  // ClubProfile that won the Liga IDM for this season
-  championSquad  String?  // JSON string: [{id, gamertag, division, role}] — 5 representatives for champion card
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String
+  number           Int
+  division         String   // "male" | "female"
+  status           String   @default("active") // "active" | "completed" | "upcoming"
+  startDate        DateTime
+  endDate          DateTime?
+  championClubId   String?  // ClubProfile that won the Liga IDM for this season (liga mode only)
+  championPlayerId String?  // Player that won the Tarkam season (tarkam mode only)
+  championSquad    String?  // JSON string: [{id, gamertag, division, role}] — 5 representatives for champion card (liga only)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   tournaments    Tournament[]
   donations      Donation[]
@@ -67,6 +69,7 @@ model Season {
   leagueMatches  LeagueMatch[]
   playoffMatches PlayoffMatch[]
   championClub   ClubProfile? @relation("SeasonChampion", fields: [championClubId], references: [id], onDelete: SetNull)
+  championPlayer Player?     @relation("SeasonPlayerChampion", fields: [championPlayerId], references: [id], onDelete: SetNull)
 
   @@index([division, status])
 }

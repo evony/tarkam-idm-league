@@ -2016,3 +2016,48 @@ Stage Summary:
 - Fixed pre-existing variants.ts missing module bug
 - Navigation updated with Peringkat link on both desktop and mobile
 - All lint checks pass, dev server operational
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Separate Liga and Tarkam champion logic — Tarkam uses individual player champion instead of club
+
+Work Log:
+- Analyzed the admin-season-panel.tsx component structure (978 lines)
+- Identified the "Belum ada club di season ini" message at line 555 — appears when setting champion for a season with no clubs (confusing for Tarkam which has no clubs)
+- Added `championPlayerId` field to Season model in prisma/schema.prisma
+- Added `championPlayer Player? @relation("SeasonPlayerChampion")` relation to Season model
+- Added `championSeasons Season[] @relation("SeasonPlayerChampion")` to Player model
+- Ran `bun run db:push` to sync schema with SQLite database
+- Updated API /api/seasons/[id] route:
+  - GET: Added `championPlayer` include with select (id, gamertag, division, avatar, points)
+  - GET: Added player participation query for tarkam seasons — fetches unique players from tournament participations
+  - PUT: Added `championPlayerId` body parameter extraction and validation
+  - PUT: Added `championPlayerId` to updateData mapping
+  - PUT: Added `championPlayer` include in update response
+- Updated frontend admin-season-panel.tsx (all changes already applied from previous context):
+  - Added `championPlayerId`, `championPlayer`, `players` to SeasonData interface
+  - Added `User` icon to lucide-react imports
+  - Added `selectedChampionPlayer` and `championPlayerSearch` state
+  - Added `handleSetTarkamChampion` and `handleRemoveTarkamChampion` handlers
+  - Season header: Club badge hidden for Tarkam, only shows Tourney badge
+  - Champion section title: Shows "Champion Season (Individu)" for Tarkam
+  - Liga mode: Shows club champion selector (existing, guarded with !isTarkam)
+  - Tarkam mode: Shows player champion selector with search, avatar, gamertag, division, points, tournament count
+  - Empty state for Tarkam: "Belum ada pemain yang berpartisipasi di season ini" (not "Belum ada club")
+  - Squad section hidden for Tarkam (!isTarkam guard)
+  - Status section uses correct champion check (championPlayerId vs championClubId)
+  - Stats summary: Pemain (Tarkam) vs Club (Liga) in first stat
+  - Added "Pemain di Season Ini" quick list for Tarkam (with avatar, gamertag, points, tourney count)
+  - Reset selectedChampionPlayer and championPlayerSearch in updateSeason onSuccess
+- Fixed HMR cache error (stats-ticker.tsx module factory not available) by restarting dev server
+- Verified dev server compiles and serves correctly (200 OK)
+
+Stage Summary:
+- Database schema updated: Season now has championPlayerId (Player FK) in addition to championClubId (ClubProfile FK)
+- API supports both champion types: Liga uses championClubId + championSquad, Tarkam uses championPlayerId
+- Frontend properly separates the two champion flows:
+  - Liga: Select champion club → set champion squad (5 representatives)
+  - Tarkam: Select champion player directly (individual tournament)
+- "Belum ada club" message no longer appears for Tarkam seasons
+- All changes are backward-compatible (championPlayerId is optional/nullable)

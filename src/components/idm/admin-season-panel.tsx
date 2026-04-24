@@ -6,7 +6,7 @@ import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import Image from 'next/image';
 import {
   Calendar, Crown, Trophy, Plus, Loader2, Check, X, Edit3,
-  Shield, Play, Flag, ChevronDown, ChevronUp, Star, Trash2
+  Shield, Play, Flag, ChevronDown, ChevronUp, Star, Trash2, User
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,9 @@ interface SeasonData {
   championClubId: string | null;
   championClub?: { id: string; name: string; logo: string | null } | null;
   championSquad?: Array<{ id: string; gamertag: string; division: string; role: string }> | null;
+  championPlayerId?: string | null;
+  championPlayer?: { id: string; gamertag: string; division: string; avatar: string | null; points: number } | null;
+  players?: Array<{ id: string; gamertag: string; division: string; avatar: string | null; points: number; tournamentCount: number }>;
   _count: { tournaments: number; clubs: number };
   clubs?: SeasonClubData[];
 }
@@ -90,6 +93,8 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
   }, [division, isTarkam]);
   const [editingChampion, setEditingChampion] = useState<string | null>(null);
   const [selectedChampion, setSelectedChampion] = useState<string>('');
+  const [selectedChampionPlayer, setSelectedChampionPlayer] = useState<string>('');
+  const [championPlayerSearch, setChampionPlayerSearch] = useState<string>('');
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
   const [editingSquad, setEditingSquad] = useState(false);
   const [squadSelection, setSquadSelection] = useState<Array<{id: string; gamertag: string; division: string; role: string}>>([]);
@@ -172,6 +177,8 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
       broadcastInvalidation('league-landing', 'league', 'stats');
       toast.success('Season berhasil diperbarui!');
       setEditingChampion(null);
+      setSelectedChampionPlayer('');
+      setChampionPlayerSearch('');
       setEditingStatus(null);
       setEditingSquad(false);
     },
@@ -197,7 +204,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
     onError: (e: Error) => { toast.error(e.message); },
   });
 
-  // Helper to set champion
+  // Helper to set champion (liga)
   const handleSetChampion = (seasonId: string, clubId: string) => {
     const club = seasonDetail?.clubs?.find(c => c.id === clubId);
     setConfirmLocal({
@@ -213,7 +220,23 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
     });
   };
 
-  // Helper to remove champion
+  // Helper to set tarkam champion player
+  const handleSetTarkamChampion = (seasonId: string, playerId: string) => {
+    const player = seasonDetail?.players?.find(p => p.id === playerId);
+    setConfirmLocal({
+      open: true,
+      title: 'Set Champion Season?',
+      description: `Set "${player?.gamertag}" sebagai champion season ini? Status season akan otomatis diubah menjadi "completed".`,
+      onConfirm: () => {
+        updateSeason.mutate({
+          seasonId,
+          data: { championPlayerId: playerId, status: 'completed' },
+        });
+      },
+    });
+  };
+
+  // Helper to remove champion (liga)
   const handleRemoveChampion = (seasonId: string) => {
     setConfirmLocal({
       open: true,
@@ -223,6 +246,21 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
         updateSeason.mutate({
           seasonId,
           data: { championClubId: null, status: 'active' },
+        });
+      },
+    });
+  };
+
+  // Helper to remove tarkam champion
+  const handleRemoveTarkamChampion = (seasonId: string) => {
+    setConfirmLocal({
+      open: true,
+      title: 'Hapus Champion?',
+      description: 'Hapus champion dari season ini? Status season akan diubah kembali ke "active".',
+      onConfirm: () => {
+        updateSeason.mutate({
+          seasonId,
+          data: { championPlayerId: null, status: 'active' },
         });
       },
     });
@@ -407,10 +445,12 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Badge className={dt.casinoBadge}>
-                          <Shield className="w-3 h-3 mr-1" />
-                          {season._count?.clubs || 0} Club
-                        </Badge>
+                        {!isTarkam && (
+                          <Badge className={dt.casinoBadge}>
+                            <Shield className="w-3 h-3 mr-1" />
+                            {season._count?.clubs || 0} Club
+                          </Badge>
+                        )}
                         <Badge className={dt.casinoBadge}>
                           <Trophy className="w-3 h-3 mr-1" />
                           {season._count?.tournaments || 0} Tourney
@@ -449,137 +489,278 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                             <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                               <div className="flex items-center justify-between mb-2">
                                 <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                                  <Crown className="w-3.5 h-3.5 text-yellow-500" /> Champion Season
+                                  <Crown className="w-3.5 h-3.5 text-yellow-500" /> {isTarkam ? 'Champion Season (Individu)' : 'Champion Season'}
                                 </p>
                                 {!isChampionEditing && (
                                   <Button size="sm" variant="outline" className="text-[10px] h-7"
                                     onClick={() => {
                                       setEditingChampion(season.id);
-                                      setSelectedChampion(seasonDetail?.championClubId || '');
+                                      if (isTarkam) {
+                                        setSelectedChampionPlayer(seasonDetail?.championPlayerId || '');
+                                      } else {
+                                        setSelectedChampion(seasonDetail?.championClubId || '');
+                                      }
                                     }}>
                                     <Edit3 className="w-3 h-3 mr-1" />
-                                    {seasonDetail?.championClubId ? 'Ubah' : 'Set Champion'}
+                                    {isTarkam ? (seasonDetail?.championPlayerId ? 'Ubah' : 'Set Champion') : (seasonDetail?.championClubId ? 'Ubah' : 'Set Champion')}
                                   </Button>
                                 )}
                               </div>
 
-                              {/* Current champion display */}
-                              {championClub && !isChampionEditing && (
-                                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                                  <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 border-yellow-500/30">
-                                    {championClub.logo ? (
-                                      <ClubLogoImage
-                                        clubName={championClub.name}
-                                        dbLogo={championClub.logo}
-                                        alt={championClub.name}
-                                        width={40}
-                                        height={40}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center bg-yellow-500/10">
-                                        <Crown className="w-4 h-4 text-yellow-500" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <p className="text-sm font-bold text-yellow-500">{championClub.name}</p>
-                                      <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">
-                                        <Crown className="w-3 h-3 mr-0.5" /> CHAMPION
-                                      </Badge>
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground">Juara Season {seasonDetail?.number}</p>
-                                  </div>
-                                  <Button
-                                    size="sm" variant="ghost"
-                                    className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                    onClick={() => handleRemoveChampion(season.id)}
-                                  >
-                                    <X className="w-3 h-3 mr-1" /> Hapus
-                                  </Button>
-                                </div>
-                              )}
-
-                              {/* No champion yet */}
-                              {!championClub && !isChampionEditing && (
-                                <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
-                                  <Crown className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                  <p className="text-[10px] text-muted-foreground">Belum ada champion untuk season ini</p>
-                                </div>
-                              )}
-
-                              {/* Champion editing mode */}
-                              {isChampionEditing && (
-                                <div className="space-y-2">
-                                  <p className="text-[10px] text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
-                                  <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                                    {seasonDetail?.clubs?.map((club) => (
-                                      <div
-                                        key={club.id}
-                                        className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
-                                          selectedChampion === club.id
-                                            ? 'border-yellow-500/30 bg-yellow-500/5'
-                                            : 'border-border/20 bg-card/30 hover:bg-muted/20'
-                                        }`}
-                                        onClick={() => setSelectedChampion(club.id)}
-                                      >
-                                        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                                          {club.logo ? (
-                                            <Image src={club.logo} alt={club.name} width={32} height={32} className="w-full h-full object-cover" />
-                                          ) : (
-                                            <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
-                                              <Shield className={`w-3.5 h-3.5 ${dt.neonText}`} />
-                                            </div>
-                                          )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs font-medium truncate">{club.name}</p>
-                                          <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
-                                            <span className="text-green-500">{club.wins}W</span>
-                                            <span>-</span>
-                                            <span className="text-red-500">{club.losses}L</span>
-                                            <span>•</span>
-                                            <span>{club.points}pts</span>
-                                          </div>
-                                        </div>
-                                        {selectedChampion === club.id && (
-                                          <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
-                                            <Check className="w-3 h-3 text-black" />
+                              {/* === LIGA MODE: Club champion === */}
+                              {!isTarkam && (
+                                <>
+                                  {/* Current champion display */}
+                                  {championClub && !isChampionEditing && (
+                                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 border-yellow-500/30">
+                                        {championClub.logo ? (
+                                          <ClubLogoImage
+                                            clubName={championClub.name}
+                                            dbLogo={championClub.logo}
+                                            alt={championClub.name}
+                                            width={40}
+                                            height={40}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center bg-yellow-500/10">
+                                            <Crown className="w-4 h-4 text-yellow-500" />
                                           </div>
                                         )}
                                       </div>
-                                    ))}
-                                    {(!seasonDetail?.clubs || seasonDetail.clubs.length === 0) && (
-                                      <p className="text-[10px] text-muted-foreground text-center py-4">
-                                        Belum ada club di season ini
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      size="sm"
-                                      className="text-[10px]"
-                                      disabled={!selectedChampion || updateSeason.isPending}
-                                      onClick={() => handleSetChampion(season.id, selectedChampion)}
-                                    >
-                                      {updateSeason.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Crown className="w-3 h-3 mr-1" />}
-                                      Set Champion
-                                    </Button>
-                                    <Button
-                                      size="sm" variant="ghost"
-                                      className="text-[10px]"
-                                      onClick={() => setEditingChampion(null)}
-                                    >
-                                      Batal
-                                    </Button>
-                                  </div>
-                                </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm font-bold text-yellow-500">{championClub.name}</p>
+                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">
+                                            <Crown className="w-3 h-3 mr-0.5" /> CHAMPION
+                                          </Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">Juara Season {seasonDetail?.number}</p>
+                                      </div>
+                                      <Button
+                                        size="sm" variant="ghost"
+                                        className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        onClick={() => handleRemoveChampion(season.id)}
+                                      >
+                                        <X className="w-3 h-3 mr-1" /> Hapus
+                                      </Button>
+                                    </div>
+                                  )}
+
+                                  {/* No champion yet */}
+                                  {!championClub && !isChampionEditing && (
+                                    <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                      <Crown className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                      <p className="text-[10px] text-muted-foreground">Belum ada champion untuk season ini</p>
+                                    </div>
+                                  )}
+
+                                  {/* Champion editing mode - Liga */}
+                                  {isChampionEditing && (
+                                    <div className="space-y-2">
+                                      <p className="text-[10px] text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
+                                      <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                        {seasonDetail?.clubs?.map((club) => (
+                                          <div
+                                            key={club.id}
+                                            className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
+                                              selectedChampion === club.id
+                                                ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                            }`}
+                                            onClick={() => setSelectedChampion(club.id)}
+                                          >
+                                            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                              {club.logo ? (
+                                                <Image src={club.logo} alt={club.name} width={32} height={32} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className={`w-full h-full flex items-center justify-center ${dt.iconBg}`}>
+                                                  <Shield className={`w-3.5 h-3.5 ${dt.neonText}`} />
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium truncate">{club.name}</p>
+                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                <span className="text-green-500">{club.wins}W</span>
+                                                <span>-</span>
+                                                <span className="text-red-500">{club.losses}L</span>
+                                                <span>•</span>
+                                                <span>{club.points}pts</span>
+                                              </div>
+                                            </div>
+                                            {selectedChampion === club.id && (
+                                              <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                <Check className="w-3 h-3 text-black" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                        {(!seasonDetail?.clubs || seasonDetail.clubs.length === 0) && (
+                                          <p className="text-[10px] text-muted-foreground text-center py-4">
+                                            Belum ada club di season ini
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          className="text-[10px]"
+                                          disabled={!selectedChampion || updateSeason.isPending}
+                                          onClick={() => handleSetChampion(season.id, selectedChampion)}
+                                        >
+                                          {updateSeason.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Crown className="w-3 h-3 mr-1" />}
+                                          Set Champion
+                                        </Button>
+                                        <Button
+                                          size="sm" variant="ghost"
+                                          className="text-[10px]"
+                                          onClick={() => setEditingChampion(null)}
+                                        >
+                                          Batal
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* === TARKAM MODE: Player champion === */}
+                              {isTarkam && (
+                                <>
+                                  {/* Current champion player display */}
+                                  {seasonDetail?.championPlayer && !isChampionEditing && (
+                                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 border-yellow-500/30">
+                                        <Image
+                                          src={getAvatarUrl(seasonDetail.championPlayer.gamertag, seasonDetail.championPlayer.division as 'male' | 'female', seasonDetail.championPlayer.avatar)}
+                                          alt={seasonDetail.championPlayer.gamertag}
+                                          width={40}
+                                          height={40}
+                                          className="w-full h-full object-cover"
+                                          unoptimized
+                                        />
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm font-bold text-yellow-500">{seasonDetail.championPlayer.gamertag}</p>
+                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">
+                                            <Crown className="w-3 h-3 mr-0.5" /> CHAMPION
+                                          </Badge>
+                                          <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground capitalize">
+                                            {seasonDetail.championPlayer.division}
+                                          </Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">Juara Season {seasonDetail?.number} • {seasonDetail.championPlayer.points}pts</p>
+                                      </div>
+                                      <Button
+                                        size="sm" variant="ghost"
+                                        className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        onClick={() => handleRemoveTarkamChampion(season.id)}
+                                      >
+                                        <X className="w-3 h-3 mr-1" /> Hapus
+                                      </Button>
+                                    </div>
+                                  )}
+
+                                  {/* No champion yet - Tarkam */}
+                                  {!seasonDetail?.championPlayer && !isChampionEditing && (
+                                    <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                      <Crown className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                      <p className="text-[10px] text-muted-foreground">Belum ada champion untuk season ini</p>
+                                    </div>
+                                  )}
+
+                                  {/* Champion editing mode - Tarkam */}
+                                  {isChampionEditing && (
+                                    <div className="space-y-2">
+                                      <p className="text-[10px] text-muted-foreground">Pilih pemain champion untuk Season {seasonDetail?.number}:</p>
+                                      <Input
+                                        placeholder="Cari gamertag..."
+                                        value={championPlayerSearch}
+                                        onChange={(e) => setChampionPlayerSearch(e.target.value)}
+                                        className="text-xs h-8"
+                                      />
+                                      <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                        {seasonDetail?.players
+                                          ?.filter(p => !championPlayerSearch.trim() || p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase()))
+                                          .map((player) => (
+                                          <div
+                                            key={player.id}
+                                            className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all ${
+                                              selectedChampionPlayer === player.id
+                                                ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                            }`}
+                                            onClick={() => setSelectedChampionPlayer(player.id)}
+                                          >
+                                            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                              <Image
+                                                src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                                alt={player.gamertag}
+                                                width={32}
+                                                height={32}
+                                                className="w-full h-full object-cover"
+                                                unoptimized
+                                              />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                  {player.division}
+                                                </Badge>
+                                                <span>•</span>
+                                                <span>{player.points}pts</span>
+                                                <span>•</span>
+                                                <span>{player.tournamentCount} tourney</span>
+                                              </div>
+                                            </div>
+                                            {selectedChampionPlayer === player.id && (
+                                              <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                <Check className="w-3 h-3 text-black" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                        {(!seasonDetail?.players || seasonDetail.players.length === 0) && (
+                                          <p className="text-[10px] text-muted-foreground text-center py-4">
+                                            Belum ada pemain yang berpartisipasi di season ini
+                                          </p>
+                                        )}
+                                        {seasonDetail?.players && seasonDetail.players.length > 0 && championPlayerSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase())).length === 0 && (
+                                          <p className="text-[10px] text-muted-foreground text-center py-2">
+                                            Pemain tidak ditemukan
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          className="text-[10px]"
+                                          disabled={!selectedChampionPlayer || updateSeason.isPending}
+                                          onClick={() => handleSetTarkamChampion(season.id, selectedChampionPlayer)}
+                                        >
+                                          {updateSeason.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Crown className="w-3 h-3 mr-1" />}
+                                          Set Champion
+                                        </Button>
+                                        <Button
+                                          size="sm" variant="ghost"
+                                          className="text-[10px]"
+                                          onClick={() => setEditingChampion(null)}
+                                        >
+                                          Batal
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
 
                             {/* ── Champion Squad Management ── */}
-                            {seasonDetail?.championClubId && (
+                            {!isTarkam && seasonDetail?.championClubId && (
                               <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                                 <div className="flex items-center justify-between mb-2">
                                   <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
@@ -743,7 +924,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                     {seasonDetail?.status === 'upcoming' && <Calendar className="w-3 h-3 mr-1" />}
                                     {statusLabels[seasonDetail?.status || season.status] || season.status}
                                   </Badge>
-                                  {seasonDetail?.championClubId && (
+                                  {(isTarkam ? seasonDetail?.championPlayerId : seasonDetail?.championClubId) && (
                                     <span className="text-[10px] text-muted-foreground">
                                       (Champion sudah ditentukan)
                                     </span>
@@ -780,11 +961,19 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                             {/* ── Season Stats Summary ── */}
                             <div className="grid grid-cols-3 gap-2">
-                              <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
-                                <Shield className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
-                                <p className="text-sm font-bold">{seasonDetail?._count?.clubs || season._count?.clubs || 0}</p>
-                                <p className="text-[9px] text-muted-foreground">Club</p>
-                              </div>
+                              {isTarkam ? (
+                                <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
+                                  <Star className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
+                                  <p className="text-sm font-bold">{seasonDetail?.players?.length || 0}</p>
+                                  <p className="text-[9px] text-muted-foreground">Pemain</p>
+                                </div>
+                              ) : (
+                                <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
+                                  <Shield className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
+                                  <p className="text-sm font-bold">{seasonDetail?._count?.clubs || season._count?.clubs || 0}</p>
+                                  <p className="text-[9px] text-muted-foreground">Club</p>
+                                </div>
+                              )}
                               <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                 <Trophy className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
                                 <p className="text-sm font-bold">{seasonDetail?._count?.tournaments || season._count?.tournaments || 0}</p>
@@ -792,13 +981,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                               </div>
                               <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                 <Star className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
-                                <p className="text-sm font-bold">{seasonDetail?.clubs?.reduce((sum, c) => sum + c.points, 0) || 0}</p>
+                                <p className="text-sm font-bold">{isTarkam ? (seasonDetail?.players?.reduce((sum, p) => sum + p.points, 0) || 0) : (seasonDetail?.clubs?.reduce((sum, c) => sum + c.points, 0) || 0)}</p>
                                 <p className="text-[9px] text-muted-foreground">Total Poin</p>
                               </div>
                             </div>
 
-                            {/* ── Clubs Quick List ── */}
-                            {seasonDetail?.clubs && seasonDetail.clubs.length > 0 && (
+                            {/* ── Clubs Quick List (Liga only) ── */}
+                            {!isTarkam && seasonDetail?.clubs && seasonDetail.clubs.length > 0 && (
                               <div>
                                 <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                                   <Shield className="w-3 h-3" /> Club di Season Ini
@@ -838,6 +1027,53 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       )}
                                       <span className="ml-auto text-[10px] text-muted-foreground">
                                         {club.points}pts • {club.wins}W/{club.losses}L
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ── Players Quick List (Tarkam only) ── */}
+                            {isTarkam && seasonDetail?.players && seasonDetail.players.length > 0 && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                  <Star className="w-3 h-3" /> Pemain di Season Ini
+                                </p>
+                                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                                  {seasonDetail.players.map((player, idx) => (
+                                    <div
+                                      key={player.id}
+                                      className={`flex items-center gap-2 p-2 rounded-lg border text-xs ${
+                                        player.id === seasonDetail.championPlayerId
+                                          ? 'border-yellow-500/20 bg-yellow-500/5'
+                                          : 'border-border/20 bg-card/30'
+                                      }`}
+                                    >
+                                      <span className={`w-5 text-center font-bold text-[10px] ${
+                                        idx === 0 ? 'text-yellow-500' :
+                                        idx === 1 ? 'text-gray-400' :
+                                        idx === 2 ? 'text-amber-600' :
+                                        'text-muted-foreground'
+                                      }`}>#{idx + 1}</span>
+                                      <div className="w-6 h-6 rounded overflow-hidden shrink-0">
+                                        <Image
+                                          src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                          alt={player.gamertag}
+                                          width={24}
+                                          height={24}
+                                          className="w-full h-full object-cover"
+                                          unoptimized
+                                        />
+                                      </div>
+                                      <span className={`font-medium truncate ${player.id === seasonDetail.championPlayerId ? 'text-yellow-500' : ''}`}>
+                                        {player.gamertag}
+                                      </span>
+                                      {player.id === seasonDetail.championPlayerId && (
+                                        <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
+                                      )}
+                                      <span className="ml-auto text-[10px] text-muted-foreground">
+                                        {player.points}pts • {player.tournamentCount} tourney
                                       </span>
                                     </div>
                                   ))}

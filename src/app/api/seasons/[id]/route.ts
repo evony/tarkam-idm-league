@@ -15,12 +15,38 @@ export async function GET(
       clubs: { orderBy: { points: 'desc' } },
       donations: { orderBy: { createdAt: 'desc' } },
       championClub: { select: { id: true, name: true, logo: true } },
+      championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
       _count: { select: { tournaments: true, clubs: true, donations: true } },
     },
   });
 
   if (!season) {
     return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+  }
+
+  // For tarkam seasons, fetch unique players from tournament participations
+  let seasonPlayers: Array<{ id: string; gamertag: string; division: string; avatar: string | null; points: number; tournamentCount: number }> = [];
+  if (season.division !== 'liga') {
+    const participations = await db.participation.findMany({
+      where: {
+        tournament: { seasonId: id },
+        status: { in: ['approved', 'assigned'] },
+      },
+      include: {
+        player: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
+      },
+    });
+    // Deduplicate players (a player can participate in multiple tournaments)
+    const playerMap = new Map<string, { id: string; gamertag: string; division: string; avatar: string | null; points: number; tournamentCount: number }>();
+    for (const p of participations) {
+      const existing = playerMap.get(p.player.id);
+      if (existing) {
+        existing.tournamentCount++;
+      } else {
+        playerMap.set(p.player.id, { ...p.player, tournamentCount: 1 });
+      }
+    }
+    seasonPlayers = Array.from(playerMap.values()).sort((a, b) => b.points - a.points);
   }
 
   // Parse championSquad JSON string for SQLite compatibility
@@ -31,6 +57,10 @@ export async function GET(
     } catch {
       response.championSquad = null;
     }
+  }
+  // Add players for tarkam seasons
+  if (seasonPlayers.length > 0) {
+    response.players = seasonPlayers;
   }
 
   return NextResponse.json(response);
@@ -46,14 +76,14 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  const { name, status, championClubId, championSquad, endDate } = body;
+  const { name, status, championClubId, championPlayerId, championSquad, endDate } = body;
 
   const season = await db.season.findUnique({ where: { id } });
   if (!season) {
     return NextResponse.json({ error: 'Season tidak ditemukan' }, { status: 404 });
   }
 
-  // Validate championClubId if provided (now references ClubProfile)
+  // Validate championClubId if provided (liga mode — references ClubProfile)
   if (championClubId !== undefined && championClubId !== null) {
     const profile = await db.clubProfile.findUnique({ where: { id: championClubId } });
     if (!profile) {
@@ -63,6 +93,14 @@ export async function PUT(
     const seasonEntry = await db.club.findFirst({ where: { profileId: championClubId, seasonId: id } });
     if (!seasonEntry) {
       return NextResponse.json({ error: 'Club bukan bagian dari season ini' }, { status: 400 });
+    }
+  }
+
+  // Validate championPlayerId if provided (tarkam mode — references Player)
+  if (championPlayerId !== undefined && championPlayerId !== null) {
+    const player = await db.player.findUnique({ where: { id: championPlayerId } });
+    if (!player) {
+      return NextResponse.json({ error: 'Player champion tidak ditemukan' }, { status: 400 });
     }
   }
 
@@ -86,6 +124,7 @@ export async function PUT(
   if (name !== undefined) updateData.name = name.trim();
   if (status !== undefined) updateData.status = status;
   if (championClubId !== undefined) updateData.championClubId = championClubId || null;
+  if (championPlayerId !== undefined) updateData.championPlayerId = championPlayerId || null;
   if (championSquad !== undefined) updateData.championSquad = championSquad ? JSON.stringify(championSquad) : null;
   if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
 
@@ -99,6 +138,7 @@ export async function PUT(
     data: updateData,
     include: {
       championClub: { select: { id: true, name: true, logo: true } },
+      championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
       _count: { select: { tournaments: true, clubs: true } },
     },
   });
