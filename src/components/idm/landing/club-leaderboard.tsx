@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Crown, Medal, ChevronRight, TrendingUp, Crown as CrownIcon } from 'lucide-react';
+import { Trophy, Crown, Medal, ChevronRight, TrendingUp, Swords, Shield } from 'lucide-react';
 import { SectionHeader } from './shared';
 import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
@@ -18,9 +18,13 @@ interface LeaderboardClub {
   losses: number;
   gameDiff: number;
   memberCount: number;
+  maleMemberCount: number;
+  femaleMemberCount: number;
   rank: number;
   tier: string;
 }
+
+type LeaderboardType = 'tarkam' | 'liga';
 
 /* ========== Rank Badge — Gold / Silver / Bronze with medal icons ========== */
 function RankBadge({ rank }: { rank: number }) {
@@ -106,7 +110,7 @@ function WinRateMini({ wins, losses }: { wins: number; losses: number }) {
 }
 
 /* ========== Leaderboard Row ========== */
-function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; index: number; maxPoints: number }) {
+function LeaderboardRow({ club, index, maxPoints, type }: { club: LeaderboardClub; index: number; maxPoints: number; type: LeaderboardType }) {
   const isTop3 = club.rank <= 3;
 
   // Row border/glow based on rank
@@ -155,22 +159,30 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-[10px] text-muted-foreground">
-              {club.memberCount} anggota
+              {club.maleMemberCount > 0 && club.femaleMemberCount > 0
+                ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
+                : `${club.memberCount} anggota`}
             </p>
-            <span className="hidden sm:inline text-[10px] text-muted-foreground/50">
-              ·
-            </span>
-            <div className="hidden sm:flex items-center gap-1">
-              <span className="text-[10px] font-bold text-green-400">{club.wins}W</span>
-              <span className="text-[10px] text-muted-foreground/50">-</span>
-              <span className="text-[10px] font-bold text-red-400">{club.losses}L</span>
-            </div>
+            {type === 'liga' && (
+              <>
+                <span className="hidden sm:inline text-[10px] text-muted-foreground/50">·</span>
+                <div className="hidden sm:flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-green-400">{club.wins}W</span>
+                  <span className="text-[10px] text-muted-foreground/50">-</span>
+                  <span className="text-[10px] font-bold text-red-400">{club.losses}L</span>
+                </div>
+              </>
+            )}
           </div>
           {/* Hover reveal: extra stats */}
           <div className="leaderboard-hover-stats mt-1">
             <div className="flex items-center gap-3 text-[9px] text-muted-foreground/70">
-              <span>Win Rate: {club.wins + club.losses > 0 ? Math.round((club.wins / (club.wins + club.losses)) * 100) : 0}%</span>
-              <span>GD: {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}</span>
+              {type === 'liga' && (
+                <>
+                  <span>Win Rate: {club.wins + club.losses > 0 ? Math.round((club.wins / (club.wins + club.losses)) * 100) : 0}%</span>
+                  <span>GD: {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}</span>
+                </>
+              )}
               <span>PTS/Member: {club.memberCount > 0 ? (club.points / club.memberCount).toFixed(1) : '0'}</span>
             </div>
           </div>
@@ -183,17 +195,22 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
         <TierBadge tier={club.tier} />
       </div>
 
-      {/* Game Diff (desktop) */}
-      <div className="hidden sm:block">
-        <span className={`text-xs font-bold tabular-nums ${club.gameDiff > 0 ? 'text-green-400' : club.gameDiff < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
-          {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
-        </span>
-      </div>
+      {/* Liga-specific columns (desktop) */}
+      {type === 'liga' && (
+        <>
+          {/* Game Diff (desktop) */}
+          <div className="hidden sm:block">
+            <span className={`text-xs font-bold tabular-nums ${club.gameDiff > 0 ? 'text-green-400' : club.gameDiff < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+              {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
+            </span>
+          </div>
 
-      {/* Win Rate Mini (desktop) */}
-      <div className="hidden sm:block">
-        <WinRateMini wins={club.wins} losses={club.losses} />
-      </div>
+          {/* Win Rate Mini (desktop) */}
+          <div className="hidden sm:block">
+            <WinRateMini wins={club.wins} losses={club.losses} />
+          </div>
+        </>
+      )}
 
       {/* Strength Bar (desktop) */}
       <div className="hidden sm:block">
@@ -204,7 +221,7 @@ function LeaderboardRow({ club, index, maxPoints }: { club: LeaderboardClub; ind
 }
 
 /* ========== Podium — Top 3 Display ========== */
-function Top3Podium({ clubs, maxPoints }: { clubs: LeaderboardClub[]; maxPoints: number }) {
+function Top3Podium({ clubs, maxPoints, type }: { clubs: LeaderboardClub[]; maxPoints: number; type: LeaderboardType }) {
   if (clubs.length === 0) return null;
 
   const first = clubs.find(c => c.rank === 1);
@@ -277,12 +294,13 @@ function LeaderboardSkeleton() {
 /* ========== Main Component ========== */
 export function ClubLeaderboard() {
   const [showAll, setShowAll] = useState(false);
+  const [activeType, setActiveType] = useState<LeaderboardType>('tarkam');
 
-  const { data, isLoading } = useQuery<{ clubs: LeaderboardClub[] }>({
-    queryKey: ['clubs-leaderboard'],
+  const { data, isLoading } = useQuery<{ clubs: LeaderboardClub[]; type: string }>({
+    queryKey: ['clubs-leaderboard', activeType],
     queryFn: async () => {
-      const res = await fetch('/api/clubs/leaderboard');
-      if (!res.ok) return { clubs: [] };
+      const res = await fetch(`/api/clubs/leaderboard?type=${activeType}`);
+      if (!res.ok) return { clubs: [], type: activeType };
       return res.json();
     },
     staleTime: 30000,
@@ -293,6 +311,19 @@ export function ClubLeaderboard() {
   const displayClubs = showAll ? allClubs : allClubs.slice(0, 8);
   const hasMore = allClubs.length > 8;
   const maxPoints = allClubs.length > 0 ? allClubs[0].points || 1 : 1;
+
+  const typeConfig: Record<LeaderboardType, { icon: typeof Swords; label: string; desc: string }> = {
+    tarkam: {
+      icon: Swords,
+      label: 'Tarkam',
+      desc: 'Total poin anggota club (Male + Female)',
+    },
+    liga: {
+      icon: Shield,
+      label: 'Liga',
+      desc: 'Poin dari hasil pertandingan Liga',
+    },
+  };
 
   return (
     <section id="leaderboard" className="relative py-24 px-4 overflow-hidden">
@@ -309,30 +340,66 @@ export function ClubLeaderboard() {
           subtitle="Peringkat club berdasarkan performa"
         />
 
+        {/* Tarkam / Liga Tab Switcher */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          {(Object.entries(typeConfig) as [LeaderboardType, typeof typeConfig.tarkam][]).map(([key, cfg]) => {
+            const Icon = cfg.icon;
+            const isActive = activeType === key;
+            return (
+              <button
+                key={key}
+                onClick={() => { setActiveType(key); setShowAll(false); }}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                  isActive
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/30 shadow-[0_0_16px_rgba(212,168,83,0.15)]'
+                    : 'bg-white/[0.04] text-muted-foreground border border-white/[0.08] hover:bg-white/[0.08] hover:text-foreground'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {cfg.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Type description */}
+        <p className="text-center text-[11px] text-muted-foreground/60 mb-6">
+          {typeConfig[activeType].desc}
+        </p>
+
         {/* Top 3 Podium — desktop only */}
         {!isLoading && allClubs.length >= 2 && (
           <div className="hidden sm:block">
-            <Top3Podium clubs={allClubs.slice(0, 3)} maxPoints={maxPoints} />
+            <Top3Podium clubs={allClubs.slice(0, 3)} maxPoints={maxPoints} type={activeType} />
           </div>
         )}
 
         {/* Column Headers — desktop only */}
-        <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-4 px-4 pb-2 mb-1">
-          <span className="w-9 text-center text-[10px] text-muted-foreground uppercase tracking-wider font-bold">#</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Club</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">PTS</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">GD</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Win Rate</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Kekuatan</span>
-        </div>
+        {activeType === 'liga' ? (
+          <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-4 px-4 pb-2 mb-1">
+            <span className="w-9 text-center text-[10px] text-muted-foreground uppercase tracking-wider font-bold">#</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Club</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">PTS</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">GD</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Win Rate</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Kekuatan</span>
+          </div>
+        ) : (
+          <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-4 pb-2 mb-1">
+            <span className="w-9 text-center text-[10px] text-muted-foreground uppercase tracking-wider font-bold">#</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Club</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">PTS</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Kekuatan</span>
+          </div>
+        )}
 
         {isLoading ? (
           <LeaderboardSkeleton />
         ) : allClubs.length === 0 ? (
           <AnimatedEmptyState
             icon={Trophy}
-            message="Belum ada data klasemen club"
-            hint="Club akan muncul di klasemen setelah season dimulai"
+            message={activeType === 'tarkam' ? 'Belum ada data klasemen tarkam' : 'Belum ada data klasemen liga'}
+            hint={activeType === 'tarkam' ? 'Club akan muncul setelah anggotanya bermain di tarkam' : 'Club akan muncul setelah pertandingan liga dimulai'}
           />
         ) : (
           <>
@@ -340,7 +407,7 @@ export function ClubLeaderboard() {
             <div className="sm:hidden overflow-x-auto -mx-4 px-4 custom-scrollbar">
               <div className="min-w-[340px] space-y-2">
                 {displayClubs.map((club, idx) => (
-                  <LeaderboardRow key={club.id} club={club} index={idx} maxPoints={maxPoints} />
+                  <LeaderboardRow key={club.id} club={club} index={idx} maxPoints={maxPoints} type={activeType} />
                 ))}
               </div>
             </div>
@@ -348,7 +415,7 @@ export function ClubLeaderboard() {
             {/* Desktop: full table */}
             <div className="hidden sm:block space-y-2">
               {displayClubs.map((club, idx) => (
-                <LeaderboardRow key={club.id} club={club} index={idx} maxPoints={maxPoints} />
+                <LeaderboardRow key={club.id} club={club} index={idx} maxPoints={maxPoints} type={activeType} />
               ))}
             </div>
 

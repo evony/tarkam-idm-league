@@ -1589,3 +1589,45 @@ The project is **stable and feature-rich** with proper season management. The Se
 3. Add more demo match/tournament data to populate empty sections
 4. Add notification/toast system for real-time updates
 5. Add social sharing features for player profiles
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Refactor Klasemen Club — dual leaderboard (Tarkam/Liga) with merged club entity
+
+Work Log:
+- Analyzed existing club leaderboard system: single API (`/api/clubs/leaderboard?division=male`), single display mode, clubs per-division
+- Reviewed how club points are earned: Tarkam (via `updateClubStatsForPlayer` in score route), Liga (via playoff match scoring)
+- User clarified new requirements:
+  - Club = 1 entity (Gymshark male + female = 1 Gymshark, not separate)
+  - Tarkam leaderboard: Club points = sum of ALL member player.points across male + female
+  - Liga leaderboard: Club points = from Liga match results (stored club.points/wins/losses/gameDiff)
+  - Two separate leaderboards with tab switcher
+- Rewrote `/api/clubs/leaderboard/route.ts`:
+  - Added `type` query param: `tarkam` (default) or `liga`
+  - Fetches clubs from BOTH male and female divisions in latest season
+  - Merges clubs by name into single entities (mergedMap)
+  - Tarkam mode: points = sum of all member player.points (male + female members)
+  - Liga mode: points = sum of stored club.points (wins/losses/gameDiff also accumulated)
+  - Returns `maleMemberCount` and `femaleMemberCount` for display
+  - Fallback logo resolution preserved across divisions
+  - Error handling returns empty arrays
+- Rewrote `/src/components/idm/landing/club-leaderboard.tsx`:
+  - Added `LeaderboardType` = 'tarkam' | 'liga'
+  - Tarkam/Liga tab switcher with Swords and Shield icons
+  - Type description text below tabs
+  - Tarkam mode: simpler columns (Rank, Club, PTS, Kekuatan) — no W/L/GD
+  - Liga mode: full columns (Rank, Club, PTS, GD, Win Rate, Kekuatan) — with W/L/GD
+  - Member count display: "3M + 3F" when both divisions have members
+  - Query key includes `activeType` for proper cache separation
+  - Empty state messages tailored to each type
+- Ran `bun run lint` — passed with zero errors
+- Verified dev server running, API responding (200)
+
+Stage Summary:
+- Leaderboard API now supports `?type=tarkam` and `?type=liga`
+- Club = 1 entity, merged across male + female divisions
+- Tarkam points = sum of member player.points (both divisions)
+- Liga points = accumulated match result stats (both divisions)
+- ClubLeaderboard component has Tarkam/Liga tab switcher
+- All lint checks pass, dev server operational
