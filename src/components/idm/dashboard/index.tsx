@@ -168,7 +168,7 @@ export function Dashboard() {
     <div className="space-y-3 sm:space-y-4 max-w-7xl mx-auto">
 
       {/* ========== HERO BANNER — Premium Desktop + Compact Mobile ========== */}
-      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[200px] sm:min-h-[260px] lg:min-h-[340px] ${!isMobile ? 'casino-shimmer' : ''}`}>
+      <div className={`stagger-item-subtle stagger-d0 relative rounded-xl sm:rounded-2xl overflow-hidden ${dt.casinoCard} min-h-[220px] sm:min-h-[260px] lg:min-h-[340px] ${!isMobile ? 'casino-shimmer' : ''}`}>
         <div className={dt.casinoBar} />
         <div className="absolute inset-0">
           <Image src={division === 'male' ? '/bg-male.jpg' : '/bg-female.jpg'} alt="" fill sizes="100vw" className={`object-cover ${division === 'male' ? 'object-[center_25%]' : ''}`} aria-hidden="true" />
@@ -196,13 +196,17 @@ export function Dashboard() {
                   {division === 'male' ? '🕺 Male' : '💃 Female'}
                 </Badge>
               </div>
-              <div className="flex items-center gap-1.5">
-                <ShareButton
-                  title={t?.name || 'IDM League'}
-                  description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
-                  variant="icon"
-                />
-                <StatusBadge status={t?.status || 'registration'} />
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1.5">
+                  <ShareButton
+                    title={t?.name || 'IDM League'}
+                    description={`Week ${t?.weekNumber || '-'} — ${division === 'male' ? 'Male' : 'Female'} Division`}
+                    variant="icon"
+                  />
+                  <StatusBadge status={t?.status || 'registration'} />
+                </div>
+                {/* Prize Pool — below status/share */}
+                <span className="px-2 py-0.5 rounded bg-black/60 text-[9px] sm:text-xs lg:text-sm font-bold text-idm-gold-warm">💰 {formatCurrency(data.totalPrizePool)}</span>
               </div>
             </div>
 
@@ -224,15 +228,8 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* ─── RIGHT ZONE: Prize Pool + Sawer — glass panel ─── */}
+          {/* ─── RIGHT ZONE: Sawer button only (prize pool moved to top-right) ─── */}
           <div className="hidden sm:flex flex-col items-center justify-center gap-4 w-[140px] lg:w-[200px] shrink-0 border-l border-white/10 p-4 lg:p-6">
-            {/* Prize Pool */}
-            <div className="text-center">
-              <p className="text-[9px] lg:text-xs text-white/50 uppercase tracking-widest font-medium mb-2">Prize Pool</p>
-              <p className="inline-block px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 text-sm lg:text-xl font-black text-idm-gold-warm drop-shadow-[0_0_12px_rgba(229,190,74,0.4)]">{formatCurrency(data.totalPrizePool)}</p>
-            </div>
-            {/* Divider */}
-            <div className="w-8 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/50 to-transparent" />
             {/* Sawer Button */}
             <button
               onClick={() => setDonationOpen(true)}
@@ -244,14 +241,11 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Mobile-only: Prize + Sawer floating bar at bottom */}
-        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-t from-black/60 to-transparent">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-1 rounded-md bg-black/60 text-idm-gold-warm text-xs font-bold">💰 {formatCurrency(data.totalPrizePool)}</span>
-          </div>
+        {/* Mobile-only: Sawer floating bar at bottom (prize pool moved to top-right) */}
+        <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center px-4 py-2 bg-gradient-to-t from-black/50 to-transparent">
           <button
             onClick={() => setDonationOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px]"
           >
             <Gift className="w-3 h-3" />
             Sawer
