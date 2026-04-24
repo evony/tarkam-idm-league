@@ -3,10 +3,9 @@
 import React, { useState } from 'react';
 
 import {
-  Users, Trophy, Crown, Award, Radio, Music, Gift, TrendingUp, Swords, Clock,
+  Users, Trophy, Crown, Award, Radio, Music, Swords, Clock,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { PlayerCard } from '../player-card';
 import { TierBadge } from '../tier-badge';
 import { WeekNavigator } from '../week-navigator';
@@ -16,7 +15,6 @@ import { AnimatedEmptyState } from '../ui/animated-empty-state';
 import { Card } from '@/components/ui/card';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { formatCurrency } from '@/lib/utils';
 import { PlayerComparison } from '../player-comparison';
 import { SeasonTimeline } from './season-timeline';
 import type { StatsData } from '@/types/stats';
@@ -357,69 +355,6 @@ export function OverviewTab({ data, division, setSelectedPlayer, setSelectedClub
           </SectionCard>
         </div>
       )}
-
-      <div className="stagger-item-subtle stagger-d2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <SectionCard title="Donasi & Sawer" icon={Gift} badge="LIVE">
-          <div className={`p-3 rounded-xl ${dt.bgSubtle} ${dt.border} mb-3`}>
-            <p className="text-xs text-muted-foreground mb-1">Total Prize Pool</p>
-            <p className={`text-xl font-bold ${dt.neonGradient}`}>{formatCurrency(data.totalPrizePool)}</p>
-            <Progress value={data.totalPrizePool > 0 ? Math.min((data.totalPrizePool / 500000) * 100, 100) : 0} className="mt-2 h-1.5" />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground">Donatur Teratas</p>
-            {data.topDonors?.length > 0 ? (
-              data.topDonors.slice(0, 3).map((d, i) => (
-                <div key={i} className={`flex items-center justify-between text-xs p-2 rounded-lg ${dt.bgSubtle} ${dt.borderSubtle}`}>
-                  <span className="flex items-center gap-2">
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      i === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                      i === 1 ? 'bg-gray-400/20 text-gray-400' :
-                      `${dt.iconBg} ${dt.text}`
-                    }`}>{i + 1}</span>
-                    {d.donorName}
-                  </span>
-                  <span className={`font-semibold ${dt.neonText}`}>{formatCurrency(d.totalAmount)}</span>
-                </div>
-              ))
-            ) : (
-            <AnimatedEmptyState
-              icon={Gift}
-              message="Belum ada donasi"
-              hint="Donasi akan muncul di sini"
-              pattern
-              cta={<span className={`empty-cta-hint text-[10px] ${dt.text} mt-1 inline-block`}>💝 Dukung turnamen dengan saweran!</span>}
-            />
-            )}
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Season Progress" icon={TrendingUp} badge={`${data.seasonProgress?.percentage}%`}>
-          <div className="space-y-3">
-            <div>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-muted-foreground">{data.season?.name}</span>
-                <span className={`font-semibold ${dt.neonText}`}>{data.seasonProgress?.completedWeeks}/{data.seasonProgress?.totalWeeks} Weeks</span>
-              </div>
-              <Progress value={data.seasonProgress?.percentage || 0} className="h-2.5" />
-              <p className={`text-[10px] ${dt.neonText} font-semibold mt-1`}>{data.seasonProgress?.percentage}% Selesai</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className={`p-2.5 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                <p className={`text-lg font-bold ${dt.neonText}`}>{data.totalPlayers}</p>
-                <p className="text-[10px] text-muted-foreground">Players</p>
-              </div>
-              <div className={`p-2.5 rounded-xl ${dt.bgSubtle} ${dt.border} text-center cursor-pointer`} onClick={() => setSelectedClub(data.clubs?.[0])}>
-                <p className={`text-lg font-bold ${dt.neonText}`}>{data.clubs?.length || 0}</p>
-                <p className="text-[10px] text-muted-foreground">Clubs</p>
-              </div>
-              <div className={`p-2.5 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                <p className={`text-sm font-bold ${dt.neonText}`}>{formatCurrency(data.seasonDonationTotal || 0)}</p>
-                <p className="text-[10px] text-muted-foreground">Terdanai</p>
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
 
       {/* Season Timeline */}
       <div className="stagger-item-subtle stagger-d3">

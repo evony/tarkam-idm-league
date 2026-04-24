@@ -11,7 +11,6 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -20,7 +19,6 @@ import {
   MatchRowSkeleton,
   TableSkeleton,
 } from '../ui/skeleton';
-import { CountdownTimer } from '../countdown-timer';
 import { PlayerProfile } from '../player-profile';
 import { ClubProfile } from '../club-profile';
 import { ParticipantGrid } from '../participant-grid';
@@ -211,8 +209,22 @@ export function Dashboard() {
             <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-1">{data.season?.name}</p>
           </div>
 
-          {/* Bottom row: Info chips */}
+          {/* Bottom row: Prize Pool + Sawer + Info chips */}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 lg:gap-x-3">
+            {/* Prize Pool badge */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-idm-gold-warm/20 to-idm-gold-warm/10 border border-idm-gold-warm/30 text-[10px] sm:text-xs lg:text-sm font-semibold text-idm-gold-warm">
+              💰 {formatCurrency(data.totalPrizePool)}
+            </span>
+            {/* Sawer button */}
+            <button
+              onClick={() => setDonationOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] sm:text-xs lg:text-sm font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[28px] lg:min-h-[32px]"
+            >
+              <Gift className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+              Sawer
+            </button>
+            {/* Divider */}
+            <span className="hidden sm:inline-block w-px h-4 bg-white/10" />
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Flame className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />Week {t?.weekNumber || 5}</span>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><MapPin className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.location || 'Online'}</span>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm text-[10px] sm:text-xs lg:text-sm text-muted-foreground"><Trophy className={`w-3 h-3 lg:w-4 lg:h-4 ${dt.neonText}`} />{t?.format === 'group_stage' ? 'Group + Playoff' : t?.format === 'double_elimination' ? 'Double Elim.' : 'Single Elim.'}</span>
@@ -259,60 +271,6 @@ export function Dashboard() {
 
           {/* Live Match Counter */}
           <LiveMatchCounter />
-
-          {/* Countdown / Status + Prize Pool */}
-          <div className="stagger-item-subtle stagger-d1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-5">
-            {t?.scheduledAt && t.status !== 'completed' ? (
-              <div className={`flex items-center justify-center rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
-                <CountdownTimer targetDate={t.scheduledAt} />
-              </div>
-            ) : (
-              <div className={`flex flex-col justify-center gap-3 rounded-xl ${dt.bgSubtle} ${dt.border} p-3 lg:p-6 shadow-sm lg:shadow-md`}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                    <Trophy className={`w-4 h-4 ${dt.neonText}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold truncate">{t?.name || 'IDM League'}</p>
-                    <p className="text-[10px] text-muted-foreground">{data.season?.name || 'Season ' + (data.season?.number || 1)}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className={`rounded-lg ${dt.bg} p-2 text-center`}>
-                    <p className={`text-sm font-black ${dt.neonText}`}>{t?.status === 'completed' ? 'Selesai' : t?.status === 'live' ? 'Live' : t?.status === 'registration' ? 'Registrasi' : 'Aktif'}</p>
-                    <p className="text-[9px] text-muted-foreground">Status</p>
-                  </div>
-                  <div className={`rounded-lg ${dt.bg} p-2 text-center`}>
-                    <p className={`text-sm font-black ${dt.neonText}`}>{t?.format === 'group_stage' ? 'Group+PO' : t?.format === 'double_elimination' ? 'DBL Elim' : 'SGL Elim'}</p>
-                    <p className="text-[9px] text-muted-foreground">Format</p>
-                  </div>
-                </div>
-                {t?.scheduledAt && t.status === 'completed' && (
-                  <p className="text-[10px] text-muted-foreground text-center">🏆 Turnamen telah selesai</p>
-                )}
-                {!t?.scheduledAt && (
-                  <p className="text-[10px] text-muted-foreground text-center">⏳ Jadwal belum ditentukan</p>
-                )}
-              </div>
-            )}
-            <div className={`flex flex-col justify-between p-3 lg:p-6 rounded-xl ${dt.bgSubtle} ${dt.border} shadow-sm lg:shadow-md`}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-muted-foreground shrink-0">💰 Prize Pool</span>
-                <span className={`text-sm sm:text-lg lg:text-2xl font-bold ${dt.neonGradient} truncate`}>{formatCurrency(t?.prizePool || 0)}</span>
-              </div>
-              <Progress value={data.totalPrizePool > 0 ? Math.min((data.totalPrizePool / 500000) * 100, 100) : 0} className="mt-2 h-1.5" />
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-[10px] text-muted-foreground truncate mr-2">Terkumpul: {formatCurrency(data.totalPrizePool)}</p>
-                <button
-                  onClick={() => setDonationOpen(true)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:opacity-90 transition-opacity cursor-pointer min-h-[32px] shrink-0`}
-                >
-                  <Gift className="w-3 h-3" />
-                  Sawer
-                </button>
-              </div>
-            </div>
-          </div>
 
           {/* Activity Feed */}
           <div className="stagger-item-subtle stagger-d2">
