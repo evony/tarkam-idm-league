@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { Crown, Users, Swords, BookOpen, Trophy, Radio } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { StatsData } from '@/types/stats';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Section components
 import { HeroSection } from './landing/hero-section';
@@ -75,21 +76,22 @@ export function LandingPage() {
   /* Cross-tab cache sync — invalidates when admin updates logo/banner in another tab */
   useCrossTabInvalidation();
 
-  /* Parallax Refs — simplified for mobile performance */
+  /* Parallax Refs — disabled on mobile for performance */
+  const isMobile = useIsMobile();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(heroScroll, [0, 1], ['0%', '25%']);
-  const heroScale = useTransform(heroScroll, [0, 1], [1, 1.05]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.7], [1, 0]);
-  const contentY = useTransform(heroScroll, [0, 1], ['0%', '15%']);
-  const heroMidY = useTransform(heroScroll, [0, 1], ['0%', '8%']);
+  const heroY = useTransform(heroScroll, [0, 1], isMobile ? ['0%', '0%'] : ['0%', '25%']);
+  const heroScale = useTransform(heroScroll, [0, 1], isMobile ? [1, 1] : [1, 1.05]);
+  const heroOpacity = useTransform(heroScroll, [0, 0.7], isMobile ? [1, 1] : [1, 0]);
+  const contentY = useTransform(heroScroll, [0, 1], isMobile ? ['0%', '0%'] : ['0%', '15%']);
+  const heroMidY = useTransform(heroScroll, [0, 1], isMobile ? ['0%', '0%'] : ['0%', '8%']);
 
   /* Data Queries — 15s polling, CDN-cached */
   const { data: maleData, isLoading: isMaleLoading } = useQuery<StatsData>({
     queryKey: ['stats', 'male'],
     queryFn: async () => { const res = await fetch('/api/stats?division=male'); return res.json(); },
     staleTime: 15000,
-    refetchInterval: 15000, // 15s polling — CDN handles most requests
+    refetchInterval: 30000, // 15s polling — CDN handles most requests
     refetchOnWindowFocus: true,
   });
 
@@ -97,7 +99,7 @@ export function LandingPage() {
     queryKey: ['stats', 'female'],
     queryFn: async () => { const res = await fetch('/api/stats?division=female'); return res.json(); },
     staleTime: 15000,
-    refetchInterval: 15000, // 15s polling — CDN handles most requests
+    refetchInterval: 30000, // 15s polling — CDN handles most requests
     refetchOnWindowFocus: true,
   });
 
@@ -128,7 +130,7 @@ export function LandingPage() {
     gcTime: 300000, // Keep unused data for 5 min in memory
     refetchOnWindowFocus: true, // Refetch when user comes back to tab
     refetchOnReconnect: true, // Refetch when network reconnects
-    refetchInterval: 15000, // 15s polling — safe for free tier, CDN-cached
+    refetchInterval: 30000, // 15s polling — safe for free tier, CDN-cached
   });
 
   const nextSeason = (leagueData?.ligaChampion?.seasonNumber || 1) + 1;
@@ -204,7 +206,7 @@ export function LandingPage() {
       {/* ========== FIXED NAVIGATION HEADER ========== */}
       <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-md border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] nav-scrolled-glow'
+          ? 'bg-background/95 border-b border-idm-gold-warm/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] nav-scrolled-glow'
           : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-14 flex items-center justify-between">
@@ -274,7 +276,7 @@ export function LandingPage() {
       </nav>
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
-      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-idm-gold-warm/10 safe-area-bottom">
+      <nav aria-label="Section navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/98 border-t border-idm-gold-warm/10 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {[
             { id: 'about', label: 'Cerita', icon: BookOpen, special: false },

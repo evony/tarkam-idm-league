@@ -121,8 +121,7 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
               className={`
                 relative flex items-center gap-3 p-3 sm:p-4
                 rounded-xl
-                backdrop-blur-md
-                bg-white/5 dark:bg-white/[0.03]
+                bg-white/[0.07] dark:bg-white/[0.05]
                 border
                 ${dt.border}
                 transition-all duration-200

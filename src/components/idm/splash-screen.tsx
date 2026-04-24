@@ -239,7 +239,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             >
               {/* Pulsing ring */}
               <div className="absolute inset-0 rounded-full animate-ping opacity-10 bg-idm-gold-warm" />
-              <div className="relative flex items-center gap-2.5 px-7 py-3 rounded-full border border-idm-gold-warm/40 bg-idm-gold-warm/5 backdrop-blur-sm transition-all duration-300 group-hover:border-idm-gold-warm/70 group-hover:bg-idm-gold-warm/15 group-hover:scale-105 group-active:scale-95">
+              <div className="relative flex items-center gap-2.5 px-7 py-3 rounded-full border border-idm-gold-warm/40 bg-idm-gold-warm/10 transition-all duration-300 group-hover:border-idm-gold-warm/70 group-hover:bg-idm-gold-warm/20 group-hover:scale-105 group-active:scale-95">
                 <span className="text-lg">🎧</span>
                 <span className="text-xs font-bold tracking-[0.2em] uppercase text-idm-gold-warm/80 group-hover:text-idm-gold-warm transition-colors">
                   Tap to Enter

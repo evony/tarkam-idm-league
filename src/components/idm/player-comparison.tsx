@@ -588,7 +588,7 @@ export function PlayerComparison({ open, onClose }: PlayerComparisonProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
             onClick={handleClose}
           />
 
@@ -603,7 +603,7 @@ export function PlayerComparison({ open, onClose }: PlayerComparisonProps) {
             <div className={dt.casinoBar} />
 
             {/* Header */}
-            <div className={`sticky top-0 z-20 flex items-center gap-3 px-4 py-3 border-b ${dt.borderSubtle} bg-[#0c0a06]/95 backdrop-blur-md`}>
+            <div className={`sticky top-0 z-20 flex items-center gap-3 px-4 py-3 border-b ${dt.borderSubtle} bg-[#0c0a06]/98`}>
               <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
                 <Swords className={`w-4 h-4 ${dt.neonText}`} />
               </div>
@@ -687,7 +687,7 @@ export function PlayerComparison({ open, onClose }: PlayerComparisonProps) {
                             </div>
                             {/* Rank badge */}
                             {player.rank > 0 && (
-                              <Badge className="absolute top-2 right-2 bg-black/50 text-white text-[8px] border-0 backdrop-blur-sm">
+                              <Badge className="absolute top-2 right-2 bg-black/60 text-white text-[8px] border-0">
                                 #{player.rank}
                               </Badge>
                             )}

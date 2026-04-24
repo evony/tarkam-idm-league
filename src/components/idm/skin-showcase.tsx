@@ -55,7 +55,7 @@ export function SkinShowcase({ open, onClose }: SkinShowcaseProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       {/* Content */}
       <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-[#0f0e0a] border border-border/50 shadow-2xl">

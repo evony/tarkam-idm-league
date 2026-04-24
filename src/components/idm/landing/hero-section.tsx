@@ -304,7 +304,7 @@ export function HeroSection({
       </section>
 
       {/* ========== UNIFIED MARQUEE — Stats + Live Feed ========== */}
-      <div className="relative z-40 py-2.5 bg-background/60 backdrop-blur-md border-y border-idm-gold-warm/10">
+      <div className="relative z-40 py-2.5 bg-background/90 border-y border-idm-gold-warm/10">
         <MarqueeTicker maleData={maleData} femaleData={undefined} leagueData={leagueData} />
       </div>
     </>

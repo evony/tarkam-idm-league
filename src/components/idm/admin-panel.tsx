@@ -607,7 +607,7 @@ export function AdminPanel() {
                   onClick={() => setActiveTab(tabValue)}
                   className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all duration-200 min-h-[36px] ${
                     activeTab === tabValue
-                      ? 'bg-background/80 backdrop-blur-sm shadow-sm text-foreground border border-border/50'
+                      ? 'bg-background/95 shadow-sm text-foreground border border-border/50'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
@@ -675,7 +675,7 @@ export function AdminPanel() {
                   onClick={() => setActiveTab(tabValue)}
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                     activeTab === tabValue
-                      ? 'bg-background/80 backdrop-blur-sm shadow-sm text-foreground border border-border/50'
+                      ? 'bg-background/95 shadow-sm text-foreground border border-border/50'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
@@ -767,7 +767,7 @@ export function AdminPanel() {
                   placeholder="Cari pemain..."
                   value={searchPlayer}
                   onChange={(e) => setSearchPlayer(e.target.value)}
-                  className="pl-9 backdrop-blur-md bg-white/[0.04] border-white/[0.08] focus:border-idm-gold-warm/30 focus:bg-white/[0.06] transition-colors"
+                  className="pl-9 bg-white/[0.07] border-white/[0.08] focus:border-idm-gold-warm/30 focus:bg-white/[0.10] transition-colors"
                 />
               </div>
               <Button onClick={openNewPlayerForm} size="sm" className="shrink-0 text-[11px] h-8 sm:h-9">

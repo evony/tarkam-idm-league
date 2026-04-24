@@ -86,7 +86,7 @@ function ResultCard({ result, index }: { result: RecentResult; index: number }) 
 
   return (
     <div
-      className="live-indicator-result-card shrink-0 w-[180px] rounded-lg bg-white/[0.04] backdrop-blur-md border border-white/[0.06] p-2.5 hover:border-idm-gold-warm/20 transition-all"
+      className="live-indicator-result-card shrink-0 w-[180px] rounded-lg bg-white/[0.07] border border-white/[0.06] p-2.5 hover:border-idm-gold-warm/20 transition-all"
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <div className="flex items-center justify-between gap-1.5">
@@ -112,7 +112,7 @@ function ResultCard({ result, index }: { result: RecentResult; index: number }) 
 /* ========== Loading Skeleton ========== */
 function LiveMatchIndicatorSkeleton() {
   return (
-    <div className="rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] overflow-hidden">
+    <div className="rounded-xl bg-white/[0.06] border border-white/[0.06] overflow-hidden">
       <div className="h-1 bg-gradient-to-r from-transparent via-idm-gold-warm/20 to-transparent" />
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export function LiveMatchIndicator() {
   const hasUpcoming = !!nextMatch?.scheduledAt;
 
   return (
-    <div className="live-match-indicator-card rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] overflow-hidden">
+    <div className="live-match-indicator-card rounded-xl bg-white/[0.06] border border-white/[0.06] overflow-hidden">
       {/* Top accent bar */}
       <div className={`h-1 ${hasLive ? 'bg-gradient-to-r from-red-500/60 via-red-400/40 to-red-500/60 animate-pulse' : 'bg-gradient-to-r from-transparent via-idm-gold-warm/20 to-transparent'}`} />
 

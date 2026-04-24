@@ -46,7 +46,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   return maleVideoUrl && onVideoPlay ? (
                     <button
                       onClick={() => onVideoPlay(maleVideoUrl, 'Weekly Male')}
-                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/40 transition-colors cursor-pointer"
                       aria-label="Play video"
                     >
                       <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
@@ -122,7 +122,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
                   return femaleVideoUrl && onVideoPlay ? (
                     <button
                       onClick={() => onVideoPlay(femaleVideoUrl, 'Weekly Female')}
-                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/30 transition-colors cursor-pointer backdrop-blur-sm"
+                      className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-idm-gold-warm/30 border border-idm-gold-warm/40 flex items-center justify-center hover:bg-idm-gold-warm/40 transition-colors cursor-pointer"
                       aria-label="Play video"
                     >
                       <Play className="w-4 h-4 text-idm-gold-warm fill-idm-gold-warm" />
@@ -189,7 +189,7 @@ export function TournamentHub({ maleData, femaleData, cmsSections, cmsSettings, 
         <AnimatedSection variant="fadeUp">
           <button
             onClick={() => document.getElementById('dream')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.03] backdrop-blur-sm p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.06] transition-all duration-300 cursor-pointer liga-cta-shimmer"
+            className="mt-8 w-full relative rounded-2xl border border-idm-gold-warm/15 bg-idm-gold-warm/[0.06] p-4 sm:p-5 flex items-center justify-between group hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/[0.09] transition-all duration-300 cursor-pointer liga-cta-shimmer"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 border border-idm-gold-warm/20 flex items-center justify-center">

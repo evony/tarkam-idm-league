@@ -50,7 +50,7 @@ export function LiveMatchCounter() {
       return res.json();
     },
     staleTime: 15000,
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
 
   const stats = [

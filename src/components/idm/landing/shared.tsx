@@ -82,7 +82,7 @@ export function StatCard({ icon: Icon, value, label, delay }: {
       transition={{ delay, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="group relative"
     >
-      <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-idm-gold-warm/10 bg-white/[0.03] backdrop-blur-md text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)] hover:border-idm-gold-warm/20">
+      <div className="relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-idm-gold-warm/10 bg-white/[0.06] text-center transition-all duration-300 hover:shadow-[0_0_30px_rgba(212,168,83,0.15)] hover:border-idm-gold-warm/20">
         {/* Glassmorphism shine effect */}
         <div className="absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/[0.04] to-transparent" />

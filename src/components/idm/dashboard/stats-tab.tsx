@@ -51,7 +51,7 @@ const TIER_COLORS: Record<string, string> = {
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border/50 bg-card/95 px-3 py-2 shadow-xl backdrop-blur-sm">
+    <div className="rounded-lg border border-border/50 bg-card px-3 py-2 shadow-xl">
       {label && <p className="text-[10px] font-semibold text-muted-foreground mb-1">{label}</p>}
       {payload.map((entry, i) => (
         <p key={i} className="text-xs font-medium" style={{ color: entry.color || '#f5e6c8' }}>

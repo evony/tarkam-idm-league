@@ -181,7 +181,7 @@ export function TierProgress({
 
   return (
     <div
-      className={`relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 sm:p-6 overflow-hidden ${className}`}
+      className={`relative rounded-2xl border border-white/10 bg-white/[0.08] p-4 sm:p-6 overflow-hidden ${className}`}
     >
       {/* Ambient glow */}
       <div
