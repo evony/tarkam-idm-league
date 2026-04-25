@@ -674,12 +674,8 @@ VALUES
   ('mp_47', 'ZABYER', 'ZABYER', 'male', 'B', NULL, 20, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
   ('mp_48', 'zmz', 'zmz', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
   ('mp_49', 'ZORO', 'ZORO', 'male', 'A', NULL, 75, 3, 1, 3, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
-  ('mp_50', 'zico', 'zico', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
-  ('mp_51', 'ZORO2', 'ZORO', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00')
+  ('mp_50', 'zico', 'zico', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00')
 ON CONFLICT ("id") DO NOTHING;
-
--- Wait, ZORO is duplicate gamertag! Remove the last one
-DELETE FROM "Player" WHERE "id" = 'mp_51';
 
 -- ======== FEMALE PLAYERS (26) ========
 INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
@@ -1026,7 +1022,7 @@ COMMIT;
 -- Ringkasan data yang dimasukkan:
 -- - 3 Seasons (Male S1, Female S1, Female S2)
 -- - 50 Male Players
--- - 26 Female Players
+-- - 26 Female Players  (Total: 76 Players)
 -- - 21 Club Profiles
 -- - 41 Club Season Entries (15 male + 13 female S1 + 13 female S2)
 -- - 77 Club Memberships
