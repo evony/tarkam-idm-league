@@ -329,8 +329,8 @@ export async function POST(
 
     const currentRound = match2.round;
     const bracket = match2.bracket;
-    const winnerId = result.winnerId;
-    const loserId = result.loserId;
+    const winnerId = result.winnerId ?? null;
+    const loserId = result.loserId ?? null;
 
     // Group match — check if group stage is done
     if (bracket === 'group' && format === 'group_stage') {

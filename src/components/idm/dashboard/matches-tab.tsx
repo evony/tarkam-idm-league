@@ -109,9 +109,9 @@ export function MatchesTab({ data, recentMatches, upcomingMatches, matchesByWeek
 
   // Group club schedule matches by week
   const clubMatchesByWeek = useMemo(() => {
-    if (!clubScheduleData?.matches) return {};
-    const completed: Record<number, typeof clubScheduleData.matches> = {};
-    const upcoming: Record<number, typeof clubScheduleData.matches> = {};
+    if (!clubScheduleData?.matches) return { completed: {} as Record<number, any[]>, upcoming: {} as Record<number, any[]> };
+    const completed: Record<number, any[]> = {};
+    const upcoming: Record<number, any[]> = {};
     for (const m of clubScheduleData.matches) {
       const bucket = (m.result === 'upcoming' || m.status === 'upcoming') ? upcoming : completed;
       if (!bucket[m.week]) bucket[m.week] = [];

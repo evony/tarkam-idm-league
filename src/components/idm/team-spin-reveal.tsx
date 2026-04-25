@@ -340,7 +340,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
     if (!spinRevealOrder || spinRevealOrder.length === 0 || !tournamentId) return;
 
     try {
-      const teamAssignments = [];
+      const teamAssignments: Array<{ teamIndex: number; sPlayerId: string; aPlayerId: string; bPlayerId: string }> = [];
       for (let i = 0; i < teamCount; i++) {
         const slot = teamSlots[i];
         if (slot?.s && slot?.a && slot?.b) {

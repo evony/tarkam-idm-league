@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const results = [];
+    const results: Awaited<ReturnType<typeof db.skin.upsert>>[] = [];
 
     for (const skinData of DEFAULT_SKINS) {
       const skin = await db.skin.upsert({

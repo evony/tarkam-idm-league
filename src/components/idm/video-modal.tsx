@@ -153,7 +153,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
                         />
                         <div className="relative z-10 flex flex-col items-center gap-5">
                           <a
-                            href={youtubeWatchUrl}
+                            href={youtubeWatchUrl ?? undefined}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex flex-col items-center gap-3 group"

@@ -432,7 +432,7 @@ export function AdminPanel() {
   // When setting a payment form field, always merge from the latest CMS settings base
   // This ensures fields not yet edited by admin are preserved from server data
   const updatePaymentForm = (updates: Partial<Record<string, string>>) => {
-    setPaymentForm(prev => ({ ...cmsSettingsBase, ...prev, ...updates }));
+    setPaymentForm(prev => ({ ...cmsSettingsBase, ...prev, ...updates }) as Record<string, string>);
   };
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileCategory, setMobileCategory] = useState('dashboard');
@@ -819,7 +819,7 @@ export function AdminPanel() {
                 joki: string | null;
                 clubMembers?: Array<{ profile: { id: string; name: string; logo?: string | null } }>;
               }, index) => {
-                const avatarSrc = getAvatarUrl(p.gamertag, p.division, p.avatar);
+                const avatarSrc = getAvatarUrl(p.gamertag, p.division as 'male' | 'female', p.avatar);
                 return (
                 <div key={p.id} className={`flex items-center justify-between p-2 sm:p-3 rounded-xl bg-card border border-border/50 ${dt.casinoGlow} transition-colors hover:border-border/80`}
                 >

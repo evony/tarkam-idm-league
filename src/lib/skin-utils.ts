@@ -32,8 +32,10 @@ export interface PlayerSkinWithDetails {
   colorClass: string;       // JSON string from database — parse with parseSkinColors()
   priority: number;
   duration: string;         // "weekly" | "permanent"
-  reason?: string;
+  reason?: string | null;
   expiresAt?: string | null;
+  /** Permanent donor heart badge count (independent of skin expiry) */
+  donorBadgeCount?: number;
 }
 
 // ============================================

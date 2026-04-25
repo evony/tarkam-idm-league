@@ -295,7 +295,7 @@ export async function POST(
       const topClub = await db.club.findFirst({
         where: { seasonId: tournament.seasonId },
         orderBy: [{ points: 'desc' }, { gameDiff: 'desc' }],
-        select: { id: true, name: true },
+        select: { id: true } as const,
       });
 
       await db.season.update({

@@ -16,14 +16,20 @@ export async function PUT(request: Request) {
     }
 
     // Update each setting in sequence (SQLite doesn't support true batch upsert well)
-    const results = [];
+    const results: Array<{ id: string; key: string; value: string; updatedAt: Date; type: string }> = [];
     for (const item of items) {
       const result = await db.cmsSetting.upsert({
         where: { key: item.key },
         update: { value: item.value, updatedAt: new Date() },
         create: { key: item.key, value: item.value },
       });
-      results.push(result);
+      results.push({
+        id: result.id,
+        key: result.key,
+        value: result.value,
+        updatedAt: result.updatedAt,
+        type: result.type,
+      });
     }
 
     return NextResponse.json({ 

@@ -66,7 +66,7 @@ export async function POST(
   const format = tournament.format || 'single_elimination';
   const matchFormat = tournament.defaultMatchFormat || 'BO1';
 
-  const matches = [];
+  const matches: Awaited<ReturnType<typeof db.match.create>>[] = [];
 
   // ===== SINGLE ELIMINATION (No WO matches - bye teams go directly to R2) =====
   if (format === 'single_elimination') {

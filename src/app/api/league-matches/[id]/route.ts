@@ -70,7 +70,7 @@ export async function GET(
   }
 
   // Try to find MVP player from tournament matches for this week
-  let mvpPlayer = null;
+  let mvpPlayer: { id: string; gamertag: string; avatar: string | null; tier: string } | null = null;
   if (match.status === 'completed') {
     const tournamentMatch = await db.match.findFirst({
       where: {

@@ -290,7 +290,7 @@ export function TournamentView() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <TierBadge tier={p.tierOverride || p.player.tier} />
+                          <TierBadge tier={(p as Record<string, unknown>).tierOverride as string || p.player.tier} />
                           {p.isMvp && <Crown className="w-3 h-3 text-yellow-500" />}
                           {p.isWinner && <Trophy className="w-3 h-3 text-idm-gold-warm" />}
                         </div>
@@ -327,7 +327,7 @@ export function TournamentView() {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-1">
-                            {t.teamPlayers.map(tp => (
+                            {t.teamPlayers.map((tp: any) => (
                               <div key={tp.player.id} className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${dt.bgSubtle} text-[10px]`}>
                                 <TierBadge tier={tp.tier || tp.player.tier} />
                                 <span>{tp.player.gamertag}</span>

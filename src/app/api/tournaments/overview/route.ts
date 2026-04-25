@@ -36,7 +36,7 @@ export async function GET(request: Request) {
           orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }],
         },
         participations: {
-          include: { player: { select: { id: true, name: true, gamertag: true, tier: true, avatar: true } } },
+          include: { player: { select: { id: true, name: true, gamertag: true, tier: true, avatar: true, points: true } } },
         },
         prizes: { orderBy: { position: 'asc' } },
       },
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
           orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }],
         },
         participations: {
-          include: { player: { select: { id: true, name: true, gamertag: true, tier: true, avatar: true } } },
+          include: { player: { select: { id: true, name: true, gamertag: true, tier: true, avatar: true, points: true } } },
         },
         prizes: { orderBy: { position: 'asc' } },
       },
@@ -215,7 +215,7 @@ export async function GET(request: Request) {
     const progressPercent = totalMatches > 0 ? Math.round((completedMatchCount / totalMatches) * 100) : 0;
 
     // Champion info if completed
-    let champion = null;
+    let champion: { id: string; name: string; players: Array<{ id: string; gamertag: string; tier: string }> } | null = null;
     if (t.status === 'completed') {
       const winnerTeam = t.teams.find(tm => tm.isWinner || tm.rank === 1);
       if (winnerTeam) {

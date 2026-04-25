@@ -51,6 +51,7 @@ export interface ActiveTournament {
   name: string;
   weekNumber: number;
   status: string;
+  format?: string;
   prizePool: number;
   bpm: string | null;
   location: string;
@@ -72,7 +73,7 @@ export interface TopPlayer {
   maxStreak: number;
   totalMvp: number;
   matches: number;
-  club?: string;
+  club?: string | { id: string; name: string; logo?: string | null };
   division?: string;
   city?: string;
 }

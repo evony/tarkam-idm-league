@@ -4,11 +4,10 @@ import Image from 'next/image';
 import { Crown, Flame } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 import { SkinBadgesRow, SkinAvatarFrame, SkinName, SkinCardBorder } from './skin-renderer';
-import { getPrimarySkin } from '@/lib/skin-utils';
+import { getPrimarySkin, type PlayerSkinWithDetails } from '@/lib/skin-utils';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
 import { getAvatarUrl, clubToString } from '@/lib/utils';
-import type { PlayerSkinData } from '@/lib/store';
 
 interface PlayerCardProps {
   gamertag: string;
@@ -22,7 +21,7 @@ interface PlayerCardProps {
   isMvp?: boolean;
   club?: string | { id: string; name: string; logo?: string | null } | null;
   /** Skins array — only provided for the logged-in player */
-  skins?: PlayerSkinData[];
+  skins?: PlayerSkinWithDetails[];
   onClick?: () => void;
 }
 

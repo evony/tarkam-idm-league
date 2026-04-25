@@ -268,7 +268,7 @@ export async function GET(request: Request) {
     });
 
     // Step 8: Format next match opponent info
-    let nextOpponent = null;
+    let nextOpponent: { id: string | undefined; name: string; players: Array<{ id: string; name: string; gamertag: string; tier: string }> } | null = null;
     if (nextMatch) {
       const isTeam1 = nextMatch.team1Id === myTeam.id;
       const opponent = isTeam1 ? nextMatch.team2 : nextMatch.team1;

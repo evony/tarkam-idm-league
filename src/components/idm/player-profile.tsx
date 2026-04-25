@@ -402,7 +402,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap }: PlayerProfileP
               </div>
               {achievementData?.achievements?.length > 0 ? (
                 <AchievementList
-                  achievements={achievementData.achievements.map((a: { achievement: { id: string; name: string; displayName: string; description: string; icon: string; tier: string } }) => ({
+                  achievements={achievementData.achievements.map((a: { achievement: { id: string; name: string; displayName: string; description: string; icon: string; tier: string }; earnedAt: Date }) => ({
                     id: a.achievement.id,
                     name: a.achievement.name,
                     displayName: a.achievement.displayName,

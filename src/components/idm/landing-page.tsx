@@ -77,7 +77,7 @@ export function LandingPage() {
 
   /* Parallax Refs — disabled on mobile for performance */
   const isMobile = useIsMobile();
-  const heroRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLElement | null>(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroY = useTransform(heroScroll, [0, 1], isMobile ? ['0%', '0%'] : ['0%', '25%']);
   const heroScale = useTransform(heroScroll, [0, 1], isMobile ? [1, 1] : [1, 1.05]);

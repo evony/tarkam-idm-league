@@ -78,7 +78,7 @@ export function LeagueView() {
     },
   });
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-8 h-8 border-2 border-idm-gold-warm border-t-transparent rounded-full animate-spin" />
@@ -86,10 +86,11 @@ export function LeagueView() {
     );
   }
 
-  if (!data?.hasData) {
-    const isNoSeason = data?.reason === 'no_season';
-    const isNoClubs = data?.reason === 'no_clubs';
+  const d = data;
+  const isNoSeason = d.reason === 'no_season';
+  const isNoClubs = d.reason === 'no_clubs';
 
+  if (!d.hasData) {
     return (
       <div className="animate-fade-enter">
         <div className="relative rounded-2xl overflow-hidden border border-idm-gold-warm/20" style={{ background: 'linear-gradient(135deg, #0a0806 0%, #1a1208 30%, #0d0a06 60%, #120a14 100%)' }}>
@@ -111,9 +112,9 @@ export function LeagueView() {
               </div>
 
               {/* Season name badge if available */}
-              {isNoClubs && data.season && (
+              {isNoClubs && d.season && (
                 <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-idm-gold-warm/20 font-bold uppercase tracking-wider mb-3">
-                  {data.season.name} — AKTIF
+                  {d.season.name} — AKTIF
                 </Badge>
               )}
 
@@ -163,7 +164,7 @@ export function LeagueView() {
         </div>
 
         {/* Season Champion Card — shown even when current season has no clubs */}
-        {data.ligaChampion && (
+        {d.ligaChampion && (
           <div
             className="animate-fade-enter mt-4 rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
             style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
@@ -172,21 +173,21 @@ export function LeagueView() {
             <div className="relative p-4 sm:p-5 z-10">
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
-                  <ClubLogoImage clubName={data.ligaChampion.name} dbLogo={data.ligaChampion.logo} alt={data.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
+                  <ClubLogoImage clubName={d.ligaChampion.name} dbLogo={d.ligaChampion.logo} alt={d.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
                   <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-md">
                     <Crown className="w-3 h-3 text-[#0c0a06]" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {data.ligaChampion.seasonNumber} Champion</Badge>
+                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {d.ligaChampion.seasonNumber} Champion</Badge>
                     <Badge className="bg-yellow-500/10 text-yellow-500 text-[8px] border-0">Liga IDM</Badge>
                   </div>
-                  <h4 className="text-base font-black text-white truncate">{data.ligaChampion.name}</h4>
-                  <p className="text-[11px] text-muted-foreground">Juara Liga IDM Season {data.ligaChampion.seasonNumber} — {data.ligaChampion.members.length} pemain (male & female)</p>
+                  <h4 className="text-base font-black text-white truncate">{d.ligaChampion.name}</h4>
+                  <p className="text-[11px] text-muted-foreground">Juara Liga IDM Season {d.ligaChampion.seasonNumber} — {d.ligaChampion.members.length} pemain (male & female)</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                  {data.ligaChampion.members.slice(0, 5).map(m => (
+                  {d.ligaChampion.members.slice(0, 5).map(m => (
                     <div
                       key={m.id}
                       className={`w-7 h-7 rounded-md overflow-hidden shrink-0 border ${m.division === 'male' ? 'border-cyan-500/20' : 'border-purple-500/20'}`}
@@ -202,9 +203,9 @@ export function LeagueView() {
                       />
                     </div>
                   ))}
-                  {data.ligaChampion.members.length > 5 && (
+                  {d.ligaChampion.members.length > 5 && (
                     <div className="w-7 h-7 rounded-md flex items-center justify-center text-[8px] font-bold border border-white/10 bg-white/5 text-muted-foreground">
-                      +{data.ligaChampion.members.length - 5}
+                      +{d.ligaChampion.members.length - 5}
                     </div>
                   )}
                 </div>
@@ -220,7 +221,7 @@ export function LeagueView() {
   const weeks = [...new Set(leagueMatches.map(m => m.week))].sort((a, b) => a - b);
 
   // ═══ PRE-SEASON STATE: Clubs exist but no matches played yet ═══
-  if (data.preSeason) {
+  if (d.preSeason) {
     const maleCount = clubs.reduce((acc, c) => acc + c.members.filter(m => m.division === 'male').length, 0);
     const femaleCount = clubs.reduce((acc, c) => acc + c.members.filter(m => m.division === 'female').length, 0);
     const totalMembers = clubs.reduce((acc, c) => acc + c.memberCount, 0);
@@ -249,7 +250,7 @@ export function LeagueView() {
 
               {/* Season Badge */}
               <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-idm-gold-warm/20 font-bold uppercase tracking-wider mb-3">
-                {data.season?.name} — PRE-SEASON
+                {d.season?.name} — PRE-SEASON
               </Badge>
 
               <h3 className="text-2xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -300,7 +301,7 @@ export function LeagueView() {
         </div>
 
         {/* Season 1 Champion Card */}
-        {data.ligaChampion && (
+        {d.ligaChampion && (
           <div
             className="animate-fade-enter rounded-2xl border border-idm-gold-warm/25 overflow-hidden"
             style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, #0c0a06 0%, #1a1208 40%, #0d0a06 70%, #0c0a06 100%)' }}
@@ -310,21 +311,21 @@ export function LeagueView() {
             <div className="relative p-4 sm:p-5 z-10">
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
-                  <ClubLogoImage clubName={data.ligaChampion.name} dbLogo={data.ligaChampion.logo} alt={data.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
+                  <ClubLogoImage clubName={d.ligaChampion.name} dbLogo={d.ligaChampion.logo} alt={d.ligaChampion.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover border border-idm-gold-warm/25" />
                   <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-md">
                     <Crown className="w-3 h-3 text-[#0c0a06]" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {data.ligaChampion.seasonNumber} Champion</Badge>
+                    <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Season {d.ligaChampion.seasonNumber} Champion</Badge>
                     <Badge className="bg-yellow-500/10 text-yellow-500 text-[8px] border-0">Liga IDM</Badge>
                   </div>
-                  <h4 className="text-base font-black text-white truncate">{data.ligaChampion.name}</h4>
-                  <p className="text-[11px] text-muted-foreground">Juara Liga IDM Season {data.ligaChampion.seasonNumber} — {data.ligaChampion.members.length} pemain (male & female)</p>
+                  <h4 className="text-base font-black text-white truncate">{d.ligaChampion.name}</h4>
+                  <p className="text-[11px] text-muted-foreground">Juara Liga IDM Season {d.ligaChampion.seasonNumber} — {d.ligaChampion.members.length} pemain (male & female)</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                  {data.ligaChampion.members.slice(0, 8).map(m => (
+                  {d.ligaChampion.members.slice(0, 8).map(m => (
                     <div
                       key={m.id}
                       className="w-7 h-7 rounded-md overflow-hidden shrink-0 border border-white/10"
@@ -340,9 +341,9 @@ export function LeagueView() {
                       />
                     </div>
                   ))}
-                  {data.ligaChampion.members.length > 8 && (
+                  {d.ligaChampion.members.length > 8 && (
                     <div className="w-7 h-7 rounded-md flex items-center justify-center text-[8px] font-bold border border-white/10 bg-white/5 text-muted-foreground">
-                      +{data.ligaChampion.members.length - 8}
+                      +{d.ligaChampion.members.length - 8}
                     </div>
                   )}
                 </div>
@@ -459,7 +460,7 @@ export function LeagueView() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border-idm-gold-warm/20 font-bold uppercase tracking-wider">Liga IDM</Badge>
-                  {data.season && <Badge className="bg-muted/50 text-muted-foreground text-[9px] border-0">{data.season.name}</Badge>}
+                  {d.season && <Badge className="bg-muted/50 text-muted-foreground text-[9px] border-0">{d.season.name}</Badge>}
                 </div>
                 <h2 className="text-xl lg:text-2xl font-bold" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #f5d78e, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   IDM League
@@ -553,7 +554,7 @@ export function LeagueView() {
         <TabsContent value="standings" className="mt-4">
           <div className="space-y-2">
             {clubs.map((club, idx) => {
-              const isChampion = data.ligaChampion?.id === club.id;
+              const isChampion = d.ligaChampion?.id === club.id;
               const isTop4 = idx < 4;
               const isExpanded = expandedClub === club.id;
               const maleCount = club.members.filter(m => m.division === 'male').length;

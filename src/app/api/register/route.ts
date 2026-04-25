@@ -118,11 +118,11 @@ function checkDuplicates(
     if (!nameMatch && !nameSimilar) continue;
 
     const cityMatch = playerCityLower === normalizedCity;
-    const phoneMatch = normalizedPhone && playerPhoneNorm && playerPhoneNorm.length >= 8 && normalizedPhone.length >= 8 && (
+    const phoneMatch = !!(normalizedPhone && playerPhoneNorm && playerPhoneNorm.length >= 8 && normalizedPhone.length >= 8 && (
       normalizedPhone === playerPhoneNorm ||
       normalizedPhone.endsWith(playerPhoneNorm.slice(-8)) ||
       playerPhoneNorm.endsWith(normalizedPhone.slice(-8))
-    );
+    ));
 
     const matchType = nameMatch ? 'exact_name' : 'similar_name';
 
@@ -432,6 +432,7 @@ function checkDuplicates(
       canReRegister: false,
       isApprovedPlayer: false,
       alreadyInTournament: false,
+      reRegisterPlayerId: null,
       similarPlayers,
       message: `Terdapat nama yang mirip: ${similarPlayers.map(p => p.name).join(', ')}. Yakin nama ini berbeda?`,
     };

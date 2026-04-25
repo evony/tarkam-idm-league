@@ -220,7 +220,6 @@ export function SkinAvatarFrame({ skin, children }: SkinAvatarFrameProps) {
       <div
         className="relative rounded-full ring-2"
         style={{
-          ringColor: colors.frame,
           boxShadow: `0 0 0 2px ${colors.frame}`,
         }}
       >

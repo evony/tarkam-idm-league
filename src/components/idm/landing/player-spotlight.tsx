@@ -52,7 +52,7 @@ function StatItem({
   label,
   valueColor,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   value: string | number;
   label: string;
   valueColor: string;

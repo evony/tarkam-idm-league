@@ -111,7 +111,16 @@ export async function POST(request: Request) {
     select: { id: true, division: true },
   });
 
-  const createdClubs = [];
+  const createdClubs: Array<{
+    id: string;
+    profileId: string;
+    division: string;
+    seasonId: string;
+    wins: number;
+    losses: number;
+    points: number;
+    gameDiff: number;
+  }> = [];
 
   for (const season of activeSeasons) {
     // Check if club already exists in this season

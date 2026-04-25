@@ -22,8 +22,8 @@ export async function GET(request: Request) {
     });
 
     const now = new Date();
-    const activeSkins = [];
-    const expiredIds = [];
+    const activeSkins: typeof playerSkins = [];
+    const expiredIds: string[] = [];
 
     for (const ps of playerSkins) {
       const isExpired = ps.expiresAt && new Date(ps.expiresAt) < now;

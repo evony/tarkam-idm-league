@@ -36,7 +36,7 @@ export async function checkAndAwardAchievements(
     where: { id: playerId },
     include: {
       participations: {
-        include: { tournament: { orderBy: { createdAt: 'asc' } } },
+        include: { tournament: true },
         orderBy: { createdAt: 'asc' },
       },
       achievements: { include: { achievement: true } },
@@ -64,7 +64,11 @@ export async function checkAndAwardAchievements(
     if (earnedNames.has(achievement.name)) continue;
 
     const criteria: AchievementCriteria = JSON.parse(achievement.criteria);
-    const checkResult = await checkAchievementCriteria(player, criteria, tournamentId);
+    const checkResult = await checkAchievementCriteria(
+      player as unknown as Parameters<typeof checkAchievementCriteria>[0],
+      criteria,
+      tournamentId
+    );
 
     if (checkResult.earned) {
       // Award the achievement
@@ -126,7 +130,7 @@ async function checkAchievementCriteria(
       pointsEarned: number;
       tournament: { weekNumber: number; createdAt: Date };
     }>;
-    clubMembers: Array<{ clubId: string; club: { name: string } }>;
+    clubMembers: Array<{ clubId: string; profileId: string; club: { name: string } }>;
   },
   criteria: AchievementCriteria,
   currentTournamentId: string
@@ -149,7 +153,7 @@ async function checkAchievementCriteria(
             isWinner: true,
             tournament: { status: 'completed' }
           },
-          include: { tournament: { orderBy: { weekNumber: 'desc' } } },
+          include: { tournament: true },
           orderBy: { createdAt: 'desc' },
           take: criteria.count || 2,
         });
@@ -214,12 +218,12 @@ async function checkAchievementCriteria(
     case 'mvp_streak': {
       // Check for consecutive MVP awards
       const mvpParticipations = await db.participation.findMany({
-        where: { 
-          playerId: player.id, 
+        where: {
+          playerId: player.id,
           isMvp: true,
           tournament: { status: 'completed' }
         },
-        include: { tournament: { orderBy: { weekNumber: 'desc' } } },
+        include: { tournament: true },
         orderBy: { createdAt: 'desc' },
         take: criteria.count || 2,
       });
@@ -252,7 +256,7 @@ async function checkAchievementCriteria(
       // Check if player won with their club
       const currentParticipation = player.participations.find(p => p.tournamentId === currentTournamentId);
       if (currentParticipation?.isWinner && player.clubMembers.length > 0) {
-        return { earned: true, context: { clubId: player.clubMembers[0].clubId } };
+        return { earned: true, context: { clubId: player.clubMembers[0].profileId } };
       }
       return { earned: false };
     }
@@ -260,12 +264,12 @@ async function checkAchievementCriteria(
     case 'club_dominance': {
       // Check if multiple club members won in same tournament
       if (player.clubMembers.length === 0) return { earned: false };
-      
-      const clubId = player.clubMembers[0].clubId;
-      
+
+      const profileId = player.clubMembers[0].profileId;
+
       // Get all club members
       const clubMembers = await db.clubMember.findMany({
-        where: { clubId },
+        where: { profileId, leftAt: null },
         include: { player: { include: { participations: true } } },
       });
 
@@ -280,7 +284,7 @@ async function checkAchievementCriteria(
         return { 
           earned: true, 
           context: { 
-            clubId,
+            clubId: profileId,
             winnerCount: winnersInTournament.length,
             winners: winnersInTournament.map(w => w.player.gamertag),
           } 

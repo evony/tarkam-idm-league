@@ -564,7 +564,7 @@ export function CmsPanel() {
   // When setting a settings form field, always merge from the latest server data
   // This ensures fields not yet edited by admin are preserved from server data
   const updateSettingsForm = (updates: Partial<Record<string, string>>) => {
-    setSettingsForm(prev => ({ ...settingsDataBase, ...prev, ...updates }));
+    setSettingsForm(prev => ({ ...settingsDataBase, ...prev, ...updates }) as Record<string, string>);
   };
 
   /* ========== New Section State ========== */

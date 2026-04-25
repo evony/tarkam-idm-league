@@ -621,7 +621,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
             <div className={`flex-1 h-px ${dt.borderSubtle}`} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {playoffMatches.sort((a, b) => a.round - b.round).map((m) => {
+            {playoffMatches.sort((a, b) => (a.round ?? 0) - (b.round ?? 0)).map((m) => {
               const mExt = m as Match & { groupLabel?: string; bracket?: string };
               const hasScore = m.score1 !== null && m.score2 !== null;
               const winner1 = hasScore && m.score1! > m.score2!;

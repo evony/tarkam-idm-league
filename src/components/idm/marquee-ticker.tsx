@@ -211,9 +211,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
 
     const pusher = new Pusher(pusherKey, {
       cluster: pusherCluster,
-      maxReconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
     });
 
     const channel = pusher.subscribe('idm-feed');

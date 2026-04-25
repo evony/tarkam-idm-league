@@ -408,8 +408,8 @@ export function Dashboard() {
           <div className="space-y-3 sm:space-y-4">
             <div className="stagger-item-subtle">
               <ParticipantGrid
-                players={data.topPlayers || []}
-                onPlayerClick={(player) => handleSelectPlayer(player)}
+                players={(data.topPlayers || []) as any}
+                onPlayerClick={(player: any) => handleSelectPlayer(player)}
               />
             </div>
           </div>

@@ -36,7 +36,7 @@ async function safeParseJSON<T = Record<string, unknown>>(r: Response): Promise<
   }
 }
 
-async function apiFetch(url: string, options: RequestInit) {
+async function apiFetch(url: string, options: RequestInit): Promise<Record<string, unknown>> {
   const r = await fetch(url, options);
   if (!r.ok) {
     const d = await safeParseJSON(r);
@@ -306,9 +306,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
         body: JSON.stringify(data),
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
-      toast.success(data.message || 'Persetujuan berhasil dibatalkan!');
+      toast.success(data?.message || 'Persetujuan berhasil dibatalkan!');
     },
     onError: (e: Error) => { toast.error(e.message); },
   });
@@ -320,8 +320,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
     onSuccess: (data) => {
       // Only invalidate detail — list doesn't change on team generation
       qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] });
-      if (data.spinRevealOrder && data.spinRevealOrder.length > 0) {
-        setSpinRevealData({ spinRevealOrder: data.spinRevealOrder, teamCount: data.teamCount });
+      if (Array.isArray(data.spinRevealOrder) && data.spinRevealOrder.length > 0) {
+        setSpinRevealData({ spinRevealOrder: data.spinRevealOrder as Array<{ teamIndex: number; teamName: string; tier: string; player: { id: string; gamertag: string; tier: string; points: number }; allPlayersInTier: Array<{ id: string; gamertag: string; tier: string; points: number }> }>, teamCount: data.teamCount as number });
       } else {
         toast.success('Tim berhasil di-generate!');
       }
@@ -1685,7 +1685,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         <span className={dt.neonText}>⚡ {t.power}</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string }; tier: string }) => (
+                        {t.teamPlayers.map((tp: any) => (
                           <span key={tp.player.gamertag} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted/50 text-xs">
                             <TierBadge tier={tp.tier || tp.player.tier}  /> {tp.player.gamertag}
                           </span>
@@ -2206,7 +2206,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       <div>
                         <p className="text-xs font-semibold">{t.name}</p>
                         <div className="flex gap-1 mt-0.5">
-                          {t.teamPlayers.map((tp: { player: { gamertag: string; tier: string }; tier: string }) => (
+                          {t.teamPlayers.map((tp: any) => (
                             <span key={tp.player.gamertag} className="flex items-center gap-0.5 text-[9px]">
                               <TierBadge tier={tp.tier || tp.player.tier}  /> {tp.player.gamertag}
                             </span>

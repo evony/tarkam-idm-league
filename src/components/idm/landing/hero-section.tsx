@@ -42,7 +42,7 @@ function parseYouTubeUrl(url: string): { id: string; startTime: number } | null 
 }
 
 interface HeroSectionProps {
-  heroRef: React.RefObject<HTMLElement>;
+  heroRef: React.RefObject<HTMLElement | null>;
   heroY: MotionValue<string>;
   heroScale: MotionValue<number>;
   heroOpacity: MotionValue<number>;

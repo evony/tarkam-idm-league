@@ -31,7 +31,7 @@ const WEEKS_PER_PAGE = 5;
 const SEASONS_PER_PAGE = 5;
 
 /** Reorder players: S-tier center, A-tier left, B-tier right */
-function reorderPlayersByTier(players: WeeklyChampion['winnerTeam']['players']) {
+function reorderPlayersByTier(players: NonNullable<WeeklyChampion['winnerTeam']>['players']) {
   if (!players || players.length <= 1) return players || [];
   const tierOrder: Record<string, number> = { S: 0, A: 1, B: 2, C: 3, D: 4 };
   const sorted = [...players].sort((a, b) => (tierOrder[a.tier] ?? 5) - (tierOrder[b.tier] ?? 5));

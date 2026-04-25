@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       logos = getDefaultLogos();
     }
 
-    const updatedProfiles = [];
+    const updatedProfiles: Array<{ name: string; updated: boolean; count: number }> = [];
 
     for (const clubData of logos) {
       // Update ClubProfile by name (persistent identity)
