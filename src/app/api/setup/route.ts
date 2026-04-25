@@ -11,7 +11,8 @@ import { NextResponse } from 'next/server';
  */
 export async function POST(request: Request) {
   try {
-    // Safety check: only allow when database is empty
+    // Safety check: allow when database is empty OR no admin exists
+    // This supports the flow: SQL scripts insert data, then /api/setup creates admin
     const seasonCount = await db.season.count();
     const adminCount = await db.admin.count();
 
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     const results: string[] = [];
 
     // ======== STEP 1: Create super admin if not exists ========
+    // Always create admin when none exists, even if seasons exist
     if (adminCount === 0) {
       const username = process.env.ADMIN_USERNAME || 'jose';
       const password = process.env.ADMIN_PASSWORD || 'tazevsta';

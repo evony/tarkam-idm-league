@@ -48,10 +48,10 @@ ALTER TABLE "SponsoredPrize" ADD CONSTRAINT "SponsoredPrize_tournamentId_fkey" F
 ALTER TABLE "SponsoredPrize" ADD CONSTRAINT "SponsoredPrize_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "SponsorBanner" ADD CONSTRAINT "SponsorBanner_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- ======== ADMIN ========
-INSERT INTO "Admin" ("id", "username", "passwordHash", "role", "createdAt", "updatedAt") VALUES
-  ('adm_1', 'admin', '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu6GK', 'super_admin', '2025-01-01 00:00:00+00', '2025-01-01 00:00:00+00')
-ON CONFLICT ("id") DO NOTHING;
+-- ======== ADMIN TIDAK DI-INSERT DI SINI ========
+-- Setelah jalankan semua 4 script, panggil POST /api/setup
+-- Endpoint itu akan bikin admin dengan password hash yang benar (scrypt)
+-- Login: username = jose (atau env ADMIN_USERNAME), password = tazevsta (atau env ADMIN_PASSWORD)
 
 -- ======== SEASONS (3) — semua status "upcoming", tanpa champion ========
 INSERT INTO "Season" ("id", "name", "number", "division", "status", "startDate", "championClubId", "championPlayerId", "championSquad", "createdAt", "updatedAt") VALUES

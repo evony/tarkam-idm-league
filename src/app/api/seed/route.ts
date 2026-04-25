@@ -7,13 +7,15 @@ export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const force = searchParams.get('force') === 'true';
 
-  // Allow unauthenticated seeding only when database is empty
-  // If force=true OR database has data, require super admin auth
+  // Allow unauthenticated seeding only when database is empty AND no admin exists
+  // If force=true OR database has data AND admin exists, require super admin auth
   const seasonCount = await db.season.count();
+  const adminCount = await db.admin.count();
   const dbIsEmpty = seasonCount === 0;
+  const noAdmin = adminCount === 0;
 
-  if (!dbIsEmpty || force) {
-    // Database has data or force mode — require super admin auth
+  if (!dbIsEmpty || (force && !noAdmin)) {
+    // Database has data or force mode with existing admin — require super admin auth
     const authResult = await requireSuperAdmin(request);
     if (authResult instanceof NextResponse) return authResult;
   }
