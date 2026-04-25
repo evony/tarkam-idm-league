@@ -3,6 +3,11 @@
 -- Jalankan KEEMPAT (setelah Part 3 berhasil)
 -- ============================================================
 
+-- Safety: hapus data sisa jika ada dari percobaan sebelumnya
+DELETE FROM "ClubMember";
+DELETE FROM "Club";
+DELETE FROM "ClubProfile";
+
 -- ======== CLUB PROFILES (21) ========
 INSERT INTO "ClubProfile" ("id", "name", "logo", "createdAt", "updatedAt") VALUES
   ('cpr_alqa', 'ALQA', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),

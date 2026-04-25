@@ -3,6 +3,10 @@
 -- Jalankan KETIGA (setelah Part 2 berhasil)
 -- ============================================================
 
+-- Safety: hapus data sisa jika ada dari percobaan sebelumnya
+DELETE FROM "Season" WHERE "id" IN ('sn_m1', 'sn_f1', 'sn_f2');
+DELETE FROM "Player" WHERE "id" LIKE 'mp_%' OR "id" LIKE 'fp_%';
+
 -- ======== FOREIGN KEYS ========
 ALTER TABLE "Season" ADD CONSTRAINT "Season_championClubId_fkey" FOREIGN KEY ("championClubId") REFERENCES "ClubProfile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "Season" ADD CONSTRAINT "Season_championPlayerId_fkey" FOREIGN KEY ("championPlayerId") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
