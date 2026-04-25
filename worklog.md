@@ -3066,3 +3066,24 @@ Stage Summary:
 - New: `/api/setup` endpoint combines init-admin + seed in one call
 - Vercel re-deploy will re-sync Neon schema (adding missing `championPlayerId` column)
 - User can now seed Neon by calling `POST /api/setup` on production URL after deploy completes
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Create split Neon PostgreSQL seed scripts (4 files) for Neon SQL Editor
+
+Work Log:
+- Previous single-file neon-seed.sql (1029 lines, ~55KB) was too long for Neon SQL Editor — caused "Failed transaction: ROLLBACK required" and "49861 characters will be truncated"
+- Split into 4 separate files that must be run in order:
+  1. neon-1-drop.sql (1.4KB) — DROP all 28 tables CASCADE
+  2. neon-2-create.sql (16.9KB) — CREATE all 28 tables with columns, indexes, unique constraints
+  3. neon-3-fk-players.sql (17.4KB) — ADD all foreign keys + INSERT Seasons (3) + Players (76)
+  4. neon-4-clubs-members.sql (15.5KB) — INSERT ClubProfiles (21) + Club entries (41) + ClubMembers (77)
+- Fixed duplicate ZORO gamertag bug (was mp_49 + mp_51, removed mp_51)
+- Each file is well under Neon SQL Editor's character limit
+
+Stage Summary:
+- 4 SQL script files created in /home/z/my-project/
+- Must be run sequentially: 1→2→3→4
+- Total seed data: 3 seasons, 76 players (50 male + 26 female), 21 clubs, 41 club entries, 77 memberships
+- Files are sized appropriately for Neon SQL Editor (max ~17KB each)

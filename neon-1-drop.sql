@@ -1,6 +1,6 @@
 -- ============================================================
 -- PART 1: DROP SEMUA TABLE
--- Jalankan DULUAN sebelum Part 2
+-- Jalankan PERTAMA
 -- ============================================================
 
 DROP TABLE IF EXISTS "SponsorBanner" CASCADE;
