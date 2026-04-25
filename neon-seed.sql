@@ -1,796 +1,1033 @@
--- ══════════════════════════════════════════════════
--- IDM LEAGUE — Production Seed Data for Neon PostgreSQL
--- Generated from local SQLite sandbox
--- ══════════════════════════════════════════════════
+-- ============================================================
+-- IDM LEAGUE - NEON POSTGRESQL COMPLETE SETUP SCRIPT
+-- ============================================================
+-- Cara pakai di Neon SQL Editor:
+-- 1. Buka Neon Console → SQL Editor
+-- 2. Copy-paste seluruh script ini
+-- 3. Klik Run
+-- 4. Selesai! Database siap dipakai
+--
+-- Script ini akan:
+-- - DROP semua table yang ada (CASCADE)
+-- - CREATE semua table sesuai Prisma schema
+-- - INSERT semua seed data (77 players, 21 clubs, 3 seasons)
+-- ============================================================
 
--- ── SEASONS ──
-INSERT INTO "Season" ("id", "name", "number", "division", "status", "startDate", "endDate", "championClubId", "championPlayerId", "championSquad", "createdAt", "updatedAt")
-VALUES ('cmocz7o1c0006u9b1wjcb4j42', 'Liga IDM Season 1', 1, 'liga', 'completed', '2026-04-24 13:58:44.591+00:00', '2026-04-24 14:43:44.217+00:00', 'cmocb6frf002dso09xc4uj50h', NULL, '[{"id":"cmocb6fpq0004so09w5b3u3et","gamertag":"afi","division":"male","role":"captain","avatar":null},{"id":"cmocb6fpu0009so0987vt2syk","gamertag":"Bambang","division":"male","role":"member","avatar":null},{"id":"cmocb6fpw000dso09trcn4x7s","gamertag":"chand","division":"male","role":"member","avatar":null},{"id":"cmocb6fqd000zso09kxkfp4ak","gamertag":"RONALD","division":"male","role":"member","avatar":null},{"id":"cmocb6fpp0003so09yjfk6d34","gamertag":"AbdnZ","division":"male","role":"member","avatar":null}]', '2026-04-24 13:58:44.593+00:00', '2026-04-24 14:46:40.713+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Season" ("id", "name", "number", "division", "status", "startDate", "endDate", "championClubId", "championPlayerId", "championSquad", "createdAt", "updatedAt")
-VALUES ('cmocz8zc80007u9b1hv1g32dr', 'TARKAM', 1, 'male', 'active', '2026-04-29 00:00:00.000+00:00', NULL, NULL, NULL, NULL, '2026-04-24 13:59:45.896+00:00', '2026-04-24 13:59:45.896+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Season" ("id", "name", "number", "division", "status", "startDate", "endDate", "championClubId", "championPlayerId", "championSquad", "createdAt", "updatedAt")
-VALUES ('cmocb6fpo0002so09matvf7cm', 'Season 2 - Female', 2, 'female', 'active', '2025-04-01 00:00:00.000+00:00', NULL, NULL, NULL, NULL, '2026-04-24 02:45:56.364+00:00', '2026-04-24 02:45:56.364+00:00')
-ON CONFLICT ("id") DO NOTHING;
+BEGIN;
 
--- ── CLUB PROFILES ──
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6fra0027so09ykjb7bwn', 'ALQA', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg', NULL, '2026-04-24 02:45:56.423+00:00', '2026-04-24 14:43:13.730+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frb0028so0951ul18i5', 'AVENUE', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp', NULL, '2026-04-24 02:45:56.423+00:00', '2026-04-24 14:43:24.843+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frb0029so096p2j4ub2', 'CROWN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp', NULL, '2026-04-24 02:45:56.424+00:00', '2026-04-24 14:54:23.461+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frc002aso09vnvapevx', 'EUPHORIC', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp', NULL, '2026-04-24 02:45:56.424+00:00', '2026-04-24 14:54:52.782+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frc002bso09gkh25g5r', 'GYMSHARK', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp', NULL, '2026-04-24 02:45:56.425+00:00', '2026-04-24 14:42:52.407+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frd002cso09b0l1eycy', 'JASMINE', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2026-04-24 02:45:56.425+00:00', '2026-04-24 14:55:20.002+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frf002dso09xc4uj50h', 'MAXIMOUS', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722447/idm/logos/ewl70fqyehvdhefxq76h.webp', NULL, '2026-04-24 02:45:56.428+00:00', '2026-04-24 02:45:56.428+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frg002eso098o1jrn97', 'MYSTERY', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2026-04-24 02:45:56.428+00:00', '2026-04-24 14:55:25.353+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frg002fso092ta045n8', 'ORPHIC', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775992653/logo1_tzieua.png', NULL, '2026-04-24 02:45:56.429+00:00', '2026-04-24 02:45:56.429+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frh002gso09p7cbhgi0', 'PARANOID', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp', NULL, '2026-04-24 02:45:56.429+00:00', '2026-04-24 02:45:56.429+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frh002hso09kx0uilsv', 'PSALM', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722357/idm/logos/agyc2zkbafrvf1kjrc0b.jpg', NULL, '2026-04-24 02:45:56.430+00:00', '2026-04-24 02:45:56.430+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6fri002iso09dftri3ok', 'Plat R', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg', NULL, '2026-04-24 02:45:56.430+00:00', '2026-04-24 02:45:56.430+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6fri002jso091arbjria', 'QUEEN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839657/idm/logos/gzfny3tfdkxircyyxaxu.jpg', NULL, '2026-04-24 02:45:56.430+00:00', '2026-04-24 02:45:56.430+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6fri002kso09relq1fi3', 'RESTART', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg', NULL, '2026-04-24 02:45:56.431+00:00', '2026-04-24 02:45:56.431+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frj002lso09ny0h47xn', 'RNB', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722517/idm/logos/migrego3avfcr0pganyq.jpg', NULL, '2026-04-24 02:45:56.431+00:00', '2026-04-24 02:45:56.431+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frj002mso09a54vga77', 'SALVADOR', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg', NULL, '2026-04-24 02:45:56.431+00:00', '2026-04-24 02:45:56.431+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frj002nso0947owbbcl', 'SECRETS', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg', NULL, '2026-04-24 02:45:56.432+00:00', '2026-04-24 02:45:56.432+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frk002oso09m392imsx', 'SENSEI', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2026-04-24 02:45:56.432+00:00', '2026-04-24 02:45:56.432+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frk002pso097d7x3mrq', 'SOUTHERN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg', NULL, '2026-04-24 02:45:56.432+00:00', '2026-04-24 02:45:56.432+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frk002qso09hs6oeaoc', 'TOGETHER', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg', NULL, '2026-04-24 02:45:56.433+00:00', '2026-04-24 02:45:56.433+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
-VALUES ('cmocb6frl002rso09n4mfb54f', 'YAKUZA', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp', NULL, '2026-04-24 02:45:56.433+00:00', '2026-04-24 02:45:56.433+00:00')
-ON CONFLICT ("id") DO NOTHING;
+-- ============================================================
+-- STEP 1: DROP SEMUA TABLE (CASCADE)
+-- ============================================================
+DROP TABLE IF EXISTS "_prisma_migrations" CASCADE;
+DROP TABLE IF EXISTS "SponsorBanner" CASCADE;
+DROP TABLE IF EXISTS "SponsoredPrize" CASCADE;
+DROP TABLE IF EXISTS "TournamentSponsor" CASCADE;
+DROP TABLE IF EXISTS "PlayerAchievement" CASCADE;
+DROP TABLE IF EXISTS "Achievement" CASCADE;
+DROP TABLE IF EXISTS "PlayerPoint" CASCADE;
+DROP TABLE IF EXISTS "CmsCard" CASCADE;
+DROP TABLE IF EXISTS "CmsSection" CASCADE;
+DROP TABLE IF EXISTS "CmsSetting" CASCADE;
+DROP TABLE IF EXISTS "PlayerSkin" CASCADE;
+DROP TABLE IF EXISTS "Skin" CASCADE;
+DROP TABLE IF EXISTS "Account" CASCADE;
+DROP TABLE IF EXISTS "PlayoffMatch" CASCADE;
+DROP TABLE IF EXISTS "LeagueMatch" CASCADE;
+DROP TABLE IF EXISTS "ClubMember" CASCADE;
+DROP TABLE IF EXISTS "Club" CASCADE;
+DROP TABLE IF EXISTS "ClubProfile" CASCADE;
+DROP TABLE IF EXISTS "Donation" CASCADE;
+DROP TABLE IF EXISTS "TournamentPrize" CASCADE;
+DROP TABLE IF EXISTS "Participation" CASCADE;
+DROP TABLE IF EXISTS "Match" CASCADE;
+DROP TABLE IF EXISTS "TeamPlayer" CASCADE;
+DROP TABLE IF EXISTS "Team" CASCADE;
+DROP TABLE IF EXISTS "Tournament" CASCADE;
+DROP TABLE IF EXISTS "Season" CASCADE;
+DROP TABLE IF EXISTS "Player" CASCADE;
+DROP TABLE IF EXISTS "Admin" CASCADE;
 
--- ── CLUBS (Season Entries) ──
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0ta3b000ju9724vyka9fi', 'cmocb6frf002dso09xc4uj50h', 'male', 'cmocz8zc80007u9b1hv1g32dr', 2, 5, 4, -3)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod17rpo001hu972e0k03i2i', 'cmocb6frc002aso09vnvapevx', 'male', 'cmocz8zc80007u9b1hv1g32dr', 2, 0, 4, 2)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1b71x002ju972ozmqxru1', 'cmocb6frj002nso0947owbbcl', 'male', 'cmocz8zc80007u9b1hv1g32dr', 1, 1, 2, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs2004dso09byerttye', 'cmocb6frc002aso09vnvapevx', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs2004fso097l8u6iqk', 'cmocb6frc002bso09gkh25g5r', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs3004hso09ilp50dug', 'cmocb6frf002dso09xc4uj50h', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs3004jso092o1quudz', 'cmocb6frh002gso09p7cbhgi0', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs4004lso09zylzfloo', 'cmocb6frh002hso09kx0uilsv', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs4004nso09sd5hg8vj', 'cmocb6fri002iso09dftri3ok', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs5004pso09mgv3ev49', 'cmocb6fri002jso091arbjria', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs5004rso09swipkecw', 'cmocb6fri002kso09relq1fi3', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs6004tso09b7ji09gv', 'cmocb6frj002lso09ny0h47xn', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs6004vso093lsdl89c', 'cmocb6frj002nso0947owbbcl', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs7004xso09w4i63l2l', 'cmocb6frk002pso097d7x3mrq', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs9004zso092lr0qykk', 'cmocb6frk002qso09hs6oeaoc', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmocb6fs90051so09gwtl23k4', 'cmocb6frl002rso09n4mfb54f', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0s1i70001u9728u16nnvf', 'cmocb6frc002bso09gkh25g5r', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0s1i90003u972u4rqurj4', 'cmocb6frc002bso09gkh25g5r', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 1, 0, -1)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0srt80005u972kozn4e7r', 'cmocb6fra0027so09ykjb7bwn', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0srtb0007u9724tkz3lhm', 'cmocb6fra0027so09ykjb7bwn', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0srte0009u972mqp3dbbm', 'cmocb6fra0027so09ykjb7bwn', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0t0pc000bu972zbcarq12', 'cmocb6frb0028so0951ul18i5', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0t0pf000du972r3i8bv5k', 'cmocb6frb0028so0951ul18i5', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0t0pj000fu9721d1ftdol', 'cmocb6frb0028so0951ul18i5', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0ta38000hu972vh2xp0mj', 'cmocb6frf002dso09xc4uj50h', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xk8x000lu9729ber4ddb', 'cmocb6frb0029so096p2j4ub2', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xk90000nu972mcuq7su0', 'cmocb6frb0029so096p2j4ub2', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xk94000pu9724btezbki', 'cmocb6frb0029so096p2j4ub2', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xpm0000ru972g32uyzxa', 'cmocb6frh002gso09p7cbhgi0', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xpm3000tu972b3zz0qzw', 'cmocb6frh002gso09p7cbhgi0', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xvg9000vu972e5p6f423', 'cmocb6fri002iso09dftri3ok', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xvgb000xu972a6y5o0hw', 'cmocb6fri002iso09dftri3ok', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xxd8000zu972ilelc9cd', 'cmocb6frj002mso09a54vga77', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xxda0011u972uqh1t2qq', 'cmocb6frj002mso09a54vga77', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0xxdc0013u9722gyfqo3c', 'cmocb6frj002mso09a54vga77', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0y0m10015u9722dxy6a8l', 'cmocb6frk002pso097d7x3mrq', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0y0m40017u972l40earg3', 'cmocb6frk002pso097d7x3mrq', 'male', 'cmocz8zc80007u9b1hv1g32dr', 1, 2, 0, -2)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0y7pi0019u972jgfjy2lh', 'cmocb6frk002oso09m392imsx', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0y7pl001bu9725byp7oij', 'cmocb6frk002oso09m392imsx', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod0y7po001du972kj29yrgf', 'cmocb6frk002oso09m392imsx', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod17rpl001fu972ossreovy', 'cmocb6frc002aso09vnvapevx', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod182k2001ju972g2lh9l8r', 'cmocb6frd002cso09b0l1eycy', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod182k5001lu972mox58kf7', 'cmocb6frd002cso09b0l1eycy', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod182k7001nu9725xg8mazw', 'cmocb6frd002cso09b0l1eycy', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod18awe001pu972lzc3hm9a', 'cmocb6frg002eso098o1jrn97', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod18awh001ru972ejp1ifu1', 'cmocb6frg002eso098o1jrn97', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod18awk001tu972gktei9q7', 'cmocb6frg002eso098o1jrn97', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod190w9001vu9721zc66iwx', 'cmocb6frg002fso092ta045n8', 'female', 'cmocb6fpo0002so09matvf7cm', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod190wc001xu972xmxopje2', 'cmocb6frg002fso092ta045n8', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod190wf001zu9725u7squly', 'cmocb6frg002fso092ta045n8', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod19o7n0021u972vs7k8umg', 'cmocb6frh002hso09kx0uilsv', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod19o7q0023u972ge3h1jvh', 'cmocb6frh002hso09kx0uilsv', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1a8qp0025u972tf49lr0w', 'cmocb6fri002jso091arbjria', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1a8qr0027u972d72sh545', 'cmocb6fri002jso091arbjria', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1aih60029u972e8yivdsf', 'cmocb6fri002kso09relq1fi3', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1aih8002bu972p5g58upt', 'cmocb6fri002kso09relq1fi3', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1aqrf002du9728aavs2di', 'cmocb6frj002lso09ny0h47xn', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1aqri002fu97260pn6w06', 'cmocb6frj002lso09ny0h47xn', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1b71u002hu972rg5tlz22', 'cmocb6frj002nso0947owbbcl', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1bse5002lu972uf7zx1zw', 'cmocb6frk002qso09hs6oeaoc', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1bse9002nu9720ezrne18', 'cmocb6frk002qso09hs6oeaoc', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1bzuv002pu972m1imykrr', 'cmocb6frl002rso09n4mfb54f', 'liga', 'cmocz7o1c0006u9b1wjcb4j42', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
-VALUES ('cmod1bzv3002ru972jbs2vtrk', 'cmocb6frl002rso09n4mfb54f', 'male', 'cmocz8zc80007u9b1hv1g32dr', 0, 0, 0, 0)
-ON CONFLICT ("id") DO NOTHING;
+-- ============================================================
+-- STEP 2: CREATE SEMUA TABLE (SESUAI PRISMA SCHEMA)
+-- ============================================================
 
--- ── PLAYERS ──
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr1001uso09vxrxlsx5', 'kacee', 'kacee', 'female', 'B', NULL, 135, 5, 2, 5, 5, 7, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.414+00:00', '2026-04-24 18:43:14.557+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqv001kso09p9wlbj65', 'cami', 'cami', 'female', 'B', NULL, 135, 5, 2, 5, 5, 7, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.407+00:00', '2026-04-24 18:43:14.549+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr0001sso095jvf6pvb', 'Indy', 'Indy', 'female', 'B', NULL, 95, 4, 1, 4, 4, 6, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.413+00:00', '2026-04-24 18:43:14.554+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqz001qso09phv62ecp', 'evony', 'evony', 'female', 'B', NULL, 95, 4, 1, 4, 4, 6, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.412+00:00', '2026-04-24 18:43:14.553+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr80023so09rfm7jk8f', 'Vion', 'Vion', 'female', 'B', NULL, 90, 4, 0, 4, 4, 6, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.420+00:00', '2026-04-24 18:43:14.559+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqy001pso095r8cqfvu', 'Elvareca', 'Elvareca', 'female', 'B', NULL, 85, 3, 1, 3, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.411+00:00', '2026-04-24 18:43:14.552+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fra0026so092wpggmyq', 'yoonabi', 'yoonabi', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.422+00:00', '2026-04-24 18:43:14.560+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr70022so0987nbeluh', 'Veronicc', 'Veronicc', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.420+00:00', '2026-04-24 18:43:14.559+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr4001xso09hmcdydjh', 'mishelle', 'mishelle', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.417+00:00', '2026-04-24 18:43:14.558+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr1001tso0976eygfac', 'irazz', 'irazz', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.413+00:00', '2026-04-24 18:43:14.555+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqw001nso09ou48uyjb', 'damncil', 'damncil', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.409+00:00', '2026-04-24 18:43:14.551+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqt001iso09k4tvv6rd', 'AiTan', 'AiTan', 'female', 'B', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.406+00:00', '2026-04-24 18:43:14.548+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr70021so097qkaaoyz', 'skylin', 'skylin', 'female', 'B', NULL, 60, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.419+00:00', '2026-04-24 02:45:56.419+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpu0009so0987vt2syk', 'Bambang', 'Bambang', 'male', 'B', NULL, 56, 3, 1, 0, 2, 6, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.370+00:00', '2026-04-24 18:43:14.536+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr5001zso09t4xy8inb', 'reptil', 'reptil', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.418+00:00', '2026-04-24 02:45:56.418+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr2001vso09pgqmvthw', 'Liz', 'Liz', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.414+00:00', '2026-04-24 02:45:56.414+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqx001oso095bz3ujm6', 'dysa', 'dysa', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.409+00:00', '2026-04-24 02:45:56.409+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqu001jso09gz02g2a0', 'arcalya', 'arcalya', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.406+00:00', '2026-04-24 02:45:56.406+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqt001hso09fmp9fjw4', 'Afrona', 'Afrona', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.405+00:00', '2026-04-24 02:45:56.405+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr60020so09d8b1ht66', 's_melin', 's_melin', 'female', 'B', NULL, 35, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.419+00:00', '2026-04-24 02:45:56.419+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr0001rso09zb5xeu2g', 'Eive', 'Eive', 'female', 'B', NULL, 35, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.412+00:00', '2026-04-24 02:45:56.412+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmod4gscl0039u972x9bld4lg', 'arthur', 'arthur', 'male', 'B', NULL, 31, 2, 0, 2, 2, 2, true, NULL, 'Kotabaru', NULL, 'approved', '2026-04-24 16:25:48.165+00:00', '2026-04-24 18:43:14.561+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqs001gso09rz4va3zj', 'zico', 'zico', 'male', 'B', NULL, 31, 2, 0, 2, 2, 2, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.405+00:00', '2026-04-24 18:43:14.547+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqg0013so09ewkb3a7o', 'tazos', 'tazos', 'male', 'B', NULL, 31, 4, 0, 2, 2, 6, true, NULL, 'Kotabaru', NULL, 'approved', '2026-04-24 02:45:56.393+00:00', '2026-04-24 18:43:14.545+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr90025so09tb2m0ih5', 'yaaay', 'yaaay', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.421+00:00', '2026-04-24 02:45:56.421+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr80024so09hj40730j', 'weywey', 'weywey', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.421+00:00', '2026-04-24 02:45:56.421+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr5001yso097homiga9', 'moy', 'moy', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.417+00:00', '2026-04-24 02:45:56.417+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fr3001wso0912wnlka3', 'meatry', 'meatry', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.416+00:00', '2026-04-24 02:45:56.416+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqw001mso09gzp25qg3', 'ciki_w', 'ciki_w', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.408+00:00', '2026-04-24 02:45:56.408+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqv001lso09oc2fm1od', 'cheeyaqq', 'cheeyaqq', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.408+00:00', '2026-04-24 02:45:56.408+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqa000uso09j3c2zrmf', 'marimo', 'marimo', 'male', 'B', NULL, 26, 2, 0, 0, 1, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.387+00:00', '2026-04-24 18:43:14.542+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq1000iso09hfmg06k5', 'Earth', 'Earth', 'male', 'B', NULL, 26, 3, 0, 0, 2, 6, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.377+00:00', '2026-04-24 18:43:14.539+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq9000sso099mu5j9d5', 'KIRA', 'KIRA', 'male', 'B', NULL, 21, 2, 0, 0, 2, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.386+00:00', '2026-04-24 18:43:14.541+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq5000lso0918a6i67y', 'ipinnn', 'ipinnn', 'male', 'B', NULL, 21, 1, 0, 0, 1, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.381+00:00', '2026-04-24 18:43:14.540+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fps0007so09dpo6lv63', 'Armors', 'Armors', 'male', 'B', NULL, 21, 2, 0, 0, 2, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.369+00:00', '2026-04-24 18:43:14.535+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqc000xso095fnjr4f1', 'Ren', 'Ren', 'male', 'B', NULL, 1, 2, 0, 0, 2, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.389+00:00', '2026-04-24 18:43:14.544+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpu000aso09wir8bk0g', 'Boby', 'Boby', 'male', 'B', NULL, 1, 2, 0, 0, 2, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.371+00:00', '2026-04-24 18:11:05.629+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpp0003so09yjfk6d34', 'AbdnZ', 'AbdnZ', 'male', 'B', NULL, 1, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.365+00:00', '2026-04-24 18:43:14.532+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqs001fso09ow4l81su', 'ZORO', 'ZORO', 'male', 'B', NULL, 0, 3, 1, 3, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.404+00:00', '2026-04-24 18:43:14.546+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqr001eso097n1q4e4w', 'zmz', 'zmz', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.404+00:00', '2026-04-24 02:45:56.404+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqq001dso09tojcher1', 'ZABYER', 'ZABYER', 'male', 'B', NULL, 0, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.403+00:00', '2026-04-24 13:22:03.424+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqq001cso09fkapvbb1', 'ziafu', 'ziafu', 'male', 'B', NULL, 0, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.402+00:00', '2026-04-24 13:22:03.422+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqp001bso092h9pzdy8', 'yay', 'yay', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.402+00:00', '2026-04-24 13:22:03.421+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqp001aso09pbqrdia3', 'XIAOPEI', 'XIAOPEI', 'male', 'B', NULL, 0, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.401+00:00', '2026-04-24 13:22:03.420+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqo0019so0969zyxkqb', 'WHYSON', 'WHYSON', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.401+00:00', '2026-04-24 13:22:03.418+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqo0018so09b615vzop', 'Vriskey_', 'Vriskey_', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.400+00:00', '2026-04-24 02:45:56.400+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqn0017so09dnyltje3', 'VICKY', 'VICKY', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.399+00:00', '2026-04-24 13:22:03.416+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqm0016so09gn12897f', 'VBBOY', 'VBBOY', 'male', 'B', NULL, 0, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.399+00:00', '2026-04-24 13:22:03.415+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqm0015so09mm1h2r5g', 'Vankless', 'Vankless', 'male', 'B', NULL, 0, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.398+00:00', '2026-04-24 13:22:03.414+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fql0014so09bah8uzu2', 'tonsky', 'tonsky', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.397+00:00', '2026-04-24 13:22:03.413+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqg0012so09i96x7fc8', 'sting', 'sting', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.392+00:00', '2026-04-24 13:22:03.410+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqf0011so09vvd5jprd', 'sheraid', 'sheraid', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.391+00:00', '2026-04-24 13:22:03.409+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqe0010so09l3iwip15', 'rusel', 'rusel', 'male', 'B', NULL, 0, 2, 1, 2, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.391+00:00', '2026-04-24 13:22:03.403+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqd000zso09kxkfp4ak', 'RONALD', 'RONALD', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.390+00:00', '2026-04-24 13:22:03.402+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqd000yso09d1q1ndqq', 'RIVALDO', 'RIVALDO', 'male', 'B', NULL, 0, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.389+00:00', '2026-04-24 13:22:03.400+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqc000wso09kklrigcl', 'Oura', 'Oura', 'male', 'B', NULL, 0, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.388+00:00', '2026-04-24 13:22:03.397+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqb000vso09xdr1i4bf', 'montiel', 'montiel', 'male', 'B', NULL, 0, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.387+00:00', '2026-04-24 18:43:14.543+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fqa000tso09eggldwcl', 'Life', 'Life', 'male', 'B', NULL, 0, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.386+00:00', '2026-04-24 13:22:03.393+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq8000rso09n3mnapm3', 'KIERAN', 'KIERAN', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.385+00:00', '2026-04-24 13:22:03.389+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq8000qso098w8zebik', 'Kageno', 'Kageno', 'male', 'B', NULL, 0, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.384+00:00', '2026-04-24 13:22:03.387+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq7000pso09nnstkwkv', 'justice', 'justice', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.384+00:00', '2026-04-24 02:45:56.384+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq7000oso09yrfdzqmg', 'jugger', 'jugger', 'male', 'B', NULL, 0, 2, 1, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.383+00:00', '2026-04-24 13:22:03.385+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq6000nso09a0d0f59o', 'janskie', 'janskie', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.382+00:00', '2026-04-24 13:22:03.384+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq5000mso09p97r7s8r', 'Jave', 'Jave', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.382+00:00', '2026-04-24 13:22:03.382+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq4000kso09wn2npkfd', 'Georgie', 'Georgie', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.380+00:00', '2026-04-24 02:45:56.380+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq3000jso097g3x4pkw', 'fyy', 'fyy', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.379+00:00', '2026-04-24 02:45:56.379+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fq0000hso0942djqles', 'Dylee', 'Dylee', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.376+00:00', '2026-04-24 02:45:56.376+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpz000gso0964wt36m3', 'DUUL', 'DUUL', 'male', 'B', NULL, 0, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.375+00:00', '2026-04-24 18:43:14.537+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpy000fso09wgz09rr3', 'Chrollo', 'Chrollo', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.374+00:00', '2026-04-24 02:45:56.374+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpx000eso09x8gd5v22', 'chikoo', 'chikoo', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.373+00:00', '2026-04-24 02:45:56.373+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpw000dso09trcn4x7s', 'chand', 'chand', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.373+00:00', '2026-04-24 13:22:03.373+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpw000cso09jrd1ifjt', 'cepz', 'cepz', 'male', 'B', NULL, 0, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.372+00:00', '2026-04-24 13:22:03.372+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpv000bso09sonm7ht7', 'CARAOSEL', 'CARAOSEL', 'male', 'B', NULL, 0, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.371+00:00', '2026-04-24 13:22:03.371+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpt0008so094im35e9d', 'astro', 'astro', 'male', 'B', NULL, 0, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.369+00:00', '2026-04-24 13:22:03.366+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fps0006so09frphc7av', 'Airuen', 'Airuen', 'male', 'B', NULL, 0, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.368+00:00', '2026-04-24 13:22:03.363+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpr0005so09pjicrs60', 'Afroki', 'Afroki', 'male', 'B', NULL, 0, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.367+00:00', '2026-04-24 13:22:03.361+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
-VALUES ('cmocb6fpq0004so09w5b3u3et', 'afi', 'afi', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2026-04-24 02:45:56.366+00:00', '2026-04-24 18:43:14.534+00:00')
-ON CONFLICT ("id") DO NOTHING;
+-- Admin
+CREATE TABLE "Admin" (
+  "id" TEXT NOT NULL,
+  "username" TEXT NOT NULL,
+  "passwordHash" TEXT NOT NULL,
+  "role" TEXT NOT NULL DEFAULT 'admin',
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Admin_username_key" ON "Admin"("username");
 
--- ── CLUB MEMBERS ──
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsd0053so094ok29764', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpp0003so09yjfk6d34', 'captain', '2026-04-24 02:45:56.461+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fse0055so099g7p3r2t', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpq0004so09w5b3u3et', 'member', '2026-04-24 02:45:56.462+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fse0057so09kd6anyzu', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fpr0005so09pjicrs60', 'captain', '2026-04-24 02:45:56.463+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsf0059so09azzpazuf', 'cmocb6frb0028so0951ul18i5', 'cmocb6fps0006so09frphc7av', 'captain', '2026-04-24 02:45:56.463+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsf005bso09df29313x', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fps0007so09dpo6lv63', 'member', '2026-04-24 02:45:56.464+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsg005dso09wh56qeyl', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpt0008so094im35e9d', 'member', '2026-04-24 02:45:56.464+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsg005fso09d5lk9uks', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpu0009so0987vt2syk', 'member', '2026-04-24 02:45:56.464+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsg005hso09m0evzhq1', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpu000aso09wir8bk0g', 'member', '2026-04-24 02:45:56.465+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsh005jso09fnmp1076', 'cmocb6frg002fso092ta045n8', 'cmocb6fpv000bso09sonm7ht7', 'captain', '2026-04-24 02:45:56.465+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsh005lso09hgxjxi94', 'cmocb6frj002mso09a54vga77', 'cmocb6fpw000cso09jrd1ifjt', 'captain', '2026-04-24 02:45:56.466+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsi005nso09aue45xmx', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fpw000dso09trcn4x7s', 'member', '2026-04-24 02:45:56.466+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsj005pso09vwg5ca5u', 'cmocb6frk002oso09m392imsx', 'cmocb6fpx000eso09x8gd5v22', 'captain', '2026-04-24 02:45:56.467+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsk005rso090jibdyf1', 'cmocb6frc002aso09vnvapevx', 'cmocb6fpy000fso09wgz09rr3', 'captain', '2026-04-24 02:45:56.468+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsk005tso09e636nxoe', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fpz000gso0964wt36m3', 'captain', '2026-04-24 02:45:56.469+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsk005vso09089ny67e', 'cmocb6frk002oso09m392imsx', 'cmocb6fq0000hso0942djqles', 'member', '2026-04-24 02:45:56.469+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsl005xso09nl7xm198', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fq1000iso09hfmg06k5', 'member', '2026-04-24 02:45:56.469+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsl005zso09jrxic1yh', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fq3000jso097g3x4pkw', 'member', '2026-04-24 02:45:56.470+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsm0061so09mf8j1159', 'cmocb6fra0027so09ykjb7bwn', 'cmocb6fq4000kso09wn2npkfd', 'member', '2026-04-24 02:45:56.470+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsm0063so09psal9no1', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fq5000lso0918a6i67y', 'member', '2026-04-24 02:45:56.471+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsn0065so09czbxgtnj', 'cmocb6fri002kso09relq1fi3', 'cmocb6fq5000mso09p97r7s8r', 'captain', '2026-04-24 02:45:56.471+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsn0067so090c8snfm3', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fq6000nso09a0d0f59o', 'member', '2026-04-24 02:45:56.472+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsn0069so0907v7x8bc', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fq7000oso09yrfdzqmg', 'member', '2026-04-24 02:45:56.472+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fso006bso09qqjvzh9i', 'cmocb6frc002aso09vnvapevx', 'cmocb6fq7000pso09nnstkwkv', 'member', '2026-04-24 02:45:56.472+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fso006dso09vrhj4t2i', 'cmocb6frb0028so0951ul18i5', 'cmocb6fq8000qso098w8zebik', 'member', '2026-04-24 02:45:56.473+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsp006fso09lsw9moyb', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fq8000rso09n3mnapm3', 'member', '2026-04-24 02:45:56.473+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsp006hso095jnloame', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fq9000sso099mu5j9d5', 'member', '2026-04-24 02:45:56.474+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsr006jso09p1bn56ik', 'cmocb6frj002mso09a54vga77', 'cmocb6fqa000tso09eggldwcl', 'member', '2026-04-24 02:45:56.475+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsr006lso09piznvsuf', 'cmocb6frj002nso0947owbbcl', 'cmocb6fqa000uso09j3c2zrmf', 'captain', '2026-04-24 02:45:56.476+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fss006nso09t3t8ocwq', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fqb000vso09xdr1i4bf', 'member', '2026-04-24 02:45:56.477+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsu006pso09rw5ckwz3', 'cmocb6frj002mso09a54vga77', 'cmocb6fqc000wso09kklrigcl', 'member', '2026-04-24 02:45:56.478+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsu006rso096vsaas4l', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqc000xso095fnjr4f1', 'member', '2026-04-24 02:45:56.479+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsv006tso09f84ej9vo', 'cmocb6frc002aso09vnvapevx', 'cmocb6fqd000yso09d1q1ndqq', 'member', '2026-04-24 02:45:56.479+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsv006vso09n25fym3a', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqd000zso09kxkfp4ak', 'member', '2026-04-24 02:45:56.479+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsv006xso09rp6egey2', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fqe0010so09l3iwip15', 'captain', '2026-04-24 02:45:56.480+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsw006zso09d2shum61', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqf0011so09vvd5jprd', 'member', '2026-04-24 02:45:56.480+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsw0071so09ao39pszr', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqg0012so09i96x7fc8', 'member', '2026-04-24 02:45:56.481+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsx0073so09d3fjmisa', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fqg0013so09ewkb3a7o', 'member', '2026-04-24 02:45:56.481+00:00', '2026-04-24 10:54:53.076+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsx0075so09e7pajse7', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fql0014so09bah8uzu2', 'member', '2026-04-24 02:45:56.482+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsy0077so09cswhuuev', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fqm0015so09mm1h2r5g', 'member', '2026-04-24 02:45:56.482+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsy0079so09541p5mn1', 'cmocb6frb0028so0951ul18i5', 'cmocb6fqm0016so09gn12897f', 'member', '2026-04-24 02:45:56.483+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsz007bso097g7gmew1', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqn0017so09dnyltje3', 'member', '2026-04-24 02:45:56.483+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fsz007dso099xsdx7cl', 'cmocb6frc002aso09vnvapevx', 'cmocb6fqo0018so09b615vzop', 'member', '2026-04-24 02:45:56.484+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft0007fso09zoiiokbx', 'cmocb6fri002kso09relq1fi3', 'cmocb6fqo0019so0969zyxkqb', 'member', '2026-04-24 02:45:56.484+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft0007hso09l18swu8r', 'cmocb6frb0029so096p2j4ub2', 'cmocb6fqp001aso09pbqrdia3', 'captain', '2026-04-24 02:45:56.485+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft1007jso09ggsvk1w5', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqp001bso092h9pzdy8', 'member', '2026-04-24 02:45:56.485+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft1007lso09w1mw4974', 'cmocb6frg002eso098o1jrn97', 'cmocb6fqq001cso09fkapvbb1', 'captain', '2026-04-24 02:45:56.486+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft2007nso09ecrcsrag', 'cmocb6frd002cso09b0l1eycy', 'cmocb6fqq001dso09tojcher1', 'captain', '2026-04-24 02:45:56.486+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft2007pso09hs7ogdrd', 'cmocb6fra0027so09ykjb7bwn', 'cmocb6fqr001eso097n1q4e4w', 'captain', '2026-04-24 02:45:56.486+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft2007rso09sfkfg8bi', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fqs001fso09ow4l81su', 'member', '2026-04-24 02:45:56.487+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft3007tso09j3k5pu7r', 'cmocb6frc002aso09vnvapevx', 'cmocb6fqs001gso09rz4va3zj', 'member', '2026-04-24 02:45:56.487+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft3007vso09z4snzeig', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fqt001hso09fmp9fjw4', 'captain', '2026-04-24 02:45:56.488+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft4007xso0985ac3lgj', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fqt001iso09k4tvv6rd', 'captain', '2026-04-24 02:45:56.488+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft4007zso09yagjlvbk', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fqu001jso09gz02g2a0', 'member', '2026-04-24 02:45:56.489+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft50081so09gxeu8502', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fqv001kso09p9wlbj65', 'captain', '2026-04-24 02:45:56.489+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft50083so09bfoakey8', 'cmocb6frj002nso0947owbbcl', 'cmocb6fqv001lso09oc2fm1od', 'captain', '2026-04-24 02:45:56.490+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft60085so09kxvdpg64', 'cmocb6frk002qso09hs6oeaoc', 'cmocb6fqw001mso09gzp25qg3', 'captain', '2026-04-24 02:45:56.491+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft70087so098380dily', 'cmocb6frc002aso09vnvapevx', 'cmocb6fqw001nso09ou48uyjb', 'captain', '2026-04-24 02:45:56.491+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft70089so09m5q0j2er', 'cmocb6fri002kso09relq1fi3', 'cmocb6fqx001oso095bz3ujm6', 'captain', '2026-04-24 02:45:56.492+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft8008bso09yqodxmdn', 'cmocb6frc002aso09vnvapevx', 'cmocb6fqy001pso095r8cqfvu', 'member', '2026-04-24 02:45:56.492+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft9008dso09xhsvyu5e', 'cmocb6frc002bso09gkh25g5r', 'cmocb6fqz001qso09phv62ecp', 'captain', '2026-04-24 02:45:56.493+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ft9008fso093sw3lhod', 'cmocb6frh002hso09kx0uilsv', 'cmocb6fr0001rso09zb5xeu2g', 'captain', '2026-04-24 02:45:56.494+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fta008hso09yb8ahqdr', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fr0001sso095jvf6pvb', 'member', '2026-04-24 02:45:56.494+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fta008jso097v62ixuc', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fr1001tso0976eygfac', 'member', '2026-04-24 02:45:56.495+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftb008lso09niud72p3', 'cmocb6frf002dso09xc4uj50h', 'cmocb6fr1001uso09vxrxlsx5', 'member', '2026-04-24 02:45:56.495+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftb008nso09mdl0x144', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fr2001vso09pgqmvthw', 'member', '2026-04-24 02:45:56.496+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftc008pso09grcjmeav', 'cmocb6frl002rso09n4mfb54f', 'cmocb6fr3001wso0912wnlka3', 'captain', '2026-04-24 02:45:56.496+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftc008rso09meqfwrg8', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fr4001xso09hmcdydjh', 'member', '2026-04-24 02:45:56.497+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftd008tso09cgsr3mb0', 'cmocb6frl002rso09n4mfb54f', 'cmocb6fr5001yso097homiga9', 'member', '2026-04-24 02:45:56.497+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftd008vso09qrq0010q', 'cmocb6frk002pso097d7x3mrq', 'cmocb6fr5001zso09t4xy8inb', 'member', '2026-04-24 02:45:56.498+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fte008xso09t6xe7o9x', 'cmocb6fri002iso09dftri3ok', 'cmocb6fr60020so09d8b1ht66', 'captain', '2026-04-24 02:45:56.498+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftf008zso09k0jkrmec', 'cmocb6frc002aso09vnvapevx', 'cmocb6fr70021so097qkaaoyz', 'member', '2026-04-24 02:45:56.499+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftf0091so09coozbeoa', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fr70022so0987nbeluh', 'member', '2026-04-24 02:45:56.499+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftg0093so093jkkybhf', 'cmocb6fri002jso091arbjria', 'cmocb6fr80023so09rfm7jk8f', 'captain', '2026-04-24 02:45:56.500+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6ftg0095so098s0rbbhx', 'cmocb6frj002lso09ny0h47xn', 'cmocb6fr80024so09hj40730j', 'captain', '2026-04-24 02:45:56.500+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fth0097so09faokpcsv', 'cmocb6frl002rso09n4mfb54f', 'cmocb6fr90025so09tb2m0ih5', 'member', '2026-04-24 02:45:56.501+00:00', NULL)
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
-VALUES ('cmocb6fth0099so0925h6opl6', 'cmocb6frh002gso09p7cbhgi0', 'cmocb6fra0026so092wpggmyq', 'member', '2026-04-24 02:45:56.501+00:00', NULL)
+-- Player
+CREATE TABLE "Player" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "gamertag" TEXT NOT NULL,
+  "division" TEXT NOT NULL,
+  "tier" TEXT NOT NULL DEFAULT 'B',
+  "avatar" TEXT,
+  "points" INTEGER NOT NULL DEFAULT 0,
+  "totalWins" INTEGER NOT NULL DEFAULT 0,
+  "totalMvp" INTEGER NOT NULL DEFAULT 0,
+  "streak" INTEGER NOT NULL DEFAULT 0,
+  "maxStreak" INTEGER NOT NULL DEFAULT 0,
+  "matches" INTEGER NOT NULL DEFAULT 0,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "phone" TEXT,
+  "city" TEXT NOT NULL DEFAULT '',
+  "joki" TEXT,
+  "registrationStatus" TEXT NOT NULL DEFAULT 'approved',
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Player_gamertag_key" ON "Player"("gamertag");
+CREATE INDEX "Player_division_idx" ON "Player"("division");
+CREATE INDEX "Player_division_isActive_idx" ON "Player"("division", "isActive");
+CREATE INDEX "Player_points_idx" ON "Player"("points");
+
+-- Season
+CREATE TABLE "Season" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "number" INTEGER NOT NULL,
+  "division" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'active',
+  "startDate" TIMESTAMP(3) NOT NULL,
+  "endDate" TIMESTAMP(3),
+  "championClubId" TEXT,
+  "championPlayerId" TEXT,
+  "championSquad" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Season_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "Season_division_status_idx" ON "Season"("division", "status");
+
+-- ClubProfile
+CREATE TABLE "ClubProfile" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "logo" TEXT,
+  "bannerImage" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ClubProfile_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "ClubProfile_name_key" ON "ClubProfile"("name");
+
+-- Club (season entry)
+CREATE TABLE "Club" (
+  "id" TEXT NOT NULL,
+  "profileId" TEXT NOT NULL,
+  "division" TEXT NOT NULL,
+  "seasonId" TEXT NOT NULL,
+  "wins" INTEGER NOT NULL DEFAULT 0,
+  "losses" INTEGER NOT NULL DEFAULT 0,
+  "points" INTEGER NOT NULL DEFAULT 0,
+  "gameDiff" INTEGER NOT NULL DEFAULT 0,
+  CONSTRAINT "Club_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Club_profileId_seasonId_division_key" ON "Club"("profileId", "seasonId", "division");
+CREATE INDEX "Club_seasonId_idx" ON "Club"("seasonId");
+CREATE INDEX "Club_division_idx" ON "Club"("division");
+CREATE INDEX "Club_profileId_idx" ON "Club"("profileId");
+
+-- ClubMember
+CREATE TABLE "ClubMember" (
+  "id" TEXT NOT NULL,
+  "profileId" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "role" TEXT NOT NULL DEFAULT 'member',
+  "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "leftAt" TIMESTAMP(3),
+  CONSTRAINT "ClubMember_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "ClubMember_profileId_playerId_key" ON "ClubMember"("profileId", "playerId");
+CREATE INDEX "ClubMember_playerId_idx" ON "ClubMember"("playerId");
+CREATE INDEX "ClubMember_profileId_idx" ON "ClubMember"("profileId");
+CREATE INDEX "ClubMember_leftAt_idx" ON "ClubMember"("leftAt");
+
+-- Tournament
+CREATE TABLE "Tournament" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "weekNumber" INTEGER NOT NULL,
+  "division" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'setup',
+  "format" TEXT NOT NULL DEFAULT 'single_elimination',
+  "defaultMatchFormat" TEXT NOT NULL DEFAULT 'BO1',
+  "seasonId" TEXT NOT NULL,
+  "prizePool" INTEGER NOT NULL DEFAULT 0,
+  "bpm" TEXT,
+  "location" TEXT,
+  "scheduledAt" TIMESTAMP(3),
+  "finalizedAt" TIMESTAMP(3),
+  "completedAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Tournament_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Tournament_weekNumber_division_seasonId_key" ON "Tournament"("weekNumber", "division", "seasonId");
+CREATE INDEX "Tournament_division_seasonId_idx" ON "Tournament"("division", "seasonId");
+
+-- Team
+CREATE TABLE "Team" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "power" INTEGER NOT NULL DEFAULT 0,
+  "isWinner" BOOLEAN NOT NULL DEFAULT false,
+  "rank" INTEGER,
+  CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
+);
+
+-- TeamPlayer
+CREATE TABLE "TeamPlayer" (
+  "id" TEXT NOT NULL,
+  "teamId" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "tier" TEXT NOT NULL DEFAULT 'B',
+  CONSTRAINT "TeamPlayer_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "TeamPlayer_teamId_playerId_key" ON "TeamPlayer"("teamId", "playerId");
+
+-- Match
+CREATE TABLE "Match" (
+  "id" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "round" INTEGER NOT NULL DEFAULT 1,
+  "matchNumber" INTEGER NOT NULL DEFAULT 1,
+  "bracket" TEXT NOT NULL DEFAULT 'upper',
+  "groupLabel" TEXT,
+  "format" TEXT NOT NULL DEFAULT 'BO1',
+  "team1Id" TEXT,
+  "team2Id" TEXT,
+  "score1" INTEGER,
+  "score2" INTEGER,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "winnerId" TEXT,
+  "loserId" TEXT,
+  "mvpPlayerId" TEXT,
+  "scheduledAt" TIMESTAMP(3),
+  "completedAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Match_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "Match_tournamentId_idx" ON "Match"("tournamentId");
+CREATE INDEX "Match_status_idx" ON "Match"("status");
+CREATE INDEX "Match_tournamentId_bracket_round_idx" ON "Match"("tournamentId", "bracket", "round");
+
+-- Participation
+CREATE TABLE "Participation" (
+  "id" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'registered',
+  "tierOverride" TEXT,
+  "pointsEarned" INTEGER NOT NULL DEFAULT 0,
+  "isMvp" BOOLEAN NOT NULL DEFAULT false,
+  "isWinner" BOOLEAN NOT NULL DEFAULT false,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Participation_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Participation_playerId_tournamentId_key" ON "Participation"("playerId", "tournamentId");
+CREATE INDEX "Participation_tournamentId_status_idx" ON "Participation"("tournamentId", "status");
+CREATE INDEX "Participation_isMvp_idx" ON "Participation"("isMvp");
+
+-- Donation
+CREATE TABLE "Donation" (
+  "id" TEXT NOT NULL,
+  "donorName" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "message" TEXT,
+  "type" TEXT NOT NULL DEFAULT 'weekly',
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "tournamentId" TEXT,
+  "seasonId" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Donation_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "Donation_tournamentId_idx" ON "Donation"("tournamentId");
+CREATE INDEX "Donation_seasonId_idx" ON "Donation"("seasonId");
+CREATE INDEX "Donation_status_idx" ON "Donation"("status");
+
+-- TournamentPrize
+CREATE TABLE "TournamentPrize" (
+  "id" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "label" TEXT NOT NULL,
+  "position" INTEGER NOT NULL DEFAULT 0,
+  "prizeAmount" INTEGER NOT NULL DEFAULT 0,
+  "pointsPerPlayer" INTEGER NOT NULL DEFAULT 0,
+  "recipientCount" INTEGER NOT NULL DEFAULT 1,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "TournamentPrize_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "TournamentPrize_tournamentId_idx" ON "TournamentPrize"("tournamentId");
+
+-- Account
+CREATE TABLE "Account" (
+  "id" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "username" TEXT NOT NULL,
+  "passwordHash" TEXT NOT NULL,
+  "email" TEXT,
+  "phone" TEXT,
+  "donorBadgeCount" INTEGER NOT NULL DEFAULT 0,
+  "lastLoginAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Account_playerId_key" ON "Account"("playerId");
+CREATE UNIQUE INDEX "Account_username_key" ON "Account"("username");
+CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
+CREATE INDEX "Account_username_idx" ON "Account"("username");
+CREATE INDEX "Account_email_idx" ON "Account"("email");
+
+-- Skin
+CREATE TABLE "Skin" (
+  "id" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "displayName" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "icon" TEXT NOT NULL,
+  "colorClass" TEXT NOT NULL,
+  "priority" INTEGER NOT NULL DEFAULT 0,
+  "duration" TEXT NOT NULL DEFAULT 'permanent',
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Skin_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Skin_type_key" ON "Skin"("type");
+CREATE INDEX "Skin_type_idx" ON "Skin"("type");
+CREATE INDEX "Skin_priority_idx" ON "Skin"("priority");
+
+-- PlayerSkin
+CREATE TABLE "PlayerSkin" (
+  "id" TEXT NOT NULL,
+  "accountId" TEXT NOT NULL,
+  "skinId" TEXT NOT NULL,
+  "awardedBy" TEXT,
+  "reason" TEXT,
+  "expiresAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PlayerSkin_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "PlayerSkin_accountId_skinId_key" ON "PlayerSkin"("accountId", "skinId");
+CREATE INDEX "PlayerSkin_accountId_idx" ON "PlayerSkin"("accountId");
+CREATE INDEX "PlayerSkin_expiresAt_idx" ON "PlayerSkin"("expiresAt");
+
+-- LeagueMatch
+CREATE TABLE "LeagueMatch" (
+  "id" TEXT NOT NULL,
+  "seasonId" TEXT NOT NULL,
+  "club1Id" TEXT NOT NULL,
+  "club2Id" TEXT NOT NULL,
+  "score1" INTEGER,
+  "score2" INTEGER,
+  "week" INTEGER NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'upcoming',
+  "format" TEXT NOT NULL DEFAULT 'BO3',
+  CONSTRAINT "LeagueMatch_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "LeagueMatch_seasonId_status_idx" ON "LeagueMatch"("seasonId", "status");
+CREATE INDEX "LeagueMatch_seasonId_week_idx" ON "LeagueMatch"("seasonId", "week");
+
+-- PlayoffMatch
+CREATE TABLE "PlayoffMatch" (
+  "id" TEXT NOT NULL,
+  "seasonId" TEXT NOT NULL,
+  "club1Id" TEXT NOT NULL,
+  "club2Id" TEXT NOT NULL,
+  "score1" INTEGER,
+  "score2" INTEGER,
+  "round" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'upcoming',
+  "format" TEXT NOT NULL DEFAULT 'BO5',
+  CONSTRAINT "PlayoffMatch_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "PlayoffMatch_seasonId_idx" ON "PlayoffMatch"("seasonId");
+CREATE INDEX "PlayoffMatch_status_idx" ON "PlayoffMatch"("status");
+
+-- CmsSection
+CREATE TABLE "CmsSection" (
+  "id" TEXT NOT NULL,
+  "slug" TEXT NOT NULL,
+  "title" TEXT NOT NULL DEFAULT '',
+  "subtitle" TEXT NOT NULL DEFAULT '',
+  "description" TEXT NOT NULL DEFAULT '',
+  "bannerUrl" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CmsSection_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "CmsSection_slug_key" ON "CmsSection"("slug");
+
+-- CmsCard
+CREATE TABLE "CmsCard" (
+  "id" TEXT NOT NULL,
+  "sectionId" TEXT NOT NULL,
+  "title" TEXT NOT NULL DEFAULT '',
+  "subtitle" TEXT NOT NULL DEFAULT '',
+  "description" TEXT NOT NULL DEFAULT '',
+  "imageUrl" TEXT,
+  "videoUrl" TEXT,
+  "linkUrl" TEXT,
+  "tag" TEXT,
+  "tagColor" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CmsCard_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "CmsCard_sectionId_idx" ON "CmsCard"("sectionId");
+
+-- CmsSetting
+CREATE TABLE "CmsSetting" (
+  "id" TEXT NOT NULL,
+  "key" TEXT NOT NULL,
+  "value" TEXT NOT NULL DEFAULT '',
+  "type" TEXT NOT NULL DEFAULT 'text',
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CmsSetting_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "CmsSetting_key_key" ON "CmsSetting"("key");
+
+-- PlayerPoint
+CREATE TABLE "PlayerPoint" (
+  "id" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "tournamentId" TEXT,
+  "matchId" TEXT,
+  "amount" INTEGER NOT NULL,
+  "reason" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "PlayerPoint_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "PlayerPoint_playerId_idx" ON "PlayerPoint"("playerId");
+CREATE INDEX "PlayerPoint_tournamentId_idx" ON "PlayerPoint"("tournamentId");
+CREATE INDEX "PlayerPoint_reason_idx" ON "PlayerPoint"("reason");
+CREATE INDEX "PlayerPoint_playerId_tournamentId_idx" ON "PlayerPoint"("playerId", "tournamentId");
+
+-- Achievement
+CREATE TABLE "Achievement" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "displayName" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "category" TEXT NOT NULL,
+  "icon" TEXT NOT NULL,
+  "tier" TEXT NOT NULL DEFAULT 'bronze',
+  "criteria" TEXT NOT NULL,
+  "rewardPoints" INTEGER NOT NULL DEFAULT 0,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Achievement_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Achievement_name_key" ON "Achievement"("name");
+CREATE INDEX "Achievement_category_idx" ON "Achievement"("category");
+CREATE INDEX "Achievement_isActive_idx" ON "Achievement"("isActive");
+
+-- PlayerAchievement
+CREATE TABLE "PlayerAchievement" (
+  "id" TEXT NOT NULL,
+  "playerId" TEXT NOT NULL,
+  "achievementId" TEXT NOT NULL,
+  "tournamentId" TEXT,
+  "earnedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "context" TEXT,
+  CONSTRAINT "PlayerAchievement_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "PlayerAchievement_playerId_achievementId_key" ON "PlayerAchievement"("playerId", "achievementId");
+CREATE INDEX "PlayerAchievement_playerId_idx" ON "PlayerAchievement"("playerId");
+CREATE INDEX "PlayerAchievement_achievementId_idx" ON "PlayerAchievement"("achievementId");
+CREATE INDEX "PlayerAchievement_earnedAt_idx" ON "PlayerAchievement"("earnedAt");
+
+-- Sponsor
+CREATE TABLE "Sponsor" (
+  "id" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "logo" TEXT,
+  "website" TEXT,
+  "description" TEXT,
+  "tier" TEXT NOT NULL DEFAULT 'bronze',
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Sponsor_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "Sponsor_tier_idx" ON "Sponsor"("tier");
+CREATE INDEX "Sponsor_isActive_idx" ON "Sponsor"("isActive");
+
+-- TournamentSponsor
+CREATE TABLE "TournamentSponsor" (
+  "id" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "sponsorId" TEXT NOT NULL,
+  "role" TEXT NOT NULL DEFAULT 'supporter',
+  "displayOrder" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "TournamentSponsor_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "TournamentSponsor_tournamentId_sponsorId_key" ON "TournamentSponsor"("tournamentId", "sponsorId");
+CREATE INDEX "TournamentSponsor_tournamentId_idx" ON "TournamentSponsor"("tournamentId");
+
+-- SponsoredPrize
+CREATE TABLE "SponsoredPrize" (
+  "id" TEXT NOT NULL,
+  "tournamentId" TEXT NOT NULL,
+  "sponsorId" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "description" TEXT,
+  "prizeType" TEXT NOT NULL DEFAULT 'voucher',
+  "value" INTEGER NOT NULL DEFAULT 0,
+  "quantity" INTEGER NOT NULL DEFAULT 1,
+  "position" TEXT,
+  "imageUrl" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SponsoredPrize_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "SponsoredPrize_tournamentId_idx" ON "SponsoredPrize"("tournamentId");
+CREATE INDEX "SponsoredPrize_sponsorId_idx" ON "SponsoredPrize"("sponsorId");
+
+-- SponsorBanner
+CREATE TABLE "SponsorBanner" (
+  "id" TEXT NOT NULL,
+  "sponsorId" TEXT NOT NULL,
+  "placement" TEXT NOT NULL,
+  "imageUrl" TEXT NOT NULL,
+  "linkUrl" TEXT,
+  "width" INTEGER,
+  "height" INTEGER,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "displayOrder" INTEGER NOT NULL DEFAULT 0,
+  "startDate" TIMESTAMP(3),
+  "endDate" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SponsorBanner_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "SponsorBanner_placement_idx" ON "SponsorBanner"("placement");
+CREATE INDEX "SponsorBanner_sponsorId_idx" ON "SponsorBanner"("sponsorId");
+
+-- ============================================================
+-- STEP 2b: ADD FOREIGN KEY CONSTRAINTS
+-- ============================================================
+
+-- Season FKs
+ALTER TABLE "Season" ADD CONSTRAINT "Season_championClubId_fkey" FOREIGN KEY ("championClubId") REFERENCES "ClubProfile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Season" ADD CONSTRAINT "Season_championPlayerId_fkey" FOREIGN KEY ("championPlayerId") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Club FKs
+ALTER TABLE "Club" ADD CONSTRAINT "Club_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "ClubProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Club" ADD CONSTRAINT "Club_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- ClubMember FKs
+ALTER TABLE "ClubMember" ADD CONSTRAINT "ClubMember_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "ClubProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ClubMember" ADD CONSTRAINT "ClubMember_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Tournament FK
+ALTER TABLE "Tournament" ADD CONSTRAINT "Tournament_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Team FK
+ALTER TABLE "Team" ADD CONSTRAINT "Team_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- TeamPlayer FKs
+ALTER TABLE "TeamPlayer" ADD CONSTRAINT "TeamPlayer_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TeamPlayer" ADD CONSTRAINT "TeamPlayer_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Match FKs
+ALTER TABLE "Match" ADD CONSTRAINT "Match_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_team1Id_fkey" FOREIGN KEY ("team1Id") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_team2Id_fkey" FOREIGN KEY ("team2Id") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_loserId_fkey" FOREIGN KEY ("loserId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_mvpPlayerId_fkey" FOREIGN KEY ("mvpPlayerId") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Participation FKs
+ALTER TABLE "Participation" ADD CONSTRAINT "Participation_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Participation" ADD CONSTRAINT "Participation_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Donation FKs
+ALTER TABLE "Donation" ADD CONSTRAINT "Donation_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Donation" ADD CONSTRAINT "Donation_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- TournamentPrize FK
+ALTER TABLE "TournamentPrize" ADD CONSTRAINT "TournamentPrize_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Account FK
+ALTER TABLE "Account" ADD CONSTRAINT "Account_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- PlayerSkin FKs
+ALTER TABLE "PlayerSkin" ADD CONSTRAINT "PlayerSkin_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayerSkin" ADD CONSTRAINT "PlayerSkin_skinId_fkey" FOREIGN KEY ("skinId") REFERENCES "Skin"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- LeagueMatch FKs
+ALTER TABLE "LeagueMatch" ADD CONSTRAINT "LeagueMatch_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "LeagueMatch" ADD CONSTRAINT "LeagueMatch_club1Id_fkey" FOREIGN KEY ("club1Id") REFERENCES "Club"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "LeagueMatch" ADD CONSTRAINT "LeagueMatch_club2Id_fkey" FOREIGN KEY ("club2Id") REFERENCES "Club"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- PlayoffMatch FKs
+ALTER TABLE "PlayoffMatch" ADD CONSTRAINT "PlayoffMatch_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayoffMatch" ADD CONSTRAINT "PlayoffMatch_club1Id_fkey" FOREIGN KEY ("club1Id") REFERENCES "Club"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayoffMatch" ADD CONSTRAINT "PlayoffMatch_club2Id_fkey" FOREIGN KEY ("club2Id") REFERENCES "Club"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- CmsCard FK
+ALTER TABLE "CmsCard" ADD CONSTRAINT "CmsCard_sectionId_fkey" FOREIGN KEY ("sectionId") REFERENCES "CmsSection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- PlayerPoint FKs
+ALTER TABLE "PlayerPoint" ADD CONSTRAINT "PlayerPoint_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayerPoint" ADD CONSTRAINT "PlayerPoint_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "PlayerPoint" ADD CONSTRAINT "PlayerPoint_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "Match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- PlayerAchievement FKs
+ALTER TABLE "PlayerAchievement" ADD CONSTRAINT "PlayerAchievement_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayerAchievement" ADD CONSTRAINT "PlayerAchievement_achievementId_fkey" FOREIGN KEY ("achievementId") REFERENCES "Achievement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayerAchievement" ADD CONSTRAINT "PlayerAchievement_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- TournamentSponsor FKs
+ALTER TABLE "TournamentSponsor" ADD CONSTRAINT "TournamentSponsor_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TournamentSponsor" ADD CONSTRAINT "TournamentSponsor_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- SponsoredPrize FKs
+ALTER TABLE "SponsoredPrize" ADD CONSTRAINT "SponsoredPrize_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SponsoredPrize" ADD CONSTRAINT "SponsoredPrize_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- SponsorBanner FK
+ALTER TABLE "SponsorBanner" ADD CONSTRAINT "SponsorBanner_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- ============================================================
+-- STEP 3: INSERT SEED DATA
+-- ============================================================
+
+-- ======== SEASONS ========
+INSERT INTO "Season" ("id", "name", "number", "division", "status", "startDate", "championClubId", "championPlayerId", "championSquad", "createdAt", "updatedAt")
+VALUES
+  ('sn_m1', 'IDM League Season 1 - Male', 1, 'male', 'active', '2025-01-06 00:00:00+00', NULL, NULL, NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('sn_f1', 'IDM League Season 1 - Female', 1, 'female', 'completed', '2025-01-06 00:00:00+00', 'cpr_maximous', NULL, NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('sn_f2', 'Season 2 - Female', 2, 'female', 'active', '2025-04-01 00:00:00+00', NULL, NULL, NULL, '2025-04-01 00:00:00+00', '2025-04-01 00:00:00+00')
 ON CONFLICT ("id") DO NOTHING;
 
--- ── TOURNAMENTS ──
-INSERT INTO "Tournament" ("id", "name", "weekNumber", "division", "status", "format", "defaultMatchFormat", "seasonId", "prizePool", "bpm", "location", "scheduledAt", "finalizedAt", "completedAt", "createdAt", "updatedAt")
-VALUES ('cmod6ghe7006bu9722r7g82m6', 'TARKAM YUKS...', 1, 'male', 'completed', 'single_elimination', 'BO3', 'cmocz8zc80007u9b1hv1g32dr', 240000, 'Random 120-140', 'Pub 1', NULL, '2026-04-24 18:16:09.389+00:00', '2026-04-24 18:16:09.389+00:00', '2026-04-24 17:21:33.199+00:00', '2026-04-24 18:16:09.390+00:00')
+-- ======== MALE PLAYERS (51) ========
+INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
+VALUES
+  ('mp_1', 'AbdnZ', 'AbdnZ', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_2', 'afi', 'afi', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_3', 'Afroki', 'Afroki', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_4', 'Airuen', 'Airuen', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_5', 'Armors', 'Armors', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_6', 'astro', 'astro', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_7', 'Bambang', 'Bambang', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_8', 'Boby', 'Boby', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_9', 'CARAOSEL', 'CARAOSEL', 'male', 'B', NULL, 5, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_10', 'cepz', 'cepz', 'male', 'B', NULL, 5, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_11', 'chand', 'chand', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_12', 'chikoo', 'chikoo', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_13', 'Chrollo', 'Chrollo', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_14', 'DUUL', 'DUUL', 'male', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_15', 'Dylee', 'Dylee', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_16', 'Earth', 'Earth', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_17', 'fyy', 'fyy', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_18', 'Georgie', 'Georgie', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_19', 'ipinnn', 'ipinnn', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_20', 'Jave', 'Jave', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_21', 'janskie', 'janskie', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_22', 'jugger', 'jugger', 'male', 'B', NULL, 50, 2, 1, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_23', 'justice', 'justice', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_24', 'Kageno', 'Kageno', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_25', 'KIERAN', 'KIERAN', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_26', 'KIRA', 'KIRA', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_27', 'Life', 'Life', 'male', 'B', NULL, 15, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_28', 'marimo', 'marimo', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_29', 'montiel', 'montiel', 'male', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_30', 'Oura', 'Oura', 'male', 'B', NULL, 15, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_31', 'Ren', 'Ren', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_32', 'RIVALDO', 'RIVALDO', 'male', 'B', NULL, 10, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_33', 'RONALD', 'RONALD', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_34', 'rusel', 'rusel', 'male', 'B', NULL, 55, 2, 1, 2, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_35', 'sheraid', 'sheraid', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_36', 'sting', 'sting', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_37', 'tazos', 'tazos', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_38', 'tonsky', 'tonsky', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_39', 'Vankless', 'Vankless', 'male', 'B', NULL, 45, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_40', 'VBBOY', 'VBBOY', 'male', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_41', 'VICKY', 'VICKY', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_42', 'Vriskey_', 'Vriskey_', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_43', 'WHYSON', 'WHYSON', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_44', 'XIAOPEI', 'XIAOPEI', 'male', 'B', NULL, 5, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_45', 'yay', 'yay', 'male', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_46', 'ziafu', 'ziafu', 'male', 'B', NULL, 5, 0, 0, 0, 0, 1, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_47', 'ZABYER', 'ZABYER', 'male', 'B', NULL, 20, 0, 0, 0, 0, 2, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_48', 'zmz', 'zmz', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_49', 'ZORO', 'ZORO', 'male', 'A', NULL, 75, 3, 1, 3, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_50', 'zico', 'zico', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('mp_51', 'ZORO2', 'ZORO', 'male', 'B', NULL, 0, 0, 0, 0, 0, 0, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00')
 ON CONFLICT ("id") DO NOTHING;
 
--- ── ADMINS ──
-INSERT INTO "Admin" ("id", "username", "passwordHash", "role", "createdAt", "updatedAt")
-VALUES ('cmocdaqbn0000sonuis1jm72p', 'jose', '$2b$10$g3EaEIDnHrU80Gj.lzVbMeR/OJhxqdNEGL2dB/hjp.NMaH9Wsxdxa', 'super_admin', '2026-04-24 03:45:15.971+00:00', '2026-04-24 17:39:47.064+00:00')
+-- Wait, ZORO is duplicate gamertag! Remove the last one
+DELETE FROM "Player" WHERE "id" = 'mp_51';
+
+-- ======== FEMALE PLAYERS (26) ========
+INSERT INTO "Player" ("id", "name", "gamertag", "division", "tier", "avatar", "points", "totalWins", "totalMvp", "streak", "maxStreak", "matches", "isActive", "phone", "city", "joki", "registrationStatus", "createdAt", "updatedAt")
+VALUES
+  ('fp_1', 'Afrona', 'Afrona', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_2', 'AiTan', 'AiTan', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_3', 'arcalya', 'arcalya', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_4', 'cami', 'cami', 'female', 'S', NULL, 135, 5, 2, 5, 5, 7, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_5', 'cheeyaqq', 'cheeyaqq', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_6', 'ciki_w', 'ciki_w', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_7', 'damncil', 'damncil', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_8', 'dysa', 'dysa', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_9', 'Elvareca', 'Elvareca', 'female', 'A', NULL, 85, 3, 1, 3, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_10', 'evony', 'evony', 'female', 'S', NULL, 95, 4, 1, 4, 4, 6, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_11', 'Eive', 'Eive', 'female', 'B', NULL, 35, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_12', 'Indy', 'Indy', 'female', 'S', NULL, 95, 4, 1, 4, 4, 6, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_13', 'irazz', 'irazz', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_14', 'kacee', 'kacee', 'female', 'S', NULL, 135, 5, 2, 5, 5, 7, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_15', 'Liz', 'Liz', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_16', 'meatry', 'meatry', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_17', 'mishelle', 'mishelle', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_18', 'moy', 'moy', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_19', 'reptil', 'reptil', 'female', 'B', NULL, 50, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_20', 's_melin', 's_melin', 'female', 'B', NULL, 35, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_21', 'skylin', 'skylin', 'female', 'B', NULL, 60, 2, 0, 0, 2, 4, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_22', 'Veronicc', 'Veronicc', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_23', 'Vion', 'Vion', 'female', 'S', NULL, 90, 4, 0, 4, 4, 6, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_24', 'weywey', 'weywey', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_25', 'yaaay', 'yaaay', 'female', 'B', NULL, 30, 1, 0, 0, 1, 3, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('fp_26', 'yoonabi', 'yoonabi', 'female', 'A', NULL, 70, 3, 0, 0, 3, 5, true, NULL, '', NULL, 'approved', '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00')
 ON CONFLICT ("id") DO NOTHING;
 
--- ── SKINS ──
-
--- ── CMS SETTINGS ──
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd20000u9b138bfi9uc', 'hero_title', '', 'text', '2026-04-24 12:02:11.799+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd30002u9b1w61xrzby', 'hero_bg_desktop', '', 'image', '2026-04-24 12:02:11.799+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd30003u9b1wqurx2rt', 'hero_bg_mobile', '', 'image', '2026-04-24 12:02:11.799+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd30005u9b1l0ofskod', 'hero_bg_video', 'https://youtu.be/s8CydQ-Y3Hs?list=RDs8CydQ-Y3Hs&t=3', 'text', '2026-04-24 12:02:11.800+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd30004u9b1o6upqpqp', 'hero_tagline', '', 'text', '2026-04-24 12:02:11.799+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmocv1sd20001u9b1r6mv3t10', 'hero_subtitle', '', 'text', '2026-04-24 12:02:11.799+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4bhru0000u999r733ozmw', 'registration_admin_wa_link', 'https://wa.me/6281373333439', 'text', '2026-04-24 16:58:00.940+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4bhry0001u999e49ak15j', 'registration_payment_instructions', '', 'text', '2026-04-24 16:58:00.898+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g7230031u972ivtkv17f', 'donation_qris_image', '', 'image', '2026-04-24 16:58:00.783+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g75a0032u972pm7h271p', 'donation_payment_holder', 'Citra Liliana', 'text', '2026-04-24 16:58:00.791+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g75k0033u972vhcuvim4', 'donation_shopeepay_number', '08123456789', 'text', '2026-04-24 16:58:00.774+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g76e0034u972j9wgxsl4', 'donation_dana_number', '08123456789', 'text', '2026-04-24 16:58:00.789+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g76p0035u972g89lia0r', 'donation_ovo_number', '08123456789', 'text', '2026-04-24 16:58:00.767+00:00')
-ON CONFLICT ("id") DO NOTHING;
-INSERT INTO "CmsSetting" ("id", "key", "value", "type", "updatedAt")
-VALUES ('cmod4g7700036u972vnx8fa2d', 'donation_payment_notes', '', 'text', '2026-04-24 16:58:00.766+00:00')
+-- ======== CLUB PROFILES (21) ========
+INSERT INTO "ClubProfile" ("id", "name", "logo", "bannerImage", "createdAt", "updatedAt")
+VALUES
+  ('cpr_alqa', 'ALQA', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_avenue', 'AVENUE', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722508/idm/logos/j8zw91uiulijp8gf8ugg.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_crown', 'CROWN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_euphoric', 'EUPHORIC', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722372/idm/logos/cdstmpd99aetv3xvbwu0.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_gymshark', 'GYMSHARK', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839600/idm/logos/fymwsgztdv0egvjite2o.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_jasmine', 'JASMINE', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_maximous', 'MAXIMOUS', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722447/idm/logos/ewl70fqyehvdhefxq76h.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_mystery', 'MYSTERY', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_orphic', 'ORPHIC', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775992653/logo1_tzieua.png', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_paranoid', 'PARANOID', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722406/idm/logos/iwd3khpecy8yo1mx94js.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_platr', 'Plat R', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775748244/idm/logos/aydxk3fnrdkcmqh48aoi.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_psalm', 'PSALM', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722357/idm/logos/agyc2zkbafrvf1kjrc0b.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_queen', 'QUEEN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839657/idm/logos/gzfny3tfdkxircyyxaxu.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_restart', 'RESTART', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722457/idm/logos/kdtgjq5sdecmfjtflude.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_rnb', 'RNB', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722517/idm/logos/migrego3avfcr0pganyq.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_salvador', 'SALVADOR', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722472/idm/logos/zxikdnl6ycqx4hkfmpwi.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_secrets', 'SECRETS', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722381/idm/logos/shcq5q4air1xkpqnz1hi.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_sensei', 'SENSEI', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775714050/logo_nvzi1a.png', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_southern', 'SOUTHERN', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775839645/idm/logos/upuq4u9bccaihdnh6llb.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_together', 'TOGETHER', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722484/idm/logos/xm73kzny0klrncflhxfj.jpg', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00'),
+  ('cpr_yakuza', 'YAKUZA', 'https://res.cloudinary.com/dagoryri5/image/upload/v1775722530/idm/logos/o1ujmjazgv1nxdpjzkew.webp', NULL, '2025-01-06 00:00:00+00', '2025-01-06 00:00:00+00')
 ON CONFLICT ("id") DO NOTHING;
 
--- ── CMS SECTIONS & CARDS ──
+-- ======== CLUB SEASON ENTRIES ========
 
--- ══════════════════════════════════════════════════
--- SEED COMPLETE
--- ══════════════════════════════════════════════════
+-- Male Season 1 clubs (15 clubs)
+INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
+VALUES
+  ('ce_alqa_m1', 'cpr_alqa', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_avenue_m1', 'cpr_avenue', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_crown_m1', 'cpr_crown', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_euphoric_m1', 'cpr_euphoric', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_gymshark_m1', 'cpr_gymshark', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_jasmine_m1', 'cpr_jasmine', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_maximous_m1', 'cpr_maximous', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_mystery_m1', 'cpr_mystery', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_orphic_m1', 'cpr_orphic', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_paranoid_m1', 'cpr_paranoid', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_restart_m1', 'cpr_restart', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_salvador_m1', 'cpr_salvador', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_secrets_m1', 'cpr_secrets', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_sensei_m1', 'cpr_sensei', 'male', 'sn_m1', 0, 0, 0, 0),
+  ('ce_southern_m1', 'cpr_southern', 'male', 'sn_m1', 0, 0, 0, 0)
+ON CONFLICT ("id") DO NOTHING;
+
+-- Female Season 1 clubs (13 clubs)
+INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
+VALUES
+  ('ce_euphoric_f1', 'cpr_euphoric', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_gymshark_f1', 'cpr_gymshark', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_maximous_f1', 'cpr_maximous', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_paranoid_f1', 'cpr_paranoid', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_platr_f1', 'cpr_platr', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_psalm_f1', 'cpr_psalm', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_queen_f1', 'cpr_queen', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_restart_f1', 'cpr_restart', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_rnb_f1', 'cpr_rnb', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_secrets_f1', 'cpr_secrets', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_southern_f1', 'cpr_southern', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_together_f1', 'cpr_together', 'female', 'sn_f1', 0, 0, 0, 0),
+  ('ce_yakuza_f1', 'cpr_yakuza', 'female', 'sn_f1', 0, 0, 0, 0)
+ON CONFLICT ("id") DO NOTHING;
+
+-- Female Season 2 clubs (13 clubs — same as S1)
+INSERT INTO "Club" ("id", "profileId", "division", "seasonId", "wins", "losses", "points", "gameDiff")
+VALUES
+  ('ce_euphoric_f2', 'cpr_euphoric', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_gymshark_f2', 'cpr_gymshark', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_maximous_f2', 'cpr_maximous', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_paranoid_f2', 'cpr_paranoid', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_platr_f2', 'cpr_platr', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_psalm_f2', 'cpr_psalm', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_queen_f2', 'cpr_queen', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_restart_f2', 'cpr_restart', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_rnb_f2', 'cpr_rnb', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_secrets_f2', 'cpr_secrets', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_southern_f2', 'cpr_southern', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_together_f2', 'cpr_together', 'female', 'sn_f2', 0, 0, 0, 0),
+  ('ce_yakuza_f2', 'cpr_yakuza', 'female', 'sn_f2', 0, 0, 0, 0)
+ON CONFLICT ("id") DO NOTHING;
+
+-- ======== CLUB MEMBERSHIPS ========
+-- First player per club = captain, rest = member
+-- joinedAt = '2025-01-06 00:00:00+00', leftAt = NULL
+
+-- MALE CLUB MEMBERS
+-- MAXIMOUS (15 members): AbdnZ=captain, afi, astro, Bambang, Boby, chand, Earth, KIERAN, Ren, RONALD, sheraid, sting, tonsky, VICKY, yay
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp1_max', 'cpr_maximous', 'mp_1', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp2_max', 'cpr_maximous', 'mp_2', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp6_max', 'cpr_maximous', 'mp_6', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp7_max', 'cpr_maximous', 'mp_7', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp8_max', 'cpr_maximous', 'mp_8', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp11_max', 'cpr_maximous', 'mp_11', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp16_max', 'cpr_maximous', 'mp_16', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp25_max', 'cpr_maximous', 'mp_25', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp31_max', 'cpr_maximous', 'mp_31', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp33_max', 'cpr_maximous', 'mp_33', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp35_max', 'cpr_maximous', 'mp_35', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp36_max', 'cpr_maximous', 'mp_36', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp38_max', 'cpr_maximous', 'mp_38', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp41_max', 'cpr_maximous', 'mp_41', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp45_max', 'cpr_maximous', 'mp_45', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- SOUTHERN (5 members): Afroki=captain, Armors, janskie, KIRA, Vankless
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp3_sth', 'cpr_southern', 'mp_3', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp5_sth', 'cpr_southern', 'mp_5', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp21_sth', 'cpr_southern', 'mp_21', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp26_sth', 'cpr_southern', 'mp_26', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp39_sth', 'cpr_southern', 'mp_39', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- AVENUE (3 members): Airuen=captain, Kageno, VBBOY
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp4_avn', 'cpr_avenue', 'mp_4', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp24_avn', 'cpr_avenue', 'mp_24', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp40_avn', 'cpr_avenue', 'mp_40', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- ORPHIC (1 member): CARAOSEL=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp9_orp', 'cpr_orphic', 'mp_9', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- SALVADOR (3 members): cepz=captain, Life, Oura
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp10_sal', 'cpr_salvador', 'mp_10', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp27_sal', 'cpr_salvador', 'mp_27', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp30_sal', 'cpr_salvador', 'mp_30', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- SENSEI (2 members): chikoo=captain, Dylee
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp12_sen', 'cpr_sensei', 'mp_12', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp15_sen', 'cpr_sensei', 'mp_15', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- EUPHORIC (5 members): Chrollo=captain, justice, RIVALDO, Vriskey_, zico
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp13_eup', 'cpr_euphoric', 'mp_13', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp23_eup', 'cpr_euphoric', 'mp_23', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp32_eup', 'cpr_euphoric', 'mp_32', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp42_eup', 'cpr_euphoric', 'mp_42', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp50_eup', 'cpr_euphoric', 'mp_50', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- PARANOID (3 members): DUUL=captain, montiel, ZORO
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp14_par', 'cpr_paranoid', 'mp_14', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp29_par', 'cpr_paranoid', 'mp_29', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp49_par', 'cpr_paranoid', 'mp_49', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- GYMSHARK (5 members): fyy=captain, ipinnn, jugger, rusel, tazos
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp17_gym', 'cpr_gymshark', 'mp_17', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp19_gym', 'cpr_gymshark', 'mp_19', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp22_gym', 'cpr_gymshark', 'mp_22', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp34_gym', 'cpr_gymshark', 'mp_34', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp37_gym', 'cpr_gymshark', 'mp_37', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- ALQA (2 members): Georgie=captain, zmz
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp18_alq', 'cpr_alqa', 'mp_18', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp48_alq', 'cpr_alqa', 'mp_48', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- RESTART (2 members): Jave=captain, WHYSON
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp20_res', 'cpr_restart', 'mp_20', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_mp43_res', 'cpr_restart', 'mp_43', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- SECRETS (1 member): marimo=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp28_sec', 'cpr_secrets', 'mp_28', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- CROWN (1 member): XIAOPEI=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp44_crw', 'cpr_crown', 'mp_44', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- JASMINE (1 member): ZABYER=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp47_jas', 'cpr_jasmine', 'mp_47', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- MYSTERY (1 member): ziafu=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_mp46_mys', 'cpr_mystery', 'mp_46', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- FEMALE CLUB MEMBERS
+-- SOUTHERN (4 members): Afrona=captain, arcalya, Liz, reptil
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp1_sth', 'cpr_southern', 'fp_1', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp3_sth', 'cpr_southern', 'fp_3', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp15_sth', 'cpr_southern', 'fp_15', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp19_sth', 'cpr_southern', 'fp_19', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- PARANOID (5 members): AiTan=captain, irazz, mishelle, Veronicc, yoonabi
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp2_par', 'cpr_paranoid', 'fp_2', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp13_par', 'cpr_paranoid', 'fp_13', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp17_par', 'cpr_paranoid', 'fp_17', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp22_par', 'cpr_paranoid', 'fp_22', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp26_par', 'cpr_paranoid', 'fp_26', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- MAXIMOUS (3 members): cami=captain, Indy, kacee
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp4_max', 'cpr_maximous', 'fp_4', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp12_max', 'cpr_maximous', 'fp_12', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp14_max', 'cpr_maximous', 'fp_14', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- SECRETS (1 member): cheeyaqq=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp5_sec', 'cpr_secrets', 'fp_5', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- TOGETHER (1 member): ciki_w=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp6_tog', 'cpr_together', 'fp_6', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- EUPHORIC (3 members): damncil=captain, Elvareca, skylin
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp7_eup', 'cpr_euphoric', 'fp_7', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp9_eup', 'cpr_euphoric', 'fp_9', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp21_eup', 'cpr_euphoric', 'fp_21', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- RESTART (1 member): dysa=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp8_res', 'cpr_restart', 'fp_8', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- GYMSHARK (1 member): evony=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp10_gym', 'cpr_gymshark', 'fp_10', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- PSALM (1 member): Eive=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp11_psl', 'cpr_psalm', 'fp_11', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- YAKUZA (3 members): meatry=captain, moy, yaaay
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp16_yak', 'cpr_yakuza', 'fp_16', 'captain', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp18_yak', 'cpr_yakuza', 'fp_18', 'member', '2025-01-06 00:00:00+00', NULL),
+  ('cmr_fp25_yak', 'cpr_yakuza', 'fp_25', 'member', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- PLAT R (1 member): s_melin=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp20_plr', 'cpr_platr', 'fp_20', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- QUEEN (1 member): Vion=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp23_que', 'cpr_queen', 'fp_23', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+-- RNB (1 member): weywey=captain
+INSERT INTO "ClubMember" ("id", "profileId", "playerId", "role", "joinedAt", "leftAt")
+VALUES
+  ('cmr_fp24_rnb', 'cpr_rnb', 'fp_24', 'captain', '2025-01-06 00:00:00+00', NULL)
+ON CONFLICT ("id") DO NOTHING;
+
+COMMIT;
+
+-- ============================================================
+-- SELESAI! Database sudah siap dipakai.
+-- ============================================================
+-- Ringkasan data yang dimasukkan:
+-- - 3 Seasons (Male S1, Female S1, Female S2)
+-- - 50 Male Players
+-- - 26 Female Players
+-- - 21 Club Profiles
+-- - 41 Club Season Entries (15 male + 13 female S1 + 13 female S2)
+-- - 77 Club Memberships
+-- ============================================================
