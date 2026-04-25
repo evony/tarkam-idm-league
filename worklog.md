@@ -3042,3 +3042,27 @@ Unresolved Issues / Risks:
 1. Neon database contains old schema — prisma db push during first Vercel build will sync/overwrite
 2. Need to set environment variables in Vercel Dashboard before deploying
 3. output: "standalone" in next.config.ts may need removal for Vercel (currently harmless)
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix Neon database seeding - championPlayerId column missing error
+
+Work Log:
+- User reported error: `column "championPlayerId" of relation "Season" does not exist` when running raw SQL in Neon SQL editor
+- Root cause: Neon PostgreSQL database schema out of sync with Prisma schema (missing columns)
+- The raw SQL script approach was fragile because PostgreSQL column names may differ from Prisma field names
+- Solution: Use Prisma Client (which handles all schema mapping) instead of raw SQL
+- Modified `/api/seed/route.ts`: Allow unauthenticated access when database is empty (fixes chicken-and-egg problem — can't auth when no admin exists)
+- Created `/api/setup/route.ts`: Combined init-admin + seed endpoint that works without auth on empty DB
+  - Creates super admin (username: ADMIN_USERNAME env, default: jose)
+  - Seeds full database (51 male + 26 female players, 21 clubs, 3 seasons)
+  - Idempotent — safe to call multiple times
+- Pushed to GitHub to trigger Vercel re-deploy (which runs `prisma db push` to sync Neon schema)
+- Tested locally: both endpoints work correctly
+
+Stage Summary:
+- Fixed: `/api/seed` now allows unauthenticated seeding on empty databases
+- New: `/api/setup` endpoint combines init-admin + seed in one call
+- Vercel re-deploy will re-sync Neon schema (adding missing `championPlayerId` column)
+- User can now seed Neon by calling `POST /api/setup` on production URL after deploy completes
